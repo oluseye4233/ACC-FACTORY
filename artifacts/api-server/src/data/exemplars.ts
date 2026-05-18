@@ -59,6 +59,16 @@ const ENTRIES: Entry[] = [
     filename: "SPARTAN_SPC_v1_0_1779069054055.md",
   },
   {
+    id: "atlas-ultra-si",
+    title: "ATLAS ULTRA SI",
+    tagline: "PromptWare Design Document architect (powers F6)",
+    jcse: 50,
+    certClass: "PLATINUM",
+    source: "canonical",
+    kind: "SPC",
+    filename: "ATLAS_ULTRA_SI_SPC_v1.0_1779146869478.md",
+  },
+  {
     id: "titan-ultra-si",
     title: "TITAN ULTRA SI",
     tagline: "Orchestration archetype for multi-engine pipelines",
