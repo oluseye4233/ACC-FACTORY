@@ -1,6 +1,6 @@
 # ATANDA Command Centre
 
-A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authenticated portal in front of the 8-engine FORGE.BONSAI HARNESS (F1–F7 + F6-VDJ), with a public `/pricing` surface, Stripe-billed tiers, and per-session prompt → SPC → PDD → certified MVP-PDD artifact pipeline.
+A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authenticated portal in front of the FORGE.BONSAI HARNESS — itself a **PDD blueprint application**, not an SPC. The HARNESS is the instruction layer: a sequence of atomic prompts (F1–F7 + F6-VDJ, plus the DE-SPC synthesiser) that drives the LLM through a deterministic prompt → SPC → PDD → certified MVP-PDD pipeline for each user session. Public `/pricing` surface, Stripe-billed tiers.
 
 ## Run & Operate
 
@@ -45,7 +45,7 @@ A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authe
 
 ## Product
 
-A subscription portal where a creator runs a single coherent FORGE.BONSAI session: F1 diagnoses a raw prompt → F2 builds an Atomic Prompt → F3 grows a CELL Molecular Agent Birth Package (with possible escalation to F5) → F4 converts to a Micro PDD → F5 builds a full SPC → F6 drafts a 4-Part ATLAS PDD (+ VIBE DJ recommendation) → F7 compresses to a SPARTAN-certified MVP PDD with a public verification URL.
+A subscription portal where a creator runs a single coherent FORGE.BONSAI session. **The HARNESS itself is a PDD-blueprint application** — its engines are ordered atomic prompts that act as an instruction layer for the model; they are not SPCs and must never be described as such. The artifacts the HARNESS *produces* on behalf of the user are the SPCs and PDDs. Per session: F1 diagnoses a raw prompt → F2 builds an Atomic Prompt → F3 grows a CELL Molecular Agent Birth Package (with possible escalation to F5) → F4 converts to a Micro PDD → F5 builds a full SPC → F6 drafts a 4-Part ATLAS PDD (+ VIBE DJ recommendation) → F7 compresses to a SPARTAN-certified MVP PDD with a public verification URL.
 
 ## User preferences
 
