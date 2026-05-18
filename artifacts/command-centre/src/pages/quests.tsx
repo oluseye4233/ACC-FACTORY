@@ -8,22 +8,26 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Award, CheckCircle2, Lock, ShieldCheck, Trophy } from "lucide-react";
+import badgeBg from "@assets/copilot_image_1779143975171_1779147194124.jpeg";
 
-const BADGE_META: Record<string, { name: string; description: string; reqText: string; icon: typeof Trophy }> = {
+const BADGE_META: Record<string, { name: string; fullName: string; description: string; reqText: string; icon: typeof Trophy }> = {
   ASPE: {
     name: "ASPE",
+    fullName: "ADAPTIVE SPC PRACTITIONER",
     description: "Adaptive SPC Practitioner — unlocks DE-SPC auto-evolution.",
     reqText: "Create at least 3 SPCs AND at least 4 Molecular Agent Birth Packages.",
     icon: ShieldCheck,
   },
   AISA: {
     name: "AISA",
+    fullName: "AI SOLUTION ARCHITECT",
     description: "AI Solution Architect — full ATLAS PDD lifecycle completion.",
     reqText: "Create at least 1 ATLAS PDD, 1 Micro PDD, and 1 MVP PDD.",
     icon: Award,
   },
   AISE: {
     name: "AISE",
+    fullName: "AI SOLUTION ENGINEER",
     description: "AI Solution Engineer — shipped AI agents built with SPC DNA.",
     reqText: "Submit a verified URL to a working GPT, CoPilot, native app, or custom SPC-DNA agent.",
     icon: Trophy,
@@ -56,25 +60,70 @@ export default function Quests() {
                 const meta = BADGE_META[b.badgeId]!;
                 const Icon = meta.icon;
                 const locked = b.status === "LOCKED";
+                const claimed = b.status === "CLAIMED";
                 return (
-                  <Card key={b.badgeId} className={`bg-card ${locked ? "opacity-60" : ""}`}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between mb-2">
-                        <Icon className={`h-8 w-8 ${locked ? "text-muted-foreground" : "text-primary"}`} />
-                        <span className={`text-[10px] font-mono font-bold px-2 py-1 rounded border ${
-                          b.status === "CLAIMED" ? "bg-primary/20 text-primary border-primary/40" :
-                          b.status === "UNLOCKED" ? "bg-secondary/20 text-secondary border-secondary/40" :
-                          "bg-muted text-muted-foreground border-muted-foreground/20"
-                        }`}>
-                          {b.status === "CLAIMED" && <CheckCircle2 className="h-3 w-3 inline mr-1" />}
-                          {b.status === "LOCKED" && <Lock className="h-3 w-3 inline mr-1" />}
-                          {b.status}
-                        </span>
+                  <Card
+                    key={b.badgeId}
+                    className={`bg-card overflow-hidden flex flex-col ${
+                      claimed ? "ring-2 ring-primary/60 shadow-lg shadow-primary/20" : ""
+                    }`}
+                  >
+                    {/* Hero badge crest */}
+                    <div className="relative aspect-square w-full overflow-hidden border-b">
+                      <img
+                        src={badgeBg}
+                        alt={`${meta.name} badge`}
+                        className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${
+                          locked ? "grayscale brightness-50" : "saturate-150"
+                        }`}
+                      />
+                      {/* Vignette */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/90" />
+                      {/* Status chip */}
+                      <span
+                        className={`absolute top-3 right-3 text-[10px] font-mono font-bold px-2 py-1 rounded border backdrop-blur-sm ${
+                          claimed
+                            ? "bg-primary/30 text-primary-foreground border-primary/60"
+                            : b.status === "UNLOCKED"
+                            ? "bg-secondary/30 text-secondary-foreground border-secondary/60"
+                            : "bg-background/60 text-muted-foreground border-muted-foreground/30"
+                        }`}
+                      >
+                        {claimed && <CheckCircle2 className="h-3 w-3 inline mr-1" />}
+                        {locked && <Lock className="h-3 w-3 inline mr-1" />}
+                        {b.status}
+                      </span>
+                      {/* Icon corner */}
+                      <Icon
+                        className={`absolute top-3 left-3 h-7 w-7 drop-shadow-lg ${
+                          locked ? "text-muted-foreground/70" : "text-yellow-300"
+                        }`}
+                      />
+                      {/* Centerpiece label */}
+                      <div className="absolute inset-x-0 bottom-3 text-center">
+                        <div
+                          className={`font-display text-4xl tracking-[0.2em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] ${
+                            locked ? "text-muted-foreground" : "text-yellow-200"
+                          }`}
+                        >
+                          {meta.name}
+                        </div>
+                        <div className="font-mono text-[9px] tracking-widest text-muted-foreground mt-0.5">
+                          {meta.fullName}
+                        </div>
                       </div>
-                      <CardTitle className="font-display tracking-wide text-2xl">{meta.name}</CardTitle>
+                      {/* Lock overlay for locked badges */}
+                      {locked && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Lock className="h-16 w-16 text-background/80 drop-shadow-lg" strokeWidth={1.5} />
+                        </div>
+                      )}
+                    </div>
+
+                    <CardHeader className="pb-3">
                       <CardDescription className="text-xs">{meta.description}</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="flex-1">
                       <div className="text-xs font-mono text-muted-foreground mb-3">{meta.reqText}</div>
                       <div className="space-y-1.5">
                         {Object.entries(b.requirements).map(([k, req]) => {
@@ -85,10 +134,15 @@ export default function Quests() {
                             <div key={k}>
                               <div className="flex justify-between text-[10px] font-mono mb-0.5">
                                 <span className="text-muted-foreground uppercase">{k}</span>
-                                <span className={met ? "text-primary font-bold" : "text-foreground"}>{cur} / {req}</span>
+                                <span className={met ? "text-primary font-bold" : "text-foreground"}>
+                                  {cur} / {req}
+                                </span>
                               </div>
                               <div className="h-1 bg-muted rounded">
-                                <div className={`h-full rounded transition-all ${met ? "bg-primary" : "bg-secondary"}`} style={{ width: `${pct}%` }} />
+                                <div
+                                  className={`h-full rounded transition-all ${met ? "bg-primary" : "bg-secondary"}`}
+                                  style={{ width: `${pct}%` }}
+                                />
                               </div>
                             </div>
                           );
