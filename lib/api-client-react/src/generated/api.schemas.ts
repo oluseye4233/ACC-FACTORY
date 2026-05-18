@@ -119,6 +119,24 @@ export interface MeResponse {
   subscriber: Subscriber;
 }
 
+export interface UsageWindow {
+  totalTokens: number;
+  totalCostUsd: number;
+}
+
+export interface UsageByEngine {
+  engineId: number;
+  runs: number;
+  totalTokens: number;
+  totalCostUsd: number;
+}
+
+export interface UsageReport {
+  day: UsageWindow;
+  month: UsageWindow;
+  byEngine: UsageByEngine[];
+}
+
 export interface HarnessSession {
   id: string;
   sessionName: string;

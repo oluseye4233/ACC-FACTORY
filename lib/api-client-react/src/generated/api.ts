@@ -57,6 +57,7 @@ import type {
   SessionUpdate,
   StripeWebhookPayload,
   UnauthorizedResponse,
+  UsageReport,
   VdjRecommendation,
   VerifyCertificateParams,
   VerifyResult
@@ -293,6 +294,83 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Err
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMeQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMyUsageUrl = () => {
+
+
+
+
+  return `/api/me/usage`
+}
+
+/**
+ * @summary Token + cost usage for the calling user
+ */
+export const getMyUsage = async ( options?: RequestInit): Promise<UsageReport> => {
+
+  return customFetch<UsageReport>(getGetMyUsageUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyUsageQueryKey = () => {
+    return [
+    `/api/me/usage`
+    ] as const;
+    }
+
+
+export const getGetMyUsageQueryOptions = <TData = Awaited<ReturnType<typeof getMyUsage>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyUsage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyUsageQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyUsage>>> = ({ signal }) => getMyUsage({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyUsage>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMyUsageQueryResult = NonNullable<Awaited<ReturnType<typeof getMyUsage>>>
+export type GetMyUsageQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary Token + cost usage for the calling user
+ */
+
+export function useGetMyUsage<TData = Awaited<ReturnType<typeof getMyUsage>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyUsage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMyUsageQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

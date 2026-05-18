@@ -59,6 +59,20 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /me/usage:
+    get:
+      operationId: getMyUsage
+      tags: [me]
+      summary: Token + cost usage for the calling user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UsageReport" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /sessions:
     get:
       operationId: listSessions
@@ -604,6 +618,32 @@ components:
         displayName: { type: ["string", "null"] }
         role: { type: string }
         subscriber: { $ref: "#/components/schemas/Subscriber" }
+
+    UsageWindow:
+      type: object
+      required: [totalTokens, totalCostUsd]
+      properties:
+        totalTokens: { type: integer }
+        totalCostUsd: { type: number }
+
+    UsageByEngine:
+      type: object
+      required: [engineId, runs, totalTokens, totalCostUsd]
+      properties:
+        engineId: { type: integer }
+        runs: { type: integer }
+        totalTokens: { type: integer }
+        totalCostUsd: { type: number }
+
+    UsageReport:
+      type: object
+      required: [day, month, byEngine]
+      properties:
+        day: { $ref: "#/components/schemas/UsageWindow" }
+        month: { $ref: "#/components/schemas/UsageWindow" }
+        byEngine:
+          type: array
+          items: { $ref: "#/components/schemas/UsageByEngine" }
 
     HarnessSession:
       type: object

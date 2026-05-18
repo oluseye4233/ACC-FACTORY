@@ -10,7 +10,7 @@ A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authe
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL`, `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY` (auto-provisioned)
-- Optional env: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_{PRACTITIONER,ARCHITECT}_{MONTHLY,YEARLY}`, `ANTHROPIC_API_KEY`, `ADMIN_EMAILS` (comma-separated), `CRON_SECRET`
+- Optional env: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_{PRACTITIONER,ARCHITECT}_{MONTHLY,YEARLY}`, `ANTHROPIC_API_KEY`, `ADMIN_EMAILS` (comma-separated), `CRON_SECRET`, `RESEND_API_KEY` + `EMAIL_FROM` (transactional email; falls back to `[email:dry-run]` console log when unset), `SENTRY_DSN` (API) + `VITE_SENTRY_DSN` (web; both no-op when unset), `PUBLIC_BASE_URL` (used to build cert verify URLs in outgoing emails)
 
 ## Stack
 
@@ -58,7 +58,10 @@ A subscription portal where a creator runs a single coherent FORGE.BONSAI sessio
 - **Generated Zod = operationId-shaped.** Use `CreateSessionBody.safeParse(req.body)`, not `SessionInput`. Response shapes have no Zod — return plain objects typed by the TS interface.
 - **Clerk proxy mounts before body parsers.** Order in `app.ts` matters: `CLERK_PROXY_PATH` → `/api/webhooks/stripe` (raw) → cors → json/urlencoded → `clerkMiddleware` → `/api` routes.
 - **Never call service ports directly.** Always go through `localhost:80` (e.g. `curl localhost:80/api/healthz`), never `localhost:5000`.
-- **`cancelAtPeriodEnd` is stored as text** ("true"/"false") on `command_centre_subscribers` for MVP simplicity — convert at the API boundary.
+- **Stripe webhook is idempotent.** Every event id is recorded in `stripe_webhook_events` (PK on `event_id`) on receipt; replays return `{ok:true, replay:true}` without re-executing handlers. If a handler throws, the idempotency row is rolled back so Stripe can legitimately retry.
+- **Unknown Stripe price ids fail loudly.** `applySubscription` throws `UnknownPriceError` → 400, logged with `{priceId, customerId}`. Add new price envs (`STRIPE_PRICE_*`) before launching a new tier.
+- **Per-engine telemetry** is written to `harness_engine_runs` on every Claude call via the optional `RunContext` argument to `callClaude`/`callClaudeJson`. Failures here log a warning but never break the request — telemetry is best-effort.
+- **Sentry init must run before any other module-side-effect imports** in `app.ts`; both API (`@sentry/node`) and web (`@sentry/react`) gate on DSN env and no-op cleanly in dev. `@opentelemetry/*` is NOT externalized in the esbuild bundle (Sentry needs it bundled into the CJS output).
 
 ## Pointers
 

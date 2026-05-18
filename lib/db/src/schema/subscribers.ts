@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -18,7 +18,7 @@ export const commandCentreSubscribersTable = pgTable("command_centre_subscribers
   stripePriceId: varchar("stripe_price_id", { length: 255 }),
   status: text("status").notNull().default("inactive"),
   currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
-  cancelAtPeriodEnd: text("cancel_at_period_end").notNull().default("false"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
 
   f1Today: integer("f1_today").notNull().default(0),
   f2Today: integer("f2_today").notNull().default(0),

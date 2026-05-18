@@ -48,7 +48,11 @@ export async function handleF2(req: Request, res: Response): Promise<void> {
   const userPrompt = `Certify this Atomic Prompt 7-tuple.\n\n${JSON.stringify(tuple, null, 2)}`;
   let out: z.infer<typeof F2OutputSchema>;
   try {
-    out = await callClaudeJson(F2_SYSTEM, userPrompt, F2OutputSchema);
+    out = await callClaudeJson(F2_SYSTEM, userPrompt, F2OutputSchema, {
+      sessionId,
+      userId: guard.userId,
+      engineId: 2,
+    });
   } catch (err) {
     req.log.error({ err }, "F2 engine call failed");
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });

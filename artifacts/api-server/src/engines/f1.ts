@@ -61,7 +61,11 @@ export async function handleF1(req: Request, res: Response): Promise<void> {
   const userPrompt = `Diagnose this user prompt against the 7 ATLAS pillars.\n\n<<<USER_PROMPT>>>\n${prompt}\n<<<END_USER_PROMPT>>>`;
   let out: z.infer<typeof F1OutputSchema>;
   try {
-    out = await callClaudeJson(F1_SYSTEM, userPrompt, F1OutputSchema);
+    out = await callClaudeJson(F1_SYSTEM, userPrompt, F1OutputSchema, {
+      sessionId,
+      userId: guard.userId,
+      engineId: 1,
+    });
   } catch (err) {
     req.log.error({ err }, "F1 engine call failed");
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });

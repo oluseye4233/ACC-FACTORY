@@ -54,6 +54,27 @@ export const GetMeResponse = zod.object({
 })
 
 
+/**
+ * @summary Token + cost usage for the calling user
+ */
+export const GetMyUsageResponse = zod.object({
+  "day": zod.object({
+  "totalTokens": zod.number(),
+  "totalCostUsd": zod.number()
+}),
+  "month": zod.object({
+  "totalTokens": zod.number(),
+  "totalCostUsd": zod.number()
+}),
+  "byEngine": zod.array(zod.object({
+  "engineId": zod.number(),
+  "runs": zod.number(),
+  "totalTokens": zod.number(),
+  "totalCostUsd": zod.number()
+}))
+})
+
+
 export const ListSessionsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "sessionName": zod.string(),

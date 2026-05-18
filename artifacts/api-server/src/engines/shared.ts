@@ -7,16 +7,26 @@ import {
   harnessArtifactsTable,
   harnessFeatureStateTable,
   harnessEscalationsTable,
+  harnessEngineRunsTable,
   type ArtifactType,
 } from "@workspace/db";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
 import type { Request } from "express";
+import { computeCostUsd } from "../lib/pricing";
+import { logger } from "../lib/logger";
 
 // Sonnet 4 generation; per skill rules — max_tokens minimum 8192.
 export const MODEL = "claude-sonnet-4-6";
 export const MAX_TOKENS = 8192;
 
 export type CertTier = "BRONZE" | "SILVER" | "GOLD" | "PLATINUM" | "NONE";
+
+/** Per-call telemetry context. Populating this triggers a `harness_engine_runs` row. */
+export interface RunContext {
+  sessionId: string;
+  userId: string;
+  engineId: number;
+}
 
 export function certTierForJcse(total: number): CertTier {
   if (total >= 45) return "PLATINUM";
@@ -92,9 +102,6 @@ export async function persistArtifact(
   return row!;
 }
 
-/** Mark the current feature COMPLETE and unlock the next one (best-effort).
- *  Re-running a feature must never downgrade a later COMPLETE feature back to
- *  AVAILABLE — we only unlock the next feature when it is still LOCKED. */
 export async function advanceFeatureState(
   sessionId: string,
   completedFeatureId: number,
@@ -138,14 +145,51 @@ export async function recordEscalation(
   });
 }
 
+async function recordRun(
+  ctx: RunContext,
+  inputTokens: number,
+  outputTokens: number,
+  durationMs: number,
+): Promise<void> {
+  try {
+    const cost = computeCostUsd(MODEL, inputTokens, outputTokens);
+    await db.insert(harnessEngineRunsTable).values({
+      sessionId: ctx.sessionId,
+      userId: ctx.userId,
+      engineId: ctx.engineId,
+      modelId: MODEL,
+      inputTokens,
+      outputTokens,
+      costUsd: cost.toFixed(6),
+      durationMs,
+    });
+  } catch (err) {
+    // Telemetry must never break a request.
+    logger.warn({ err }, "Failed to record harness_engine_runs row");
+  }
+}
+
 /** Call Anthropic with a system+user prompt; return the raw assistant text. */
-export async function callClaude(systemPrompt: string, userPrompt: string): Promise<string> {
+export async function callClaude(
+  systemPrompt: string,
+  userPrompt: string,
+  ctx?: RunContext,
+): Promise<string> {
+  const start = Date.now();
   const message = await anthropic.messages.create({
     model: MODEL,
     max_tokens: MAX_TOKENS,
     system: systemPrompt,
     messages: [{ role: "user", content: userPrompt }],
   });
+  if (ctx) {
+    await recordRun(
+      ctx,
+      message.usage?.input_tokens ?? 0,
+      message.usage?.output_tokens ?? 0,
+      Date.now() - start,
+    );
+  }
   const block = message.content[0];
   if (!block || block.type !== "text") return "";
   return block.text;
@@ -154,18 +198,15 @@ export async function callClaude(systemPrompt: string, userPrompt: string): Prom
 /** Extract the first JSON object/array from a string (tolerates stray prose). */
 export function extractJson(raw: string): unknown {
   const trimmed = raw.trim();
-  // strip markdown fences if any
   const noFence = trimmed
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```\s*$/i, "")
     .trim();
-  // try direct parse first
   try {
     return JSON.parse(noFence);
   } catch {
     // fall through
   }
-  // find first { ... } balanced
   const start = noFence.indexOf("{");
   const lastBrace = noFence.lastIndexOf("}");
   if (start !== -1 && lastBrace > start) {
@@ -184,8 +225,9 @@ export async function callClaudeJson<T>(
   systemPrompt: string,
   userPrompt: string,
   schema: z.ZodType<T>,
+  ctx?: RunContext,
 ): Promise<T> {
-  const raw = await callClaude(systemPrompt, userPrompt);
+  const raw = await callClaude(systemPrompt, userPrompt, ctx);
   const parsed = extractJson(raw);
   const result = schema.safeParse(parsed);
   if (!result.success) {

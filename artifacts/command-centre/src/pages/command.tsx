@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { TopNav } from "@/components/layout/TopNav";
-import { useGetMe, useListSessions, useHealthDeep, useListExemplars } from "@workspace/api-client-react";
+import { useGetMe, useListSessions, useHealthDeep, useListExemplars, useGetMyUsage } from "@workspace/api-client-react";
 import { TierBadge } from "@/components/shared/TierBadge";
 import { ENGINES } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -14,6 +14,7 @@ export default function Command() {
   const { data: sessions, isLoading: isLoadingSessions } = useListSessions();
   const { data: health, isLoading: isLoadingHealth } = useHealthDeep();
   const { data: exemplars } = useListExemplars();
+  const { data: usageReport, isLoading: isLoadingUsage } = useGetMyUsage();
 
   const activeSessions = sessions?.filter(s => s.status !== "COMPLETE").length || 0;
   const recentSessions = sessions?.slice(0, 5) || [];
@@ -290,6 +291,31 @@ export default function Command() {
                       }`}>
                         {health?.engines || 'UNKNOWN'}
                       </span>
+                    </div>
+
+                    <div className="pt-4 border-t border-border">
+                      <div className="font-mono text-xs uppercase text-muted-foreground mb-3">Usage This Month</div>
+                      {isLoadingUsage ? (
+                        <Skeleton className="h-12 w-full" />
+                      ) : (
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <div className="font-mono text-[10px] uppercase text-muted-foreground">Tokens</div>
+                            <div className="font-mono text-xl font-bold text-primary">
+                              {(usageReport?.month?.totalTokens ?? 0).toLocaleString()}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="font-mono text-[10px] uppercase text-muted-foreground">Cost (USD)</div>
+                            <div className="font-mono text-xl font-bold text-foreground">
+                              ${(usageReport?.month?.totalCostUsd ?? 0).toFixed(2)}
+                            </div>
+                          </div>
+                          <div className="col-span-2 font-mono text-[10px] text-muted-foreground">
+                            Today: {(usageReport?.day?.totalTokens ?? 0).toLocaleString()} tok · ${(usageReport?.day?.totalCostUsd ?? 0).toFixed(4)}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {health?.status !== 'ok' && health?.status !== undefined && (

@@ -33,7 +33,11 @@ export async function handleF6Vdj(req: Request, res: Response): Promise<void> {
   const userPrompt = `Recommend a VIBE for this ATLAS PDD:\n${JSON.stringify(pdd.artifactContent, null, 2)}`;
   let out: z.infer<typeof VdjOutputSchema>;
   try {
-    out = await callClaudeJson(F6_VDJ_SYSTEM, userPrompt, VdjOutputSchema);
+    out = await callClaudeJson(F6_VDJ_SYSTEM, userPrompt, VdjOutputSchema, {
+      sessionId,
+      userId: guard.userId,
+      engineId: 6,
+    });
   } catch (err) {
     req.log.error({ err }, "F6-VDJ engine call failed");
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });

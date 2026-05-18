@@ -1,6 +1,9 @@
 import { z } from "zod/v4";
 import type { Request, Response } from "express";
 import { HarnessF7StreamBody } from "@workspace/api-zod";
+import { eq } from "drizzle-orm";
+import { db, harnessSessionsTable } from "@workspace/db";
+import { sendCertIssued } from "@workspace/email";
 import { F7_SYSTEM } from "./prompts";
 import {
   advanceFeatureState,
@@ -65,7 +68,11 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
 
   const llmPromise = (async () => {
     const userPrompt = `Compress this ATLAS PDD via the 7-step SPARTAN SCM:\n${JSON.stringify(pdd.artifactContent, null, 2)}`;
-    return callClaudeJson(F7_SYSTEM, userPrompt, F7OutputSchema);
+    return callClaudeJson(F7_SYSTEM, userPrompt, F7OutputSchema, {
+      sessionId,
+      userId: guard.userId,
+      engineId: 7,
+    });
   })();
 
   send("start", { totalSteps: SPARTAN_STEPS.length });
@@ -104,6 +111,25 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
     spartanCert: cert,
   });
   await advanceFeatureState(sessionId, 7);
+
+  // Fire-and-await email — failure must not interrupt the SSE response.
+  if (req.localUser?.email) {
+    const sessRows = await db
+      .select({ name: harnessSessionsTable.sessionName })
+      .from(harnessSessionsTable)
+      .where(eq(harnessSessionsTable.id, sessionId))
+      .limit(1);
+    const sessionName = sessRows[0]?.name ?? "Untitled session";
+    const verifyBase = process.env.PUBLIC_BASE_URL ?? "";
+    const verifyUrl = `${verifyBase}/verify?certId=${encodeURIComponent(cert.certId)}`;
+    sendCertIssued({
+      to: req.localUser.email,
+      certId: cert.certId,
+      certClass: cert.class,
+      sessionName,
+      verifyUrl,
+    }).catch((err) => req.log.warn({ err }, "sendCertIssued failed"));
+  }
 
   if (clientClosed) return;
   send("complete", {

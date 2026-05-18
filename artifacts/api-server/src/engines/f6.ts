@@ -56,7 +56,11 @@ export async function handleF6(req: Request, res: Response): Promise<void> {
 
   let out: z.infer<typeof F6OutputSchema>;
   try {
-    out = await callClaudeJson(F6_SYSTEM, userPrompt, F6OutputSchema);
+    out = await callClaudeJson(F6_SYSTEM, userPrompt, F6OutputSchema, {
+      sessionId,
+      userId: guard.userId,
+      engineId: 6,
+    });
   } catch (err) {
     req.log.error({ err }, "F6 engine call failed");
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });

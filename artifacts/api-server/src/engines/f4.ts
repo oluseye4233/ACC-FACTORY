@@ -37,7 +37,11 @@ export async function handleF4(req: Request, res: Response): Promise<void> {
   const userPrompt = `Source artifact (${source.artifactType}):\n${JSON.stringify(source.artifactContent, null, 2)}\n\nTarget VIBE: ${targetVibe}`;
   let out: z.infer<typeof F4OutputSchema>;
   try {
-    out = await callClaudeJson(F4_SYSTEM, userPrompt, F4OutputSchema);
+    out = await callClaudeJson(F4_SYSTEM, userPrompt, F4OutputSchema, {
+      sessionId,
+      userId: guard.userId,
+      engineId: 4,
+    });
   } catch (err) {
     req.log.error({ err }, "F4 engine call failed");
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });

@@ -78,7 +78,11 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
   // package in parallel.
   const llmPromise = (async () => {
     const userPrompt = `Atomic Prompt:\n${JSON.stringify(atomicPrompt, null, 2)}\n\nIntent: ${intent ?? "(none provided)"}`;
-    return callClaudeJson(F3_SYSTEM, userPrompt, F3OutputSchema);
+    return callClaudeJson(F3_SYSTEM, userPrompt, F3OutputSchema, {
+      sessionId,
+      userId: guard.userId,
+      engineId: 3,
+    });
   })();
 
   send("start", { totalOrganelles: ORGANELLES.length });
@@ -121,7 +125,24 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
 
   if (clientClosed) return;
   send("classification", out.classification);
-  if (out.escalated) send("escalation", { from: 3, to: 5 });
+  if (out.escalated) {
+    send("escalation", { from: 3, to: 5 });
+    if (req.localUser?.email) {
+      const { sendEscalationGranted } = await import("@workspace/email");
+      const { db: _db, harnessSessionsTable: _t } = await import("@workspace/db");
+      const { eq: _eq } = await import("drizzle-orm");
+      const rows = await _db
+        .select({ name: _t.sessionName })
+        .from(_t)
+        .where(_eq(_t.id, sessionId))
+        .limit(1);
+      sendEscalationGranted({
+        to: req.localUser.email,
+        engine: "F3 → F5",
+        sessionName: rows[0]?.name ?? "Untitled session",
+      }).catch((err) => req.log.warn({ err }, "sendEscalationGranted failed"));
+    }
+  }
   send("complete", { ...out, artifactId: artifact.id });
   res.end();
 }

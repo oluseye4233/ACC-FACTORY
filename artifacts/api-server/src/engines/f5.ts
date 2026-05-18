@@ -60,6 +60,7 @@ export async function handleF5(req: Request, res: Response): Promise<void> {
         F5_FINALIZE_SYSTEM,
         `Accumulated FORGE 7-step answers:\n${JSON.stringify(accumulated, null, 2)}`,
         SpcOutputSchema,
+        { sessionId, userId: guard.userId, engineId: 5 },
       );
     } catch (err) {
       req.log.error({ err }, "F5 finalize failed");
@@ -91,6 +92,7 @@ export async function handleF5(req: Request, res: Response): Promise<void> {
       F5_QUESTION_SYSTEM,
       `Current step: ${nextStep} of ${TOTAL_STEPS}.\nAnswers so far:\n${JSON.stringify(accumulated, null, 2)}`,
       QuestionOutputSchema,
+      { sessionId, userId: guard.userId, engineId: 5 },
     );
   } catch (err) {
     req.log.error({ err }, "F5 question failed");
