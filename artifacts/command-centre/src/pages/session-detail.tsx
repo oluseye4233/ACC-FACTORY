@@ -13,7 +13,14 @@ import { ArtifactTray } from "@/components/shared/ArtifactTray";
 import { EscalationModal } from "@/components/shared/EscalationModal";
 import { GRODot } from "@/components/shared/GRODot";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Terminal, AlertTriangle } from "lucide-react";
+import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { F1TestPrompt } from "@/components/workspaces/F1TestPrompt";
+import { F2BuildAtomic } from "@/components/workspaces/F2BuildAtomic";
+import { F3BuildMa } from "@/components/workspaces/F3BuildMa";
+import { F4MicroPdd } from "@/components/workspaces/F4MicroPdd";
+import { F5BuildSpc } from "@/components/workspaces/F5BuildSpc";
+import { F6DraftPdd } from "@/components/workspaces/F6DraftPdd";
+import { F7ConvertMvp } from "@/components/workspaces/F7ConvertMvp";
 
 export default function SessionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -133,31 +140,18 @@ export default function SessionDetail() {
               </p>
             </div>
             
-            {/* STAGE 3 PLACEHOLDER */}
-            <div className="flex-1 border border-border/50 bg-card/30 backdrop-blur rounded-lg flex flex-col items-center justify-center p-8 text-center relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-              
-              <Terminal className="h-16 w-16 text-muted-foreground/30 mb-6" />
-              
-              <div className="space-y-4 max-w-md relative z-10">
-                <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-mono font-bold text-primary">
-                  STAGE 3 — WORKSPACE PENDING
-                </div>
-                
-                <h3 className="font-display text-2xl text-foreground">
-                  {activeEngine.name} INTERFACE OFFLINE
-                </h3>
-                
-                <p className="text-sm text-muted-foreground font-mono leading-relaxed">
-                  The internal mechanics for {activeEngine.title} are scheduled for Stage 3 deployment. 
-                  This surface will house the functional workspace for the engine.
-                </p>
-              </div>
-              
-              <div className="absolute bottom-4 left-4 text-[10px] font-mono text-muted-foreground/50">
-                SYS.MODULE_{activeEngine.name}
-              </div>
-            </div>
+            {/* STAGE 3 WORKSPACES */}
+            {id && (
+              <>
+                {activeEngineId === 1 && <F1TestPrompt sessionId={id} />}
+                {activeEngineId === 2 && <F2BuildAtomic sessionId={id} artifacts={artifacts || []} />}
+                {activeEngineId === 3 && <F3BuildMa sessionId={id} artifacts={artifacts || []} />}
+                {activeEngineId === 4 && <F4MicroPdd sessionId={id} artifacts={artifacts || []} />}
+                {activeEngineId === 5 && <F5BuildSpc sessionId={id} />}
+                {activeEngineId === 6 && <F6DraftPdd sessionId={id} artifacts={artifacts || []} />}
+                {activeEngineId === 7 && <F7ConvertMvp sessionId={id} artifacts={artifacts || []} />}
+              </>
+            )}
           </div>
         </div>
         
