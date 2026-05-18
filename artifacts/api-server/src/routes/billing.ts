@@ -67,10 +67,15 @@ router.post("/billing/checkout", requireAuth, async (req, res): Promise<void> =>
       .where(eq(commandCentreSubscribersTable.id, req.subscriber!.id));
   }
 
+  // First-time subscribers get a 30-day free trial on any paid plan.
+  const alreadySubscribedBefore = Boolean(req.subscriber!.stripeSubscriptionId);
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
+    subscription_data: alreadySubscribedBefore
+      ? undefined
+      : { trial_period_days: 30 },
     success_url: parsed.data.successUrl ?? `${origin}/billing?status=success`,
     cancel_url: parsed.data.cancelUrl ?? `${origin}/pricing?status=cancel`,
     metadata: { localUserId: req.localUser!.id, tier: parsed.data.tier },

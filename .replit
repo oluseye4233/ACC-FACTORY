@@ -30,3 +30,11 @@ externalPort = 80
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+STRIPE_PRICE_PRACTITIONER_MONTHLY = "price_1TYGhf4vTID2utsVB9CtsYrn"
+STRIPE_PRICE_PRACTITIONER_YEARLY = "price_1TYGhf4vTID2utsVrxQ8PC6L"
+STRIPE_PRICE_ARCHITECT_MONTHLY = "price_1TYGhg4vTID2utsV9PJNbk4r"
+STRIPE_PRICE_ARCHITECT_YEARLY = "price_1TYGhg4vTID2utsVN6PLnFCn"
