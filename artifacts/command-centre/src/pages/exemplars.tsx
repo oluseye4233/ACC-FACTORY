@@ -1,10 +1,12 @@
 import { Link, useRoute } from "wouter";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { TopNav } from "@/components/layout/TopNav";
 import { useListExemplars, useGetExemplar } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, BookOpen, FileText, ShieldCheck } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText, GitFork, ShieldCheck } from "lucide-react";
 
 export default function Exemplars() {
   const [matchedDetail, params] = useRoute<{ id: string }>("/exemplars/:id");
@@ -78,15 +80,24 @@ function Detail({ id }: { id: string }) {
           <div className="text-destructive font-mono text-sm">Exemplar not found.</div>
         ) : (
           <>
-            <h1 className="font-display text-3xl tracking-wider flex items-center gap-3 mb-2">
-              {data.kind === "SPC" ? <ShieldCheck className="h-6 w-6 text-primary" /> : <BookOpen className="h-6 w-6 text-secondary" />}
-              {data.title}
-            </h1>
-            <div className="flex gap-3 text-xs font-mono text-muted-foreground">
-              <span>{data.kind}</span>
-              {data.jcse !== null && <span>· JCSE {data.jcse}/50</span>}
-              {data.certClass && <span>· {data.certClass}</span>}
-              <span>· {data.source.replace("_", "-")}</span>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h1 className="font-display text-3xl tracking-wider flex items-center gap-3 mb-2">
+                  {data.kind === "SPC" ? <ShieldCheck className="h-6 w-6 text-primary" /> : <BookOpen className="h-6 w-6 text-secondary" />}
+                  {data.title}
+                </h1>
+                <div className="flex gap-3 text-xs font-mono text-muted-foreground">
+                  <span>{data.kind}</span>
+                  {data.jcse !== null && <span>· JCSE {data.jcse}/50</span>}
+                  {data.certClass && <span>· {data.certClass}</span>}
+                  <span>· {data.source.replace("_", "-")}</span>
+                </div>
+              </div>
+              <Button asChild className="font-display tracking-wider">
+                <Link href={`/session/new?exemplar=${data.id}`}>
+                  <GitFork className="h-4 w-4 mr-2" /> FORK TO SESSION
+                </Link>
+              </Button>
             </div>
           </>
         )}
@@ -94,9 +105,9 @@ function Detail({ id }: { id: string }) {
       {data && (
         <Card className="bg-card">
           <CardContent className="p-6">
-            <pre className="text-xs md:text-sm font-mono whitespace-pre-wrap break-words leading-relaxed text-foreground">
-              {data.body}
-            </pre>
+            <article className="prose prose-invert max-w-none prose-headings:font-display prose-headings:tracking-wide prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-pre:bg-muted/40 prose-pre:text-xs prose-code:text-primary prose-table:text-sm prose-th:font-mono prose-th:uppercase prose-th:text-xs prose-a:text-primary">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{data.body}</ReactMarkdown>
+            </article>
           </CardContent>
         </Card>
       )}

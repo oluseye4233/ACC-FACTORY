@@ -1,19 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { TopNav } from "@/components/layout/TopNav";
-import { useCreateSession, getListSessionsQueryKey } from "@workspace/api-client-react";
+import {
+  useCreateSession,
+  getListSessionsQueryKey,
+  useListExemplars,
+} from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Play } from "lucide-react";
+import { ArrowLeft, GitFork, Play } from "lucide-react";
 
 export default function SessionNew() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const createSession = useCreateSession();
   const [sessionName, setSessionName] = useState("");
+
+  const exemplarId = (() => {
+    const qIdx = location.indexOf("?");
+    const search = qIdx >= 0 ? location.slice(qIdx) : window.location.search;
+    return new URLSearchParams(search).get("exemplar");
+  })();
+  const { data: exemplars } = useListExemplars(
+    { query: { enabled: Boolean(exemplarId) } as never } as never,
+  );
+  const sourceExemplar = exemplarId
+    ? exemplars?.find((e) => e.id === exemplarId)
+    : undefined;
+
+  useEffect(() => {
+    if (sourceExemplar && !sessionName) {
+      setSessionName(`Fork: ${sourceExemplar.title}`);
+    }
+  }, [sourceExemplar, sessionName]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +76,18 @@ export default function SessionNew() {
             <CardDescription className="font-mono text-sm">
               Define the workspace parameter for this sequence.
             </CardDescription>
+            {sourceExemplar && (
+              <div className="mt-2 p-3 rounded border border-primary/20 bg-primary/5 flex items-start gap-2">
+                <GitFork className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                <div className="text-xs font-mono">
+                  <div className="text-primary font-bold">FORKING FROM</div>
+                  <div className="text-foreground">{sourceExemplar.title}</div>
+                  <div className="text-muted-foreground text-[10px] mt-0.5">
+                    {sourceExemplar.tagline}
+                  </div>
+                </div>
+              </div>
+            )}
           </CardHeader>
           
           <form onSubmit={handleSubmit}>

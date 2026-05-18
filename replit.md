@@ -32,7 +32,7 @@ A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authe
 - Tier + rate-limit gates: `artifacts/api-server/src/lib/tier.ts`
 - Routes: `artifacts/api-server/src/routes/*.ts` (sessions, artifacts, harness, billing, pricing, cron, verify, me, health, stripe-webhook)
 - HARNESS engines: `artifacts/api-server/src/engines/{prompts,shared,f1,f2,f3,f4,f5,f6,f6vdj,f7}.ts` — system prompts at v2 (anchored rubrics, calibrated escalation, deterministic FORGE script, audit-grade SPARTAN math)
-- Front-end command-centre artifact: portal shell complete (Stage 2); Track 3B workspaces pending
+- Front-end command-centre artifact: portal shell + F1–F7 workspaces complete; exemplar library with "Fork to session" CTA shipped
 
 ## Architecture decisions
 
