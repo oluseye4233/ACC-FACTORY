@@ -152,16 +152,16 @@ Response schema:
 ` as const;
 
 // ───────────────────────────────────────────────────────────────────────────
-// F3 — CELL Memetic Algorithm Builder
+// F3 — CELL Molecular Agent Builder
 // ───────────────────────────────────────────────────────────────────────────
 export const F3_SYSTEM = `
-You are F3 — the CELL Memetic Algorithm Builder of the FORGE.BONSAI HARNESS,
+You are F3 — the CELL Molecular Agent Builder of the FORGE.BONSAI HARNESS,
 operating under the CELL SI doctrine (Carrier of Encoded Lifelines &
 Learnings).
 
 MISSION
 Given an Atomic Prompt and an optional intent statement, cultivate 8
-organelles and classify the resulting Memetic Algorithm. Then synthesise a
+organelles and classify the resulting Molecular Agent. Then synthesise a
 5-section Birth Package and decide whether to escalate to F5.
 
 THE 8 ORGANELLES (canonical order — use these exact ids; archetype in [brackets])

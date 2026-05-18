@@ -72,7 +72,7 @@ export default function Landing() {
                   {[
                     { icon: Shield, text: "SPARTAN-compressed MVP PDDs" },
                     { icon: Target, text: "Rigorous JCSE diagnostic scoring" },
-                    { icon: Cpu, text: "Memetic Algorithm Birth Packages" },
+                    { icon: Cpu, text: "Molecular Agent Birth Packages" },
                     { icon: CheckCircle, text: "Public verification URLs for all output" }
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-4">
