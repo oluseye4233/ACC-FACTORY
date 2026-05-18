@@ -1,9 +1,11 @@
-// HARNESS engine system prompts — v2.
-// Calibration goals over v1: anchored rubric bands with concrete examples,
-// explicit failure-mode guardrails, calibrated escalation thresholds for F3,
-// deterministic FORGE question scripts for F5, audit-grade compression math
-// for F7. Response schemas are unchanged from v1 — handlers parse them with
-// the Zod schemas in `lib/api-zod` and changing field names will break them.
+// HARNESS engine system prompts — v2.1.
+// v2.1 grounds the prompts in the canonical doctrine of the reference SPC/PDD
+// corpus in `attached_assets/` (SPHINX ULTRA SI, BUGMXT SI, CELL SI, SPARTAN,
+// TITAN ULTRA SI, ATANDA MVP PDD). Schema-locked field names from v1 are
+// preserved — handlers parse with the Zod schemas in `lib/api-zod`. v2.1
+// upgrades: CELL organelle agent attributions, canonical 14-dimension Hive
+// Matrix names, canonical AEOS/NEXUS/PRISM/QUANTUM/SYNTHESIS ZPOS+5 keys,
+// ATANDA-grounded ATLAS phase meanings, canonical VIBE DJ candidate set.
 
 /**
  * Shared instruction: every engine returns STRICT JSON matching the schema
@@ -162,15 +164,19 @@ Given an Atomic Prompt and an optional intent statement, cultivate 8
 organelles and classify the resulting Memetic Algorithm. Then synthesise a
 5-section Birth Package and decide whether to escalate to F5.
 
-THE 8 ORGANELLES (canonical order — use these exact ids)
-  NUCLEUS                Core intent + identity contract.
-  MITOCHONDRION          Energy / motivation / why-now driver.
-  RIBOSOME               Skill + capability synthesis.
-  ENDOPLASMIC_RETICULUM  Knowledge transport and reference plumbing.
-  GOLGI_APPARATUS        Output packaging, formatting, delivery.
-  LYSOSOME               Failure cleanup, retraction, error handling.
-  CYTOSKELETON           Structural memory + persistence scaffolding.
-  MEMBRANE               Boundary / interface / I/O contract with the host.
+THE 8 ORGANELLES (canonical order — use these exact ids; archetype in [brackets])
+  NUCLEUS                Core intent, identity contract, quality gates (JCSE).      [SPHINX archetype]
+  MITOCHONDRION          Energy / motivation / why-now driver; enforces efficiency
+                         ceiling (no more than 3 prompts of overhead).              [SPARTAN archetype]
+  RIBOSOME               Skill + capability synthesis; assembles the Atomic
+                         Prompt and interface contracts.                            [ADA archetype]
+  ENDOPLASMIC_RETICULUM  Knowledge transport, reference plumbing, packaging the
+                         prompt into a Micro PDD.                                   [ATLAS archetype]
+  GOLGI_APPARATUS        Final processing, logic verification, export staging.     [HOLMES archetype]
+  LYSOSOME               Failure cleanup, adversarial stress-test, retraction.     [ARES archetype]
+  CYTOSKELETON           Structural memory + tool / VIBE selection matrix.         [VIBE DJ archetype]
+  MEMBRANE               Boundary / interface; classifies MA-vs-SPC, owns I/O
+                         contract with the host.                                    [SOLVA archetype]
 
 For each organelle return: { id, name, status: "CULTIVATED", output }. The
 "output" string is a 1–3 sentence statement of what that organelle contributes
@@ -332,12 +338,25 @@ THE 15 SECTIONS (use these "key" values verbatim)
                                Layers MUST be drawn from CULTIVATE Pillars.
   6  context_craft_pillars     Markdown table mapping the 7 ATLAS pillars
                                (SYSTEM..DATA) to this card's content.
-  7  hive_matrix_certification 14-dimension scoring table. Dimensions:
-                               clarity, atomicity, role-fit, constraint-rigor,
-                               example-density, format-precision, data-sourcing,
-                               coherence, leverage, evolvability, safety,
-                               auditability, portability, signature-integrity.
-                               Score each 0–10. Render as a 2-column table.
+  7  hive_matrix_certification 14-dimension scoring table — use the canonical
+                               HIVE MATRIX LABS dimension names verbatim:
+                                 1. Functionality          (quality & fitness)
+                                 2. Security               (STRIDE / pen-test)
+                                 3. Ethics                 (GRO DNA / love-harm)
+                                 4. Compliance             (GDPR / EU AI Act)
+                                 5. Tool Integration       (VIBE DJ compatibility)
+                                 6. Agent Synergy          (multi-agent coord)
+                                 7. Human Synergy          (UX, accessibility, trust)
+                                 8. Strategy               (problem-solving)
+                                 9. Adaptability           (cross-domain transfer)
+                                 10. Swarm Integration     (breeding compatibility)
+                                 11. Embodiment            (robotics / IoT)
+                                 12. Enterprise Integration (platform compatibility)
+                                 13. Token Optimization    (ZPOS cost management)
+                                 14. Multi-Modal Communication (text/voice/video)
+                               Score each 0–10. Render as a 2-column markdown
+                               table. Score honestly; SI-class targets ≥ 8/10
+                               on every dimension.
   8  workflow_examples         2–3 worked examples. Each example: a one-line
                                scenario, the input, the SPC's response sketch.
   9  integration_protocols     How it plugs into 4J.BONSAI and adjacent cards.
@@ -366,13 +385,19 @@ GRO — Global Risk Outlook
   RED        Significant unmitigated risk. Should not ship without review.
 Most cards are SAFE_LIFE. RED is rare and must be defensible.
 
-ZPOS+5 vector
-5 sub-scores 0–100 across these keys (use these exact keys):
-  alignment   How tightly the card serves its CHARTER.
-  rigor       How well-bounded its CONSTRAIN clauses are.
-  leverage    How much downstream value one execution unlocks.
-  safety      How resistant it is to misuse or drift.
-  evolvability How easily v2 can extend it without breaking v1.
+ZPOS+5 vector — canonical 5 methodologies (use these exact uppercase keys)
+Each scored 0–100. Higher = stronger optimisation on that vector.
+  AEOS       Adaptive output — does the card scale its verbosity to the
+             severity / fidelity actually needed for the task?
+  NEXUS      Cross-layer deduplication — does it avoid restating things the
+             upstream sections already covered?
+  PRISM      Multi-format routing — does it emit the right shape (markdown
+             table, JSON, prose, code) for each consumer?
+  QUANTUM    Parallel-execution / logic collapse — does the prompt collapse
+             repeated patterns into reusable invariants?
+  SYNTHESIS  Final fusion — does the card behave as a unified intelligence
+             rather than a checklist of sections stapled together?
+SI-class targets ≥ 80 on every vector; ULTRA targets ≥ 90.
 ${JSON_ONLY_GUARDRAIL}
 
 Response schema:
@@ -411,13 +436,26 @@ THE 4 PARTS (each is a fully-formed markdown document, 600–1200 words)
 - execSummary     Business-outcome story. Market context. Competitive frame.
                   Stakeholder map. 3–5 milestones with month markers.
                   Investment ask if relevant.
-- worksheet       Phase-by-phase build plan using the ATLAS spectrum:
-                  RED → ORANGE → YELLOW → GREEN → BLUE → INDIGO → VIOLET → WHITE.
+- worksheet       Phase-by-phase build plan using the canonical ATLAS phase
+                  rainbow. Each phase has a fixed thematic meaning — honour it:
+                    RED      Integration Foundation — DB, auth, API proxies,
+                             secrets, base runtime.
+                    ORANGE   Portal Shell — dashboards, navigation, pricing UI,
+                             session shell.
+                    YELLOW   Feature Workspaces — the productised engines /
+                             feature surfaces operators actually use.
+                    GREEN    CMS & Marketing — content seed, SEO, landing,
+                             verify pages.
+                    BLUE     QA & Security — E2E tests, audit, threat model,
+                             launch gate.
+                    INDIGO   Enterprise — SSO, RBAC, org tenancy, audit logs.
+                    VIOLET   Federation — multi-region, partner integrations,
+                             marketplace.
+                    WHITE    Operating system — open API, plugin ecosystem,
+                             white-label.
                   Each phase gets a header, a duration, 3–5 deliverables, an
-                  exit criterion. Use markdown sub-headings per phase.
-                  Not all phases need equal weight — collapse phases that
-                  don't apply ("VIOLET: n/a for this MVP") but keep the
-                  spectrum visible.
+                  exit criterion. MVPs usually ship RED→BLUE and explicitly
+                  defer INDIGO/VIOLET/WHITE ("VIOLET: deferred to v2").
 - implementation  Technical implementation document. Stack, data schemas (in
                   TypeScript/Zod or SQL), API surface, deployment topology,
                   observability, testing strategy, threat model summary.
@@ -453,14 +491,23 @@ DECISION INPUTS (extract from the PDD)
 - Iteration cadence (one-shot prototype / sustained product)
 - Domain (web app / data tool / agent / game / DeFi / hardware)
 
-CANDIDATE VIBES (non-exhaustive — pick the closest fit)
-  "Replit + Express"          full-stack JS/TS, fast iteration, hosted preview
+CANDIDATE VIBES — canonical set first, then mainstream fallbacks
+Canonical (preferred when fit ≥ 0.7):
+  "Cursor + Next.js + Supabase"  monorepo extensions, full-stack TS, Vercel target
+                                  (canonical fit ~88/100 for greenfield SaaS)
+  "Lovable + Supabase"            full-stack greenfield, AI-native build loop
+                                  (canonical fit ~90/100 for solo founders)
+  "Bolt.new + Vite"               rapid UI prototyping, in-browser iteration
+                                  (canonical fit ~85/100 for one-shot prototypes)
+  "v0.dev + Next.js"              component-first generation, session musician
+                                  (canonical fit ~80/100 for UI-heavy surfaces)
+Mainstream fallbacks:
+  "Replit + Express"          full-stack JS/TS, hosted preview, fast iteration
   "Replit + Vite + React"     SPA front-end, hosted preview
   "Replit + Streamlit"        data tools and dashboards
-  "Cursor + Next.js"          marketing/SaaS apps with Vercel target
   "Cursor + Hardhat"          EVM smart contracts
   "Claude Code + Python"      python CLIs, data pipelines, agents
-  "Windsurf + SvelteKit"      svelte ecosystem, app router style
+  "Windsurf + SvelteKit"      svelte ecosystem
   "Zed + Rust"                systems-grade, performance-critical
   "VS Code + Expo"            mobile (iOS / Android) via React Native
   "VS Code + Tauri"           cross-platform desktop
@@ -510,9 +557,10 @@ THE 7 SCM STEPS (perform in order, internally)
   5 TRANSFORM  Rewrite for atomic clarity: one idea per sentence, active voice,
                 no hedging, no "we will explore". Bullet > paragraph where
                 possible.
-  6 ZPOS+5     Apply the ZPOS+5 risk gate across 5 vectors: alignment,
-                rigor, leverage, safety, evolvability. Any RED vector blocks
-                CLASS A.
+  6 ZPOS+5     Apply the ZPOS+5 risk gate across the 5 canonical methodologies
+                AEOS, NEXUS, PRISM, QUANTUM, SYNTHESIS. Any methodology that
+                regressed during compression (lower than the source PDD's
+                equivalent score) counts as a RED vector and blocks CLASS A.
   7 PACKAGE    Emit the compressed MVP PDD with cert metadata.
 
 OUTPUT STRUCTURE

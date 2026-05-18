@@ -1,18 +1,19 @@
 import { Link } from "wouter";
 import { TopNav } from "@/components/layout/TopNav";
-import { useGetMe, useListSessions, useHealthDeep } from "@workspace/api-client-react";
+import { useGetMe, useListSessions, useHealthDeep, useListExemplars } from "@workspace/api-client-react";
 import { TierBadge } from "@/components/shared/TierBadge";
 import { ENGINES } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Activity, Cpu, Database, AlertCircle } from "lucide-react";
+import { Plus, Activity, Cpu, Database, AlertCircle, BookOpen, ShieldCheck } from "lucide-react";
 import { format } from "date-fns";
 
 export default function Command() {
   const { data: me, isLoading: isLoadingMe } = useGetMe();
   const { data: sessions, isLoading: isLoadingSessions } = useListSessions();
   const { data: health, isLoading: isLoadingHealth } = useHealthDeep();
+  const { data: exemplars } = useListExemplars();
 
   const activeSessions = sessions?.filter(s => s.status !== "COMPLETE").length || 0;
   const recentSessions = sessions?.slice(0, 5) || [];
@@ -141,6 +142,42 @@ export default function Command() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* Exemplar Library Shelf */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display text-2xl tracking-wide">EXEMPLAR LIBRARY</h2>
+                <Button variant="link" size="sm" asChild className="font-mono text-xs text-muted-foreground">
+                  <Link href="/exemplars">BROWSE ALL</Link>
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(exemplars ?? []).slice(0, 4).map((ex) => (
+                  <Link
+                    key={ex.id}
+                    href={`/exemplars/${ex.id}`}
+                    className="p-3 border rounded-md bg-card hover:bg-accent/40 transition-colors flex items-start gap-3"
+                  >
+                    {ex.kind === "SPC" ? (
+                      <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    ) : (
+                      <BookOpen className="h-4 w-4 text-secondary shrink-0 mt-0.5" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-mono text-sm font-bold truncate">{ex.title}</div>
+                      <div className="text-xs text-muted-foreground truncate" title={ex.tagline}>
+                        {ex.tagline}
+                      </div>
+                      <div className="flex gap-2 mt-1 text-[10px] font-mono text-muted-foreground">
+                        {ex.jcse !== null && <span>JCSE {ex.jcse}</span>}
+                        {ex.certClass && <span>· {ex.certClass}</span>}
+                        <span>· {ex.source === "canonical" ? "CANONICAL" : ex.source === "hand_authored" ? "HAND-AUTHORED" : "GENERATED"}</span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </div>
 

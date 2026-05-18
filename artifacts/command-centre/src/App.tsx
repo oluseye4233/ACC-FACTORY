@@ -17,6 +17,7 @@ import Sessions from "@/pages/sessions";
 import SessionNew from "@/pages/session-new";
 import SessionDetail from "@/pages/session-detail";
 import Billing from "@/pages/billing";
+import Exemplars from "@/pages/exemplars";
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -192,6 +193,8 @@ function ClerkProviderWithRoutes() {
             <Route path="/session/new" component={() => <ProtectedRoute component={SessionNew} />} />
             <Route path="/session/:id" component={() => <ProtectedRoute component={SessionDetail} />} />
             <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
+            <Route path="/exemplars" component={Exemplars} />
+            <Route path="/exemplars/:id" component={Exemplars} />
 
             <Route component={NotFound} />
           </Switch>

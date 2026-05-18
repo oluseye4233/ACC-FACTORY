@@ -7,6 +7,7 @@ import billingRouter from "./billing";
 import pricingRouter from "./pricing";
 import cronRouter from "./cron";
 import verifyRouter from "./verify";
+import exemplarsRouter from "./exemplars";
 import harnessRouter from "./harness";
 
 const router: IRouter = Router();
@@ -19,6 +20,7 @@ router.use(billingRouter);
 router.use(pricingRouter);
 router.use(cronRouter);
 router.use(verifyRouter);
+router.use(exemplarsRouter);
 router.use(harnessRouter);
 
 export default router;

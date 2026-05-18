@@ -26,6 +26,8 @@ import type {
   CheckoutSession,
   DeepHealth,
   ErrorResponse,
+  Exemplar,
+  ExemplarSummary,
   F5StepOutcome,
   FeatureState,
   ForbiddenResponse,
@@ -1923,6 +1925,160 @@ export const useCronResetHarnessLimits = <TError = ErrorType<UnauthorizedRespons
       > => {
       return useMutation(getCronResetHarnessLimitsMutationOptions(options));
     }
+
+export const getListExemplarsUrl = () => {
+
+
+
+
+  return `/api/exemplars`
+}
+
+/**
+ * @summary List canonical and hand-authored SPC / PDD exemplars
+ */
+export const listExemplars = async ( options?: RequestInit): Promise<ExemplarSummary[]> => {
+
+  return customFetch<ExemplarSummary[]>(getListExemplarsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListExemplarsQueryKey = () => {
+    return [
+    `/api/exemplars`
+    ] as const;
+    }
+
+
+export const getListExemplarsQueryOptions = <TData = Awaited<ReturnType<typeof listExemplars>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listExemplars>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListExemplarsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listExemplars>>> = ({ signal }) => listExemplars({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listExemplars>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListExemplarsQueryResult = NonNullable<Awaited<ReturnType<typeof listExemplars>>>
+export type ListExemplarsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List canonical and hand-authored SPC / PDD exemplars
+ */
+
+export function useListExemplars<TData = Awaited<ReturnType<typeof listExemplars>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listExemplars>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListExemplarsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetExemplarUrl = (id: string,) => {
+
+
+
+
+  return `/api/exemplars/${id}`
+}
+
+/**
+ * @summary Fetch a single exemplar including its full markdown body
+ */
+export const getExemplar = async (id: string, options?: RequestInit): Promise<Exemplar> => {
+
+  return customFetch<Exemplar>(getGetExemplarUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExemplarQueryKey = (id: string,) => {
+    return [
+    `/api/exemplars/${id}`
+    ] as const;
+    }
+
+
+export const getGetExemplarQueryOptions = <TData = Awaited<ReturnType<typeof getExemplar>>, TError = ErrorType<NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExemplar>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExemplarQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExemplar>>> = ({ signal }) => getExemplar(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExemplar>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExemplarQueryResult = NonNullable<Awaited<ReturnType<typeof getExemplar>>>
+export type GetExemplarQueryError = ErrorType<NotFoundResponse>
+
+
+/**
+ * @summary Fetch a single exemplar including its full markdown body
+ */
+
+export function useGetExemplar<TData = Awaited<ReturnType<typeof getExemplar>>, TError = ErrorType<NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExemplar>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExemplarQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getVerifyCertificateUrl = (params: VerifyCertificateParams,) => {
   const normalizedParams = new URLSearchParams();

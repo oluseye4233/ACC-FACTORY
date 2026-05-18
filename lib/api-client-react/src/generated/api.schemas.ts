@@ -526,6 +526,39 @@ export interface VerifyResult {
   sessionName?: string | null;
 }
 
+export type ExemplarSummarySource = typeof ExemplarSummarySource[keyof typeof ExemplarSummarySource];
+
+
+export const ExemplarSummarySource = {
+  canonical: 'canonical',
+  hand_authored: 'hand_authored',
+  generated: 'generated',
+} as const;
+
+export type ExemplarSummaryKind = typeof ExemplarSummaryKind[keyof typeof ExemplarSummaryKind];
+
+
+export const ExemplarSummaryKind = {
+  SPC: 'SPC',
+  PDD: 'PDD',
+} as const;
+
+export interface ExemplarSummary {
+  id: string;
+  title: string;
+  tagline: string;
+  /** @nullable */
+  jcse: number | null;
+  /** @nullable */
+  certClass: string | null;
+  source: ExemplarSummarySource;
+  kind: ExemplarSummaryKind;
+}
+
+export type Exemplar = ExemplarSummary & {
+  body: string;
+};
+
 /**
  * Unauthorized
  */

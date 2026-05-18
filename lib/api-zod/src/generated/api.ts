@@ -521,6 +521,41 @@ export const CronResetHarnessLimitsResponse = zod.object({
 })
 
 
+/**
+ * @summary List canonical and hand-authored SPC / PDD exemplars
+ */
+export const ListExemplarsResponseItem = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "tagline": zod.string(),
+  "jcse": zod.number().nullable(),
+  "certClass": zod.string().nullable(),
+  "source": zod.enum(['canonical', 'hand_authored', 'generated']),
+  "kind": zod.enum(['SPC', 'PDD'])
+})
+export const ListExemplarsResponse = zod.array(ListExemplarsResponseItem)
+
+
+/**
+ * @summary Fetch a single exemplar including its full markdown body
+ */
+export const GetExemplarParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetExemplarResponse = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "tagline": zod.string(),
+  "jcse": zod.number().nullable(),
+  "certClass": zod.string().nullable(),
+  "source": zod.enum(['canonical', 'hand_authored', 'generated']),
+  "kind": zod.enum(['SPC', 'PDD'])
+}).and(zod.object({
+  "body": zod.string()
+}))
+
+
 export const VerifyCertificateQueryParams = zod.object({
   "cert": zod.coerce.string()
 })
