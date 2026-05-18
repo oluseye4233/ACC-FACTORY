@@ -25,6 +25,7 @@ import type {
   CheckoutInput,
   CheckoutSession,
   DeepHealth,
+  ErrorResponse,
   F5StepOutcome,
   FeatureState,
   ForbiddenResponse,
@@ -1304,7 +1305,7 @@ export const harnessF6Vdj = async (harnessF6VdjInput: HarnessF6VdjInput, options
 
 
 
-export const getHarnessF6VdjMutationOptions = <TError = ErrorType<unknown>,
+export const getHarnessF6VdjMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF6Vdj>>, TError,{data: BodyType<HarnessF6VdjInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof harnessF6Vdj>>, TError,{data: BodyType<HarnessF6VdjInput>}, TContext> => {
 
@@ -1333,12 +1334,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type HarnessF6VdjMutationResult = NonNullable<Awaited<ReturnType<typeof harnessF6Vdj>>>
     export type HarnessF6VdjMutationBody = BodyType<HarnessF6VdjInput>
-    export type HarnessF6VdjMutationError = ErrorType<unknown>
+    export type HarnessF6VdjMutationError = ErrorType<ErrorResponse>
 
     /**
  * @summary VIBE DJ recommendation
  */
-export const useHarnessF6Vdj = <TError = ErrorType<unknown>,
+export const useHarnessF6Vdj = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF6Vdj>>, TError,{data: BodyType<HarnessF6VdjInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof harnessF6Vdj>>,

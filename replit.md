@@ -20,7 +20,7 @@ A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authe
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec). Generated Zod schemas are named by operationId, e.g. `CreateSessionBody`, not by entity name.
 - Build: esbuild (CJS bundle)
-- LLM: Claude Sonnet 4 via Anthropic (Stage 3)
+- LLM: Claude Sonnet 4 (`claude-sonnet-4-6`) via `@workspace/integrations-anthropic-ai` (Replit AI Integrations proxy — `AI_INTEGRATIONS_ANTHROPIC_*` env)
 
 ## Where things live
 
@@ -31,7 +31,8 @@ A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authe
 - Auth bridge (Clerk → local user + subscriber JIT): `artifacts/api-server/src/lib/auth.ts`
 - Tier + rate-limit gates: `artifacts/api-server/src/lib/tier.ts`
 - Routes: `artifacts/api-server/src/routes/*.ts` (sessions, artifacts, harness, billing, pricing, cron, verify, me, health, stripe-webhook)
-- Front-end command-centre artifact: _not yet built (Stage 2)_
+- HARNESS engines: `artifacts/api-server/src/engines/{prompts,shared,f1,f2,f3,f4,f5,f6,f6vdj,f7}.ts` — all 9 system prompts tagged `# TODO(prompt-review)` in `prompts.ts`
+- Front-end command-centre artifact: portal shell complete (Stage 2); Track 3B workspaces pending
 
 ## Architecture decisions
 

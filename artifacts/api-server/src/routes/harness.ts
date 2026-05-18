@@ -1,46 +1,49 @@
-import { Router, type IRouter, type Request, type Response } from "express";
+import { Router, type IRouter } from "express";
+import { and, eq } from "drizzle-orm";
+import { db, harnessSessionsTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { rateLimit, requireTier } from "../lib/tier";
+import { handleF1 } from "../engines/f1";
+import { handleF2 } from "../engines/f2";
+import { handleF3Stream } from "../engines/f3";
+import { handleF4 } from "../engines/f4";
+import { handleF5 } from "../engines/f5";
+import { handleF6 } from "../engines/f6";
+import { handleF6Vdj } from "../engines/f6vdj";
+import { handleF7Stream } from "../engines/f7";
 
 const router: IRouter = Router();
 
-// Stage 1: tier + rate-limit gates wired; engine bodies are stubbed and
-// will be implemented in Stage 3 when the system prompts + Anthropic
-// integration land.
-function notImplemented(_req: Request, res: Response): void {
-  res.status(501).json({ error: "Engine not yet implemented" });
-}
-
-router.post("/harness/f1", requireAuth, rateLimit(1), notImplemented);
-router.post("/harness/f2", requireAuth, rateLimit(2), notImplemented);
-router.post("/harness/f3", requireAuth, rateLimit(3), notImplemented);
-router.post("/harness/f4", requireAuth, rateLimit(4), notImplemented);
+router.post("/harness/f1", requireAuth, rateLimit(1), handleF1);
+router.post("/harness/f2", requireAuth, rateLimit(2), handleF2);
+router.post("/harness/f3", requireAuth, rateLimit(3), handleF3Stream);
+router.post("/harness/f4", requireAuth, rateLimit(4), handleF4);
 router.post(
   "/harness/f5",
   requireAuth,
   requireTier("PRACTITIONER"),
   rateLimit(5),
-  notImplemented,
+  handleF5,
 );
 router.post(
   "/harness/f6",
   requireAuth,
   requireTier("PRACTITIONER"),
   rateLimit(6),
-  notImplemented,
+  handleF6,
 );
 router.post(
   "/harness/f6-vdj",
   requireAuth,
   requireTier("PRACTITIONER"),
-  notImplemented,
+  handleF6Vdj,
 );
 router.post(
   "/harness/f7",
   requireAuth,
   requireTier("PRACTITIONER"),
   rateLimit(7),
-  notImplemented,
+  handleF7Stream,
 );
 
 router.get("/harness/escalations/stream", requireAuth, async (req, res): Promise<void> => {
@@ -49,9 +52,6 @@ router.get("/harness/escalations/stream", requireAuth, async (req, res): Promise
     res.status(400).json({ error: "sessionId query param required" });
     return;
   }
-  // Ownership check: only stream for a session owned by this user.
-  const { db, harnessSessionsTable } = await import("@workspace/db");
-  const { and, eq } = await import("drizzle-orm");
   const owns = await db
     .select({ id: harnessSessionsTable.id })
     .from(harnessSessionsTable)

@@ -295,6 +295,11 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/VdjRecommendation" }
+        "403":
+          description: Tier insufficient (requires Practitioner+)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   /harness/f7:
     post:
