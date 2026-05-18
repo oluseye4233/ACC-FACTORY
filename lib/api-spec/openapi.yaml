@@ -3,34 +3,965 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ATANDA Command Centre + HARNESS API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: me
+  - name: sessions
+  - name: artifacts
+  - name: harness
+  - name: billing
+  - name: pricing
+  - name: admin
+  - name: cron
+  - name: verify
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
-      summary: Health check
-      description: Returns server health status
+      summary: Basic liveness
       responses:
         "200":
           description: Healthy
           content:
             application/json:
+              schema: { $ref: "#/components/schemas/HealthStatus" }
+
+  /health:
+    get:
+      operationId: healthDeep
+      tags: [health]
+      summary: Deep health (db + engines)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeepHealth" }
+
+  /me:
+    get:
+      operationId: getMe
+      tags: [me]
+      summary: Current authenticated user + subscriber
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MeResponse" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /sessions:
+    get:
+      operationId: listSessions
+      tags: [sessions]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
+                type: array
+                items: { $ref: "#/components/schemas/HarnessSession" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createSession
+      tags: [sessions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SessionInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HarnessSession" }
+
+  /sessions/{id}:
+    get:
+      operationId: getSession
+      tags: [sessions]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionDetail" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateSession
+      tags: [sessions]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SessionUpdate" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HarnessSession" }
+    delete:
+      operationId: deleteSession
+      tags: [sessions]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "204":
+          description: Deleted
+
+  /sessions/{id}/feature-state:
+    get:
+      operationId: listFeatureState
+      tags: [sessions]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FeatureState" }
+
+  /sessions/{id}/artifacts:
+    get:
+      operationId: listSessionArtifacts
+      tags: [artifacts]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/HarnessArtifact" }
+
+  /artifacts/{id}:
+    get:
+      operationId: getArtifact
+      tags: [artifacts]
+      parameters:
+        - $ref: "#/components/parameters/ArtifactId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HarnessArtifact" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /harness/f1:
+    post:
+      operationId: harnessF1
+      tags: [harness]
+      summary: ATLAS Prompt Diagnostic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF1Input" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PromptDiagnostic" }
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /harness/f2:
+    post:
+      operationId: harnessF2
+      tags: [harness]
+      summary: Atomic Prompt Builder certification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF2Input" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AtomicPrompt" }
+
+  /harness/f3:
+    post:
+      operationId: harnessF3Stream
+      tags: [harness]
+      summary: CELL MA Builder (SSE stream)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF3Input" }
+      responses:
+        "200":
+          description: text/event-stream of MA cultivation events
+          content:
+            text/event-stream:
+              schema: { type: string }
+
+  /harness/f4:
+    post:
+      operationId: harnessF4
+      tags: [harness]
+      summary: Micro PDD converter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF4Input" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MicroPdd" }
+
+  /harness/f5:
+    post:
+      operationId: harnessF5
+      tags: [harness]
+      summary: SPC Builder (FORGE Q&A turn)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF5Input" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F5StepOutcome" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /harness/f6:
+    post:
+      operationId: harnessF6
+      tags: [harness]
+      summary: ATLAS PDD Drafter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF6Input" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AtlasPdd" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /harness/f6-vdj:
+    post:
+      operationId: harnessF6Vdj
+      tags: [harness]
+      summary: VIBE DJ recommendation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF6VdjInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VdjRecommendation" }
+
+  /harness/f7:
+    post:
+      operationId: harnessF7Stream
+      tags: [harness]
+      summary: SPARTAN Compressor (SSE stream)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF7Input" }
+      responses:
+        "200":
+          description: text/event-stream of SPARTAN 7-step events
+          content:
+            text/event-stream:
+              schema: { type: string }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /harness/escalations/stream:
+    get:
+      operationId: harnessEscalationsStream
+      tags: [harness]
+      summary: SSE feed of escalations for a session
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: text/event-stream
+          content:
+            text/event-stream:
+              schema: { type: string }
+
+  /billing/checkout:
+    post:
+      operationId: billingCheckout
+      tags: [billing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CheckoutInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CheckoutSession" }
+
+  /billing/portal:
+    post:
+      operationId: billingPortal
+      tags: [billing]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PortalInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PortalSession" }
+
+  /webhooks/stripe:
+    post:
+      operationId: stripeWebhook
+      tags: [billing]
+      summary: Stripe webhook receiver (raw body)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StripeWebhookPayload" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+
+  /pricing:
+    get:
+      operationId: getPricing
+      tags: [pricing]
+      summary: Public pricing content
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PricingPayload" }
+
+  /admin/pricing:
+    put:
+      operationId: putPricing
+      tags: [admin]
+      summary: Replace pricing payload (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PricingPayload" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PricingPayload" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /cron/reset-harness-limits:
+    post:
+      operationId: cronResetHarnessLimits
+      tags: [cron]
+      summary: Reset daily harness counters (requires CRON_SECRET header)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /verify:
+    get:
+      operationId: verifyCertificate
+      tags: [verify]
+      parameters:
+        - name: cert
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VerifyResult" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
+  parameters:
+    SessionId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ArtifactId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    Forbidden:
+      description: Forbidden (tier or role gate)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    RateLimited:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
-        status:
-          type: string
-      required:
-        - status
+        status: { type: string }
 
+    DeepHealth:
+      type: object
+      required: [status, db, engines]
+      properties:
+        status: { type: string }
+        db: { type: string, enum: [ok, error] }
+        engines: { type: string, enum: [ok, degraded, error] }
+        version: { type: string }
+
+    Ok:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+
+    StripeWebhookPayload:
+      type: object
+      additionalProperties: true
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+        detail: { type: ["string", "null"] }
+
+    SubscriberTier:
+      type: string
+      enum: [EXPLORER, PRACTITIONER, ARCHITECT, INSTITUTION]
+
+    CertTier:
+      type: string
+      enum: [BRONZE, SILVER, GOLD, PLATINUM, NONE]
+
+    FeatureStatus:
+      type: string
+      enum: [LOCKED, AVAILABLE, IN_PROGRESS, COMPLETE]
+
+    ArtifactType:
+      type: string
+      enum:
+        - PROMPT_DIAGNOSTIC
+        - ATOMIC_PROMPT
+        - MA_BIRTH_PACKAGE
+        - MICRO_PDD
+        - SPC
+        - ATLAS_PDD
+        - MVP_PDD
+
+    Subscriber:
+      type: object
+      required: [tier, status]
+      properties:
+        tier: { $ref: "#/components/schemas/SubscriberTier" }
+        status: { type: string }
+        currentPeriodEnd: { type: ["string", "null"], format: date-time }
+        cancelAtPeriodEnd: { type: boolean }
+        usage:
+          type: object
+          required: [f1, f2, f3, f4, f5, f6, f7]
+          properties:
+            f1: { type: integer }
+            f2: { type: integer }
+            f3: { type: integer }
+            f4: { type: integer }
+            f5: { type: integer }
+            f6: { type: integer }
+            f7: { type: integer }
+
+    MeResponse:
+      type: object
+      required: [id, clerkUserId, role, subscriber]
+      properties:
+        id: { type: string, format: uuid }
+        clerkUserId: { type: string }
+        email: { type: ["string", "null"] }
+        displayName: { type: ["string", "null"] }
+        role: { type: string }
+        subscriber: { $ref: "#/components/schemas/Subscriber" }
+
+    HarnessSession:
+      type: object
+      required: [id, sessionName, status, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        sessionName: { type: string }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    SessionDetail:
+      type: object
+      required: [session, featureState, artifacts]
+      properties:
+        session: { $ref: "#/components/schemas/HarnessSession" }
+        featureState:
+          type: array
+          items: { $ref: "#/components/schemas/FeatureState" }
+        artifacts:
+          type: array
+          items: { $ref: "#/components/schemas/HarnessArtifact" }
+
+    SessionInput:
+      type: object
+      required: [sessionName]
+      properties:
+        sessionName: { type: string, minLength: 1, maxLength: 255 }
+
+    SessionUpdate:
+      type: object
+      properties:
+        sessionName: { type: string, minLength: 1, maxLength: 255 }
+        status: { type: string }
+
+    FeatureState:
+      type: object
+      required: [id, sessionId, featureId, status, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
+        featureId: { type: integer, minimum: 1, maximum: 7 }
+        status: { $ref: "#/components/schemas/FeatureStatus" }
+        unlockedAt: { type: ["string", "null"], format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    HarnessArtifact:
+      type: object
+      required: [id, sessionId, featureId, artifactType, artifactContent, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
+        featureId: { type: integer }
+        artifactType: { $ref: "#/components/schemas/ArtifactType" }
+        artifactContent: { type: object, additionalProperties: true }
+        jcseScore: { type: ["integer", "null"] }
+        certTier: { type: ["string", "null"] }
+        groState: { type: string }
+        spartanCert: { type: ["object", "null"], additionalProperties: true }
+        createdAt: { type: string, format: date-time }
+
+    JcseBreakdown:
+      type: object
+      required: [system, role, instruction, example, constraint, format, data, total]
+      properties:
+        system: { type: integer }
+        role: { type: integer }
+        instruction: { type: integer }
+        example: { type: integer }
+        constraint: { type: integer }
+        format: { type: integer }
+        data: { type: integer }
+        total: { type: integer }
+
+    PillarAssessment:
+      type: object
+      required: [pillar, score, max, notes]
+      properties:
+        pillar:
+          type: string
+          enum: [SYSTEM, ROLE, INSTRUCTION, EXAMPLE, CONSTRAINT, FORMAT, DATA]
+        score: { type: integer }
+        max: { type: integer }
+        notes: { type: string }
+        gapHints:
+          type: array
+          items: { type: string }
+
+    AtomicPromptTuple:
+      type: object
+      required: [system, role, instruction, example, constraint, format, data]
+      properties:
+        system: { type: string }
+        role: { type: string }
+        instruction: { type: string }
+        example: { type: string }
+        constraint: { type: string }
+        format: { type: string }
+        data: { type: string }
+
+    PromptDiagnostic:
+      type: object
+      required: [jcse, certTier, pillars, atomicPrompt, strengths, gaps]
+      properties:
+        jcse: { $ref: "#/components/schemas/JcseBreakdown" }
+        certTier: { $ref: "#/components/schemas/CertTier" }
+        pillars:
+          type: array
+          items: { $ref: "#/components/schemas/PillarAssessment" }
+        atomicPrompt: { $ref: "#/components/schemas/AtomicPromptTuple" }
+        strengths:
+          type: array
+          items: { type: string }
+        gaps:
+          type: array
+          items: { type: string }
+        artifactId: { type: ["string", "null"], format: uuid }
+
+    AtomicPrompt:
+      type: object
+      required: [tuple, jcse, certTier]
+      properties:
+        tuple: { $ref: "#/components/schemas/AtomicPromptTuple" }
+        jcse: { $ref: "#/components/schemas/JcseBreakdown" }
+        certTier: { $ref: "#/components/schemas/CertTier" }
+        artifactId: { type: ["string", "null"], format: uuid }
+
+    HarnessF1Input:
+      type: object
+      required: [sessionId, prompt]
+      properties:
+        sessionId: { type: string, format: uuid }
+        prompt: { type: string, minLength: 10 }
+
+    HarnessF2Input:
+      type: object
+      required: [sessionId, tuple]
+      properties:
+        sessionId: { type: string, format: uuid }
+        tuple: { $ref: "#/components/schemas/AtomicPromptTuple" }
+
+    HarnessF3Input:
+      type: object
+      required: [sessionId, atomicPrompt]
+      properties:
+        sessionId: { type: string, format: uuid }
+        atomicPrompt: { $ref: "#/components/schemas/AtomicPromptTuple" }
+        intent: { type: string }
+
+    MaClassification:
+      type: object
+      required: [phase, kind, confidence]
+      properties:
+        phase: { type: string, enum: [PHASE_1, PHASE_2, PHASE_3] }
+        kind: { type: string }
+        confidence: { type: number }
+        rationale: { type: string }
+
+    MaBirthPackage:
+      type: object
+      required: [classification, organelles, birthPackage]
+      properties:
+        classification: { $ref: "#/components/schemas/MaClassification" }
+        organelles:
+          type: array
+          items:
+            type: object
+            required: [id, name, status]
+            properties:
+              id: { type: string }
+              name: { type: string }
+              status: { type: string }
+              output: { type: ["string", "null"] }
+        birthPackage:
+          type: object
+          required: [overview, capability, knowledge, behaviour, lifecycle]
+          properties:
+            overview: { type: string }
+            capability: { type: string }
+            knowledge: { type: string }
+            behaviour: { type: string }
+            lifecycle: { type: string }
+        escalated: { type: boolean }
+        artifactId: { type: ["string", "null"], format: uuid }
+
+    HarnessF4Input:
+      type: object
+      required: [sessionId, sourceArtifactId, targetVibe]
+      properties:
+        sessionId: { type: string, format: uuid }
+        sourceArtifactId: { type: string, format: uuid }
+        targetVibe: { type: string }
+
+    MicroPdd:
+      type: object
+      required: [cheatSheet, worksheet, buildLaunch, interfaceContract]
+      properties:
+        cheatSheet: { type: string }
+        worksheet: { type: string }
+        buildLaunch: { type: string }
+        interfaceContract: { type: string }
+        artifactId: { type: ["string", "null"], format: uuid }
+
+    HarnessF5Input:
+      type: object
+      required: [sessionId]
+      properties:
+        sessionId: { type: string, format: uuid }
+        step: { type: integer, minimum: 1, maximum: 7 }
+        answers:
+          type: object
+          additionalProperties: true
+        finalize: { type: boolean }
+
+    SpcSection:
+      type: object
+      required: [key, title, body]
+      properties:
+        key: { type: string }
+        title: { type: string }
+        body: { type: string }
+
+    Spc:
+      type: object
+      required: [sections, iqs, gro, zpos]
+      properties:
+        sections:
+          type: array
+          items: { $ref: "#/components/schemas/SpcSection" }
+        iqs: { type: number }
+        gro: { type: string, enum: [SAFE_LIFE, GREY, RED] }
+        zpos:
+          type: object
+          additionalProperties: true
+        artifactId: { type: ["string", "null"], format: uuid }
+
+    F5StepOutcome:
+      type: object
+      required: [done]
+      properties:
+        done: { type: boolean }
+        nextStep: { type: ["integer", "null"] }
+        nextQuestion: { type: ["string", "null"] }
+        spc:
+          oneOf:
+            - { $ref: "#/components/schemas/Spc" }
+            - { type: "null" }
+
+    HarnessF6Input:
+      type: object
+      required: [sessionId, mode]
+      properties:
+        sessionId: { type: string, format: uuid }
+        mode: { type: string, enum: [FROM_SPC, FRESH] }
+        sourceArtifactId: { type: ["string", "null"], format: uuid }
+        brief: { type: ["string", "null"] }
+
+    AtlasPdd:
+      type: object
+      required: [cheatSheet, execSummary, worksheet, implementation]
+      properties:
+        cheatSheet: { type: string }
+        execSummary: { type: string }
+        worksheet: { type: string }
+        implementation: { type: string }
+        artifactId: { type: ["string", "null"], format: uuid }
+
+    HarnessF6VdjInput:
+      type: object
+      required: [sessionId, pddArtifactId]
+      properties:
+        sessionId: { type: string, format: uuid }
+        pddArtifactId: { type: string, format: uuid }
+
+    VdjRecommendation:
+      type: object
+      required: [recommendedIde, recommendedVibe, rationale]
+      properties:
+        recommendedIde: { type: string }
+        recommendedVibe: { type: string }
+        rationale: { type: string }
+        alternatives:
+          type: array
+          items:
+            type: object
+            required: [name, fit]
+            properties:
+              name: { type: string }
+              fit: { type: number }
+
+    HarnessF7Input:
+      type: object
+      required: [sessionId, pddArtifactId]
+      properties:
+        sessionId: { type: string, format: uuid }
+        pddArtifactId: { type: string, format: uuid }
+
+    SpartanCert:
+      type: object
+      required: [certId, class, crP, issuedAt]
+      properties:
+        certId: { type: string }
+        class: { type: string, enum: [A, B, C, NONE] }
+        crP: { type: number }
+        issuedAt: { type: string, format: date-time }
+
+    MvpPdd:
+      type: object
+      required: [sections, cert]
+      properties:
+        sections:
+          type: array
+          items: { $ref: "#/components/schemas/SpcSection" }
+        cert: { $ref: "#/components/schemas/SpartanCert" }
+        donut:
+          type: object
+          required: [a, b, c]
+          properties:
+            a: { type: number }
+            b: { type: number }
+            c: { type: number }
+        artifactId: { type: ["string", "null"], format: uuid }
+
+    CheckoutInput:
+      type: object
+      required: [tier, interval]
+      properties:
+        tier: { $ref: "#/components/schemas/SubscriberTier" }
+        interval: { type: string, enum: [month, year] }
+        successUrl: { type: ["string", "null"] }
+        cancelUrl: { type: ["string", "null"] }
+
+    CheckoutSession:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string }
+
+    PortalInput:
+      type: object
+      properties:
+        returnUrl: { type: ["string", "null"] }
+
+    PortalSession:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string }
+
+    PricingTier:
+      type: object
+      required: [id, name, priceMonthly, priceYearly, features]
+      properties:
+        id: { $ref: "#/components/schemas/SubscriberTier" }
+        name: { type: string }
+        tagline: { type: string }
+        priceMonthly: { type: ["number", "null"] }
+        priceYearly: { type: ["number", "null"] }
+        priceLabel: { type: ["string", "null"] }
+        ctaLabel: { type: string }
+        featured: { type: boolean }
+        features:
+          type: array
+          items: { type: string }
+
+    PricingPayload:
+      type: object
+      required: [tiers, faqs, trust]
+      properties:
+        tiers:
+          type: array
+          items: { $ref: "#/components/schemas/PricingTier" }
+        faqs:
+          type: array
+          items:
+            type: object
+            required: [q, a]
+            properties:
+              q: { type: string }
+              a: { type: string }
+        trust:
+          type: array
+          items:
+            type: object
+            required: [label]
+            properties:
+              label: { type: string }
+              icon: { type: ["string", "null"] }
+        updatedAt: { type: ["string", "null"], format: date-time }
+
+    VerifyResult:
+      type: object
+      required: [valid]
+      properties:
+        valid: { type: boolean }
+        certId: { type: ["string", "null"] }
+        class: { type: ["string", "null"] }
+        crP: { type: ["number", "null"] }
+        issuedAt: { type: ["string", "null"], format: date-time }
+        sessionName: { type: ["string", "null"] }
