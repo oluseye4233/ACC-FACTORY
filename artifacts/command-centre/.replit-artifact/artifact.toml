@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "ATANDA Command Centre"
+version = "1.0.0"
+id = "artifacts/command-centre"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21731
+
+[services.development]
+run = "pnpm --filter @workspace/command-centre run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/command-centre", "run", "build" ]
+publicDir = "artifacts/command-centre/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21731"
+BASE_PATH = "/"

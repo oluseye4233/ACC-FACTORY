@@ -1,0 +1,275 @@
+import { Link, useLocation } from "wouter";
+import { useAuth } from "@clerk/react";
+import { TopNav } from "@/components/layout/TopNav";
+import { Footer } from "@/components/layout/Footer";
+import { TierBadge } from "@/components/shared/TierBadge";
+import {
+  useGetPricing,
+  useBillingCheckout,
+  PricingTier,
+  SubscriberTier,
+  CheckoutInputInterval,
+} from "@workspace/api-client-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Check, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+
+// Fallback data if API returns 404
+const FALLBACK_PRICING = {
+  tiers: [
+    {
+      id: "EXPLORER",
+      name: "EXPLORER",
+      tagline: "For individuals learning the methodology",
+      priceMonthly: 0,
+      priceYearly: 0,
+      priceLabel: "Free forever",
+      ctaLabel: "START FREE",
+      featured: false,
+      features: ["5 sessions per day", "Basic JCSE scoring", "Standard support"]
+    },
+    {
+      id: "PRACTITIONER",
+      name: "PRACTITIONER",
+      tagline: "For professional prompt engineers",
+      priceMonthly: 49,
+      priceYearly: 470,
+      priceLabel: "per month",
+      ctaLabel: "START 30-DAY TRIAL",
+      featured: true,
+      features: ["20 sessions per day", "Advanced diagnostics", "SPARTAN compression", "Priority support"]
+    },
+    {
+      id: "ARCHITECT",
+      name: "ARCHITECT",
+      tagline: "For teams and product architects",
+      priceMonthly: 199,
+      priceYearly: 1910,
+      priceLabel: "per month",
+      ctaLabel: "UPGRADE NOW",
+      featured: false,
+      features: ["100 sessions per day", "Full MA Birth Packages", "Custom templates", "Dedicated account manager"]
+    },
+    {
+      id: "INSTITUTION",
+      name: "INSTITUTION",
+      tagline: "For enterprise scale deployments",
+      priceMonthly: null,
+      priceYearly: null,
+      priceLabel: "Custom pricing",
+      ctaLabel: "CONTACT SALES",
+      featured: false,
+      features: ["Unlimited sessions", "On-premise deployment", "Custom integration", "SLA guarantees"]
+    }
+  ] as PricingTier[],
+  faqs: [
+    { q: "What happens after the 30-day trial?", a: "You will be automatically charged based on the plan you selected. You can cancel anytime before the trial ends." },
+    { q: "Can I upgrade or downgrade my plan later?", a: "Yes, you can manage your subscription from the Billing section in the Command Centre." }
+  ],
+  trust: [
+    { label: "SOC2 Compliant" },
+    { label: "End-to-end Encryption" }
+  ]
+};
+
+export default function Pricing() {
+  const { data, isLoading, isError } = useGetPricing();
+  const [interval, setInterval] = useState<"monthly" | "yearly">("monthly");
+  const checkout = useBillingCheckout();
+  const { toast } = useToast();
+  const { isSignedIn } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const handleSubscribe = (priceId: string) => {
+    if (priceId === SubscriberTier.EXPLORER) {
+      setLocation("/sign-up");
+      return;
+    }
+
+    if (priceId === SubscriberTier.INSTITUTION) {
+      window.location.href = "mailto:sales@example.com";
+      return;
+    }
+
+    if (!isSignedIn) {
+      setLocation("/sign-in");
+      return;
+    }
+
+    const tierEnum = (SubscriberTier as Record<string, SubscriberTier>)[priceId];
+    if (!tierEnum) {
+      toast({
+        title: "Invalid plan",
+        description: `Unknown tier: ${priceId}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    const intervalEnum: CheckoutInputInterval =
+      interval === "yearly" ? CheckoutInputInterval.year : CheckoutInputInterval.month;
+
+    checkout.mutate(
+      { data: { tier: tierEnum, interval: intervalEnum } },
+      {
+        onSuccess: (res) => {
+          if (res.url) {
+            window.location.href = res.url;
+          }
+        },
+        onError: (err) => {
+          const msg =
+            err && typeof err === "object" && "data" in err
+              ? (err as { data?: { error?: string } }).data?.error
+              : undefined;
+          toast({
+            title: "Checkout failed",
+            description: msg || "An unexpected error occurred.",
+            variant: "destructive",
+          });
+        }
+      }
+    );
+  };
+
+  const pricingData = !isLoading && !isError && data ? data : FALLBACK_PRICING;
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <TopNav />
+      <main className="flex-1 bg-background">
+        <section className="py-20">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center text-center space-y-4 mb-16">
+              <h1 className="font-display text-4xl md:text-6xl tracking-wide text-primary">ACCESS TIERS</h1>
+              <p className="text-muted-foreground font-serif text-lg max-w-2xl">
+                Choose the operational capacity that matches your mission requirements.
+              </p>
+              
+              <Tabs value={interval} onValueChange={(v) => setInterval(v as "monthly" | "yearly")} className="mt-8">
+                <TabsList className="bg-card border">
+                  <TabsTrigger value="monthly" className="font-mono">MONTHLY</TabsTrigger>
+                  <TabsTrigger value="yearly" className="font-mono">
+                    YEARLY <span className="ml-2 text-[10px] bg-secondary/20 text-secondary px-1.5 py-0.5 rounded">-20%</span>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-[500px] rounded-lg" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+                {pricingData.tiers.map((tier) => (
+                  <div 
+                    key={tier.id} 
+                    className={`flex flex-col p-8 rounded-lg border bg-card relative ${
+                      tier.featured ? 'ring-2 ring-primary border-transparent' : ''
+                    }`}
+                  >
+                    {tier.featured && (
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground font-mono text-xs font-bold px-3 py-1 rounded-full border border-background">
+                        RECOMMENDED
+                      </div>
+                    )}
+                    
+                    <div className="mb-6">
+                      <TierBadge tier={tier.id} className="mb-4" />
+                      <div className="flex items-baseline gap-2 mb-2">
+                        {tier.priceMonthly !== null ? (
+                          <>
+                            <span className="text-4xl font-display tracking-wider">
+                              ${interval === "monthly" ? tier.priceMonthly : tier.priceYearly}
+                            </span>
+                            <span className="text-muted-foreground font-mono text-sm">/{interval === "monthly" ? "mo" : "yr"}</span>
+                          </>
+                        ) : (
+                          <span className="text-3xl font-display tracking-wider text-muted-foreground">CUSTOM</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground min-h-[40px]">{tier.tagline}</p>
+                    </div>
+                    
+                    <div className="flex-1 mb-8">
+                      <ul className="space-y-4">
+                        {tier.features.map((feature, i) => (
+                          <li key={i} className="flex items-start gap-3 text-sm">
+                            <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <div className="mt-auto pt-6 border-t">
+                      {(tier.id === "PRACTITIONER" || tier.id === "ARCHITECT") && (
+                        <div className="mb-3 text-center">
+                          <span className="text-xs font-mono font-bold text-secondary bg-secondary/10 px-2 py-1 rounded">30-DAY FREE TRIAL</span>
+                        </div>
+                      )}
+                      <Button 
+                        onClick={() => handleSubscribe(tier.id)}
+                        disabled={checkout.isPending}
+                        variant={tier.featured ? "default" : "outline"}
+                        className={`w-full font-display tracking-wider text-lg ${
+                          tier.featured ? "" : "border-primary/20 hover:bg-primary/10"
+                        }`}
+                      >
+                        {checkout.isPending && checkout.variables?.data.tier === tier.id ? "PROCESSING..." : tier.ctaLabel}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Trust Strip */}
+        {!isLoading && pricingData.trust && pricingData.trust.length > 0 && (
+          <section className="py-12 border-y bg-card/50">
+            <div className="container px-4">
+              <div className="flex flex-wrap justify-center gap-8 md:gap-16">
+                {pricingData.trust.map((item, i) => (
+                  <div key={i} className="flex items-center gap-3 text-muted-foreground">
+                    <ShieldCheck className="h-5 w-5 opacity-50" />
+                    <span className="font-mono text-sm uppercase tracking-wider">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* FAQs */}
+        {!isLoading && pricingData.faqs && pricingData.faqs.length > 0 && (
+          <section className="py-20">
+            <div className="container px-4 md:px-6 max-w-3xl">
+              <h2 className="font-display text-3xl text-center tracking-wide mb-10">FREQUENTLY ASKED QUESTIONS</h2>
+              <Accordion type="single" collapsible className="w-full">
+                {pricingData.faqs.map((faq, i) => (
+                  <AccordionItem key={i} value={`faq-${i}`} className="border-border">
+                    <AccordionTrigger className="text-left font-medium hover:text-primary transition-colors">
+                      {faq.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground leading-relaxed">
+                      {faq.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          </section>
+        )}
+      </main>
+      <Footer />
+    </div>
+  );
+}
