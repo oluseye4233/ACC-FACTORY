@@ -19,6 +19,9 @@ tags:
   - name: cron
   - name: verify
   - name: exemplars
+  - name: prompts
+  - name: badges
+  - name: export
 
 paths:
   /healthz:
@@ -478,6 +481,116 @@ paths:
               schema: { $ref: "#/components/schemas/Exemplar" }
         "404":
           $ref: "#/components/responses/NotFound"
+
+  /me/prompts:
+    get:
+      operationId: listMyPrompts
+      tags: [prompts]
+      summary: Paginated personal prompt library (atomic prompts, diagnostics, SPCs)
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer }
+        - name: pageSize
+          in: query
+          required: false
+          schema: { type: integer }
+        - name: q
+          in: query
+          required: false
+          schema: { type: string }
+        - name: kind
+          in: query
+          required: false
+          schema: { type: string, enum: [ATOMIC_PROMPT, PROMPT_DIAGNOSTIC, SPC] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PromptLibraryPage" }
+
+  /me/spcs/export.csv:
+    get:
+      operationId: exportMySpcsCsv
+      tags: [export]
+      summary: Download all of the user's SPCs in 33-column BI_SPC_ALPHA CSV
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema: { type: string }
+
+  /me/spcs/export.pdf:
+    get:
+      operationId: exportMySpcsPdf
+      tags: [export]
+      summary: Download all of the user's SPCs as a printable PDF report
+      responses:
+        "200":
+          description: PDF file
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+
+  /me/badges:
+    get:
+      operationId: listMyBadges
+      tags: [badges]
+      summary: Compute current Quest Badge progress (ASPE / AISA / AISE)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BadgeProgress" }
+
+  /me/badges/aise/claim:
+    post:
+      operationId: claimAiseBadge
+      tags: [badges]
+      summary: Submit URL evidence for AISE (verified against domain allowlist + reachability)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AiseClaimInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BadgeProgress" }
+        "422":
+          description: No verifiable evidence
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /harness/evolve:
+    post:
+      operationId: harnessEvolve
+      tags: [harness]
+      summary: DE-SPC — synthesise a Digitally Evolved SPC from N MA birth packages (requires ASPE badge)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessEvolveInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HarnessArtifact" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /verify:
     get:
@@ -1068,3 +1181,61 @@ components:
           required: [body]
           properties:
             body: { type: string }
+
+    PromptLibraryItem:
+      type: object
+      required: [id, sessionId, artifactType, preview, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
+        sessionName: { type: ["string", "null"] }
+        artifactType: { $ref: "#/components/schemas/ArtifactType" }
+        certTier: { type: ["string", "null"] }
+        jcseScore: { type: ["integer", "null"] }
+        spcOrigin: { type: ["string", "null"], enum: [artisanal, digitally_evolved, null] }
+        preview: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    PromptLibraryPage:
+      type: object
+      required: [page, pageSize, total, items]
+      properties:
+        page: { type: integer }
+        pageSize: { type: integer }
+        total: { type: integer }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/PromptLibraryItem" }
+
+    BadgeProgress:
+      type: object
+      required: [badgeId, status, eligible, progress, requirements, evidence, unlockedAt, claimedAt]
+      properties:
+        badgeId: { type: string, enum: [ASPE, AISA, AISE] }
+        status: { type: string, enum: [LOCKED, UNLOCKED, CLAIMED] }
+        eligible: { type: boolean }
+        progress: { type: object, additionalProperties: { type: integer } }
+        requirements: { type: object, additionalProperties: { type: integer } }
+        evidence: { type: object, additionalProperties: true }
+        unlockedAt: { type: ["string", "null"], format: date-time }
+        claimedAt: { type: ["string", "null"], format: date-time }
+
+    AiseClaimInput:
+      type: object
+      properties:
+        spcDnaAgentUrl: { type: string, format: uri }
+        gptUrl: { type: string, format: uri }
+        copilotUrl: { type: string, format: uri }
+        nativeAppUrl: { type: string, format: uri }
+        notes: { type: string }
+
+    HarnessEvolveInput:
+      type: object
+      required: [sessionId, maArtifactIds]
+      properties:
+        sessionId: { type: string, format: uuid }
+        maArtifactIds:
+          type: array
+          items: { type: string, format: uuid }
+          minItems: 2
+          maxItems: 12

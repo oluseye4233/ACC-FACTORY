@@ -61,6 +61,10 @@ A subscription portal where a creator runs a single coherent FORGE.BONSAI sessio
 - **Stripe webhook is idempotent.** Every event id is recorded in `stripe_webhook_events` (PK on `event_id`) on receipt; replays return `{ok:true, replay:true}` without re-executing handlers. If a handler throws, the idempotency row is rolled back so Stripe can legitimately retry.
 - **Unknown Stripe price ids fail loudly.** `applySubscription` throws `UnknownPriceError` → 400, logged with `{priceId, customerId}`. Add new price envs (`STRIPE_PRICE_*`) before launching a new tier.
 - **Per-engine telemetry** is written to `harness_engine_runs` on every Claude call via the optional `RunContext` argument to `callClaude`/`callClaudeJson`. Failures here log a warning but never break the request — telemetry is best-effort.
+- **AISE URL verifier blocks private IPs.** `lib/badges.ts#headOk` resolves the hostname and refuses RFC1918 / loopback / link-local / metadata (169.254.169.254) / CGNAT / multicast addresses, and rejects anything that is not `https:`. Do not relax this without a deliberate SSRF review.
+- **PDFKit needs `@swc/helpers`.** `pdfkit`'s embedded `fontkit` does `require("@swc/helpers/cjs/_define_property.cjs")` from the bundled output, so `@swc/helpers` must be present as a real `dependency` of `@workspace/api-server` — esbuild does not pull it in transitively.
+- **DE-SPC** (`engineId=8`, `/api/harness/evolve`) is gated by `requireAuth + requireTier("PRACTITIONER") + requireAspeBadge`. Persist path is `persistArtifact` followed by an `UPDATE` to set `spcOrigin='digitally_evolved'` since `persistArtifact` doesn't accept that field.
+- **Quest badges are computed live**, not stored. `lib/badges.ts#computeBadgeProgress` re-counts SPCs / MAs / PDDs on every `/me/badges` call. Only AISE persists a row (after URL verification) in `command_centre_badges`.
 - **Sentry init must run before any other module-side-effect imports** in `app.ts`; both API (`@sentry/node`) and web (`@sentry/react`) gate on DSN env and no-op cleanly in dev. `@opentelemetry/*` is NOT externalized in the esbuild bundle (Sentry needs it bundled into the CJS output).
 
 ## Pointers

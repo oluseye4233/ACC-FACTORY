@@ -577,6 +577,101 @@ export const GetExemplarResponse = zod.object({
 }))
 
 
+/**
+ * @summary Paginated personal prompt library (atomic prompts, diagnostics, SPCs)
+ */
+export const ListMyPromptsQueryParams = zod.object({
+  "page": zod.coerce.number().optional(),
+  "pageSize": zod.coerce.number().optional(),
+  "q": zod.coerce.string().optional(),
+  "kind": zod.enum(['ATOMIC_PROMPT', 'PROMPT_DIAGNOSTIC', 'SPC']).optional()
+})
+
+export const ListMyPromptsResponse = zod.object({
+  "page": zod.number(),
+  "pageSize": zod.number(),
+  "total": zod.number(),
+  "items": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "sessionId": zod.string().uuid(),
+  "sessionName": zod.string().nullish(),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'MVP_PDD']),
+  "certTier": zod.string().nullish(),
+  "jcseScore": zod.number().nullish(),
+  "spcOrigin": zod.union([zod.literal('artisanal'),zod.literal('digitally_evolved'),zod.literal(null)]).nullish(),
+  "preview": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Compute current Quest Badge progress (ASPE / AISA / AISE)
+ */
+export const ListMyBadgesResponseItem = zod.object({
+  "badgeId": zod.enum(['ASPE', 'AISA', 'AISE']),
+  "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED']),
+  "eligible": zod.boolean(),
+  "progress": zod.record(zod.string(), zod.number()),
+  "requirements": zod.record(zod.string(), zod.number()),
+  "evidence": zod.record(zod.string(), zod.unknown()),
+  "unlockedAt": zod.coerce.date().nullable(),
+  "claimedAt": zod.coerce.date().nullable()
+})
+export const ListMyBadgesResponse = zod.array(ListMyBadgesResponseItem)
+
+
+/**
+ * @summary Submit URL evidence for AISE (verified against domain allowlist + reachability)
+ */
+export const ClaimAiseBadgeBody = zod.object({
+  "spcDnaAgentUrl": zod.string().url().optional(),
+  "gptUrl": zod.string().url().optional(),
+  "copilotUrl": zod.string().url().optional(),
+  "nativeAppUrl": zod.string().url().optional(),
+  "notes": zod.string().optional()
+})
+
+export const ClaimAiseBadgeResponseItem = zod.object({
+  "badgeId": zod.enum(['ASPE', 'AISA', 'AISE']),
+  "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED']),
+  "eligible": zod.boolean(),
+  "progress": zod.record(zod.string(), zod.number()),
+  "requirements": zod.record(zod.string(), zod.number()),
+  "evidence": zod.record(zod.string(), zod.unknown()),
+  "unlockedAt": zod.coerce.date().nullable(),
+  "claimedAt": zod.coerce.date().nullable()
+})
+export const ClaimAiseBadgeResponse = zod.array(ClaimAiseBadgeResponseItem)
+
+
+/**
+ * @summary DE-SPC — synthesise a Digitally Evolved SPC from N MA birth packages (requires ASPE badge)
+ */
+export const harnessEvolveBodyMaArtifactIdsMin = 2;
+export const harnessEvolveBodyMaArtifactIdsMax = 12;
+
+
+
+export const HarnessEvolveBody = zod.object({
+  "sessionId": zod.string().uuid(),
+  "maArtifactIds": zod.array(zod.string().uuid()).min(harnessEvolveBodyMaArtifactIdsMin).max(harnessEvolveBodyMaArtifactIdsMax)
+})
+
+export const HarnessEvolveResponse = zod.object({
+  "id": zod.string().uuid(),
+  "sessionId": zod.string().uuid(),
+  "featureId": zod.number(),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'MVP_PDD']),
+  "artifactContent": zod.record(zod.string(), zod.unknown()),
+  "jcseScore": zod.number().nullish(),
+  "certTier": zod.string().nullish(),
+  "groState": zod.string().optional(),
+  "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
 export const VerifyCertificateQueryParams = zod.object({
   "cert": zod.coerce.string()
 })

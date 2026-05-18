@@ -1,12 +1,12 @@
 import { Link } from "wouter";
 import { TopNav } from "@/components/layout/TopNav";
-import { useGetMe, useListSessions, useHealthDeep, useListExemplars, useGetMyUsage } from "@workspace/api-client-react";
+import { useGetMe, useListSessions, useHealthDeep, useListExemplars, useGetMyUsage, useListMyBadges } from "@workspace/api-client-react";
 import { TierBadge } from "@/components/shared/TierBadge";
 import { ENGINES } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Activity, Cpu, Database, AlertCircle, BookOpen, ShieldCheck } from "lucide-react";
+import { Plus, Activity, Cpu, Database, AlertCircle, BookOpen, ShieldCheck, Trophy, Lock, CheckCircle2, Award } from "lucide-react";
 import { format } from "date-fns";
 
 export default function Command() {
@@ -15,6 +15,7 @@ export default function Command() {
   const { data: health, isLoading: isLoadingHealth } = useHealthDeep();
   const { data: exemplars } = useListExemplars();
   const { data: usageReport, isLoading: isLoadingUsage } = useGetMyUsage();
+  const { data: badges, isLoading: isLoadingBadges } = useListMyBadges();
 
   const activeSessions = sessions?.filter(s => s.status !== "COMPLETE").length || 0;
   const recentSessions = sessions?.slice(0, 5) || [];
@@ -180,6 +181,48 @@ export default function Command() {
                   </Link>
                 ))}
               </div>
+            </div>
+
+            {/* Quest Badges */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display text-2xl tracking-wide">QUEST BADGES</h2>
+                <Button variant="link" size="sm" asChild className="font-mono text-xs text-muted-foreground">
+                  <Link href="/quests">VIEW ALL</Link>
+                </Button>
+              </div>
+              <Card className="bg-card">
+                <CardContent className="p-5">
+                  {isLoadingBadges ? (
+                    <Skeleton className="h-16 w-full" />
+                  ) : (
+                    <div className="grid grid-cols-3 gap-4">
+                      {(badges ?? []).map((b) => {
+                        const Icon = b.badgeId === "ASPE" ? ShieldCheck : b.badgeId === "AISA" ? Award : Trophy;
+                        const tone =
+                          b.status === "CLAIMED" ? "text-primary" :
+                          b.status === "UNLOCKED" ? "text-secondary" :
+                          "text-muted-foreground";
+                        return (
+                          <Link key={b.badgeId} href="/quests" className="text-center hover:opacity-80 transition-opacity">
+                            <div className="flex justify-center mb-2 relative">
+                              <Icon className={`h-10 w-10 ${tone}`} />
+                              {b.status === "CLAIMED" && (
+                                <CheckCircle2 className="absolute -bottom-1 -right-1 h-4 w-4 text-primary bg-card rounded-full" />
+                              )}
+                              {b.status === "LOCKED" && (
+                                <Lock className="absolute -bottom-1 -right-1 h-4 w-4 text-muted-foreground bg-card rounded-full" />
+                              )}
+                            </div>
+                            <div className={`font-mono text-sm font-bold ${tone}`}>{b.badgeId}</div>
+                            <div className="text-[10px] font-mono text-muted-foreground">{b.status}</div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
 
             {/* Recent Sessions */}

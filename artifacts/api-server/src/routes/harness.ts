@@ -11,8 +11,27 @@ import { handleF5 } from "../engines/f5";
 import { handleF6 } from "../engines/f6";
 import { handleF6Vdj } from "../engines/f6vdj";
 import { handleF7Stream } from "../engines/f7";
+import { handleEvolve } from "../engines/de";
+import { hasBadge } from "./badges-gate";
 
 const router: IRouter = Router();
+
+async function requireAspeBadge(
+  req: import("express").Request,
+  res: import("express").Response,
+  next: import("express").NextFunction,
+): Promise<void> {
+  const userId = req.localUser?.id;
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  if (await hasBadge(userId, "ASPE")) {
+    next();
+    return;
+  }
+  res.status(403).json({ error: "ASPE badge required", detail: "Unlock ASPE (≥3 SPCs + ≥4 MAs) to evolve." });
+}
 
 router.post("/harness/f1", requireAuth, rateLimit(1), handleF1);
 router.post("/harness/f2", requireAuth, rateLimit(2), handleF2);
@@ -44,6 +63,14 @@ router.post(
   requireTier("PRACTITIONER"),
   rateLimit(7),
   handleF7Stream,
+);
+
+router.post(
+  "/harness/evolve",
+  requireAuth,
+  requireTier("PRACTITIONER"),
+  requireAspeBadge,
+  handleEvolve,
 );
 
 router.get("/harness/escalations/stream", requireAuth, async (req, res): Promise<void> => {

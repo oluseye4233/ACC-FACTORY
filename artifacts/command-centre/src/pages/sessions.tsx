@@ -5,7 +5,9 @@ import { useListSessions } from "@workspace/api-client-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Calendar, Activity } from "lucide-react";
+import { Search, Plus, Calendar, Activity, Download } from "lucide-react";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 import { format } from "date-fns";
 
 export default function Sessions() {
@@ -43,12 +45,24 @@ export default function Sessions() {
             </p>
           </div>
           
-          <Button asChild className="font-display tracking-wider gap-2">
-            <Link href="/session/new">
-              <Plus className="h-4 w-4" />
-              NEW SESSION
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="font-mono">
+              <a href={`${BASE}/api/me/spcs/export.csv`} download>
+                <Download className="h-4 w-4 mr-2" /> SPC CSV
+              </a>
+            </Button>
+            <Button asChild variant="outline" className="font-mono">
+              <a href={`${BASE}/api/me/spcs/export.pdf`} download>
+                <Download className="h-4 w-4 mr-2" /> SPC PDF
+              </a>
+            </Button>
+            <Button asChild className="font-display tracking-wider gap-2">
+              <Link href="/session/new">
+                <Plus className="h-4 w-4" />
+                NEW SESSION
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">

@@ -29,6 +29,8 @@ import SessionNew from "@/pages/session-new";
 import SessionDetail from "@/pages/session-detail";
 import Billing from "@/pages/billing";
 import Exemplars from "@/pages/exemplars";
+import Prompts from "@/pages/prompts";
+import Quests from "@/pages/quests";
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -204,6 +206,8 @@ function ClerkProviderWithRoutes() {
             <Route path="/session/new" component={() => <ProtectedRoute component={SessionNew} />} />
             <Route path="/session/:id" component={() => <ProtectedRoute component={SessionDetail} />} />
             <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
+            <Route path="/prompts" component={() => <ProtectedRoute component={Prompts} />} />
+            <Route path="/quests" component={() => <ProtectedRoute component={Quests} />} />
             <Route path="/exemplars" component={Exemplars} />
             <Route path="/exemplars/:id" component={Exemplars} />
 

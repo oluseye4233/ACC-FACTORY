@@ -17,6 +17,8 @@ export function TopNav() {
             <nav className="flex items-center gap-4 text-sm font-medium text-muted-foreground">
               <Link href="/command" className="hover:text-foreground transition-colors">Command</Link>
               <Link href="/sessions" className="hover:text-foreground transition-colors">Sessions</Link>
+              <Link href="/prompts" className="hover:text-foreground transition-colors">Prompts</Link>
+              <Link href="/quests" className="hover:text-foreground transition-colors">Quests</Link>
               <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
               <Link href="/billing" className="hover:text-foreground transition-colors">Billing</Link>
             </nav>

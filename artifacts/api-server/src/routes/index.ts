@@ -9,11 +9,17 @@ import cronRouter from "./cron";
 import verifyRouter from "./verify";
 import exemplarsRouter from "./exemplars";
 import harnessRouter from "./harness";
+import promptsRouter from "./prompts";
+import exportsRouter from "./exports";
+import badgesRouter from "./badges";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(meRouter);
+router.use(promptsRouter);
+router.use(exportsRouter);
+router.use(badgesRouter);
 router.use(sessionsRouter);
 router.use(artifactsRouter);
 router.use(billingRouter);

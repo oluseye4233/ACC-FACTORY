@@ -578,6 +578,94 @@ export type Exemplar = ExemplarSummary & {
 };
 
 /**
+ * @nullable
+ */
+export type PromptLibraryItemSpcOrigin = typeof PromptLibraryItemSpcOrigin[keyof typeof PromptLibraryItemSpcOrigin] | null;
+
+
+export const PromptLibraryItemSpcOrigin = {
+  artisanal: 'artisanal',
+  digitally_evolved: 'digitally_evolved',
+} as const;
+
+export interface PromptLibraryItem {
+  id: string;
+  sessionId: string;
+  /** @nullable */
+  sessionName?: string | null;
+  artifactType: ArtifactType;
+  /** @nullable */
+  certTier?: string | null;
+  /** @nullable */
+  jcseScore?: number | null;
+  /** @nullable */
+  spcOrigin?: PromptLibraryItemSpcOrigin;
+  preview: string;
+  createdAt: string;
+}
+
+export interface PromptLibraryPage {
+  page: number;
+  pageSize: number;
+  total: number;
+  items: PromptLibraryItem[];
+}
+
+export type BadgeProgressBadgeId = typeof BadgeProgressBadgeId[keyof typeof BadgeProgressBadgeId];
+
+
+export const BadgeProgressBadgeId = {
+  ASPE: 'ASPE',
+  AISA: 'AISA',
+  AISE: 'AISE',
+} as const;
+
+export type BadgeProgressStatus = typeof BadgeProgressStatus[keyof typeof BadgeProgressStatus];
+
+
+export const BadgeProgressStatus = {
+  LOCKED: 'LOCKED',
+  UNLOCKED: 'UNLOCKED',
+  CLAIMED: 'CLAIMED',
+} as const;
+
+export type BadgeProgressProgress = {[key: string]: number};
+
+export type BadgeProgressRequirements = {[key: string]: number};
+
+export type BadgeProgressEvidence = { [key: string]: unknown };
+
+export interface BadgeProgress {
+  badgeId: BadgeProgressBadgeId;
+  status: BadgeProgressStatus;
+  eligible: boolean;
+  progress: BadgeProgressProgress;
+  requirements: BadgeProgressRequirements;
+  evidence: BadgeProgressEvidence;
+  /** @nullable */
+  unlockedAt: string | null;
+  /** @nullable */
+  claimedAt: string | null;
+}
+
+export interface AiseClaimInput {
+  spcDnaAgentUrl?: string;
+  gptUrl?: string;
+  copilotUrl?: string;
+  nativeAppUrl?: string;
+  notes?: string;
+}
+
+export interface HarnessEvolveInput {
+  sessionId: string;
+  /**
+     * @minItems 2
+     * @maxItems 12
+     */
+  maArtifactIds: string[];
+}
+
+/**
  * Unauthorized
  */
 export type UnauthorizedResponse = ErrorResponse;
@@ -600,6 +688,22 @@ export type RateLimitedResponse = ErrorResponse;
 export type HarnessEscalationsStreamParams = {
 sessionId: string;
 };
+
+export type ListMyPromptsParams = {
+page?: number;
+pageSize?: number;
+q?: string;
+kind?: ListMyPromptsKind;
+};
+
+export type ListMyPromptsKind = typeof ListMyPromptsKind[keyof typeof ListMyPromptsKind];
+
+
+export const ListMyPromptsKind = {
+  ATOMIC_PROMPT: 'ATOMIC_PROMPT',
+  PROMPT_DIAGNOSTIC: 'PROMPT_DIAGNOSTIC',
+  SPC: 'SPC',
+} as const;
 
 export type VerifyCertificateParams = {
 cert: string;

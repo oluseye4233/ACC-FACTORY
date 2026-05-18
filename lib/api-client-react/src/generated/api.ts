@@ -20,8 +20,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AiseClaimInput,
   AtlasPdd,
   AtomicPrompt,
+  BadgeProgress,
   CheckoutInput,
   CheckoutSession,
   DeepHealth,
@@ -33,6 +35,7 @@ import type {
   ForbiddenResponse,
   HarnessArtifact,
   HarnessEscalationsStreamParams,
+  HarnessEvolveInput,
   HarnessF1Input,
   HarnessF2Input,
   HarnessF3Input,
@@ -43,6 +46,7 @@ import type {
   HarnessF7Input,
   HarnessSession,
   HealthStatus,
+  ListMyPromptsParams,
   MeResponse,
   MicroPdd,
   NotFoundResponse,
@@ -51,6 +55,7 @@ import type {
   PortalSession,
   PricingPayload,
   PromptDiagnostic,
+  PromptLibraryPage,
   RateLimitedResponse,
   SessionDetail,
   SessionInput,
@@ -2157,6 +2162,463 @@ export function useGetExemplar<TData = Awaited<ReturnType<typeof getExemplar>>, 
 
 
 
+
+export const getListMyPromptsUrl = (params?: ListMyPromptsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/me/prompts?${stringifiedParams}` : `/api/me/prompts`
+}
+
+/**
+ * @summary Paginated personal prompt library (atomic prompts, diagnostics, SPCs)
+ */
+export const listMyPrompts = async (params?: ListMyPromptsParams, options?: RequestInit): Promise<PromptLibraryPage> => {
+
+  return customFetch<PromptLibraryPage>(getListMyPromptsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyPromptsQueryKey = (params?: ListMyPromptsParams,) => {
+    return [
+    `/api/me/prompts`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListMyPromptsQueryOptions = <TData = Awaited<ReturnType<typeof listMyPrompts>>, TError = ErrorType<unknown>>(params?: ListMyPromptsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyPrompts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyPromptsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyPrompts>>> = ({ signal }) => listMyPrompts(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyPrompts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMyPromptsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyPrompts>>>
+export type ListMyPromptsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Paginated personal prompt library (atomic prompts, diagnostics, SPCs)
+ */
+
+export function useListMyPrompts<TData = Awaited<ReturnType<typeof listMyPrompts>>, TError = ErrorType<unknown>>(
+ params?: ListMyPromptsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyPrompts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMyPromptsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getExportMySpcsCsvUrl = () => {
+
+
+
+
+  return `/api/me/spcs/export.csv`
+}
+
+/**
+ * @summary Download all of the user's SPCs in 33-column BI_SPC_ALPHA CSV
+ */
+export const exportMySpcsCsv = async ( options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getExportMySpcsCsvUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportMySpcsCsvQueryKey = () => {
+    return [
+    `/api/me/spcs/export.csv`
+    ] as const;
+    }
+
+
+export const getExportMySpcsCsvQueryOptions = <TData = Awaited<ReturnType<typeof exportMySpcsCsv>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportMySpcsCsv>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportMySpcsCsvQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportMySpcsCsv>>> = ({ signal }) => exportMySpcsCsv({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportMySpcsCsv>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExportMySpcsCsvQueryResult = NonNullable<Awaited<ReturnType<typeof exportMySpcsCsv>>>
+export type ExportMySpcsCsvQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Download all of the user's SPCs in 33-column BI_SPC_ALPHA CSV
+ */
+
+export function useExportMySpcsCsv<TData = Awaited<ReturnType<typeof exportMySpcsCsv>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportMySpcsCsv>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExportMySpcsCsvQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getExportMySpcsPdfUrl = () => {
+
+
+
+
+  return `/api/me/spcs/export.pdf`
+}
+
+/**
+ * @summary Download all of the user's SPCs as a printable PDF report
+ */
+export const exportMySpcsPdf = async ( options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getExportMySpcsPdfUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportMySpcsPdfQueryKey = () => {
+    return [
+    `/api/me/spcs/export.pdf`
+    ] as const;
+    }
+
+
+export const getExportMySpcsPdfQueryOptions = <TData = Awaited<ReturnType<typeof exportMySpcsPdf>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportMySpcsPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportMySpcsPdfQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportMySpcsPdf>>> = ({ signal }) => exportMySpcsPdf({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportMySpcsPdf>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExportMySpcsPdfQueryResult = NonNullable<Awaited<ReturnType<typeof exportMySpcsPdf>>>
+export type ExportMySpcsPdfQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Download all of the user's SPCs as a printable PDF report
+ */
+
+export function useExportMySpcsPdf<TData = Awaited<ReturnType<typeof exportMySpcsPdf>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportMySpcsPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExportMySpcsPdfQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListMyBadgesUrl = () => {
+
+
+
+
+  return `/api/me/badges`
+}
+
+/**
+ * @summary Compute current Quest Badge progress (ASPE / AISA / AISE)
+ */
+export const listMyBadges = async ( options?: RequestInit): Promise<BadgeProgress[]> => {
+
+  return customFetch<BadgeProgress[]>(getListMyBadgesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyBadgesQueryKey = () => {
+    return [
+    `/api/me/badges`
+    ] as const;
+    }
+
+
+export const getListMyBadgesQueryOptions = <TData = Awaited<ReturnType<typeof listMyBadges>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyBadges>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyBadgesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyBadges>>> = ({ signal }) => listMyBadges({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyBadges>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMyBadgesQueryResult = NonNullable<Awaited<ReturnType<typeof listMyBadges>>>
+export type ListMyBadgesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Compute current Quest Badge progress (ASPE / AISA / AISE)
+ */
+
+export function useListMyBadges<TData = Awaited<ReturnType<typeof listMyBadges>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyBadges>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMyBadgesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getClaimAiseBadgeUrl = () => {
+
+
+
+
+  return `/api/me/badges/aise/claim`
+}
+
+/**
+ * @summary Submit URL evidence for AISE (verified against domain allowlist + reachability)
+ */
+export const claimAiseBadge = async (aiseClaimInput: AiseClaimInput, options?: RequestInit): Promise<BadgeProgress[]> => {
+
+  return customFetch<BadgeProgress[]>(getClaimAiseBadgeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      aiseClaimInput,)
+  }
+);}
+
+
+
+
+export const getClaimAiseBadgeMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimAiseBadge>>, TError,{data: BodyType<AiseClaimInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof claimAiseBadge>>, TError,{data: BodyType<AiseClaimInput>}, TContext> => {
+
+const mutationKey = ['claimAiseBadge'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof claimAiseBadge>>, {data: BodyType<AiseClaimInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  claimAiseBadge(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClaimAiseBadgeMutationResult = NonNullable<Awaited<ReturnType<typeof claimAiseBadge>>>
+    export type ClaimAiseBadgeMutationBody = BodyType<AiseClaimInput>
+    export type ClaimAiseBadgeMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Submit URL evidence for AISE (verified against domain allowlist + reachability)
+ */
+export const useClaimAiseBadge = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimAiseBadge>>, TError,{data: BodyType<AiseClaimInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof claimAiseBadge>>,
+        TError,
+        {data: BodyType<AiseClaimInput>},
+        TContext
+      > => {
+      return useMutation(getClaimAiseBadgeMutationOptions(options));
+    }
+
+export const getHarnessEvolveUrl = () => {
+
+
+
+
+  return `/api/harness/evolve`
+}
+
+/**
+ * @summary DE-SPC — synthesise a Digitally Evolved SPC from N MA birth packages (requires ASPE badge)
+ */
+export const harnessEvolve = async (harnessEvolveInput: HarnessEvolveInput, options?: RequestInit): Promise<HarnessArtifact> => {
+
+  return customFetch<HarnessArtifact>(getHarnessEvolveUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      harnessEvolveInput,)
+  }
+);}
+
+
+
+
+export const getHarnessEvolveMutationOptions = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessEvolve>>, TError,{data: BodyType<HarnessEvolveInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof harnessEvolve>>, TError,{data: BodyType<HarnessEvolveInput>}, TContext> => {
+
+const mutationKey = ['harnessEvolve'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof harnessEvolve>>, {data: BodyType<HarnessEvolveInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  harnessEvolve(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HarnessEvolveMutationResult = NonNullable<Awaited<ReturnType<typeof harnessEvolve>>>
+    export type HarnessEvolveMutationBody = BodyType<HarnessEvolveInput>
+    export type HarnessEvolveMutationError = ErrorType<ForbiddenResponse>
+
+    /**
+ * @summary DE-SPC — synthesise a Digitally Evolved SPC from N MA birth packages (requires ASPE badge)
+ */
+export const useHarnessEvolve = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessEvolve>>, TError,{data: BodyType<HarnessEvolveInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof harnessEvolve>>,
+        TError,
+        {data: BodyType<HarnessEvolveInput>},
+        TContext
+      > => {
+      return useMutation(getHarnessEvolveMutationOptions(options));
+    }
 
 export const getVerifyCertificateUrl = (params: VerifyCertificateParams,) => {
   const normalizedParams = new URLSearchParams();

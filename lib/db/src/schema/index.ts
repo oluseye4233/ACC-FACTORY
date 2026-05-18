@@ -7,3 +7,4 @@ export * from "./harness-escalations";
 export * from "./pricing-content";
 export * from "./stripe-webhook-events";
 export * from "./harness-engine-runs";
+export * from "./command-centre-badges";
