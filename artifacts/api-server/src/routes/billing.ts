@@ -1,17 +1,11 @@
 import { Router, type IRouter } from "express";
-import Stripe from "stripe";
 import { eq } from "drizzle-orm";
 import { db, commandCentreSubscribersTable, type SubscriberTier } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { BillingCheckoutBody, BillingPortalBody } from "@workspace/api-zod";
+import { getUncachableStripeClient } from "../lib/stripe";
 
 const router: IRouter = Router();
-
-function getStripe(): Stripe | null {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) return null;
-  return new Stripe(key);
-}
 
 function priceIdFor(tier: SubscriberTier, interval: "month" | "year"): string | null {
   const map: Record<string, string | undefined> = {
@@ -37,14 +31,20 @@ router.post("/billing/checkout", requireAuth, async (req, res): Promise<void> =>
     res.status(400).json({ error: "Institution tier is sales-led; contact us" });
     return;
   }
-  const stripe = getStripe();
-  if (!stripe) {
-    res.status(503).json({ error: "Billing not configured", detail: "STRIPE_SECRET_KEY missing" });
-    return;
-  }
   const priceId = priceIdFor(parsed.data.tier, parsed.data.interval);
   if (!priceId) {
-    res.status(503).json({ error: `Stripe price not configured for ${parsed.data.tier}/${parsed.data.interval}` });
+    res
+      .status(503)
+      .json({ error: `Stripe price not configured for ${parsed.data.tier}/${parsed.data.interval}` });
+    return;
+  }
+
+  let stripe;
+  try {
+    stripe = await getUncachableStripeClient();
+  } catch (err) {
+    req.log.error({ err }, "Stripe client unavailable");
+    res.status(503).json({ error: "Billing not configured" });
     return;
   }
 
@@ -84,14 +84,17 @@ router.post("/billing/portal", requireAuth, async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const stripe = getStripe();
-  if (!stripe) {
-    res.status(503).json({ error: "Billing not configured" });
-    return;
-  }
   const customerId = req.subscriber!.stripeCustomerId;
   if (!customerId) {
     res.status(400).json({ error: "No Stripe customer on file" });
+    return;
+  }
+  let stripe;
+  try {
+    stripe = await getUncachableStripeClient();
+  } catch (err) {
+    req.log.error({ err }, "Stripe client unavailable");
+    res.status(503).json({ error: "Billing not configured" });
     return;
   }
   const origin =

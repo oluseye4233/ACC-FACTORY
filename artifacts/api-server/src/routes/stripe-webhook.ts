@@ -2,6 +2,7 @@ import express, { Router, type IRouter } from "express";
 import Stripe from "stripe";
 import { eq } from "drizzle-orm";
 import { db, commandCentreSubscribersTable, type SubscriberTier } from "@workspace/db";
+import { getStripeWebhookSecret, getUncachableStripeClient } from "../lib/stripe";
 
 const router: IRouter = Router();
 
@@ -16,13 +17,18 @@ router.post(
   "/",
   express.raw({ type: "application/json" }),
   async (req, res): Promise<void> => {
-    const secret = process.env.STRIPE_WEBHOOK_SECRET;
-    const key = process.env.STRIPE_SECRET_KEY;
-    if (!secret || !key) {
-      res.status(503).json({ error: "Webhook not configured" });
+    const secret = await getStripeWebhookSecret();
+    if (!secret) {
+      res.status(503).json({ error: "Webhook secret not configured (set STRIPE_WEBHOOK_SECRET)" });
       return;
     }
-    const stripe = new Stripe(key);
+    let stripe;
+    try {
+      stripe = await getUncachableStripeClient();
+    } catch {
+      res.status(503).json({ error: "Stripe client unavailable" });
+      return;
+    }
     const sig = req.headers["stripe-signature"];
     if (!sig || Array.isArray(sig)) {
       res.status(400).json({ error: "Missing signature" });
