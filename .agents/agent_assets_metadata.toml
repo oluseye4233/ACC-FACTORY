@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "H38ZGMzsfMUTAkjaGdpSZ"
+uri = "file://docs/ATANDA_Command_Centre_Guide.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — A Plain-English Guide for Every Plan"
