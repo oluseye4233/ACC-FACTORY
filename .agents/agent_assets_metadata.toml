@@ -18,3 +18,9 @@ id = "Z-rdVIPyaq-rj4Vwebh6n"
 uri = "file://docs/BUGMXT_Report_AccountDelete.pdf"
 type = "pdf"
 title = "BUGMXT SI — Bug Triage Report (Account delete + auth hardening)"
+
+[[outputs]]
+id = "v1fFe3iAsQ0IV2RIkzItC"
+uri = "file://docs/ATANDA_Quest_Badges_Guide.pdf"
+type = "pdf"
+title = "ATANDA Quest Badges — How to Earn & Share"
