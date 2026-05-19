@@ -1,0 +1,323 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ATANDA Command Centre → Azure AI Foundry Agent Translation Template
+# ─────────────────────────────────────────────────────────────────────────────
+# Purpose:
+#   One-to-one mapping from an ATANDA Super Prompt Card (SPC) — the 15-section
+#   artifact F5 produces — into an Azure AI Foundry agent definition. The Tech
+#   Team fills in the values from the SPC and the accompanying Micro Agent (MA)
+#   Birth Package; no interpretation required.
+#
+# How to use:
+#   1. Open the SPC at the verify URL on the MVP-PDD certificate.
+#   2. For every "FROM_SPC §N" comment below, copy the matching SPC section into
+#      the value. Don't paraphrase — the JCSE / HIVE quality floor was scored
+#      against the SPC's exact wording.
+#   3. For every "FROM_MA §ORGANELLE" comment, copy the matching organelle
+#      content from the MA Birth Package.
+#   4. Commit the filled file into your AI Foundry project repo as
+#      `agents/<agent_slug>/agent.yaml`.
+#   5. Run `az ml agent create -f agent.yaml` (or the Foundry portal import).
+#
+# Provenance:
+#   The `provenance.mvp_pdd_verify_url` field is the single auditable link back
+#   to the ATANDA blueprint. CI/CD must fail the deploy if it is missing or
+#   resolves to anything other than HTTP 200.
+# ─────────────────────────────────────────────────────────────────────────────
+
+apiVersion: v1
+kind: AzureAIFoundryAgent
+
+# ─── §1 IDENTITY & METADATA ─────────────────────────────────────────────────
+metadata:                                  # FROM_SPC §1 card_identity_metadata
+  name: ""                                 # SPC card name, kebab-case
+  display_name: ""                         # Human label for Copilot Studio
+  owner: ""                                # Entra ID group or UPN
+  tenant_id: ""                            # Azure tenant
+  catalogue_listing: |                     # FROM_SPC §2 executive_summary
+    # paste the SPC executive_summary verbatim here
+
+provenance:
+  mvp_pdd_verify_url: ""                   # REQUIRED — public verify URL from F7
+  spc_id: ""                               # harness_artifacts.id of the SPC row
+  atlas_pdd_id: ""                         # harness_artifacts.id of the F6 PDD
+  jcse_at_handover: 0                      # 0..50, must match the SPC scoring
+  hive_band: ""                            # BRONZE | SILVER | GOLD | PLATINUM
+  spartan_cert_class: ""                   # A | B | C  (CLASS A or B required for prod)
+  command_centre_session_id: ""
+  handover_date: ""                        # ISO-8601
+
+# ─── §3–§4 DNA + ORCHESTRATION → AGENT DEFINITION ───────────────────────────
+agent:
+  model:                                   # FROM_VDJ recommendation (F6-VDJ)
+    catalogue_id: ""                       # e.g. gpt-4.1, gpt-4o, o3-mini
+    deployment_name: ""                    # your Foundry deployment name
+    temperature: 0.2
+    max_output_tokens: 4096
+
+  system_prompt: |                         # FROM_SPC §3 dna_architecture
+    # Concatenate, in order:
+    #   1. MA Birth Package — NUCLEUS (identity contract, quality gates)
+    #   2. SPC §3 dna_architecture
+    #   3. SPC §4 orchestration_layer
+    # Do NOT paraphrase. The JCSE score was computed against this exact text.
+
+  instructions_supplement: |               # FROM_MA NUCLEUS quality gates
+    # Optional secondary block for runtime constraints not part of the core
+    # dna_architecture (e.g. "always respond in formal English", "never reveal
+    # internal tool names to the user").
+
+# ─── MA BIRTH PACKAGE → TOOLS, MEMORY, GROUNDING ────────────────────────────
+tools:                                     # FROM_MA RIBOSOME + GOLGI
+  # One entry per RIBOSOME tool. Each becomes an Azure Function or a Logic App
+  # connector. Schemas are copied verbatim from GOLGI (input/output schemas).
+  - name: ""
+    description: ""
+    type: azure_function                   # azure_function | logic_app | openapi
+    endpoint: ""                           # https://<func-app>.azurewebsites.net/api/<route>
+    auth:
+      type: managed_identity               # managed_identity | api_key (vault)
+      key_vault_secret_ref: ""             # only if type=api_key
+    input_schema: {}                       # FROM_MA GOLGI input schema (JSON Schema)
+    output_schema: {}                      # FROM_MA GOLGI output schema (JSON Schema)
+    timeout_seconds: 30
+    retry:
+      max_attempts: 2
+      backoff_seconds: 1
+
+memory:                                    # FROM_MA VACUOLE
+  type: cosmos_db                          # cosmos_db | dataverse | none
+  cosmos:
+    account_endpoint: ""
+    database: ""
+    container: ""
+  retention_days: 90
+  pii_at_rest: false                       # set true → also fill purview block below
+
+grounding:                                 # FROM_MA CYTOPLASM
+  # One entry per knowledge source. Most F500 deployments will have ≥1.
+  - type: azure_ai_search
+    index_name: ""
+    endpoint: ""
+    semantic_ranker: true
+    top_k: 6
+    filter_expression: ""                  # optional OData filter
+    grounding_instruction: ""              # how the agent should cite this source
+
+# ─── §6 CONTEXT CRAFT PILLARS → TOPICS ──────────────────────────────────────
+# Each of the 7 CONTEXT CRAFT pillars (FROM_SPC §6 context_craft_pillars)
+# becomes either a Copilot Studio topic (if conversational) or a constraint
+# block in system_prompt (if cross-cutting). The list below documents the
+# canonical 7 — keep them ordered.
+context_craft_pillars:
+  - pillar: instruction_clarity
+    realisation: system_prompt_constraint
+    notes: ""
+  - pillar: role_persona
+    realisation: system_prompt_constraint
+    notes: ""
+  - pillar: context_grounding
+    realisation: grounding_source          # → grounding[] above
+    notes: ""
+  - pillar: output_formatting
+    realisation: response_schema
+    notes: ""
+  - pillar: examples_fewshot
+    realisation: system_prompt_block
+    notes: ""
+  - pillar: constraints_guardrails
+    realisation: safety_policy             # → safety block below
+    notes: ""
+  - pillar: success_criteria
+    realisation: evaluator                 # → evaluators[] below
+    notes: ""
+
+# ─── §5 N-LAYER DETECTION ENGINE → EVALUATORS ───────────────────────────────
+evaluators:                                # FROM_SPC §5 n_layer_detection_engine
+  - name: "jcse_equivalent"
+    type: custom_prompt_evaluator
+    prompt_template_ref: "evaluators/jcse.md"
+    schedule: nightly
+    fail_threshold: 0                      # set to the SPC's HIVE-band floor:
+                                           #   BRONZE=30, SILVER=36, GOLD=43, PLATINUM=48
+    on_breach: quarantine_agent            # quarantine_agent | alert_only
+
+  - name: "groundedness"
+    type: builtin
+    builtin_id: groundedness
+    schedule: per_request
+    sample_rate: 0.05
+    fail_threshold: 0.8
+
+  - name: "relevance"
+    type: builtin
+    builtin_id: relevance
+    schedule: per_request
+    sample_rate: 0.05
+    fail_threshold: 0.75
+
+  - name: "fluency"
+    type: builtin
+    builtin_id: fluency
+    schedule: nightly
+    fail_threshold: 0.8
+
+# ─── §7 HIVE MATRIX CERTIFICATION → PROMOTION GATE ──────────────────────────
+promotion:                                 # FROM_SPC §7 hive_matrix_certification
+  required_evaluators_passing:
+    - jcse_equivalent
+    - groundedness
+    - relevance
+  required_spartan_class: ["A", "B"]
+  required_human_signoff:
+    - role: "AI Governance Lead"
+    - role: "Data Protection Officer"      # only if PII in memory or grounding
+
+# ─── MA LYSOSOME + MEMBRANE → SAFETY & DATA BOUNDARIES ──────────────────────
+safety:                                    # FROM_MA LYSOSOME
+  content_safety:
+    enabled: true
+    categories:                            # FROM_MA LYSOSOME categories
+      hate: block
+      sexual: block
+      violence: block
+      self_harm: block
+    prompt_shields: true                   # jailbreak / prompt-injection defence
+  fallback_topic:
+    enabled: true
+    response: ""                           # FROM_MA LYSOSOME fallback copy
+
+data_boundary:                             # FROM_MA MEMBRANE
+  purview_sensitivity_label: ""            # e.g. "Customer PII — Tier 1"
+  dlp_policy_id: ""                        # Power Platform DLP policy GUID
+  egress_allowlist:                        # explicit list of permitted FQDNs
+    - ""
+  prohibited_data_categories:
+    - ""                                   # e.g. "PCI-DSS cardholder data"
+
+# ─── §13 GOVERNANCE_SIGNING → GRO CONTRACT → AZURE POLICY ───────────────────
+gro_contract:                              # FROM_SPC §13 governance_signing
+  # GRO = Golden Rule Orchestrator — Five-State Ethical Governance.
+  # The five states below are CONTRACT, not runtime middleware. Each maps to a
+  # Microsoft platform policy that the Tech Team commits to keeping in place.
+  states:
+    - state: PERMIT
+      condition: ""                        # FROM_SPC §13 PERMIT condition
+      microsoft_enforcement:
+        - "Entra ID Conditional Access: allow"
+    - state: PERMIT_WITH_LOGGING
+      condition: ""
+      microsoft_enforcement:
+        - "Application Insights custom event: gro_state=PERMIT_WITH_LOGGING"
+        - "Purview audit log: capture full prompt + response"
+    - state: REQUIRE_HUMAN_REVIEW
+      condition: ""
+      microsoft_enforcement:
+        - "Copilot Studio: route to human handoff topic"
+        - "ServiceNow ticket auto-created via Logic App"
+    - state: DEFER
+      condition: ""
+      microsoft_enforcement:
+        - "Agent returns canned 'I cannot help with that — escalating' response"
+        - "Power Automate flow notifies the agent owner"
+    - state: REFUSE
+      condition: ""
+      microsoft_enforcement:
+        - "Content Safety pre-filter (request never reaches model)"
+        - "Defender for Cloud Apps alert raised"
+
+# ─── §8 WORKFLOW EXAMPLES → COPILOT STUDIO TOPICS ───────────────────────────
+copilot_studio:                            # FROM_SPC §8 workflow_examples
+  surface: declarative_agent               # declarative_agent | plugin | autonomous
+  publishing:
+    visibility: ["security_group:<EntraGroupObjectId>"]
+    catalogue_category: ""                 # e.g. "Customer Care"
+    trigger_phrases:                       # at least 3, FROM_SPC §8
+      - ""
+  starter_prompts:                         # FROM_SPC §8 workflow_examples
+    - title: ""
+      prompt: ""
+
+# ─── §9 INTEGRATION_PROTOCOLS → CONNECTORS ──────────────────────────────────
+integrations:                              # FROM_SPC §9 integration_protocols
+  microsoft_graph:
+    enabled: false
+    scopes: []                             # e.g. ["Mail.Read", "Sites.Read.All"]
+  power_platform:
+    connectors_allowlist: []               # only connectors approved in DLP policy
+
+# ─── §10 EVOLUTION_ROADMAP → DE-SPC SCHEDULE ────────────────────────────────
+evolution:                                 # FROM_SPC §10 evolution_roadmap
+  de_spc_review_cadence: quarterly         # weekly | monthly | quarterly
+  telemetry_export:
+    destination: "command_centre_partner_api"   # see PDD 2 Part 3 VIOLET
+    metrics:
+      - jcse_equivalent_score
+      - gro_state_distribution
+      - fallback_rate
+      - human_handoff_rate
+      - groundedness_p95
+    schedule_cron: "0 2 * * 1"             # weekly Monday 02:00 UTC
+
+# ─── §11 BUSINESS_IMPACT + §12 RISK_REGISTER → MONITORING ───────────────────
+monitoring:
+  application_insights:
+    instrumentation_key_ref: ""            # Key Vault secret ref
+    custom_events:
+      - "agent_invoked"
+      - "tool_called"
+      - "fallback_triggered"
+      - "human_handoff"
+      - "gro_state_transition"
+  alerts:                                  # FROM_SPC §12 risk_register thresholds
+    - metric: fallback_rate
+      window_minutes: 60
+      threshold_percent: 15
+      severity: warning
+    - metric: jcse_equivalent_score_daily
+      operator: "<"
+      threshold: 0                         # set to HIVE-band floor per provenance.hive_band
+      severity: critical
+      action: quarantine_agent
+
+# ─── §14 LINEAGE_TRACEABILITY → AUDIT ───────────────────────────────────────
+audit:                                     # FROM_SPC §14 lineage_traceability
+  retention_days: 2555                     # 7 years default; adjust to regulator
+  fields_to_persist:
+    - request_id
+    - user_upn
+    - prompt_hash
+    - response_hash
+    - tools_called
+    - grounding_chunks_used
+    - gro_state
+    - mvp_pdd_verify_url                   # provenance back to ATANDA cert
+  sink: log_analytics_workspace
+  log_analytics_workspace_id: ""
+
+# ─── §15 SPC_SIGNATURE → SIGN-OFF MANIFEST ──────────────────────────────────
+signoff:                                   # FROM_SPC §15 spc_signature
+  atanda_architect:
+    name: ""
+    date: ""
+    verify_url: ""                         # mirror of provenance.mvp_pdd_verify_url
+  f500_ai_governance_lead:
+    name: ""
+    date: ""
+  f500_security_lead:
+    name: ""
+    date: ""
+  f500_dpo:                                # required when data_boundary contains PII
+    name: ""
+    date: ""
+
+# ─── END OF TEMPLATE ────────────────────────────────────────────────────────
+# Validation checklist before `az ml agent create`:
+#   [ ] provenance.mvp_pdd_verify_url resolves to HTTP 200
+#   [ ] provenance.spartan_cert_class is A or B
+#   [ ] every tools[].endpoint is reachable from the Foundry project's VNet
+#   [ ] every grounding[].index_name exists and is populated
+#   [ ] gro_contract.states all have a non-empty condition
+#   [ ] safety.content_safety.enabled = true
+#   [ ] data_boundary.purview_sensitivity_label is set
+#   [ ] signoff.atanda_architect, .f500_ai_governance_lead, .f500_security_lead complete
+#   [ ] signoff.f500_dpo complete IF any PII in memory or grounding

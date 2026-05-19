@@ -42,3 +42,15 @@ id = "Y_ARbkQQwJTeRmlvM-fTL"
 uri = "file://docs/ATANDA_Command_Centre_PDD_2.pdf"
 type = "pdf"
 title = "ATANDA Command Centre PDD 2 (Investor Edition)"
+
+[[outputs]]
+id = "DnOtY8HnPmYC1ZKJ0tmm_"
+uri = "file://docs/ATANDA_F500_Handover_Protocol.pdf"
+type = "pdf"
+title = "ATANDA × F500 Handover Protocol"
+
+[[outputs]]
+id = "HxZorPwY3PlpCzRIX1jPB"
+uri = "file://docs/azure-foundry-agent-template.yaml"
+type = "unspecified"
+title = "Azure AI Foundry Agent Template (SPC → Foundry mapping)"
