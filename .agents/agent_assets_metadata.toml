@@ -24,3 +24,9 @@ id = "v1fFe3iAsQ0IV2RIkzItC"
 uri = "file://docs/ATANDA_Quest_Badges_Guide.pdf"
 type = "pdf"
 title = "ATANDA Quest Badges — How to Earn & Share"
+
+[[outputs]]
+id = "jSMkPX4QAX_oKl-Aazuo8"
+uri = "file://docs/ATANDA_Post_Publish_GoLive_Guide.pdf"
+type = "pdf"
+title = "ATANDA Post-Publish Go-Live Guide"
