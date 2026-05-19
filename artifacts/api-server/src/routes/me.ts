@@ -1,7 +1,18 @@
 import { Router, type IRouter } from "express";
 import { and, eq, gte, sql } from "drizzle-orm";
-import { db, harnessEngineRunsTable } from "@workspace/db";
+import { clerkClient } from "@clerk/express";
+import {
+  db,
+  harnessEngineRunsTable,
+  usersTable,
+  harnessSessionsTable,
+  harnessArtifactsTable,
+  commandCentreBadgesTable,
+  commandCentreSubscribersTable,
+} from "@workspace/db";
 import { requireAuth } from "../lib/auth";
+import { UpdateMyProfileBody, DeleteMyAccountBody } from "@workspace/api-zod";
+import { getUncachableStripeClient, isStripeConfigured } from "../lib/stripe";
 
 const router: IRouter = Router();
 
@@ -30,6 +41,175 @@ router.get("/me", requireAuth, async (req, res): Promise<void> => {
       },
     },
   });
+});
+
+router.patch("/me/profile", requireAuth, async (req, res): Promise<void> => {
+  const parsed = UpdateMyProfileBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid body", details: parsed.error.flatten() });
+    return;
+  }
+  const displayName = parsed.data.displayName.trim();
+  if (displayName.length < 1 || displayName.length > 120) {
+    res.status(400).json({ error: "displayName must be 1-120 non-whitespace characters" });
+    return;
+  }
+  const u = req.localUser!;
+  const s = req.subscriber!;
+
+  const [updated] = await db
+    .update(usersTable)
+    .set({ displayName })
+    .where(eq(usersTable.id, u.id))
+    .returning();
+
+  res.json({
+    id: updated!.id,
+    clerkUserId: updated!.clerkUserId,
+    email: updated!.email,
+    displayName: updated!.displayName,
+    role: updated!.role,
+    subscriber: {
+      tier: s.tier,
+      status: s.status,
+      currentPeriodEnd: s.currentPeriodEnd ? s.currentPeriodEnd.toISOString() : null,
+      cancelAtPeriodEnd: s.cancelAtPeriodEnd,
+      usage: {
+        f1: s.f1Today,
+        f2: s.f2Today,
+        f3: s.f3Today,
+        f4: s.f4Today,
+        f5: s.f5Today,
+        f6: s.f6Today,
+        f7: s.f7Today,
+      },
+    },
+  });
+});
+
+router.get("/me/export", requireAuth, async (req, res): Promise<void> => {
+  const u = req.localUser!;
+  const s = req.subscriber!;
+
+  const [sessions, artifacts, badges, runCountRow] = await Promise.all([
+    db.select().from(harnessSessionsTable).where(eq(harnessSessionsTable.userId, u.id)),
+    db.select().from(harnessArtifactsTable).where(eq(harnessArtifactsTable.userId, u.id)),
+    db.select().from(commandCentreBadgesTable).where(eq(commandCentreBadgesTable.userId, u.id)),
+    db
+      .select({ n: sql<string>`COUNT(*)` })
+      .from(harnessEngineRunsTable)
+      .where(eq(harnessEngineRunsTable.userId, u.id)),
+  ]);
+
+  const filename = `atanda-export-${u.id}-${new Date().toISOString().slice(0, 10)}.json`;
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.json({
+    exportedAt: new Date().toISOString(),
+    user: {
+      id: u.id,
+      clerkUserId: u.clerkUserId,
+      email: u.email,
+      displayName: u.displayName,
+      role: u.role,
+      createdAt: u.createdAt.toISOString(),
+    },
+    subscriber: {
+      tier: s.tier,
+      status: s.status,
+      stripeCustomerId: s.stripeCustomerId,
+      currentPeriodEnd: s.currentPeriodEnd ? s.currentPeriodEnd.toISOString() : null,
+      cancelAtPeriodEnd: s.cancelAtPeriodEnd,
+    },
+    sessions: sessions.map((row) => ({
+      ...row,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+    })),
+    artifacts: artifacts.map((row) => ({
+      ...row,
+      createdAt: row.createdAt.toISOString(),
+    })),
+    badges: badges.map((row) => ({
+      ...row,
+      unlockedAt: row.unlockedAt.toISOString(),
+      claimedAt: row.claimedAt ? row.claimedAt.toISOString() : null,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+    })),
+    engineRunCount: Number(runCountRow[0]?.n ?? 0),
+  });
+});
+
+router.post("/me/delete", requireAuth, async (req, res): Promise<void> => {
+  const parsed = DeleteMyAccountBody.safeParse(req.body);
+  if (!parsed.success || parsed.data.confirm !== "DELETE") {
+    res.status(400).json({ error: "Confirmation phrase 'DELETE' is required" });
+    return;
+  }
+  const u = req.localUser!;
+  const s = req.subscriber!;
+  const clerkUserId = u.clerkUserId;
+  const email = u.email;
+
+  // Ordering rationale: cancel external state BEFORE local hard-delete. If Stripe or Clerk
+  // fails we keep local rows intact so the user can retry; this avoids orphaned billing
+  // and avoids JIT-recreating a fresh shell on the next authenticated request.
+
+  // 1) Cancel any active Stripe subscription immediately. If a sub id exists but Stripe is
+  //    unreachable, hard-fail — we will not orphan billing by deleting local rows.
+  if (s.stripeSubscriptionId) {
+    if (!(await isStripeConfigured())) {
+      req.log.error(
+        { subId: s.stripeSubscriptionId, userId: u.id },
+        "stripe unavailable during account delete — refusing to orphan subscription",
+      );
+      res.status(502).json({
+        error:
+          "Billing service is temporarily unavailable; we cannot cancel your subscription right now. Please retry shortly.",
+      });
+      return;
+    }
+    try {
+      const stripe = await getUncachableStripeClient();
+      await stripe.subscriptions.cancel(s.stripeSubscriptionId);
+    } catch (err) {
+      // If the subscription is already cancelled or missing, Stripe returns 404 — treat as success.
+      const code = (err as { code?: string; statusCode?: number }).code;
+      const status = (err as { statusCode?: number }).statusCode;
+      const benign = code === "resource_missing" || status === 404;
+      if (!benign) {
+        req.log.error({ err, subId: s.stripeSubscriptionId }, "stripe cancel failed during account delete");
+        res.status(502).json({
+          error: "Could not cancel your active subscription. Please cancel from Billing first, then retry.",
+        });
+        return;
+      }
+    }
+  }
+
+  // 2) Delete Clerk identity. If this fails, abort — do not delete local rows.
+  try {
+    await clerkClient.users.deleteUser(clerkUserId);
+  } catch (err) {
+    req.log.error({ err, clerkUserId }, "clerk deleteUser failed during account delete");
+    res.status(502).json({ error: "Identity provider could not delete your account. Try again." });
+    return;
+  }
+
+  // 3) Hard-delete local user — cascades to subscriber, sessions, artifacts, badges, engine runs.
+  await db.delete(usersTable).where(eq(usersTable.id, u.id));
+
+  // 4) Send goodbye email — best-effort.
+  if (email) {
+    try {
+      const { sendAccountDeleted } = await import("@workspace/email");
+      await sendAccountDeleted({ to: email });
+    } catch (err) {
+      req.log.warn({ err }, "account-deleted email failed");
+    }
+  }
+
+  res.json({ ok: true, deletedAt: new Date().toISOString() });
 });
 
 router.get("/me/usage", requireAuth, async (req, res): Promise<void> => {
@@ -101,5 +281,8 @@ router.get("/me/usage", requireAuth, async (req, res): Promise<void> => {
     })),
   });
 });
+
+// Suppress unused import warning — used implicitly by `commandCentreSubscribersTable` re-export.
+void commandCentreSubscribersTable;
 
 export default router;

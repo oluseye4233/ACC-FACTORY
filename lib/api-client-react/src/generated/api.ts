@@ -27,6 +27,8 @@ import type {
   CheckoutInput,
   CheckoutSession,
   DeepHealth,
+  DeleteAccountInput,
+  DeleteAccountResult,
   ErrorResponse,
   Exemplar,
   ExemplarSummary,
@@ -49,6 +51,7 @@ import type {
   ListMyPromptsParams,
   MeResponse,
   MicroPdd,
+  MyDataExport,
   NotFoundResponse,
   Ok,
   PortalInput,
@@ -62,6 +65,7 @@ import type {
   SessionUpdate,
   StripeWebhookPayload,
   UnauthorizedResponse,
+  UpdateProfileInput,
   UsageReport,
   VdjRecommendation,
   VerifyCertificateParams,
@@ -387,6 +391,225 @@ export function useGetMyUsage<TData = Awaited<ReturnType<typeof getMyUsage>>, TE
 
 
 
+
+export const getUpdateMyProfileUrl = () => {
+
+
+
+
+  return `/api/me/profile`
+}
+
+/**
+ * @summary Update the calling user's display name
+ */
+export const updateMyProfile = async (updateProfileInput: UpdateProfileInput, options?: RequestInit): Promise<MeResponse> => {
+
+  return customFetch<MeResponse>(getUpdateMyProfileUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateProfileInput,)
+  }
+);}
+
+
+
+
+export const getUpdateMyProfileMutationOptions = <TError = ErrorType<UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyProfile>>, TError,{data: BodyType<UpdateProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMyProfile>>, TError,{data: BodyType<UpdateProfileInput>}, TContext> => {
+
+const mutationKey = ['updateMyProfile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMyProfile>>, {data: BodyType<UpdateProfileInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateMyProfile(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMyProfileMutationResult = NonNullable<Awaited<ReturnType<typeof updateMyProfile>>>
+    export type UpdateMyProfileMutationBody = BodyType<UpdateProfileInput>
+    export type UpdateMyProfileMutationError = ErrorType<UnauthorizedResponse>
+
+    /**
+ * @summary Update the calling user's display name
+ */
+export const useUpdateMyProfile = <TError = ErrorType<UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyProfile>>, TError,{data: BodyType<UpdateProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateMyProfile>>,
+        TError,
+        {data: BodyType<UpdateProfileInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateMyProfileMutationOptions(options));
+    }
+
+export const getExportMyDataUrl = () => {
+
+
+
+
+  return `/api/me/export`
+}
+
+/**
+ * @summary Download a JSON bundle of all of the user's account data (GDPR portability)
+ */
+export const exportMyData = async ( options?: RequestInit): Promise<MyDataExport> => {
+
+  return customFetch<MyDataExport>(getExportMyDataUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportMyDataQueryKey = () => {
+    return [
+    `/api/me/export`
+    ] as const;
+    }
+
+
+export const getExportMyDataQueryOptions = <TData = Awaited<ReturnType<typeof exportMyData>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportMyData>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportMyDataQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportMyData>>> = ({ signal }) => exportMyData({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportMyData>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExportMyDataQueryResult = NonNullable<Awaited<ReturnType<typeof exportMyData>>>
+export type ExportMyDataQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary Download a JSON bundle of all of the user's account data (GDPR portability)
+ */
+
+export function useExportMyData<TData = Awaited<ReturnType<typeof exportMyData>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportMyData>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExportMyDataQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getDeleteMyAccountUrl = () => {
+
+
+
+
+  return `/api/me/delete`
+}
+
+/**
+ * @summary Permanently delete the calling user's account and all associated data
+ */
+export const deleteMyAccount = async (deleteAccountInput: DeleteAccountInput, options?: RequestInit): Promise<DeleteAccountResult> => {
+
+  return customFetch<DeleteAccountResult>(getDeleteMyAccountUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      deleteAccountInput,)
+  }
+);}
+
+
+
+
+export const getDeleteMyAccountMutationOptions = <TError = ErrorType<void | UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyAccount>>, TError,{data: BodyType<DeleteAccountInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMyAccount>>, TError,{data: BodyType<DeleteAccountInput>}, TContext> => {
+
+const mutationKey = ['deleteMyAccount'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMyAccount>>, {data: BodyType<DeleteAccountInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  deleteMyAccount(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMyAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyAccount>>>
+    export type DeleteMyAccountMutationBody = BodyType<DeleteAccountInput>
+    export type DeleteMyAccountMutationError = ErrorType<void | UnauthorizedResponse>
+
+    /**
+ * @summary Permanently delete the calling user's account and all associated data
+ */
+export const useDeleteMyAccount = <TError = ErrorType<void | UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyAccount>>, TError,{data: BodyType<DeleteAccountInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMyAccount>>,
+        TError,
+        {data: BodyType<DeleteAccountInput>},
+        TContext
+      > => {
+      return useMutation(getDeleteMyAccountMutationOptions(options));
+    }
 
 export const getListSessionsUrl = () => {
 

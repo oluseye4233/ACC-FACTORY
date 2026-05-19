@@ -38,13 +38,26 @@ export async function requireAuth(
   }
   req.clerkUserId = clerkUserId;
 
-  const local = await ensureLocalUser(clerkUserId);
+  let local: User;
+  try {
+    local = await ensureLocalUser(clerkUserId);
+  } catch (err) {
+    if (err instanceof ClerkIdentityNotFoundError) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    req.log.error({ err, clerkUserId }, "ensureLocalUser failed");
+    res.status(503).json({ error: "Identity service temporarily unavailable" });
+    return;
+  }
   req.localUser = local;
 
   const sub = await ensureSubscriber(local.id);
   req.subscriber = sub;
   next();
 }
+
+class ClerkIdentityNotFoundError extends Error {}
 
 async function ensureLocalUser(clerkUserId: string): Promise<User> {
   const existing = await db
@@ -54,6 +67,9 @@ async function ensureLocalUser(clerkUserId: string): Promise<User> {
     .limit(1);
   if (existing.length > 0) return existing[0]!;
 
+  // First-time sync: REQUIRE a confirmed Clerk identity before creating a local shell.
+  // A stale/replayed token whose Clerk user has been deleted must NOT be able to JIT-create
+  // a fresh local account.
   let email: string | null = null;
   let displayName: string | null = null;
   let role = "USER";
@@ -70,8 +86,16 @@ async function ensureLocalUser(clerkUserId: string): Promise<User> {
     } else if (email && adminEmails.includes(email.toLowerCase())) {
       role = "ADMIN";
     }
-  } catch {
-    // best-effort identity sync; keep going
+  } catch (err) {
+    const status = (err as { status?: number; statusCode?: number }).status
+      ?? (err as { status?: number; statusCode?: number }).statusCode;
+    if (status === 404) {
+      throw new ClerkIdentityNotFoundError(`clerk user ${clerkUserId} not found`);
+    }
+    // Any other error (Clerk outage etc.) is also unsafe to silently fall through on
+    // first-time provisioning — the only way we'd know what email/role belongs to this
+    // user is via Clerk.
+    throw new Error(`clerk getUser failed during first JIT sync: ${(err as Error).message}`);
   }
 
   const [created] = await db
@@ -79,7 +103,20 @@ async function ensureLocalUser(clerkUserId: string): Promise<User> {
     .values({ clerkUserId, email, displayName, role })
     .onConflictDoNothing({ target: usersTable.clerkUserId })
     .returning();
-  if (created) return created;
+  if (created) {
+    // Best-effort welcome email on first JIT-sync — never block auth on email failures.
+    if (email) {
+      void (async () => {
+        try {
+          const { sendWelcome } = await import("@workspace/email");
+          await sendWelcome({ to: email, displayName });
+        } catch {
+          // swallow — email is best-effort
+        }
+      })();
+    }
+    return created;
+  }
   const reread = await db
     .select()
     .from(usersTable)

@@ -108,3 +108,27 @@ export function sendPaymentFailed(args: {
   const text = `Payment failed for ${args.tier}. Update billing to avoid interruption.`;
   return send({ to: args.to, subject: `PAYMENT FAILED · action required`, html: wrap("PAYMENT FAILED", body), text });
 }
+
+export function sendWelcome(args: {
+  to: string;
+  displayName: string | null;
+}): Promise<EmailResult> {
+  const name = args.displayName?.trim() || "Operator";
+  const body = `<p>Welcome to ATANDA Command Centre, <strong>${name}</strong>.</p>
+    <p>You now have access to the FORGE.BONSAI HARNESS — eight atomic-prompt engines that walk a raw idea
+    through prompt → SPC → PDD → certified MVP-PDD.</p>
+    <p>Your first session is one click away from the Command dashboard.</p>`;
+  const text = `Welcome to ATANDA Command Centre, ${name}. Start your first FORGE.BONSAI session from the Command dashboard.`;
+  return send({ to: args.to, subject: `WELCOME · ATANDA COMMAND CENTRE`, html: wrap("WELCOME, OPERATOR", body), text });
+}
+
+export function sendAccountDeleted(args: {
+  to: string;
+}): Promise<EmailResult> {
+  const body = `<p>Your ATANDA Command Centre account has been permanently deleted.</p>
+    <p>All sessions, artifacts, badges and subscriber records have been removed. Active Stripe subscriptions
+    were cancelled by Clerk identity removal but you may wish to verify in your bank/card statement.</p>
+    <p>If this was not you, contact support immediately.</p>`;
+  const text = `Your ATANDA Command Centre account and all associated data have been permanently deleted.`;
+  return send({ to: args.to, subject: `ACCOUNT DELETED · ATANDA`, html: wrap("ACCOUNT DELETED", body), text });
+}

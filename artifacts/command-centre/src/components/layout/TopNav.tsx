@@ -21,6 +21,7 @@ export function TopNav() {
               <Link href="/quests" className="hover:text-foreground transition-colors">Quests</Link>
               <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
               <Link href="/billing" className="hover:text-foreground transition-colors">Billing</Link>
+              <Link href="/account" className="hover:text-foreground transition-colors">Account</Link>
             </nav>
           </Show>
         </div>

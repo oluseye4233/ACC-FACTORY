@@ -137,6 +137,44 @@ export interface UsageReport {
   byEngine: UsageByEngine[];
 }
 
+export interface UpdateProfileInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  displayName: string;
+}
+
+export interface DeleteAccountInput {
+  /** Must be exactly "DELETE" to proceed. */
+  confirm: string;
+}
+
+export interface DeleteAccountResult {
+  ok: boolean;
+  deletedAt?: string;
+}
+
+export type MyDataExportUser = { [key: string]: unknown };
+
+export type MyDataExportSubscriber = { [key: string]: unknown };
+
+export type MyDataExportSessionsItem = { [key: string]: unknown };
+
+export type MyDataExportArtifactsItem = { [key: string]: unknown };
+
+export type MyDataExportBadgesItem = { [key: string]: unknown };
+
+export interface MyDataExport {
+  exportedAt: string;
+  user: MyDataExportUser;
+  subscriber: MyDataExportSubscriber;
+  sessions: MyDataExportSessionsItem[];
+  artifacts: MyDataExportArtifactsItem[];
+  badges: MyDataExportBadgesItem[];
+  engineRunCount: number;
+}
+
 export interface HarnessSession {
   id: string;
   sessionName: string;

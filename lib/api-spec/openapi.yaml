@@ -76,6 +76,60 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /me/profile:
+    patch:
+      operationId: updateMyProfile
+      tags: [me]
+      summary: Update the calling user's display name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateProfileInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MeResponse" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /me/export:
+    get:
+      operationId: exportMyData
+      tags: [me]
+      summary: Download a JSON bundle of all of the user's account data (GDPR portability)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MyDataExport" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /me/delete:
+    post:
+      operationId: deleteMyAccount
+      tags: [me]
+      summary: Permanently delete the calling user's account and all associated data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DeleteAccountInput" }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeleteAccountResult" }
+        "400":
+          description: Confirmation phrase missing or incorrect
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /sessions:
     get:
       operationId: listSessions
@@ -757,6 +811,55 @@ components:
         byEngine:
           type: array
           items: { $ref: "#/components/schemas/UsageByEngine" }
+
+    UpdateProfileInput:
+      type: object
+      required: [displayName]
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 120 }
+
+    DeleteAccountInput:
+      type: object
+      required: [confirm]
+      properties:
+        confirm:
+          type: string
+          description: Must be exactly "DELETE" to proceed.
+
+    DeleteAccountResult:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+        deletedAt: { type: string, format: date-time }
+
+    MyDataExport:
+      type: object
+      required: [exportedAt, user, subscriber, sessions, artifacts, badges, engineRunCount]
+      properties:
+        exportedAt: { type: string, format: date-time }
+        user:
+          type: object
+          additionalProperties: true
+        subscriber:
+          type: object
+          additionalProperties: true
+        sessions:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        artifacts:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        badges:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        engineRunCount: { type: integer }
 
     HarnessSession:
       type: object

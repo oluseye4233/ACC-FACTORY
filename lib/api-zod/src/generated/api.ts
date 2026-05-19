@@ -75,6 +75,68 @@ export const GetMyUsageResponse = zod.object({
 })
 
 
+/**
+ * @summary Update the calling user's display name
+ */
+export const updateMyProfileBodyDisplayNameMax = 120;
+
+
+
+export const UpdateMyProfileBody = zod.object({
+  "displayName": zod.string().min(1).max(updateMyProfileBodyDisplayNameMax)
+})
+
+export const UpdateMyProfileResponse = zod.object({
+  "id": zod.string().uuid(),
+  "clerkUserId": zod.string(),
+  "email": zod.string().nullish(),
+  "displayName": zod.string().nullish(),
+  "role": zod.string(),
+  "subscriber": zod.object({
+  "tier": zod.enum(['EXPLORER', 'PRACTITIONER', 'ARCHITECT', 'INSTITUTION']),
+  "status": zod.string(),
+  "currentPeriodEnd": zod.coerce.date().nullish(),
+  "cancelAtPeriodEnd": zod.boolean().optional(),
+  "usage": zod.object({
+  "f1": zod.number(),
+  "f2": zod.number(),
+  "f3": zod.number(),
+  "f4": zod.number(),
+  "f5": zod.number(),
+  "f6": zod.number(),
+  "f7": zod.number()
+}).optional()
+})
+})
+
+
+/**
+ * @summary Download a JSON bundle of all of the user's account data (GDPR portability)
+ */
+export const ExportMyDataResponse = zod.object({
+  "exportedAt": zod.coerce.date(),
+  "user": zod.record(zod.string(), zod.unknown()),
+  "subscriber": zod.record(zod.string(), zod.unknown()),
+  "sessions": zod.array(zod.record(zod.string(), zod.unknown())),
+  "artifacts": zod.array(zod.record(zod.string(), zod.unknown())),
+  "badges": zod.array(zod.record(zod.string(), zod.unknown())),
+  "engineRunCount": zod.number()
+})
+
+
+/**
+ * @summary Permanently delete the calling user's account and all associated data
+ */
+export const DeleteMyAccountBody = zod.object({
+  "confirm": zod.string().describe('Must be exactly \"DELETE\" to proceed.')
+})
+
+export const DeleteMyAccountResponse = zod.object({
+  "ok": zod.boolean(),
+  "deletedAt": zod.coerce.date().optional()
+})
+
+
 export const ListSessionsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "sessionName": zod.string(),
