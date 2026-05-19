@@ -15,7 +15,7 @@ const BADGE_META: Record<string, { name: string; fullName: string; description: 
     name: "ASPE",
     fullName: "ADAPTIVE SPC PRACTITIONER",
     description: "Adaptive SPC Practitioner — unlocks DE-SPC auto-evolution.",
-    reqText: "Create at least 3 SPCs AND at least 4 Molecular Agent Birth Packages.",
+    reqText: "Create at least 3 SPCs AND at least 4 Micro Agent (MA) Birth Packages.",
     icon: ShieldCheck,
   },
   AISA: {

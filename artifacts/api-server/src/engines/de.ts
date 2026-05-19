@@ -13,7 +13,7 @@ import { logger } from "../lib/logger";
 
 const DE_SYSTEM = `You are the DE-SPC SYNTHESIZER (Digitally Evolved Standard Prompt Card generator).
 
-You are given a set of Molecular Agent (MA) Birth Packages from a single FORGE.BONSAI session.
+You are given a set of Micro Agent (MA) Birth Packages from a single FORGE.BONSAI session.
 Your job is to FUSE these MAs into ONE coherent, multi-agent, adaptive SPC of class
 "adaptive_multi_agent_tier (digitally_evolving)".
 
@@ -92,7 +92,7 @@ export async function handleEvolve(req: Request, res: Response): Promise<void> {
   }
 
   const userPrompt = [
-    `Synthesise these ${mas.length} Molecular Agent Birth Packages into ONE adaptive multi-agent SPC:`,
+    `Synthesise these ${mas.length} Micro Agent (MA) Birth Packages into ONE adaptive multi-agent SPC:`,
     "",
     ...mas.map((m, i) => `--- MA #${i + 1} (id=${m.id}) ---\n${JSON.stringify(m.artifactContent, null, 2)}`),
     "",

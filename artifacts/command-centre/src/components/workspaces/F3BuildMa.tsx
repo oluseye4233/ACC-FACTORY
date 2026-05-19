@@ -190,7 +190,7 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
         <EmptyState
           icon={<Hexagon className="h-12 w-12" />}
           title="F2 ATOMIC PROMPT REQUIRED"
-          body="The MA Birth Package generator activates the 8 cellular organelles to grow a Molecular Agent from your Atomic Prompt."
+          body="The MA Birth Package generator activates the 8 cellular organelles to grow a Micro Agent (MA) from your Atomic Prompt."
           hint="Run F2 to produce a certified Atomic Prompt first."
         />
       </WorkspaceShell>

@@ -45,7 +45,7 @@ A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authe
 
 ## Product
 
-A subscription portal where a creator runs a single coherent FORGE.BONSAI session. **The HARNESS itself is a PDD-blueprint application** — its engines are ordered atomic prompts that act as an instruction layer for the model; they are not SPCs and must never be described as such. The artifacts the HARNESS *produces* on behalf of the user are the SPCs and PDDs. Per session: F1 diagnoses a raw prompt → F2 builds an Atomic Prompt → F3 grows a CELL Molecular Agent Birth Package (with possible escalation to F5) → F4 converts to a Micro PDD → F5 builds a full SPC → F6 drafts a 4-Part ATLAS PDD (+ VIBE DJ recommendation) → F7 compresses to a SPARTAN-certified MVP PDD with a public verification URL.
+A subscription portal where a creator runs a single coherent FORGE.BONSAI session. **The HARNESS itself is a PDD-blueprint application** — its engines are ordered atomic prompts that act as an instruction layer for the model; they are not SPCs and must never be described as such. The artifacts the HARNESS *produces* on behalf of the user are the SPCs and PDDs. Per session: F1 diagnoses a raw prompt → F2 builds an Atomic Prompt → F3 grows a CELL Micro Agent (MA) Birth Package (with possible escalation to F5) → F4 converts to a Micro PDD → F5 builds a full SPC → F6 drafts a 4-Part ATLAS PDD (+ VIBE DJ recommendation) → F7 compresses to a SPARTAN-certified MVP PDD with a public verification URL.
 
 ## User preferences
 

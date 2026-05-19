@@ -76,7 +76,7 @@ const TIERS = [
       "Everything in PRACTITIONER, plus:",
       "F7 MVP-PDD certification: every certified blueprint gets a public verify URL you can share with clients or stakeholders.",
       "DE-SPC (Digitally Evolved SPC) — gated by the ASPE badge, lets you evolve an existing SPC instead of starting from scratch.",
-      "Full Molecular Agent (MA) Birth Packages — exportable.",
+      "Full Micro Agent (MA) Birth Packages — exportable.",
       "Custom templates for your repeated patterns.",
       "Dedicated account manager and onboarding call."
     ],

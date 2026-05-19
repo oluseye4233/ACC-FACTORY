@@ -101,7 +101,7 @@ const PERSONAS = [
       },
       {
         engine: "F3",
-        what: "Click 'Grow CELL'. F3 turns the atomic prompt into a Molecular Agent Birth Package.",
+        what: "Click 'Grow CELL'. F3 turns the atomic prompt into a Micro Agent (MA) Birth Package.",
         input: "The F2 atomic prompt.",
         engineDoes: ENGINE_BLURB.F3,
         output:

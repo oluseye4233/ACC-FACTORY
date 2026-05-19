@@ -9,13 +9,13 @@ export const ENGINES = [
     id: 2,
     name: "F2",
     title: "ATOMIC PROMPT",
-    description: "Refine Atomic Prompts into Molecular Agent Birth Packages",
+    description: "Refine Atomic Prompts into Micro Agent (MA) Birth Packages",
   },
   {
     id: 3,
     name: "F3",
     title: "MA BIRTH PACKAGE",
-    description: "Grow Molecular Agent Birth Packages into Micro PDDs",
+    description: "Grow Micro Agent (MA) Birth Packages into Micro PDDs",
   },
   {
     id: 4,

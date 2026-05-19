@@ -27,10 +27,10 @@ const BADGES = [
     fullName: "ADAPTIVE SPC PRACTITIONER",
     tagline: "You can build system prompts and grow them into agents — repeatedly.",
     earnedBy:
-      "Producing at least 3 SPCs (System Prompt Configurations) AND at least 4 Molecular Agent Birth Packages on your account.",
+      "Producing at least 3 SPCs (Super Prompt Cards) AND at least 4 Micro Agent (MA) Birth Packages on your account.",
     requirements: [
       "3 × SPC — created via F5 (Build SPC).",
-      "4 × MA Birth Package — created via F3 (Build Molecular Agent)."
+      "4 × MA Birth Package — created via F3 (Build Micro Agent)."
     ],
     progression:
       "This badge sits at the middle of the HARNESS. By the time you've completed it, you've done F1 → F2 → F3 repeatedly and F5 a few times, which means you can confidently turn ideas into formal system prompts. It's the natural badge for someone on the PRACTITIONER tier.",

@@ -49,7 +49,7 @@ const ENTRIES: Entry[] = [
   {
     id: "cell-si",
     title: "CELL SI",
-    tagline: "8-organelle Molecular Agent doctrine (powers F3)",
+    tagline: "8-organelle Micro Agent (MA) doctrine (powers F3)",
     jcse: 45,
     certClass: "GOLD",
     source: "canonical",
