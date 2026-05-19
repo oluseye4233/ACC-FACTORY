@@ -12,3 +12,9 @@ id = "VXnY1X0lRv2KmWGzioh37"
 uri = "file://docs/ATANDA_Command_Centre_Walkthrough.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — Scenario Walkthroughs (F1 to F7) for Every Plan"
+
+[[outputs]]
+id = "Z-rdVIPyaq-rj4Vwebh6n"
+uri = "file://docs/BUGMXT_Report_AccountDelete.pdf"
+type = "pdf"
+title = "BUGMXT SI — Bug Triage Report (Account delete + auth hardening)"
