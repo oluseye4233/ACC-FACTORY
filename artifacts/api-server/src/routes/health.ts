@@ -15,7 +15,12 @@ router.get("/health", async (_req, res): Promise<void> => {
   } catch {
     dbStatus = "error";
   }
-  const engines: "ok" | "degraded" = process.env.ANTHROPIC_API_KEY ? "ok" : "degraded";
+  // Engines can reach Claude via either (a) a direct Anthropic key, or
+  // (b) the Replit AI Integrations proxy (preferred in production).
+  const hasLlm =
+    !!process.env.ANTHROPIC_API_KEY ||
+    (!!process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY && !!process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL);
+  const engines: "ok" | "degraded" = hasLlm ? "ok" : "degraded";
   res.json({
     status: dbStatus === "ok" ? "ok" : "degraded",
     db: dbStatus,
