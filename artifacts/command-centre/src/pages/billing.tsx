@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Zap, Calendar, ExternalLink } from "lucide-react";
+import { CreditCard, Zap, Calendar, ExternalLink, Lock } from "lucide-react";
 import { format } from "date-fns";
+import { BILLING_ENABLED } from "@/lib/billing-flag";
 
 export default function Billing() {
   const { data: me, isLoading } = useGetMe();
@@ -107,15 +108,25 @@ export default function Billing() {
                 )}
               </CardContent>
               <CardFooter className="pt-2">
-                <Button 
-                  className="w-full font-mono text-xs gap-2" 
-                  onClick={handleManageSubscription}
-                  disabled={portal.isPending || tier === "EXPLORER"}
-                >
-                  <CreditCard className="h-4 w-4" />
-                  {portal.isPending ? "CONNECTING..." : "MANAGE SUBSCRIPTION"}
-                  <ExternalLink className="h-3 w-3 ml-auto opacity-50" />
-                </Button>
+                {BILLING_ENABLED ? (
+                  <Button
+                    className="w-full font-mono text-xs gap-2"
+                    onClick={handleManageSubscription}
+                    disabled={portal.isPending || tier === "EXPLORER"}
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    {portal.isPending ? "CONNECTING..." : "MANAGE SUBSCRIPTION"}
+                    <ExternalLink className="h-3 w-3 ml-auto opacity-50" />
+                  </Button>
+                ) : (
+                  <div
+                    className="w-full rounded border border-secondary/30 bg-secondary/10 px-3 py-2 text-center text-[10px] font-mono uppercase tracking-wider text-secondary flex items-center justify-center gap-2"
+                    data-testid="badge-billing-private-preview"
+                  >
+                    <Lock className="h-3 w-3" />
+                    Billing opens at General Availability
+                  </div>
+                )}
               </CardFooter>
             </Card>
 

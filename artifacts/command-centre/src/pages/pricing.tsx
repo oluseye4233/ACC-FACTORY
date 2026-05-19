@@ -14,9 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Check, ShieldCheck } from "lucide-react";
+import { Check, ShieldCheck, Lock } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { BILLING_ENABLED, ACCESS_REQUEST_EMAIL } from "@/lib/billing-flag";
 
 // Fallback data if API returns 404
 const FALLBACK_PRICING = {
@@ -91,7 +92,18 @@ export default function Pricing() {
     }
 
     if (priceId === SubscriberTier.INSTITUTION) {
-      window.location.href = "mailto:sales@example.com";
+      window.location.href = `mailto:${ACCESS_REQUEST_EMAIL}?subject=Institution%20tier%20enquiry`;
+      return;
+    }
+
+    // Private-preview mode: paid checkout is disabled. Route the user to the
+    // access-request mailbox instead of attempting a Stripe checkout session.
+    if (!BILLING_ENABLED) {
+      window.location.href = `mailto:${ACCESS_REQUEST_EMAIL}?subject=${encodeURIComponent(
+        `Early access — ${priceId} tier`,
+      )}&body=${encodeURIComponent(
+        `Hello,\n\nI'd like early access to the ATANDA Command Centre at the ${priceId} tier.\n\nName:\nOrganisation:\nUse case:\n\nThank you.`,
+      )}`;
       return;
     }
 
@@ -144,9 +156,20 @@ export default function Pricing() {
         <section className="py-20">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center text-center space-y-4 mb-16">
+              {!BILLING_ENABLED && (
+                <div
+                  className="mb-2 inline-flex items-center gap-2 rounded-full border border-secondary/30 bg-secondary/10 px-4 py-1.5 text-xs font-mono uppercase tracking-wider text-secondary"
+                  data-testid="banner-private-preview"
+                >
+                  <Lock className="h-3 w-3" />
+                  Private preview — public billing opens at General Availability
+                </div>
+              )}
               <h1 className="font-display text-4xl md:text-6xl tracking-wide text-primary">ACCESS TIERS</h1>
               <p className="text-muted-foreground font-serif text-lg max-w-2xl">
-                Choose the operational capacity that matches your mission requirements.
+                {BILLING_ENABLED
+                  ? "Choose the operational capacity that matches your mission requirements."
+                  : "Pricing shown is the planned launch structure. Paid tiers are invite-only during the private preview — use Request Access to be considered."}
               </p>
               
               <Tabs value={interval} onValueChange={(v) => setInterval(v as "monthly" | "yearly")} className="mt-8">
@@ -209,21 +232,33 @@ export default function Pricing() {
                     </div>
                     
                     <div className="mt-auto pt-6 border-t">
-                      {(tier.id === "PRACTITIONER" || tier.id === "ARCHITECT") && (
+                      {BILLING_ENABLED && (tier.id === "PRACTITIONER" || tier.id === "ARCHITECT") && (
                         <div className="mb-3 text-center">
                           <span className="text-xs font-mono font-bold text-secondary bg-secondary/10 px-2 py-1 rounded">30-DAY FREE TRIAL</span>
                         </div>
                       )}
-                      <Button 
-                        onClick={() => handleSubscribe(tier.id)}
-                        disabled={checkout.isPending}
-                        variant={tier.featured ? "default" : "outline"}
-                        className={`w-full font-display tracking-wider text-lg ${
-                          tier.featured ? "" : "border-primary/20 hover:bg-primary/10"
-                        }`}
-                      >
-                        {checkout.isPending && checkout.variables?.data.tier === tier.id ? "PROCESSING..." : tier.ctaLabel}
-                      </Button>
+                      {(() => {
+                        const isPaidTier =
+                          tier.id === "PRACTITIONER" || tier.id === "ARCHITECT";
+                        const previewLabel =
+                          !BILLING_ENABLED && isPaidTier
+                            ? "REQUEST ACCESS"
+                            : tier.ctaLabel;
+                        return (
+                          <Button
+                            onClick={() => handleSubscribe(tier.id)}
+                            disabled={checkout.isPending}
+                            variant={tier.featured ? "default" : "outline"}
+                            className={`w-full font-display tracking-wider text-lg ${
+                              tier.featured ? "" : "border-primary/20 hover:bg-primary/10"
+                            }`}
+                          >
+                            {checkout.isPending && checkout.variables?.data.tier === tier.id
+                              ? "PROCESSING..."
+                              : previewLabel}
+                          </Button>
+                        );
+                      })()}
                     </div>
                   </div>
                 ))}

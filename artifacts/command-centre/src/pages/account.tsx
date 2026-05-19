@@ -255,7 +255,7 @@ export default function Account() {
                 </CardTitle>
                 <CardDescription className="font-mono">
                   Permanently delete your account, all sessions, artifacts and badges. This cannot be
-                  undone. Any active Stripe subscription should be cancelled first on the Billing page.
+                  undone.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
