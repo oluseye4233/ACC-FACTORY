@@ -30,3 +30,9 @@ id = "jSMkPX4QAX_oKl-Aazuo8"
 uri = "file://docs/ATANDA_Post_Publish_GoLive_Guide.pdf"
 type = "pdf"
 title = "ATANDA Post-Publish Go-Live Guide"
+
+[[outputs]]
+id = "M6jIaufdddL-O5gAUbq9h"
+uri = "file://docs/ATANDA_ATLAS_PDD_Investor_Edition.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — 4-Part ATLAS PDD (Investor Edition)"
