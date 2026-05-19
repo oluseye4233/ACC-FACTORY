@@ -6,3 +6,9 @@ id = "H38ZGMzsfMUTAkjaGdpSZ"
 uri = "file://docs/ATANDA_Command_Centre_Guide.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — A Plain-English Guide for Every Plan"
+
+[[outputs]]
+id = "VXnY1X0lRv2KmWGzioh37"
+uri = "file://docs/ATANDA_Command_Centre_Walkthrough.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — Scenario Walkthroughs (F1 to F7) for Every Plan"
