@@ -106,7 +106,7 @@ export function F1TestPrompt({ sessionId, latest }: Props) {
 
               <Card className="p-5 bg-card/50">
                 <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">
-                  7 ATLAS Pillars
+                  7 Context Craft Pillars
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                   {result.pillars.map((p) => (

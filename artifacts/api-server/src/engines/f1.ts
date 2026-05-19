@@ -58,7 +58,7 @@ export async function handleF1(req: Request, res: Response): Promise<void> {
     res.status(guard.status).json({ error: guard.error });
     return;
   }
-  const userPrompt = `Diagnose this user prompt against the 7 ATLAS pillars.\n\n<<<USER_PROMPT>>>\n${prompt}\n<<<END_USER_PROMPT>>>`;
+  const userPrompt = `Diagnose this user prompt against the 7 Context Craft pillars.\n\n<<<USER_PROMPT>>>\n${prompt}\n<<<END_USER_PROMPT>>>`;
   let out: z.infer<typeof F1OutputSchema>;
   try {
     out = await callClaudeJson(F1_SYSTEM, userPrompt, F1OutputSchema, {

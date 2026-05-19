@@ -29,9 +29,12 @@ export interface RunContext {
 }
 
 export function certTierForJcse(total: number): CertTier {
-  if (total >= 45) return "PLATINUM";
-  if (total >= 40) return "GOLD";
-  if (total >= 35) return "SILVER";
+  // Canonical HIVE 14-D certification bands (per GENERAL_TECHNICAL_TERMS_REGISTRY
+  // v1.0 §3 / MASTER_SPC_PLATFORM_REGISTRY v1.0). Hard deployment gate is 45+
+  // (Ultra-Premium territory) but the tier labels themselves are the HIVE bands.
+  if (total >= 48) return "PLATINUM";
+  if (total >= 43) return "GOLD";
+  if (total >= 36) return "SILVER";
   if (total >= 30) return "BRONZE";
   return "NONE";
 }

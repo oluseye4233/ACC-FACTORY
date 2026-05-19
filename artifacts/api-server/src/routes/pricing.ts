@@ -81,7 +81,7 @@ const DEFAULT_PRICING = {
   ],
   faqs: [
     { q: "Can I switch plans later?", a: "Yes — upgrade or downgrade from the billing portal at any time." },
-    { q: "What's a JCSE score?", a: "Jonothon-Compliance Self-Evaluation: 7-pillar prompt quality score (0–50) feeding cert tiers BRONZE→PLATINUM." },
+    { q: "What's a JCSE score?", a: "Junglenomics Composite Score Estimate — the composite AI agent quality score (0–50) computed from the 7 Context Craft pillars, feeding HIVE cert tiers BRONZE→PLATINUM." },
     { q: "Are F5–F7 metered?", a: "Practitioner is metered daily; Architect is unlimited." },
     { q: "How is escalation handled?", a: "F3 may escalate to F5 SPC mode automatically — escalation bypasses tier gates for that session." },
     { q: "Do you store my prompts?", a: "Yes, in your own session. Delete a session to delete its artifacts." },
