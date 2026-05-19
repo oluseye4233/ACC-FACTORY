@@ -9,6 +9,12 @@ export type ExemplarSummary = {
   certClass: string | null;
   source: "canonical" | "hand_authored" | "generated";
   kind: "SPC" | "PDD";
+  /**
+   * DISC personality profile (Dominance / Influence / Steadiness / Conscientiousness).
+   * Every SPC has a unique DISC fingerprint that shapes how its persona behaves under load.
+   * PDDs do not carry a DISC — they describe products, not personas.
+   */
+  disc: string | null;
 };
 
 export type Exemplar = ExemplarSummary & {
@@ -26,6 +32,7 @@ const ENTRIES: Entry[] = [
     certClass: "PLATINUM",
     source: "canonical",
     kind: "SPC",
+    disc: "DCI — Dominance + Conscientiousness + Influence (Command + Precision + Engagement)",
     filename: "SPHINX_ULTRA_SI_SPC_1779084545997.md",
   },
   {
@@ -36,6 +43,7 @@ const ENTRIES: Entry[] = [
     certClass: "PLATINUM",
     source: "canonical",
     kind: "SPC",
+    disc: "CD — Conscientiousness + Dominance (Precise, systematic, direct)",
     filename: "BUGMXT_SI_SPC_v1_0_1779070949571.md",
   },
   {
@@ -46,6 +54,7 @@ const ENTRIES: Entry[] = [
     certClass: "GOLD",
     source: "canonical",
     kind: "SPC",
+    disc: "CS — Conscientiousness (primary) + Steadiness (secondary)",
     filename: "CELL_SI_SPC_v1_0_1779068654240.md",
   },
   {
@@ -56,6 +65,7 @@ const ENTRIES: Entry[] = [
     certClass: "PLATINUM",
     source: "canonical",
     kind: "SPC",
+    disc: "DC — Dominance + Conscientiousness (Decisive compression with audit-grade rigour)",
     filename: "SPARTAN_SPC_v1_0_1779069054055.md",
   },
   {
@@ -66,6 +76,7 @@ const ENTRIES: Entry[] = [
     certClass: "PLATINUM",
     source: "canonical",
     kind: "SPC",
+    disc: "DCI Hybrid — Dominance + Conscientiousness + Influence (Decisive architecture, systematic precision, rallying coordination)",
     filename: "VIBE_SPC_v1_0_1779154734288.md",
   },
   {
@@ -76,6 +87,7 @@ const ENTRIES: Entry[] = [
     certClass: "PLATINUM",
     source: "canonical",
     kind: "SPC",
+    disc: "C-Primary + D-Secondary — Conscientiousness + Dominance (Precision-led, Results-driven)",
     filename: "ATLAS_ULTRA_SI_SPC_v1.0_1779146869478.md",
   },
   {
@@ -86,6 +98,7 @@ const ENTRIES: Entry[] = [
     certClass: "PLATINUM",
     source: "canonical",
     kind: "SPC",
+    disc: "DI — Dominance + Influence (Decisive market conquest with persuasive relationship building)",
     filename: "TITAN_ULTRA_SI_SPC_v1_0_1779069054056.md",
   },
   {
@@ -96,6 +109,7 @@ const ENTRIES: Entry[] = [
     certClass: null,
     source: "canonical",
     kind: "PDD",
+    disc: null,
     filename: "ATANDA_COMMAND_CENTRE_MVP_ATLAS_PDD_1779068119890.md",
   },
   {
@@ -106,6 +120,7 @@ const ENTRIES: Entry[] = [
     certClass: "GOLD",
     source: "hand_authored",
     kind: "SPC",
+    disc: "SC — Steadiness + Conscientiousness (Calm, reliable, schema-disciplined)",
     filename: "ATANDA_COMMAND_CENTRE_SPC_v1.md",
   },
 ];

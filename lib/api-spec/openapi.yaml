@@ -1263,7 +1263,7 @@ components:
 
     ExemplarSummary:
       type: object
-      required: [id, title, tagline, jcse, certClass, source, kind]
+      required: [id, title, tagline, jcse, certClass, source, kind, disc]
       properties:
         id: { type: string }
         title: { type: string }
@@ -1276,6 +1276,9 @@ components:
         kind:
           type: string
           enum: [SPC, PDD]
+        disc:
+          type: ["string", "null"]
+          description: "DISC personality profile (Dominance / Influence / Steadiness / Conscientiousness). Every SPC has a unique DISC fingerprint; PDDs are null."
 
     Exemplar:
       allOf:

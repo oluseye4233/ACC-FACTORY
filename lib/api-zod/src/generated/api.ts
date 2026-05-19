@@ -614,7 +614,8 @@ export const ListExemplarsResponseItem = zod.object({
   "jcse": zod.number().nullable(),
   "certClass": zod.string().nullable(),
   "source": zod.enum(['canonical', 'hand_authored', 'generated']),
-  "kind": zod.enum(['SPC', 'PDD'])
+  "kind": zod.enum(['SPC', 'PDD']),
+  "disc": zod.string().nullable().describe('DISC personality profile (Dominance \/ Influence \/ Steadiness \/ Conscientiousness). Every SPC has a unique DISC fingerprint; PDDs are null.')
 })
 export const ListExemplarsResponse = zod.array(ListExemplarsResponseItem)
 
@@ -633,7 +634,8 @@ export const GetExemplarResponse = zod.object({
   "jcse": zod.number().nullable(),
   "certClass": zod.string().nullable(),
   "source": zod.enum(['canonical', 'hand_authored', 'generated']),
-  "kind": zod.enum(['SPC', 'PDD'])
+  "kind": zod.enum(['SPC', 'PDD']),
+  "disc": zod.string().nullable().describe('DISC personality profile (Dominance \/ Influence \/ Steadiness \/ Conscientiousness). Every SPC has a unique DISC fingerprint; PDDs are null.')
 }).and(zod.object({
   "body": zod.string()
 }))

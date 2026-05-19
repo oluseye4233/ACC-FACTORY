@@ -609,6 +609,11 @@ export interface ExemplarSummary {
   certClass: string | null;
   source: ExemplarSummarySource;
   kind: ExemplarSummaryKind;
+  /**
+     * DISC personality profile (Dominance / Influence / Steadiness / Conscientiousness). Every SPC has a unique DISC fingerprint; PDDs are null.
+     * @nullable
+     */
+  disc: string | null;
 }
 
 export type Exemplar = ExemplarSummary & {

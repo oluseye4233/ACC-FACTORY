@@ -47,15 +47,22 @@ function List() {
                   </div>
                   <CardDescription className="text-xs">{ex.tagline}</CardDescription>
                 </CardHeader>
-                <CardContent className="flex items-end justify-between gap-4 mt-auto">
-                  <div className="flex gap-3 text-xs font-mono text-muted-foreground">
-                    {ex.jcse !== null && <span>JCSE {ex.jcse}/50</span>}
-                    {ex.certClass && <span>· {ex.certClass}</span>}
-                    <span>· {ex.kind}</span>
+                <CardContent className="flex flex-col gap-3 mt-auto">
+                  {ex.disc && (
+                    <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground/80 leading-snug" title="DISC personality profile">
+                      <span className="text-primary/80">DISC</span> · {ex.disc}
+                    </div>
+                  )}
+                  <div className="flex items-end justify-between gap-4">
+                    <div className="flex gap-3 text-xs font-mono text-muted-foreground">
+                      {ex.jcse !== null && <span>JCSE {ex.jcse}/50</span>}
+                      {ex.certClass && <span>· {ex.certClass}</span>}
+                      <span>· {ex.kind}</span>
+                    </div>
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/exemplars/${ex.id}`}>OPEN</Link>
+                    </Button>
                   </div>
-                  <Button size="sm" variant="outline" asChild>
-                    <Link href={`/exemplars/${ex.id}`}>OPEN</Link>
-                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -86,12 +93,18 @@ function Detail({ id }: { id: string }) {
                   {data.kind === "SPC" ? <ShieldCheck className="h-6 w-6 text-primary" /> : <BookOpen className="h-6 w-6 text-secondary" />}
                   {data.title}
                 </h1>
-                <div className="flex gap-3 text-xs font-mono text-muted-foreground">
+                <div className="flex flex-wrap gap-3 text-xs font-mono text-muted-foreground">
                   <span>{data.kind}</span>
                   {data.jcse !== null && <span>· JCSE {data.jcse}/50</span>}
                   {data.certClass && <span>· {data.certClass}</span>}
                   <span>· {data.source.replace("_", "-")}</span>
                 </div>
+                {data.disc && (
+                  <div className="mt-2 inline-flex items-start gap-2 text-[11px] font-mono text-muted-foreground/90 max-w-2xl">
+                    <span className="text-primary font-bold uppercase tracking-wider">DISC</span>
+                    <span className="leading-snug">{data.disc}</span>
+                  </div>
+                )}
               </div>
               <Button asChild className="font-display tracking-wider">
                 <Link href={`/session/new?exemplar=${data.id}`}>
