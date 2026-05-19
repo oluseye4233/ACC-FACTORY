@@ -1,14 +1,27 @@
 import { useState } from "react";
 import { TopNav } from "@/components/layout/TopNav";
-import { useListMyBadges, useClaimAiseBadge } from "@workspace/api-client-react";
+import { useListMyBadges, useClaimAiseBadge, useGetMe } from "@workspace/api-client-react";
 import type { BadgeProgress } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Award, CheckCircle2, Lock, ShieldCheck, Trophy } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+import { Award, CheckCircle2, Download, Lock, ShieldCheck, Trophy } from "lucide-react";
 import badgeBg from "@assets/copilot_image_1779143975171_1779147194124.jpeg";
+import {
+  downloadBadgeCertificate,
+  type BadgeFormat,
+} from "@/lib/badge-certificate";
 
 const BADGE_META: Record<string, { name: string; fullName: string; description: string; reqText: string; icon: typeof Trophy }> = {
   ASPE: {
@@ -36,6 +49,39 @@ const BADGE_META: Record<string, { name: string; fullName: string; description: 
 
 export default function Quests() {
   const { data, isLoading, refetch } = useListMyBadges();
+  const { data: me } = useGetMe();
+  const { toast } = useToast();
+  const recipientName =
+    (me?.displayName && me.displayName.trim().length > 0
+      ? me.displayName.trim()
+      : me?.email?.split("@")[0]) ?? "Operator";
+  const recipientEmail = me?.email ?? null;
+
+  const handleDownload = async (b: BadgeProgress, format: BadgeFormat): Promise<void> => {
+    const meta = BADGE_META[b.badgeId];
+    if (!meta) return;
+    try {
+      await downloadBadgeCertificate({
+        badgeId: b.badgeId as "ASPE" | "AISA" | "AISE",
+        badgeFullName: meta.fullName,
+        description: meta.description,
+        recipientName,
+        recipientEmail,
+        unlockedAt: b.unlockedAt ?? null,
+        format,
+      });
+      toast({
+        title: "Badge downloaded",
+        description: `Your personalized ${b.badgeId} certificate has been saved.`,
+      });
+    } catch (err) {
+      toast({
+        title: "Download failed",
+        description: (err as Error).message ?? "Try again.",
+        variant: "destructive",
+      });
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <TopNav />
@@ -123,7 +169,7 @@ export default function Quests() {
                     <CardHeader className="pb-3">
                       <CardDescription className="text-xs">{meta.description}</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-1">
+                    <CardContent className="flex-1 flex flex-col">
                       <div className="text-xs font-mono text-muted-foreground mb-3">{meta.reqText}</div>
                       <div className="space-y-1.5">
                         {Object.entries(b.requirements).map(([k, req]) => {
@@ -148,6 +194,48 @@ export default function Quests() {
                           );
                         })}
                       </div>
+                      {!locked && (
+                        <div className="mt-4 pt-3 border-t border-border/60">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full font-mono text-xs gap-2"
+                                data-testid={`button-download-${b.badgeId.toLowerCase()}`}
+                              >
+                                <Download className="h-3.5 w-3.5" />
+                                DOWNLOAD CERTIFICATE
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="font-mono text-xs">
+                              <DropdownMenuLabel>
+                                Personalized for{" "}
+                                <span className="text-foreground">{recipientName}</span>
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => void handleDownload(b, "png")}
+                                data-testid={`menu-${b.badgeId.toLowerCase()}-png`}
+                              >
+                                PNG — highest quality
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => void handleDownload(b, "jpeg")}
+                                data-testid={`menu-${b.badgeId.toLowerCase()}-jpeg`}
+                              >
+                                JPEG — easier to share
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => void handleDownload(b, "svg")}
+                                data-testid={`menu-${b.badgeId.toLowerCase()}-svg`}
+                              >
+                                SVG — vector, scales to any size
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 );
