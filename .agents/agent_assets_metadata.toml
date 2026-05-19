@@ -36,3 +36,9 @@ id = "M6jIaufdddL-O5gAUbq9h"
 uri = "file://docs/ATANDA_ATLAS_PDD_Investor_Edition.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — 4-Part ATLAS PDD (Investor Edition)"
+
+[[outputs]]
+id = "Y_ARbkQQwJTeRmlvM-fTL"
+uri = "file://docs/ATANDA_Command_Centre_PDD_2.pdf"
+type = "pdf"
+title = "ATANDA Command Centre PDD 2 (Investor Edition)"
