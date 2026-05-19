@@ -59,6 +59,16 @@ const ENTRIES: Entry[] = [
     filename: "SPARTAN_SPC_v1_0_1779069054055.md",
   },
   {
+    id: "vibe-spc",
+    title: "VIBE SPC",
+    tagline: "Dual-mode tool selector + multi-tool conductor (powers F6-VDJ)",
+    jcse: 50,
+    certClass: "PLATINUM",
+    source: "canonical",
+    kind: "SPC",
+    filename: "VIBE_SPC_v1_0_1779154734288.md",
+  },
+  {
     id: "atlas-ultra-si",
     title: "ATLAS ULTRA SI",
     tagline: "PromptWare Design Document architect (powers F6)",
