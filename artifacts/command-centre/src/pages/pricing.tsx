@@ -333,7 +333,7 @@ export default function Pricing() {
                 </div>
                 <div className="md:text-right">
                   <div className="flex md:flex-col items-baseline md:items-end gap-2 mb-4">
-                    <span className="text-5xl font-display tracking-wider">$19</span>
+                    <span className="text-5xl font-display tracking-wider">$199.99</span>
                     <span className="text-muted-foreground font-mono text-sm">
                       / project
                     </span>
