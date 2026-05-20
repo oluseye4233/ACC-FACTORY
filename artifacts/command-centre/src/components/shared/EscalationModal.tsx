@@ -17,9 +17,11 @@ export function EscalationModal({ sessionId }: EscalationModalProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive">
+        <Button variant="outline" size="sm" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive h-8 px-2 md:px-3">
           <ShieldAlert className="h-4 w-4" />
-          <span className="font-mono">ESCALATIONS (0)</span>
+          <span className="font-mono text-[10px] md:text-xs">
+          <span className="hidden sm:inline">ESCALATIONS </span>(0)
+        </span>
         </Button>
       </DialogTrigger>
       <DialogContent>

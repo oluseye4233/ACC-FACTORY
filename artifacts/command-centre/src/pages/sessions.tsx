@@ -45,18 +45,18 @@ export default function Sessions() {
             </p>
           </div>
           
-          <div className="flex gap-2">
-            <Button asChild variant="outline" className="font-mono">
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm" className="font-mono flex-1 sm:flex-none">
               <a href={`${BASE}/api/me/spcs/export.csv`} download>
                 <Download className="h-4 w-4 mr-2" /> SPC CSV
               </a>
             </Button>
-            <Button asChild variant="outline" className="font-mono">
+            <Button asChild variant="outline" size="sm" className="font-mono flex-1 sm:flex-none">
               <a href={`${BASE}/api/me/spcs/export.pdf`} download>
                 <Download className="h-4 w-4 mr-2" /> SPC PDF
               </a>
             </Button>
-            <Button asChild className="font-display tracking-wider gap-2">
+            <Button asChild className="font-display tracking-wider gap-2 w-full sm:w-auto">
               <Link href="/session/new">
                 <Plus className="h-4 w-4" />
                 NEW SESSION
@@ -89,7 +89,7 @@ export default function Sessions() {
             <div className="border rounded-lg bg-card overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
-                  <thead>
+                  <thead className="hidden md:table-header-group">
                     <tr className="border-b bg-muted/50">
                       <th className="py-3 px-4 font-mono text-xs text-muted-foreground font-medium">SESSION NAME</th>
                       <th className="py-3 px-4 font-mono text-xs text-muted-foreground font-medium w-40">STATUS</th>
@@ -112,31 +112,58 @@ export default function Sessions() {
                       </tr>
                     ) : (
                       filteredSessions.map(session => (
-                        <tr key={session.id} className="hover:bg-accent/30 transition-colors group cursor-pointer" onClick={() => setLocation(`/session/${session.id}`)}>
-                          <td className="py-4 px-4">
+                        <tr
+                          key={session.id}
+                          role="link"
+                          tabIndex={0}
+                          aria-label={`Open session ${session.sessionName}`}
+                          className="hover:bg-accent/30 focus-visible:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors group cursor-pointer flex flex-col md:table-row p-3 md:p-0 border-b last:border-b-0"
+                          onClick={() => setLocation(`/session/${session.id}`)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setLocation(`/session/${session.id}`);
+                            }
+                          }}
+                        >
+                          <td className="md:py-4 md:px-4 md:table-cell block">
                             <div className="font-medium mb-1 group-hover:text-primary transition-colors">
                               {session.sessionName}
                             </div>
-                            <div className="font-mono text-xs text-muted-foreground">
+                            <div className="font-mono text-[10px] md:text-xs text-muted-foreground truncate">
                               ID: {session.id}
                             </div>
+                            {/* Mobile-only inline meta */}
+                            <div className="mt-2 flex flex-wrap items-center gap-2 md:hidden">
+                              <span className={`inline-flex items-center gap-1.5 text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
+                                session.status === 'COMPLETE' ? 'bg-primary/10 text-primary border-primary/20' :
+                                'bg-accent text-accent-foreground'
+                              }`}>
+                                {session.status === 'COMPLETE' ? <CheckCircleIcon className="w-3 h-3" /> : <Activity className="w-3 h-3" />}
+                                {session.status}
+                              </span>
+                              <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-mono">
+                                <Calendar className="h-3 w-3" />
+                                {format(new Date(session.updatedAt), "yyyy-MM-dd")}
+                              </span>
+                            </div>
                           </td>
-                          <td className="py-4 px-4">
+                          <td className="py-4 px-4 hidden md:table-cell">
                             <span className={`inline-flex items-center gap-1.5 text-xs font-mono font-bold px-2 py-1 rounded border ${
-                              session.status === 'COMPLETE' ? 'bg-primary/10 text-primary border-primary/20' : 
+                              session.status === 'COMPLETE' ? 'bg-primary/10 text-primary border-primary/20' :
                               'bg-accent text-accent-foreground'
                             }`}>
                               {session.status === 'COMPLETE' ? <CheckCircleIcon className="w-3 h-3" /> : <Activity className="w-3 h-3" />}
                               {session.status}
                             </span>
                           </td>
-                          <td className="py-4 px-4">
+                          <td className="py-4 px-4 hidden md:table-cell">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono">
                               <Calendar className="h-3.5 w-3.5" />
                               {format(new Date(session.updatedAt), "yyyy-MM-dd HH:mm")}
                             </div>
                           </td>
-                          <td className="py-4 px-4 text-right">
+                          <td className="py-4 px-4 text-right hidden md:table-cell">
                             <Button size="sm" variant="ghost" className="font-mono text-xs">
                               ENTER
                             </Button>

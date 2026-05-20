@@ -11,7 +11,7 @@ export default function Landing() {
       <TopNav />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden py-24 md:py-32 lg:py-40">
+        <section className="relative overflow-hidden py-16 sm:py-20 md:py-32 lg:py-40">
           <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-secondary/5 -z-10" />
           <div className="container px-4 md:px-6 relative">
             <div className="flex flex-col items-center text-center space-y-8 max-w-4xl mx-auto">
@@ -19,18 +19,18 @@ export default function Landing() {
                 <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
                 SYSTEM ONLINE
               </div>
-              <h1 className="font-display text-5xl md:text-7xl lg:text-8xl tracking-wider text-foreground">
+              <h1 className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl tracking-wider text-foreground break-words">
                 FORGE.BONSAI <span className="text-primary">HARNESS</span>
               </h1>
-              <p className="font-serif text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                A single coherent sequence. From raw idea to certified MVP PDD. 
+              <p className="font-serif text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                A single coherent sequence. From raw idea to certified MVP PDD.
                 Dense, instrumented, and clandestine.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button asChild size="lg" className="h-14 px-8 text-lg font-display tracking-wider">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 w-full sm:w-auto">
+                <Button asChild size="lg" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
                   <Link href="/sign-up">INITIATE SESSION</Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-14 px-8 text-lg font-display tracking-wider">
+                <Button asChild size="lg" variant="outline" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
                   <Link href="/pricing">VIEW CAPABILITIES</Link>
                 </Button>
               </div>
@@ -63,7 +63,7 @@ export default function Landing() {
         {/* Social Proof */}
         <section className="py-24 relative overflow-hidden">
           <div className="container px-4 md:px-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 items-center">
               <div className="space-y-8">
                 <h2 className="font-display text-4xl md:text-5xl tracking-wide text-secondary">
                   CERTIFIED EXCELLENCE

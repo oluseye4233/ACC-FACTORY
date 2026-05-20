@@ -13,7 +13,15 @@ import { ArtifactTray } from "@/components/shared/ArtifactTray";
 import { EscalationModal } from "@/components/shared/EscalationModal";
 import { GRODot } from "@/components/shared/GRODot";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, AlertTriangle } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, AlertTriangle, ListOrdered, Package } from "lucide-react";
 import { F1TestPrompt } from "@/components/workspaces/F1TestPrompt";
 import { F2BuildAtomic } from "@/components/workspaces/F2BuildAtomic";
 import { F3BuildMa } from "@/components/workspaces/F3BuildMa";
@@ -30,6 +38,8 @@ export default function SessionDetail() {
   const { data: artifacts, isLoading: isLoadingArtifacts } = useListSessionArtifacts(id || "");
   
   const [activeEngineId, setActiveEngineId] = useState<number>(1);
+  const [sequenceOpen, setSequenceOpen] = useState(false);
+  const [trayOpen, setTrayOpen] = useState(false);
 
   if (isError) {
     return (
@@ -55,26 +65,50 @@ export default function SessionDetail() {
     return state?.status || FeatureStatus.LOCKED;
   };
 
+  const renderSequenceList = (onPick?: () => void) =>
+    isLoadingFeatures ? (
+      Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-12 w-full mb-1" />)
+    ) : (
+      ENGINES.map((engine) => (
+        <FeatureNavItem
+          key={engine.id}
+          {...engine}
+          status={getFeatureStatus(engine.id)}
+          isActive={activeEngineId === engine.id}
+          onClick={() => {
+            if (getFeatureStatus(engine.id) !== FeatureStatus.LOCKED) {
+              setActiveEngineId(engine.id);
+              onPick?.();
+            }
+          }}
+        />
+      ))
+    );
+
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="min-h-[100dvh] flex flex-col bg-background">
       <TopNav />
-      
+
       {/* Session Header / Breadcrumb */}
-      <header className="h-14 border-b bg-card flex items-center justify-between px-4 shrink-0">
-        <div className="flex items-center gap-4">
-          <Link href="/command" className="text-muted-foreground hover:text-foreground transition-colors">
+      <header className="border-b bg-card flex items-center justify-between gap-2 px-3 md:px-4 py-2 shrink-0">
+        <div className="flex items-center gap-2 md:gap-4 min-w-0">
+          <Link
+            href="/command"
+            className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            aria-label="Back to command"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <div className="h-4 w-px bg-border"></div>
-          
+          <div className="hidden md:block h-4 w-px bg-border"></div>
+
           {isLoadingSession ? (
-            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-5 w-32 md:w-48" />
           ) : (
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-sm font-bold text-primary truncate max-w-[200px] md:max-w-md">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0">
+              <span className="font-mono text-xs md:text-sm font-bold text-primary truncate max-w-[140px] sm:max-w-[220px] md:max-w-md">
                 {session?.sessionName}
               </span>
-              <span className="text-xs font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground border">
+              <span className="hidden sm:inline text-xs font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground border">
                 {session?.id.substring(0, 8)}
               </span>
               {session?.status === 'COMPLETE' && (
@@ -85,57 +119,101 @@ export default function SessionDetail() {
             </div>
           )}
         </div>
-        
-        <div>
+
+        <div className="flex items-center gap-1 shrink-0">
+          {/* Mobile-only: open Harness Sequence */}
+          <Sheet open={sequenceOpen} onOpenChange={setSequenceOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="md:hidden h-8 px-2 font-mono text-[10px] gap-1"
+                aria-label="Open harness sequence"
+                data-testid="button-mobile-sequence"
+              >
+                <ListOrdered className="h-3.5 w-3.5" />
+                F{activeEngineId}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 p-0 flex flex-col">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle className="font-mono text-xs font-bold text-muted-foreground uppercase tracking-wider text-left">
+                  HARNESS SEQUENCE
+                </SheetTitle>
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                {renderSequenceList(() => setSequenceOpen(false))}
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Mobile/Tablet-only: open Artifact Tray */}
+          <Sheet open={trayOpen} onOpenChange={setTrayOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="lg:hidden h-8 px-2 font-mono text-[10px] gap-1"
+                aria-label="Open artifact tray"
+                data-testid="button-mobile-tray"
+              >
+                <Package className="h-3.5 w-3.5" />
+                {artifacts?.length ?? 0}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80 p-0 flex flex-col">
+              <SheetHeader className="p-4 border-b flex-row items-center justify-between space-y-0">
+                <SheetTitle className="font-mono text-xs font-bold text-muted-foreground uppercase tracking-wider text-left">
+                  ARTIFACT TRAY
+                </SheetTitle>
+                <span className="text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                  {artifacts?.length || 0} TOTAL
+                </span>
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto p-4">
+                {isLoadingArtifacts ? (
+                  <div className="space-y-2">
+                    {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+                  </div>
+                ) : (
+                  <ArtifactTray artifacts={artifacts || []} />
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
+
           {id && <EscalationModal sessionId={id} />}
         </div>
       </header>
       
-      {/* 3-Column Layout */}
-      <main className="flex-1 flex overflow-hidden">
-        
-        {/* Left Column: Navigation */}
-        <div className="w-[280px] border-r bg-card/50 flex flex-col shrink-0 hidden md:flex">
+      {/* 3-Column Layout (collapses to single column on mobile via sheets in header) */}
+      <main className="flex-1 flex">
+
+        {/* Left Column: Navigation (desktop only) */}
+        <div className="w-[280px] border-r bg-card/50 flex-col shrink-0 hidden md:flex">
           <div className="p-4 border-b">
             <h2 className="font-mono text-xs font-bold text-muted-foreground uppercase tracking-wider">
               HARNESS SEQUENCE
             </h2>
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {isLoadingFeatures ? (
-              Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-12 w-full mb-1" />)
-            ) : (
-              ENGINES.map((engine) => (
-                <FeatureNavItem
-                  key={engine.id}
-                  {...engine}
-                  status={getFeatureStatus(engine.id)}
-                  isActive={activeEngineId === engine.id}
-                  onClick={() => {
-                    // Only allow clicking if not locked
-                    if (getFeatureStatus(engine.id) !== FeatureStatus.LOCKED) {
-                      setActiveEngineId(engine.id);
-                    }
-                  }}
-                />
-              ))
-            )}
+            {renderSequenceList()}
           </div>
         </div>
-        
+
         {/* Center Column: Workspace */}
-        <div className="flex-1 flex flex-col bg-background overflow-hidden relative">
+        <div className="flex-1 flex flex-col bg-background relative min-w-0">
           <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-          
+
           <div className="p-4 md:p-8 flex-1 flex flex-col relative z-10">
-            <div className="mb-8">
+            <div className="mb-6 md:mb-8">
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="font-display text-4xl tracking-wider text-foreground">
+                <h1 className="font-display text-2xl sm:text-3xl md:text-4xl tracking-wider text-foreground">
                   {activeEngine.title}
                 </h1>
                 <GRODot state="GREY" className="mt-1" />
               </div>
-              <p className="text-muted-foreground font-mono text-sm max-w-2xl">
+              <p className="text-muted-foreground font-mono text-xs md:text-sm max-w-2xl">
                 {activeEngine.description}
               </p>
             </div>
@@ -155,8 +233,8 @@ export default function SessionDetail() {
           </div>
         </div>
         
-        {/* Right Column: Artifacts */}
-        <div className="w-[300px] border-l bg-card/50 flex flex-col shrink-0 hidden lg:flex">
+        {/* Right Column: Artifacts (large screens only) */}
+        <div className="w-[300px] border-l bg-card/50 flex-col shrink-0 hidden lg:flex">
           <div className="p-4 border-b flex items-center justify-between">
             <h2 className="font-mono text-xs font-bold text-muted-foreground uppercase tracking-wider">
               ARTIFACT TRAY
