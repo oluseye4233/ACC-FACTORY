@@ -8,6 +8,7 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
+  Award,
   CheckCircle2,
   CircleDot,
   Compass,
@@ -18,9 +19,112 @@ import {
   Lightbulb,
   Rocket,
   Shield,
+  ShieldCheck,
   Sparkles,
+  Trophy,
   Workflow,
 } from "lucide-react";
+import { PillarTriangle } from "@/components/shared/PillarTriangle";
+import type { ContextCraftBadge } from "@workspace/api-client-react";
+
+type PillarCode = ContextCraftBadge["pillar"];
+
+const PILLAR_MAX_DEMO: Record<PillarCode, number> = {
+  SYSTEM: 7,
+  ROLE: 7,
+  INSTRUCTION: 8,
+  DATA: 7,
+  FORMAT: 7,
+  EXAMPLE: 7,
+  CONSTRAINT: 7,
+};
+const PILLAR_LETTER_DEMO: Record<PillarCode, string> = {
+  SYSTEM: "S",
+  ROLE: "R",
+  INSTRUCTION: "I",
+  DATA: "D",
+  FORMAT: "F",
+  EXAMPLE: "E",
+  CONSTRAINT: "C",
+};
+
+function demoBadge(pillar: PillarCode, score: number | null): ContextCraftBadge {
+  return {
+    pillar,
+    letter: PILLAR_LETTER_DEMO[pillar],
+    earned: score !== null,
+    bestScore: score ?? 0,
+    maxScore: PILLAR_MAX_DEMO[pillar],
+    threshold: 6,
+    firstEarnedAt: score !== null ? new Date().toISOString() : null,
+    evidenceArtifactId: null,
+  };
+}
+
+// Cumulative pillar scores after each stage completes — F1 lights up a few,
+// F2 (atomic prompt) drives every pillar past the threshold.
+const PILLAR_SCORES_BY_STAGE: Record<StageId, Partial<Record<PillarCode, number>>> = {
+  1: { SYSTEM: 6, ROLE: 6 },
+  2: { SYSTEM: 7, ROLE: 7, INSTRUCTION: 8, DATA: 6, FORMAT: 7, EXAMPLE: 6, CONSTRAINT: 7 },
+  3: { SYSTEM: 7, ROLE: 7, INSTRUCTION: 8, DATA: 6, FORMAT: 7, EXAMPLE: 6, CONSTRAINT: 7 },
+  4: { SYSTEM: 7, ROLE: 7, INSTRUCTION: 8, DATA: 6, FORMAT: 7, EXAMPLE: 6, CONSTRAINT: 7 },
+  5: { SYSTEM: 7, ROLE: 7, INSTRUCTION: 8, DATA: 6, FORMAT: 7, EXAMPLE: 6, CONSTRAINT: 7 },
+  6: { SYSTEM: 7, ROLE: 7, INSTRUCTION: 8, DATA: 6, FORMAT: 7, EXAMPLE: 6, CONSTRAINT: 7 },
+  7: { SYSTEM: 7, ROLE: 7, INSTRUCTION: 8, DATA: 6, FORMAT: 7, EXAMPLE: 6, CONSTRAINT: 7 },
+};
+
+// Which pillars become *newly* earned at each stage (for the per-stage WIN strip).
+const NEW_PILLARS_AT_STAGE: Record<StageId, PillarCode[]> = {
+  1: ["SYSTEM", "ROLE"],
+  2: ["INSTRUCTION", "DATA", "FORMAT", "EXAMPLE", "CONSTRAINT"],
+  3: [],
+  4: [],
+  5: [],
+  6: [],
+  7: [],
+};
+
+// Main Quest Badges (ASPE / AISA / AISE) and where they conceptually unlock.
+type QuestBadge = {
+  id: "ASPE" | "AISA" | "AISE";
+  name: string;
+  icon: typeof Trophy;
+  blurb: string;
+  unlocksAtStage: StageId | null; // null = post-publish
+};
+const QUEST_BADGES: QuestBadge[] = [
+  {
+    id: "ASPE",
+    name: "ADAPTIVE SPC PRACTITIONER",
+    icon: ShieldCheck,
+    blurb: "Earned after shipping 3 SPCs and 4 MA Birth Packages — unlocks DE-SPC auto-evolution.",
+    unlocksAtStage: 5,
+  },
+  {
+    id: "AISA",
+    name: "AI SOLUTION ARCHITECT",
+    icon: Award,
+    blurb: "Earned after a complete ATLAS → Micro → MVP PDD lifecycle.",
+    unlocksAtStage: 7,
+  },
+  {
+    id: "AISE",
+    name: "AI SOLUTION ENGINEER",
+    icon: Trophy,
+    blurb: "Earned by submitting a verified URL of a working SPC-DNA agent (GPT, Copilot, native app).",
+    unlocksAtStage: null,
+  },
+];
+
+const NEW_QUEST_AT_STAGE: Record<StageId, QuestBadge["id"][]> = {
+  1: [],
+  2: [],
+  3: [],
+  4: [],
+  5: ["ASPE"],
+  6: [],
+  7: ["AISA"],
+};
 
 type StageId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
@@ -345,8 +449,98 @@ export default function Demo() {
               <div className="text-muted-foreground mb-1">WORKED EXAMPLE</div>
               <div className="text-foreground">"{SCENARIO.rawIdea}"</div>
               <div className="text-primary mt-2">
-                → becomes <span className="font-bold">{SCENARIO.agentName}</span>, certified at F7.
+                → becomes <span className="font-bold">{SCENARIO.agentName}</span>, certified at F7,
+                <span className="text-foreground"> earning </span>
+                <span className="font-bold">7 Context Craft triangles</span>
+                <span className="text-foreground"> + </span>
+                <span className="font-bold">2 Quest crests</span> along the way.
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* WIN STATES PREVIEW — what you'll have at the end */}
+        <section className="border-b bg-gradient-to-b from-background to-secondary/5">
+          <div className="container px-4 md:px-6 py-8 md:py-12 max-w-5xl">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold text-secondary tracking-wider mb-3">
+              <Trophy className="h-3.5 w-3.5" />
+              TROPHY ROOM · WHAT YOU'LL UNLOCK
+            </div>
+            <h2 className="font-display text-2xl md:text-3xl tracking-wider mb-2">
+              EVERY STAGE EARNS A BADGE
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground font-serif max-w-3xl leading-relaxed mb-6">
+              The HARNESS turns prompt-engineering into a quest. Every certified
+              artefact bumps your scores; every threshold crossed mints a permanent
+              badge. This is the trophy shelf you walk away with after one
+              complete session of the worked example.
+            </p>
+
+            {/* Context Craft triangles — preview as earned */}
+            <Card className="border-l-4 border-l-primary/60 mb-4">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <CardTitle className="font-display text-base md:text-lg tracking-wider">
+                      CONTEXT CRAFT · 7 PILLAR BADGES
+                    </CardTitle>
+                    <CardDescription className="text-xs font-mono mt-1">
+                      Auto-awarded when an F1 / F2 prompt scores ≥ 6 on the pillar.
+                    </CardDescription>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-1 rounded border border-primary/40 bg-primary/10 text-primary">
+                    PREVIEW · DEMO RUN EARNS ALL 7
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-start">
+                  {(Object.keys(PILLAR_LETTER_DEMO) as PillarCode[]).map((p) => (
+                    <PillarTriangle
+                      key={p}
+                      badge={demoBadge(p, PILLAR_SCORES_BY_STAGE[2][p] ?? 6)}
+                    />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quest crests — preview */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              {QUEST_BADGES.map((q) => {
+                const Icon = q.icon;
+                const wouldEarn = q.unlocksAtStage !== null;
+                return (
+                  <div
+                    key={q.id}
+                    className={`rounded-lg border p-4 flex flex-col gap-2 ${
+                      wouldEarn
+                        ? "border-primary/40 bg-primary/5"
+                        : "border-muted-foreground/30 bg-muted/10"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icon
+                        className={`h-5 w-5 ${
+                          wouldEarn ? "text-yellow-300" : "text-muted-foreground"
+                        }`}
+                      />
+                      <span className="font-display tracking-wider text-sm">
+                        {q.id}
+                      </span>
+                      <span className="ml-auto text-[9px] font-mono px-1.5 py-0.5 rounded border">
+                        {wouldEarn ? "EARNS IN DEMO" : "POST-LAUNCH"}
+                      </span>
+                    </div>
+                    <div className="text-[10px] font-mono font-bold tracking-wider text-muted-foreground">
+                      {q.name}
+                    </div>
+                    <p className="text-xs font-serif text-foreground/80 leading-snug">
+                      {q.blurb}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -461,6 +655,45 @@ export default function Demo() {
             </CardContent>
           </Card>
 
+          {/* BADGES UNLOCKED THIS STAGE */}
+          {(NEW_PILLARS_AT_STAGE[stage.id].length > 0 ||
+            NEW_QUEST_AT_STAGE[stage.id].length > 0) && (
+            <div className="mt-5 rounded-lg border border-primary/40 bg-primary/5 p-4 md:p-5">
+              <div className="flex items-center gap-2 text-[10px] md:text-xs font-mono font-bold text-primary tracking-wider mb-3">
+                <Trophy className="h-3.5 w-3.5" />
+                BADGES UNLOCKED THIS STAGE
+              </div>
+              <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+                {NEW_PILLARS_AT_STAGE[stage.id].map((p) => (
+                  <PillarTriangle
+                    key={p}
+                    badge={demoBadge(p, PILLAR_SCORES_BY_STAGE[stage.id][p] ?? 6)}
+                    size={48}
+                  />
+                ))}
+                {NEW_QUEST_AT_STAGE[stage.id].map((qid) => {
+                  const q = QUEST_BADGES.find((x) => x.id === qid)!;
+                  const Icon = q.icon;
+                  return (
+                    <div
+                      key={qid}
+                      className="flex items-center gap-3 rounded-md border border-primary/40 bg-primary/10 px-3 py-2"
+                      data-testid={`demo-quest-${qid.toLowerCase()}`}
+                    >
+                      <Icon className="h-6 w-6 text-yellow-300" />
+                      <div>
+                        <div className="font-display tracking-wider text-sm">{qid}</div>
+                        <div className="text-[9px] font-mono text-muted-foreground tracking-wider">
+                          {q.name}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Checkpoint bridge to next stage */}
           {stage.bridgeToNext && (
             <div className="my-6 flex items-start gap-3 rounded-lg border border-dashed border-primary/40 bg-primary/5 p-4 md:p-5">
@@ -523,6 +756,33 @@ export default function Demo() {
                   Now run YOUR idea through it. Every real session starts at F1 with
                   your own raw prompt — the HARNESS handles the rest.
                 </p>
+                <div className="pt-2">
+                  <div className="text-[10px] font-mono font-bold tracking-wider text-primary mb-3">
+                    YOUR TROPHY WALL AFTER ONE SESSION
+                  </div>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    {(Object.keys(PILLAR_LETTER_DEMO) as PillarCode[]).map((p) => (
+                      <PillarTriangle
+                        key={p}
+                        badge={demoBadge(p, PILLAR_SCORES_BY_STAGE[7][p] ?? 6)}
+                        size={44}
+                        showLabel={false}
+                      />
+                    ))}
+                    {QUEST_BADGES.filter((q) => q.unlocksAtStage !== null).map((q) => {
+                      const Icon = q.icon;
+                      return (
+                        <div
+                          key={q.id}
+                          className="h-[44px] w-[44px] rounded-md border border-primary/50 bg-primary/15 flex items-center justify-center"
+                          title={`${q.id} — ${q.name}`}
+                        >
+                          <Icon className="h-5 w-5 text-yellow-300" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
                   <Button asChild size="lg" className="font-display tracking-wider">
                     <Link href="/sign-up">INITIATE SESSION</Link>
