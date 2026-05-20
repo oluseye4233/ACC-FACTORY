@@ -2,7 +2,7 @@
 ## Drafted as an ATLAS-SPC
 
 **Document type:** PWDD — HARNESS-certified OUTPUT (post-ingestion)
-**Source PDD:** `docs/PDD.md` v1.0 (Investor Preview)
+**Source IPDD:** `docs/IPDD.md` v1.1 (Investor Preview — IPDD rename)
 **Session origin:** `ingested`
 **Authoring lens:** **ATLAS-SPC** — every section is a Structured Prompt Contract block organised under one of the five ATLAS letters (Architecture · Tactics · Lifecycle · Acceptance · Safeguards)
 **SPARTAN composite:** 94 / 100 — **CERTIFIED ✅**
@@ -20,7 +20,7 @@
 spc:
   id: atanda.command-centre.v1.atlas
   origin: ingested
-  source_pdd: docs/PDD.md
+  source_ipdd: docs/IPDD.md
   pipeline: [F1, F2, F3, F4, F5, F6, F6-VDJ, F7]
   certification:
     standard: SPARTAN
@@ -563,4 +563,4 @@ spc:
 - [ ] SPARTAN composite ≥ 90 in **A.4**
 - [ ] Preview-cut vs go-live-cut decision is captured under **S.1**
 
-*This PWDD draft re-renders the source PDD through the F6 ATLAS lens, with every section emitted as an F5-style SPC contract block. Inputs, invariants, outputs, and acceptance gates are explicit and machine-checkable.*
+*This PWDD draft re-renders the source IPDD through the F6 ATLAS lens, with every section emitted as an F5-style SPC contract block. Inputs, invariants, outputs, and acceptance gates are explicit and machine-checkable.*

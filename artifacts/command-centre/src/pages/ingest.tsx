@@ -46,7 +46,7 @@ const MAX_BYTES = 1 * 1024 * 1024;
 
 type Kind = IngestionDocument["sourceDocKind"];
 const KIND_OPTIONS: { value: Kind; label: string }[] = [
-  { value: "product_design_document", label: "Product Design Document (PDD)" },
+  { value: "product_design_document", label: "Ingestion Product Design Document (IPDD)" },
   { value: "software_design_document", label: "Software Design Document (SDD)" },
   { value: "concept_note", label: "Concept Note" },
   { value: "spec_sheet", label: "Spec Sheet" },

@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Check, ChevronDown, ChevronUp, Copy, FileText, ShieldCheck } from "lucide-react";
 
 const KIND_LABEL: Record<IngestionDocument["sourceDocKind"], string> = {
-  product_design_document: "Product Design Document",
+  product_design_document: "Ingestion Product Design Document",
   software_design_document: "Software Design Document",
   concept_note: "Concept Note",
   spec_sheet: "Spec Sheet",

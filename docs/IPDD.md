@@ -1,8 +1,8 @@
-# ATANDA Command Centre — Product Design Document (PDD)
+# ATANDA Command Centre — Ingestion Product Design Document (IPDD)
 
-**Version:** 1.0 — Investor Preview
+**Version:** 1.1 — Investor Preview (IPDD rename)
 **Status:** Pre-launch, code-complete
-**Document type:** PDD (human-authored INPUT — see Terminology)
+**Document type:** IPDD (human-authored INPUT — see Terminology)
 **Last updated:** 20 May 2026
 
 ---
@@ -20,17 +20,21 @@ The HARNESS itself is a **PDD blueprint application** — an instruction layer o
 | **Explorer** | Free | First-time visitors | F1 – F4, exemplar library, 3 sessions, daily rate-limited |
 | **Practitioner** | Monthly / Yearly | Working builders | F5 + F6 + F7 + ATLAS PDD + SPARTAN MVP-PDD certification + higher daily caps |
 | **Architect** | Monthly / Yearly | Power users / agencies | DE-SPC synthesiser, AISE badge, priority caps, exports (CSV/PDF) |
-| **Ingestion credit** | **$199.99 / project** (one-time) | Anyone signed in (Explorer included) | One document → one PWDD session, decoupled from monthly tier |
+| **Ingestion credit** | **$199.99 / project** (one-time) | Anyone signed in (Explorer included) | One IPDD → one PWDD session, decoupled from monthly tier |
 
 All paid flows route through **Stripe Checkout**; the Ingestion credit is a `mode=payment` one-time purchase that drops a row into a `ingestion_credits` ledger and is **atomically claimed** at the start of an ingest request.
 
-## 3. Terminology — PDD vs PWDD (canonical)
+## 3. Terminology — IPDD vs PWDD (canonical)
 
-- **PDD = INPUT.** A *Product Design Document* (or SDD / concept note / spec sheet) is a **human-authored, pre-ingestion** artefact that a user already owns. It is what the INGESTION ENGINE consumes — never what the HARNESS produces.
-- **PWDD = OUTPUT.** A *PromptWare Design Document* is the **HARNESS-certified, post-ingestion** outcome of a session seeded by an ingested source document. Sessions with `origin='ingested'` produce PWDDs; manual sessions (`origin='manual'`) produce regular MVP-PDDs.
-- The UI must never call an INPUT a "PWDD" and never call a HARNESS OUTPUT a "PDD" once it has run through the pipeline from an ingested source.
+The bare term "PDD" was overloaded: it meant both the human-authored INPUT to the INGESTION ENGINE **and** appeared as a suffix on the HARNESS-produced OUTPUTS (Micro PDD, ATLAS PDD, MVP PDD). To remove the ambiguity, the **INPUT** is now formally named **IPDD**. The qualified OUTPUT names are unchanged.
 
-This very document is itself a **PDD** — a human-authored snapshot of the live codebase as an INPUT artefact.
+- **IPDD = INPUT.** An *Ingestion Product Design Document* — historically just "PDD". A **human-authored, pre-ingestion** artefact a user already owns (a Product Design Document, Software Design Document, concept note, spec sheet, brief, etc.). It is what the INGESTION ENGINE consumes — never what the HARNESS produces.
+- **PWDD = OUTPUT.** A *PromptWare Design Document* is the **HARNESS-certified, post-ingestion** outcome of a session seeded by ingesting an IPDD. Sessions with `origin='ingested'` produce PWDDs; manual sessions (`origin='manual'`) produce regular MVP-PDDs.
+- **Qualified output PDDs are untouched.** *Micro PDD* (F4), *ATLAS PDD* (F6), and *MVP PDD* (F7) keep their names — they are always prefix-qualified, so they can never collide with the INPUT term.
+- **Internal enum stays.** The `sourceDocKind` Postgres / API enum value `product_design_document` is unchanged (no migration, no codegen drift); only the user-facing label moves to "Ingestion Product Design Document (IPDD)".
+- The UI must never call an INPUT a "PWDD" and never call a HARNESS OUTPUT an "IPDD".
+
+This very document is itself an **IPDD** — a human-authored snapshot of the live codebase as an INPUT artefact.
 
 ## 4. System architecture
 
@@ -284,4 +288,4 @@ Three workflows are pre-wired in the Replit environment:
 
 ---
 
-*Authored as the canonical INPUT PDD for the ATANDA Command Centre codebase, intended both as investor-facing documentation and as a seed for a future HARNESS ingestion run.*
+*Authored as the canonical INPUT IPDD for the ATANDA Command Centre codebase, intended both as investor-facing documentation and as a seed for a future HARNESS ingestion run.*

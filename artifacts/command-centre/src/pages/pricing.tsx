@@ -312,8 +312,8 @@ export default function Pricing() {
                     INGESTION ENGINE <span className="text-primary">— PER PROJECT</span>
                   </h3>
                   <p className="font-serif text-muted-foreground leading-relaxed mb-4 max-w-2xl">
-                    Already have a Product Design Document, SDD, concept note, or spec
-                    sheet? Buy a single project credit and turn it into a HARNESS-certified
+                    Already have an Ingestion Product Design Document (IPDD), SDD, concept
+                    note, or spec sheet? Buy a single project credit and turn it into a HARNESS-certified
                     <span className="text-foreground"> PromptWare Design Document (PWDD)</span>.
                     No monthly commitment. Failed runs are refunded automatically.
                   </p>

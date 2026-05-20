@@ -71,7 +71,7 @@ title = "ATANDA Command Centre — PDD v1.0 (PDF)"
 id = "sALuQbevpvtFUqt4Fo_qn"
 uri = "file://docs/PWDD.pdf"
 type = "pdf"
-title = "ATANDA Command Centre — PWDD v1.1 (ATLAS-SPC, PDF)"
+title = "ATANDA Command Centre — PWDD (PDF)"
 
 [[outputs]]
 id = "z8-illV7qV4dkh-ZBR3Nl"
@@ -84,3 +84,21 @@ id = "zukyaycqODRK69O6LnB62"
 uri = "file://docs/DEMO_PUBLISHING.pdf"
 type = "pdf"
 title = "Investor Demo — Publishing Walkthrough (PDF)"
+
+[[outputs]]
+id = "HmD2njWTDS4XBS_QdgQMN"
+uri = "file://docs/IPDD.md"
+type = "text"
+title = "ATANDA Command Centre — IPDD (Markdown)"
+
+[[outputs]]
+id = "xTD6tvtr5nSpywtjpr0NC"
+uri = "file://docs/IPDD.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — IPDD (PDF)"
+
+[[outputs]]
+id = "_P1QchhfKYkq_GrLI60IJ"
+uri = "file://docs/PWDD.md"
+type = "text"
+title = "ATANDA Command Centre — PWDD (Markdown)"
