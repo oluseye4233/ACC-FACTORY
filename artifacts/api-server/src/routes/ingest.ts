@@ -12,7 +12,12 @@ import {
   type SourceDocKind,
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
-import { requireTier } from "../lib/tier";
+import {
+  claimIngestionCredit,
+  getIngestionCreditsSummary,
+  linkCreditToDocument,
+  releaseIngestionCredit,
+} from "../lib/ingestion-credits";
 import { callClaudeJson } from "../engines/shared";
 import { serializeSession } from "./sessions";
 
@@ -143,14 +148,37 @@ function serializeIngestion(row: typeof ingestionDocumentsTable.$inferSelect) {
   };
 }
 
+router.get(
+  "/ingestion-credits",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const summary = await getIngestionCreditsSummary(req.localUser!.id);
+    res.json(summary);
+  },
+);
+
 router.post(
   "/ingest",
   requireAuth,
-  requireTier("PRACTITIONER"),
   upload.single("file"),
   async (req: Request, res: Response): Promise<void> => {
+    const userId = req.localUser!.id;
+
+    // Per-project billing: claim one available ingestion credit BEFORE we
+    // spend any LLM tokens. On any downstream failure we release the credit
+    // back to `available` so a fluke doesn't burn the user's purchase.
+    const creditId = await claimIngestionCredit(userId);
+    if (!creditId) {
+      res.status(402).json({
+        error:
+          "No ingestion credits available. Purchase a project credit to ingest a document.",
+        code: "INGESTION_CREDIT_REQUIRED",
+      });
+      return;
+    }
+
+    let success = false;
     try {
-      const userId = req.localUser!.id;
       const file = req.file;
       const pastedText =
         typeof req.body?.pastedText === "string" ? req.body.pastedText : null;
@@ -245,11 +273,34 @@ router.post(
         })
         .returning();
 
+      // Permanently bind the claimed credit to the document it paid for.
+      // Best-effort: a failure here doesn't roll back the ingestion (the
+      // credit is already marked consumed, just unlinked).
+      try {
+        await linkCreditToDocument(creditId, row!.id);
+      } catch (linkErr) {
+        req.log.warn({ err: linkErr, creditId, documentId: row!.id }, "Failed to link ingestion credit to document");
+      }
+
+      success = true;
       res.status(201).json(serializeIngestion(row!));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Ingestion failed";
       req.log.error({ err }, "Ingestion request failed");
       res.status(400).json({ error: msg });
+    } finally {
+      // Release the claimed credit on ANY non-success path — both thrown
+      // exceptions AND early `res.status(4xx/5xx).json(...); return;` branches
+      // inside the try block (invalid input, too-short text, normalisation
+      // failure, etc.). The user is only charged when an ingestion_document
+      // row is persisted.
+      if (!success) {
+        try {
+          await releaseIngestionCredit(creditId);
+        } catch (releaseErr) {
+          req.log.error({ err: releaseErr, creditId }, "Failed to release ingestion credit after error");
+        }
+      }
     }
   },
 );
@@ -280,7 +331,6 @@ router.get(
 router.post(
   "/ingest/:id/start-session",
   requireAuth,
-  requireTier("PRACTITIONER"),
   async (req: Request, res: Response): Promise<void> => {
     const id = String(req.params.id);
     const userId = req.localUser!.id;

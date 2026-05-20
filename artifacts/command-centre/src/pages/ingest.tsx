@@ -3,9 +3,13 @@ import { useLocation, Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useStartSessionFromIngestion,
+  useGetIngestionCredits,
+  useBillingIngestionCheckout,
   getListSessionsQueryKey,
+  getGetIngestionCreditsQueryKey,
   type IngestionDocument,
 } from "@workspace/api-client-react";
+import { BILLING_ENABLED, ACCESS_REQUEST_EMAIL } from "@/lib/billing-flag";
 import { TopNav } from "@/components/layout/TopNav";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -70,6 +74,34 @@ export default function Ingest() {
   const [editedTitle, setEditedTitle] = useState("");
 
   const startSession = useStartSessionFromIngestion();
+  const credits = useGetIngestionCredits();
+  const buyCredit = useBillingIngestionCheckout();
+  const available = credits.data?.available ?? 0;
+
+  const handleBuyCredit = () => {
+    if (!BILLING_ENABLED) {
+      window.location.href = `mailto:${ACCESS_REQUEST_EMAIL}?subject=${encodeURIComponent(
+        "Early access — Ingestion project credit",
+      )}&body=${encodeURIComponent(
+        "Hello,\n\nI'd like to purchase an ATANDA Ingestion project credit during the private preview.\n\nName:\nOrganisation:\nDocument I want to ingest:\n\nThank you.",
+      )}`;
+      return;
+    }
+    buyCredit.mutate(
+      { data: {} },
+      {
+        onSuccess: (res) => {
+          if (res.url) window.location.href = res.url;
+        },
+        onError: (err) => {
+          const msg =
+            (err as { data?: { error?: string } })?.data?.error ??
+            "Could not start checkout.";
+          toast({ title: "Checkout unavailable", description: msg, variant: "destructive" });
+        },
+      },
+    );
+  };
 
   const handleFileChange = (f: File | null) => {
     if (!f) {
@@ -117,6 +149,7 @@ export default function Ingest() {
       setIngestion(data);
       setEditedSeed(data.seedPrompt);
       setEditedTitle(data.detectedTitle ?? data.originalFilename);
+      qc.invalidateQueries({ queryKey: getGetIngestionCreditsQueryKey() });
     } catch (err) {
       toast({
         title: "Ingestion failed",
@@ -172,7 +205,7 @@ export default function Ingest() {
             </Button>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-mono text-primary mb-3">
               <Sparkles className="h-3 w-3" />
-              PRE-SESSION FUNCTION · PRACTITIONER+
+              STANDALONE · PAY-PER-PROJECT
             </div>
             <h1 className="font-display text-3xl md:text-5xl tracking-wider mb-3">
               INGESTION <span className="text-primary">ENGINE</span>
@@ -207,6 +240,62 @@ export default function Ingest() {
         </section>
 
         <section className="container px-4 md:px-6 py-8 md:py-12 max-w-4xl space-y-6">
+          {/* Credit balance + purchase CTA */}
+          <Card
+            className={
+              available > 0
+                ? "border-primary/40 bg-primary/5"
+                : "border-secondary/40 bg-secondary/5"
+            }
+            data-testid="card-credits"
+          >
+            <CardContent className="py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1">
+                  PROJECT CREDITS
+                </div>
+                {credits.isLoading ? (
+                  <div className="font-display text-2xl tracking-wider text-muted-foreground">
+                    LOADING…
+                  </div>
+                ) : available > 0 ? (
+                  <>
+                    <div className="font-display text-2xl tracking-wider text-primary">
+                      {available} CREDIT{available === 1 ? "" : "S"} AVAILABLE
+                    </div>
+                    <div className="text-xs font-serif text-muted-foreground mt-0.5">
+                      Each ingestion consumes one credit. Failed runs are refunded automatically.
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="font-display text-2xl tracking-wider text-secondary">
+                      NO CREDITS YET
+                    </div>
+                    <div className="text-xs font-serif text-muted-foreground mt-0.5">
+                      The Ingestion Engine is sold per project — one credit per document you want to turn into a PWDD.
+                    </div>
+                  </>
+                )}
+              </div>
+              <Button
+                onClick={handleBuyCredit}
+                variant={available > 0 ? "outline" : "default"}
+                disabled={buyCredit.isPending}
+                className="font-display tracking-wider"
+                data-testid="button-buy-credit"
+              >
+                {buyCredit.isPending
+                  ? "OPENING CHECKOUT…"
+                  : available > 0
+                    ? "BUY ANOTHER"
+                    : !BILLING_ENABLED
+                      ? "REQUEST ACCESS"
+                      : "BUY A PROJECT CREDIT"}
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Step 1: source */}
           <Card className={ingestion ? "opacity-70" : ""}>
             <CardHeader>
@@ -339,9 +428,12 @@ export default function Ingest() {
               <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                 <Button
                   onClick={handleIngest}
-                  disabled={!inputReady || submitting || Boolean(ingestion)}
+                  disabled={
+                    !inputReady || submitting || Boolean(ingestion) || available < 1
+                  }
                   className="font-display tracking-wider w-full sm:w-auto"
                   data-testid="button-ingest"
+                  title={available < 1 ? "Purchase a project credit to ingest" : undefined}
                 >
                   {submitting ? (
                     <>

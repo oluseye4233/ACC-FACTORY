@@ -50,6 +50,8 @@ import type {
   HarnessSession,
   HealthStatus,
   IngestStartSessionInput,
+  IngestionCheckoutInput,
+  IngestionCreditsSummary,
   IngestionDocument,
   ListMyPromptsParams,
   MeResponse,
@@ -2183,6 +2185,154 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getBillingCheckoutMutationOptions(options));
     }
+
+export const getBillingIngestionCheckoutUrl = () => {
+
+
+
+
+  return `/api/billing/ingestion/checkout`
+}
+
+/**
+ * @summary One-time Stripe checkout for a single ingestion project credit
+ */
+export const billingIngestionCheckout = async (ingestionCheckoutInput?: IngestionCheckoutInput, options?: RequestInit): Promise<CheckoutSession> => {
+
+  return customFetch<CheckoutSession>(getBillingIngestionCheckoutUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      ingestionCheckoutInput,)
+  }
+);}
+
+
+
+
+export const getBillingIngestionCheckoutMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof billingIngestionCheckout>>, TError,{data?: BodyType<IngestionCheckoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof billingIngestionCheckout>>, TError,{data?: BodyType<IngestionCheckoutInput>}, TContext> => {
+
+const mutationKey = ['billingIngestionCheckout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof billingIngestionCheckout>>, {data?: BodyType<IngestionCheckoutInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  billingIngestionCheckout(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BillingIngestionCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof billingIngestionCheckout>>>
+    export type BillingIngestionCheckoutMutationBody = BodyType<IngestionCheckoutInput> | undefined
+    export type BillingIngestionCheckoutMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary One-time Stripe checkout for a single ingestion project credit
+ */
+export const useBillingIngestionCheckout = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof billingIngestionCheckout>>, TError,{data?: BodyType<IngestionCheckoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof billingIngestionCheckout>>,
+        TError,
+        {data?: BodyType<IngestionCheckoutInput>},
+        TContext
+      > => {
+      return useMutation(getBillingIngestionCheckoutMutationOptions(options));
+    }
+
+export const getGetIngestionCreditsUrl = () => {
+
+
+
+
+  return `/api/ingestion-credits`
+}
+
+/**
+ * @summary Available + consumed ingestion credit balance for the current user
+ */
+export const getIngestionCredits = async ( options?: RequestInit): Promise<IngestionCreditsSummary> => {
+
+  return customFetch<IngestionCreditsSummary>(getGetIngestionCreditsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetIngestionCreditsQueryKey = () => {
+    return [
+    `/api/ingestion-credits`
+    ] as const;
+    }
+
+
+export const getGetIngestionCreditsQueryOptions = <TData = Awaited<ReturnType<typeof getIngestionCredits>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIngestionCredits>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetIngestionCreditsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getIngestionCredits>>> = ({ signal }) => getIngestionCredits({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getIngestionCredits>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetIngestionCreditsQueryResult = NonNullable<Awaited<ReturnType<typeof getIngestionCredits>>>
+export type GetIngestionCreditsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Available + consumed ingestion credit balance for the current user
+ */
+
+export function useGetIngestionCredits<TData = Awaited<ReturnType<typeof getIngestionCredits>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIngestionCredits>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetIngestionCreditsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getBillingPortalUrl = () => {
 

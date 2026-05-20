@@ -591,6 +591,37 @@ export const BillingCheckoutResponse = zod.object({
 })
 
 
+/**
+ * @summary One-time Stripe checkout for a single ingestion project credit
+ */
+export const BillingIngestionCheckoutBody = zod.object({
+  "successUrl": zod.string().nullish(),
+  "cancelUrl": zod.string().nullish()
+})
+
+export const BillingIngestionCheckoutResponse = zod.object({
+  "url": zod.string()
+})
+
+
+/**
+ * @summary Available + consumed ingestion credit balance for the current user
+ */
+export const getIngestionCreditsResponseAvailableMin = 0;
+
+export const getIngestionCreditsResponseConsumedMin = 0;
+
+export const getIngestionCreditsResponseTotalMin = 0;
+
+
+
+export const GetIngestionCreditsResponse = zod.object({
+  "available": zod.number().min(getIngestionCreditsResponseAvailableMin),
+  "consumed": zod.number().min(getIngestionCreditsResponseConsumedMin),
+  "total": zod.number().min(getIngestionCreditsResponseTotalMin)
+})
+
+
 export const BillingPortalBody = zod.object({
   "returnUrl": zod.string().nullish()
 })

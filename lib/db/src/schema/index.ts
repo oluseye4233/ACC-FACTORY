@@ -1,6 +1,7 @@
 export * from "./users";
 export * from "./subscribers";
 export * from "./ingestion-documents";
+export * from "./ingestion-credits";
 export * from "./harness-sessions";
 export * from "./context-craft-badges";
 export * from "./harness-artifacts";

@@ -6,6 +6,7 @@ import { TierBadge } from "@/components/shared/TierBadge";
 import {
   useGetPricing,
   useBillingCheckout,
+  useBillingIngestionCheckout,
   PricingTier,
   SubscriberTier,
   CheckoutInputInterval,
@@ -14,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Check, ShieldCheck, Lock } from "lucide-react";
+import { Check, ShieldCheck, Lock, FileUp } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { BILLING_ENABLED, ACCESS_REQUEST_EMAIL } from "@/lib/billing-flag";
@@ -81,9 +82,39 @@ export default function Pricing() {
   const { data, isLoading, isError } = useGetPricing();
   const [interval, setInterval] = useState<"monthly" | "yearly">("monthly");
   const checkout = useBillingCheckout();
+  const ingestionCheckout = useBillingIngestionCheckout();
   const { toast } = useToast();
   const { isSignedIn } = useAuth();
   const [, setLocation] = useLocation();
+
+  const handleBuyIngestionCredit = () => {
+    if (!BILLING_ENABLED) {
+      window.location.href = `mailto:${ACCESS_REQUEST_EMAIL}?subject=${encodeURIComponent(
+        "Early access — Ingestion project credit",
+      )}&body=${encodeURIComponent(
+        "Hello,\n\nI'd like to purchase an ATANDA Ingestion project credit during the private preview.\n\nName:\nOrganisation:\nDocument I want to ingest:\n\nThank you.",
+      )}`;
+      return;
+    }
+    if (!isSignedIn) {
+      setLocation("/sign-in");
+      return;
+    }
+    ingestionCheckout.mutate(
+      { data: {} },
+      {
+        onSuccess: (res) => {
+          if (res.url) window.location.href = res.url;
+        },
+        onError: (err) => {
+          const msg =
+            (err as { data?: { error?: string } })?.data?.error ??
+            "Could not start checkout.";
+          toast({ title: "Checkout unavailable", description: msg, variant: "destructive" });
+        },
+      },
+    );
+  };
 
   const handleSubscribe = (priceId: string) => {
     if (priceId === SubscriberTier.EXPLORER) {
@@ -264,6 +295,64 @@ export default function Pricing() {
                 ))}
               </div>
             )}
+          </div>
+        </section>
+
+        {/* Standalone per-project add-on */}
+        <section className="pb-20">
+          <div className="container px-4 md:px-6 max-w-5xl">
+            <div className="rounded-lg border bg-card overflow-hidden">
+              <div className="grid md:grid-cols-[1fr_auto] gap-6 p-6 md:p-8 items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-secondary mb-3">
+                    <FileUp className="h-3 w-3" />
+                    STANDALONE · NO SUBSCRIPTION REQUIRED
+                  </div>
+                  <h3 className="font-display text-2xl md:text-3xl tracking-wider mb-2">
+                    INGESTION ENGINE <span className="text-primary">— PER PROJECT</span>
+                  </h3>
+                  <p className="font-serif text-muted-foreground leading-relaxed mb-4 max-w-2xl">
+                    Already have a Product Design Document, SDD, concept note, or spec
+                    sheet? Buy a single project credit and turn it into a HARNESS-certified
+                    <span className="text-foreground"> PromptWare Design Document (PWDD)</span>.
+                    No monthly commitment. Failed runs are refunded automatically.
+                  </p>
+                  <ul className="grid sm:grid-cols-2 gap-2 text-sm">
+                    {[
+                      "One credit = one document → one PWDD session",
+                      "Runs F1 → F7 end-to-end",
+                      "Works on any account tier (Explorer included)",
+                      "Credits never expire",
+                    ].map((feat, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="md:text-right">
+                  <div className="flex md:flex-col items-baseline md:items-end gap-2 mb-4">
+                    <span className="text-5xl font-display tracking-wider">$19</span>
+                    <span className="text-muted-foreground font-mono text-sm">
+                      / project
+                    </span>
+                  </div>
+                  <Button
+                    onClick={handleBuyIngestionCredit}
+                    disabled={ingestionCheckout.isPending}
+                    className="w-full md:w-auto font-display tracking-wider"
+                    data-testid="button-buy-ingestion-credit"
+                  >
+                    {ingestionCheckout.isPending
+                      ? "OPENING CHECKOUT…"
+                      : !BILLING_ENABLED
+                        ? "REQUEST ACCESS"
+                        : "BUY A PROJECT CREDIT"}
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

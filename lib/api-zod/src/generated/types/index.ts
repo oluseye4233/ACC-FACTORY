@@ -55,6 +55,8 @@ export * from './harnessF7Input';
 export * from './harnessSession';
 export * from './harnessSessionOrigin';
 export * from './healthStatus';
+export * from './ingestionCheckoutInput';
+export * from './ingestionCreditsSummary';
 export * from './ingestionDocument';
 export * from './ingestionDocumentSourceDocKind';
 export * from './ingestStartSessionInput';

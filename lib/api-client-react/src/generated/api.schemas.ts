@@ -605,6 +605,22 @@ export interface CheckoutSession {
   url: string;
 }
 
+export interface IngestionCheckoutInput {
+  /** @nullable */
+  successUrl?: string | null;
+  /** @nullable */
+  cancelUrl?: string | null;
+}
+
+export interface IngestionCreditsSummary {
+  /** @minimum 0 */
+  available: number;
+  /** @minimum 0 */
+  consumed: number;
+  /** @minimum 0 */
+  total: number;
+}
+
 export interface PortalInput {
   /** @nullable */
   returnUrl?: string | null;

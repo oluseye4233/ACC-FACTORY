@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import {
   db,
   commandCentreSubscribersTable,
+  ingestionCreditsTable,
   stripeWebhookEventsTable,
   usersTable,
   type SubscriberTier,
@@ -134,6 +135,48 @@ router.post(
             const customerId =
               typeof session.customer === "string" ? session.customer : session.customer?.id;
             if (!customerId) break;
+
+            // One-time ingestion project credit purchase. Mode=payment with
+            // metadata.kind=ingestion_credit; resolve the local user via the
+            // Stripe customer id and insert a credit row keyed by checkout
+            // session id (unique constraint = idempotency net beyond the
+            // outer stripe_webhook_events PK).
+            if (
+              session.mode === "payment" &&
+              session.metadata?.kind === "ingestion_credit"
+            ) {
+              const subRows = await tx
+                .select({ userId: commandCentreSubscribersTable.userId })
+                .from(commandCentreSubscribersTable)
+                .where(eq(commandCentreSubscribersTable.stripeCustomerId, customerId))
+                .limit(1);
+              const userId = subRows[0]?.userId;
+              if (!userId) {
+                req.log.warn(
+                  { customerId, sessionId: session.id },
+                  "Ingestion credit purchase: no local user found for Stripe customer",
+                );
+                break;
+              }
+              const paymentIntentId =
+                typeof session.payment_intent === "string"
+                  ? session.payment_intent
+                  : session.payment_intent?.id ?? null;
+              await tx
+                .insert(ingestionCreditsTable)
+                .values({
+                  userId,
+                  status: "available",
+                  stripeCheckoutSessionId: session.id,
+                  stripePaymentIntentId: paymentIntentId,
+                  amountUsdCents: session.amount_total ?? null,
+                })
+                .onConflictDoNothing({
+                  target: ingestionCreditsTable.stripeCheckoutSessionId,
+                });
+              break;
+            }
+
             const subId =
               typeof session.subscription === "string"
                 ? session.subscription
