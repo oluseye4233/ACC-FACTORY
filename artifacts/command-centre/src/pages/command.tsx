@@ -6,7 +6,7 @@ import { ENGINES } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Activity, Cpu, Database, AlertCircle, BookOpen, ShieldCheck, Trophy, Lock, CheckCircle2, Award } from "lucide-react";
+import { Plus, Activity, Cpu, Database, AlertCircle, BookOpen, ShieldCheck, Trophy, Lock, CheckCircle2, Award, FileUp } from "lucide-react";
 import { format } from "date-fns";
 
 export default function Command() {
@@ -52,12 +52,22 @@ export default function Command() {
             )}
           </div>
           
-          <Button asChild className="font-display tracking-wider gap-2">
-            <Link href="/session/new">
-              <Plus className="h-4 w-4" />
-              NEW HARNESS SESSION
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" className="font-mono text-xs gap-2">
+              <Link href="/ingest">
+                <FileUp className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">INGEST EXISTING DOC</span>
+                <span className="sm:hidden">INGEST</span>
+              </Link>
+            </Button>
+            <Button asChild className="font-display tracking-wider gap-2">
+              <Link href="/session/new">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">NEW HARNESS SESSION</span>
+                <span className="sm:hidden">NEW</span>
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Stats Row */}

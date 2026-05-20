@@ -175,12 +175,64 @@ export interface MyDataExport {
   engineRunCount: number;
 }
 
+export type HarnessSessionOrigin = typeof HarnessSessionOrigin[keyof typeof HarnessSessionOrigin];
+
+
+export const HarnessSessionOrigin = {
+  manual: 'manual',
+  ingested: 'ingested',
+} as const;
+
 export interface HarnessSession {
   id: string;
   sessionName: string;
   status: string;
+  origin: HarnessSessionOrigin;
+  ingestionId: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export type IngestionDocumentSourceDocKind = typeof IngestionDocumentSourceDocKind[keyof typeof IngestionDocumentSourceDocKind];
+
+
+export const IngestionDocumentSourceDocKind = {
+  product_design_document: 'product_design_document',
+  software_design_document: 'software_design_document',
+  concept_note: 'concept_note',
+  spec_sheet: 'spec_sheet',
+  other: 'other',
+} as const;
+
+export interface IngestionDocument {
+  id: string;
+  originalFilename: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  sourceDocKind: IngestionDocumentSourceDocKind;
+  detectedTitle?: string | null;
+  extractedTextChars: number;
+  summary: string;
+  seedPrompt: string;
+  createdAt: string;
+}
+
+export interface IngestStartSessionInput {
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  sessionName?: string;
+  /**
+     * @minLength 20
+     * @maxLength 4000
+     */
+  seedPrompt?: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  detectedTitle?: string;
 }
 
 export interface FeatureState {

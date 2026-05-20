@@ -1,5 +1,6 @@
 export * from "./users";
 export * from "./subscribers";
+export * from "./ingestion-documents";
 export * from "./harness-sessions";
 export * from "./harness-artifacts";
 export * from "./harness-feature-state";

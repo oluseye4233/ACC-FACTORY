@@ -5,11 +5,14 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { HarnessSessionOrigin } from './harnessSessionOrigin';
 
 export interface HarnessSession {
   id: string;
   sessionName: string;
   status: string;
+  origin: HarnessSessionOrigin;
+  ingestionId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

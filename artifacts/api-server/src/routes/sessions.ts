@@ -16,6 +16,8 @@ function serializeSession(s: typeof harnessSessionsTable.$inferSelect) {
     id: s.id,
     sessionName: s.sessionName,
     status: s.status,
+    origin: s.origin,
+    ingestionId: s.ingestionId,
     createdAt: s.createdAt.toISOString(),
     updatedAt: s.updatedAt.toISOString(),
   };

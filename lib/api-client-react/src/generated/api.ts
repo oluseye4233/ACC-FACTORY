@@ -48,6 +48,8 @@ import type {
   HarnessF7Input,
   HarnessSession,
   HealthStatus,
+  IngestStartSessionInput,
+  IngestionDocument,
   ListMyPromptsParams,
   MeResponse,
   MicroPdd,
@@ -946,6 +948,232 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDeleteSessionMutationOptions(options));
+    }
+
+export const getGetSessionIngestionUrl = (id: string,) => {
+
+
+
+
+  return `/api/sessions/${id}/ingestion`
+}
+
+/**
+ * @summary Get the ingestion record linked to this session (404 if origin=manual)
+ */
+export const getSessionIngestion = async (id: string, options?: RequestInit): Promise<IngestionDocument> => {
+
+  return customFetch<IngestionDocument>(getGetSessionIngestionUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSessionIngestionQueryKey = (id: string,) => {
+    return [
+    `/api/sessions/${id}/ingestion`
+    ] as const;
+    }
+
+
+export const getGetSessionIngestionQueryOptions = <TData = Awaited<ReturnType<typeof getSessionIngestion>>, TError = ErrorType<NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSessionIngestion>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSessionIngestionQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSessionIngestion>>> = ({ signal }) => getSessionIngestion(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSessionIngestion>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSessionIngestionQueryResult = NonNullable<Awaited<ReturnType<typeof getSessionIngestion>>>
+export type GetSessionIngestionQueryError = ErrorType<NotFoundResponse>
+
+
+/**
+ * @summary Get the ingestion record linked to this session (404 if origin=manual)
+ */
+
+export function useGetSessionIngestion<TData = Awaited<ReturnType<typeof getSessionIngestion>>, TError = ErrorType<NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSessionIngestion>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSessionIngestionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetIngestionUrl = (id: string,) => {
+
+
+
+
+  return `/api/ingest/${id}`
+}
+
+/**
+ * @summary Fetch a previously-ingested document by id
+ */
+export const getIngestion = async (id: string, options?: RequestInit): Promise<IngestionDocument> => {
+
+  return customFetch<IngestionDocument>(getGetIngestionUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetIngestionQueryKey = (id: string,) => {
+    return [
+    `/api/ingest/${id}`
+    ] as const;
+    }
+
+
+export const getGetIngestionQueryOptions = <TData = Awaited<ReturnType<typeof getIngestion>>, TError = ErrorType<NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIngestion>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetIngestionQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getIngestion>>> = ({ signal }) => getIngestion(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getIngestion>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetIngestionQueryResult = NonNullable<Awaited<ReturnType<typeof getIngestion>>>
+export type GetIngestionQueryError = ErrorType<NotFoundResponse>
+
+
+/**
+ * @summary Fetch a previously-ingested document by id
+ */
+
+export function useGetIngestion<TData = Awaited<ReturnType<typeof getIngestion>>, TError = ErrorType<NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIngestion>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetIngestionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getStartSessionFromIngestionUrl = (id: string,) => {
+
+
+
+
+  return `/api/ingest/${id}/start-session`
+}
+
+/**
+ * @summary Create a HARNESS session seeded from an ingested document
+ */
+export const startSessionFromIngestion = async (id: string,
+    ingestStartSessionInput?: IngestStartSessionInput, options?: RequestInit): Promise<HarnessSession> => {
+
+  return customFetch<HarnessSession>(getStartSessionFromIngestionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      ingestStartSessionInput,)
+  }
+);}
+
+
+
+
+export const getStartSessionFromIngestionMutationOptions = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startSessionFromIngestion>>, TError,{id: string;data?: BodyType<IngestStartSessionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startSessionFromIngestion>>, TError,{id: string;data?: BodyType<IngestStartSessionInput>}, TContext> => {
+
+const mutationKey = ['startSessionFromIngestion'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startSessionFromIngestion>>, {id: string;data?: BodyType<IngestStartSessionInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  startSessionFromIngestion(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartSessionFromIngestionMutationResult = NonNullable<Awaited<ReturnType<typeof startSessionFromIngestion>>>
+    export type StartSessionFromIngestionMutationBody = BodyType<IngestStartSessionInput> | undefined
+    export type StartSessionFromIngestionMutationError = ErrorType<NotFoundResponse>
+
+    /**
+ * @summary Create a HARNESS session seeded from an ingested document
+ */
+export const useStartSessionFromIngestion = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startSessionFromIngestion>>, TError,{id: string;data?: BodyType<IngestStartSessionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startSessionFromIngestion>>,
+        TError,
+        {id: string;data?: BodyType<IngestStartSessionInput>},
+        TContext
+      > => {
+      return useMutation(getStartSessionFromIngestionMutationOptions(options));
     }
 
 export const getListFeatureStateUrl = (id: string,) => {

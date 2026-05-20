@@ -5,9 +5,11 @@ import {
   useGetSession, 
   useListFeatureState, 
   useListSessionArtifacts,
+  useGetSessionIngestion,
   FeatureStatus
 } from "@workspace/api-client-react";
 import { ENGINES } from "@/lib/constants";
+import { IngestionBanner } from "@/components/shared/IngestionBanner";
 import { FeatureNavItem } from "@/components/shared/FeatureNavItem";
 import { ArtifactTray } from "@/components/shared/ArtifactTray";
 import { EscalationModal } from "@/components/shared/EscalationModal";
@@ -36,6 +38,10 @@ export default function SessionDetail() {
   const { data: sessionData, isLoading: isLoadingSession, isError } = useGetSession(id || "");
   const { data: featureStates, isLoading: isLoadingFeatures } = useListFeatureState(id || "");
   const { data: artifacts, isLoading: isLoadingArtifacts } = useListSessionArtifacts(id || "");
+  const isIngested = sessionData?.session?.origin === "ingested";
+  const { data: ingestion } = useGetSessionIngestion(id || "", {
+    query: { enabled: Boolean(id) && isIngested } as never,
+  } as never);
   
   const [activeEngineId, setActiveEngineId] = useState<number>(1);
   const [sequenceOpen, setSequenceOpen] = useState(false);
@@ -114,6 +120,14 @@ export default function SessionDetail() {
               {session?.status === 'COMPLETE' && (
                 <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-primary/20 text-primary">
                   COMPLETE
+                </span>
+              )}
+              {isIngested && (
+                <span
+                  className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-secondary/20 text-secondary border border-secondary/30"
+                  title="This session was seeded from an ingested document. Its final artefact is a PWDD."
+                >
+                  INGESTED · PWDD
                 </span>
               )}
             </div>
@@ -218,6 +232,10 @@ export default function SessionDetail() {
               </p>
             </div>
             
+            {isIngested && ingestion && (
+              <IngestionBanner ingestion={ingestion} isF7={activeEngineId === 7} />
+            )}
+
             {/* STAGE 3 WORKSPACES */}
             {id && (
               <>

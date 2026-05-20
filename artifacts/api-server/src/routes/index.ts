@@ -12,6 +12,7 @@ import harnessRouter from "./harness";
 import promptsRouter from "./prompts";
 import exportsRouter from "./exports";
 import badgesRouter from "./badges";
+import ingestRouter from "./ingest";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use(cronRouter);
 router.use(verifyRouter);
 router.use(exemplarsRouter);
 router.use(harnessRouter);
+router.use(ingestRouter);
 
 export default router;

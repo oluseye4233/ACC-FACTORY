@@ -14,6 +14,7 @@ import { Menu } from "lucide-react";
 const SIGNED_IN_LINKS: Array<{ href: string; label: string }> = [
   { href: "/command", label: "Command" },
   { href: "/sessions", label: "Sessions" },
+  { href: "/ingest", label: "Ingest" },
   { href: "/prompts", label: "Prompts" },
   { href: "/quests", label: "Quests" },
   { href: "/demo", label: "Demo" },

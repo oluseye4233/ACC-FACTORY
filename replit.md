@@ -43,6 +43,12 @@ A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authe
 - **Daily rate-limit counters live on the subscriber row** (`f{1..7}_today`). A guarded `/api/cron/reset-harness-limits` (header `x-cron-secret`) resets them.
 - **Admin role** = Clerk `publicMetadata.role === "admin"` OR the user's email is in the `ADMIN_EMAILS` env allowlist. Stored on the local `users.role` column at JIT-sync time.
 
+## Terminology — PDD vs PWDD
+
+- **PDD = INPUT.** "Product Design Document" (or SDD / concept note / spec sheet) is a **human-authored, pre-ingestion** artefact a user already has. It is what the INGESTION ENGINE consumes — never what the HARNESS produces.
+- **PWDD = OUTPUT.** "PromptWare Design Document" is the **HARNESS-certified, post-ingestion** outcome of a session that was seeded by ingesting a source document. Sessions with `origin='ingested'` produce PWDDs; manual sessions (`origin='manual'`) produce regular MVP-PDDs (the existing F7 output). Always honour this split in UI copy: the UI must never call an INPUT a "PWDD", and must never call an OUTPUT a "PDD" once it has run through the HARNESS from an ingested source.
+- **Ingestion flow.** `POST /api/ingest` (multipart: `file` or `pastedText`, optional `sourceDocKind`) extracts text via `pdf-parse`/`mammoth`, normalises via Claude → `{detectedTitle, sourceDocKind, summary, seedPrompt}`, persists `ingestion_documents`. `POST /api/ingest/:id/start-session` creates a HARNESS session with `origin='ingested'` and `ingestionId` set, F1 unlocked, others LOCKED. `GET /api/sessions/:id/ingestion` returns the linked record. The pre-session route is `/ingest` in the web artifact; gated PRACTITIONER+.
+
 ## Product
 
 A subscription portal where a creator runs a single coherent FORGE.BONSAI session. **The HARNESS itself is a PDD-blueprint application** — its engines are ordered atomic prompts that act as an instruction layer for the model; they are not SPCs and must never be described as such. The artifacts the HARNESS *produces* on behalf of the user are the SPCs and PDDs. Per session: F1 diagnoses a raw prompt → F2 builds an Atomic Prompt → F3 grows a CELL Micro Agent (MA) Birth Package (with possible escalation to F5) → F4 converts to a Micro PDD → F5 builds a full SPC → F6 drafts a 4-Part ATLAS PDD (+ VIBE DJ recommendation) → F7 compresses to a SPARTAN-certified MVP PDD with a public verification URL.

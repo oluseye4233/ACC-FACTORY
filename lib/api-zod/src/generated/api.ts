@@ -141,6 +141,8 @@ export const ListSessionsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "sessionName": zod.string(),
   "status": zod.string(),
+  "origin": zod.enum(['manual', 'ingested']),
+  "ingestionId": zod.string().uuid().nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -169,6 +171,8 @@ export const GetSessionResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionName": zod.string(),
   "status": zod.string(),
+  "origin": zod.enum(['manual', 'ingested']),
+  "ingestionId": zod.string().uuid().nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),
@@ -212,6 +216,8 @@ export const UpdateSessionResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionName": zod.string(),
   "status": zod.string(),
+  "origin": zod.enum(['manual', 'ingested']),
+  "ingestionId": zod.string().uuid().nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -219,6 +225,71 @@ export const UpdateSessionResponse = zod.object({
 
 export const DeleteSessionParams = zod.object({
   "id": zod.coerce.string().uuid()
+})
+
+
+/**
+ * @summary Get the ingestion record linked to this session (404 if origin=manual)
+ */
+export const GetSessionIngestionParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetSessionIngestionResponse = zod.object({
+  "id": zod.string().uuid(),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSizeBytes": zod.number(),
+  "sourceDocKind": zod.enum(['product_design_document', 'software_design_document', 'concept_note', 'spec_sheet', 'other']),
+  "detectedTitle": zod.string().nullish(),
+  "extractedTextChars": zod.number(),
+  "summary": zod.string(),
+  "seedPrompt": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Fetch a previously-ingested document by id
+ */
+export const GetIngestionParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetIngestionResponse = zod.object({
+  "id": zod.string().uuid(),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSizeBytes": zod.number(),
+  "sourceDocKind": zod.enum(['product_design_document', 'software_design_document', 'concept_note', 'spec_sheet', 'other']),
+  "detectedTitle": zod.string().nullish(),
+  "extractedTextChars": zod.number(),
+  "summary": zod.string(),
+  "seedPrompt": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Create a HARNESS session seeded from an ingested document
+ */
+export const StartSessionFromIngestionParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const startSessionFromIngestionBodySessionNameMax = 255;
+
+export const startSessionFromIngestionBodySeedPromptMin = 20;
+export const startSessionFromIngestionBodySeedPromptMax = 4000;
+
+export const startSessionFromIngestionBodyDetectedTitleMax = 500;
+
+
+
+export const StartSessionFromIngestionBody = zod.object({
+  "sessionName": zod.string().min(1).max(startSessionFromIngestionBodySessionNameMax).optional(),
+  "seedPrompt": zod.string().min(startSessionFromIngestionBodySeedPromptMin).max(startSessionFromIngestionBodySeedPromptMax).optional(),
+  "detectedTitle": zod.string().min(1).max(startSessionFromIngestionBodyDetectedTitleMax).optional()
 })
 
 
