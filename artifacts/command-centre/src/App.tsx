@@ -34,6 +34,8 @@ import Quests from "@/pages/quests";
 import Account from "@/pages/account";
 import Demo from "@/pages/demo";
 import Ingest from "@/pages/ingest";
+import { DEMO_MODE } from "@/lib/demo-mode";
+import { DemoBanner } from "@/components/DemoBanner";
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -119,6 +121,9 @@ function SignUpPage() {
 }
 
 function HomeRedirect() {
+  // In investor-preview mode, never bounce to /command (which requires auth);
+  // always render the public Landing so the demo CTA is reachable.
+  if (DEMO_MODE) return <Landing />;
   return (
     <>
       <Show when="signed-in">
@@ -196,6 +201,7 @@ function ClerkProviderWithRoutes() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ClerkQueryClientCacheInvalidator />
+          <DemoBanner />
           <Switch>
             <Route path="/" component={HomeRedirect} />
             <Route path="/pricing" component={Pricing} />

@@ -72,3 +72,15 @@ id = "sALuQbevpvtFUqt4Fo_qn"
 uri = "file://docs/PWDD.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — PWDD v1.1 (ATLAS-SPC, PDF)"
+
+[[outputs]]
+id = "z8-illV7qV4dkh-ZBR3Nl"
+uri = "file://docs/DEMO_PUBLISHING.md"
+type = "text"
+title = "Investor Demo — Publishing Walkthrough (Markdown)"
+
+[[outputs]]
+id = "zukyaycqODRK69O6LnB62"
+uri = "file://docs/DEMO_PUBLISHING.pdf"
+type = "pdf"
+title = "Investor Demo — Publishing Walkthrough (PDF)"

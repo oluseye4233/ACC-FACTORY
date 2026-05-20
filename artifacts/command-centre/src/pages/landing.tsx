@@ -4,6 +4,7 @@ import { TopNav } from "@/components/layout/TopNav";
 import { Footer } from "@/components/layout/Footer";
 import { ENGINES } from "@/lib/constants";
 import { Shield, Zap, Target, Cpu, CheckCircle } from "lucide-react";
+import { DEMO_MODE } from "@/lib/demo-mode";
 
 export default function Landing() {
   return (
@@ -27,12 +28,25 @@ export default function Landing() {
                 Dense, instrumented, and clandestine.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 w-full sm:w-auto">
-                <Button asChild size="lg" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
-                  <Link href="/sign-up">INITIATE SESSION</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
-                  <Link href="/demo">TAKE THE 7-STAGE TOUR</Link>
-                </Button>
+                {DEMO_MODE ? (
+                  <>
+                    <Button asChild size="lg" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
+                      <Link href="/demo">TAKE THE 7-STAGE TOUR</Link>
+                    </Button>
+                    <Button asChild size="lg" variant="outline" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
+                      <Link href="/pricing">VIEW PRICING</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button asChild size="lg" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
+                      <Link href="/sign-up">INITIATE SESSION</Link>
+                    </Button>
+                    <Button asChild size="lg" variant="outline" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
+                      <Link href="/demo">TAKE THE 7-STAGE TOUR</Link>
+                    </Button>
+                  </>
+                )}
               </div>
               <Link
                 href="/pricing"

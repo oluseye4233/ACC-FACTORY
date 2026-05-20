@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useClerk, Show } from "@clerk/react";
 import { Button } from "@/components/ui/button";
+import { DEMO_MODE } from "@/lib/demo-mode";
 import {
   Sheet,
   SheetContent,
@@ -124,15 +125,23 @@ export function TopNav() {
               >
                 Pricing
               </Link>
-              <Link
-                href="/sign-in"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Sign In
-              </Link>
-              <Button asChild size="sm" className="font-display tracking-wider">
-                <Link href="/sign-up">INITIATE</Link>
-              </Button>
+              {DEMO_MODE ? (
+                <Button asChild size="sm" className="font-display tracking-wider">
+                  <Link href="/demo">VIEW DEMO</Link>
+                </Button>
+              ) : (
+                <>
+                  <Link
+                    href="/sign-in"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Button asChild size="sm" className="font-display tracking-wider">
+                    <Link href="/sign-up">INITIATE</Link>
+                  </Button>
+                </>
+              )}
             </div>
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
@@ -167,19 +176,30 @@ export function TopNav() {
                   >
                     Pricing
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => go("/sign-in")}
-                    className="text-left font-mono text-sm uppercase tracking-wider py-3 border-b border-border/60"
-                  >
-                    Sign In
-                  </button>
-                  <Button
-                    onClick={() => go("/sign-up")}
-                    className="font-display tracking-wider mt-2"
-                  >
-                    INITIATE
-                  </Button>
+                  {DEMO_MODE ? (
+                    <Button
+                      onClick={() => go("/demo")}
+                      className="font-display tracking-wider mt-2"
+                    >
+                      VIEW DEMO
+                    </Button>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => go("/sign-in")}
+                        className="text-left font-mono text-sm uppercase tracking-wider py-3 border-b border-border/60"
+                      >
+                        Sign In
+                      </button>
+                      <Button
+                        onClick={() => go("/sign-up")}
+                        className="font-display tracking-wider mt-2"
+                      >
+                        INITIATE
+                      </Button>
+                    </>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
