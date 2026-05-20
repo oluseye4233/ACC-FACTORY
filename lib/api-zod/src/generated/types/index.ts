@@ -21,6 +21,8 @@ export * from './certTier';
 export * from './checkoutInput';
 export * from './checkoutInputInterval';
 export * from './checkoutSession';
+export * from './contextCraftBadge';
+export * from './contextCraftBadgePillar';
 export * from './deepHealth';
 export * from './deepHealthDb';
 export * from './deepHealthEngines';

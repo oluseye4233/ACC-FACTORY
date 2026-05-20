@@ -26,6 +26,7 @@ import type {
   BadgeProgress,
   CheckoutInput,
   CheckoutSession,
+  ContextCraftBadge,
   DeepHealth,
   DeleteAccountInput,
   DeleteAccountResult,
@@ -949,6 +950,83 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getDeleteSessionMutationOptions(options));
     }
+
+export const getListMyContextCraftBadgesUrl = () => {
+
+
+
+
+  return `/api/me/context-craft-badges`
+}
+
+/**
+ * @summary List the 7 Context Craft pillar mini-quest badges (earned + locked)
+ */
+export const listMyContextCraftBadges = async ( options?: RequestInit): Promise<ContextCraftBadge[]> => {
+
+  return customFetch<ContextCraftBadge[]>(getListMyContextCraftBadgesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyContextCraftBadgesQueryKey = () => {
+    return [
+    `/api/me/context-craft-badges`
+    ] as const;
+    }
+
+
+export const getListMyContextCraftBadgesQueryOptions = <TData = Awaited<ReturnType<typeof listMyContextCraftBadges>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyContextCraftBadges>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyContextCraftBadgesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyContextCraftBadges>>> = ({ signal }) => listMyContextCraftBadges({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyContextCraftBadges>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMyContextCraftBadgesQueryResult = NonNullable<Awaited<ReturnType<typeof listMyContextCraftBadges>>>
+export type ListMyContextCraftBadgesQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary List the 7 Context Craft pillar mini-quest badges (earned + locked)
+ */
+
+export function useListMyContextCraftBadges<TData = Awaited<ReturnType<typeof listMyContextCraftBadges>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyContextCraftBadges>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMyContextCraftBadgesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetSessionIngestionUrl = (id: string,) => {
 

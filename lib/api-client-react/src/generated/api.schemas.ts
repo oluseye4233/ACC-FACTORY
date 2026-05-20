@@ -217,6 +217,34 @@ export interface IngestionDocument {
   createdAt: string;
 }
 
+export type ContextCraftBadgePillar = typeof ContextCraftBadgePillar[keyof typeof ContextCraftBadgePillar];
+
+
+export const ContextCraftBadgePillar = {
+  SYSTEM: 'SYSTEM',
+  ROLE: 'ROLE',
+  INSTRUCTION: 'INSTRUCTION',
+  DATA: 'DATA',
+  FORMAT: 'FORMAT',
+  EXAMPLE: 'EXAMPLE',
+  CONSTRAINT: 'CONSTRAINT',
+} as const;
+
+export interface ContextCraftBadge {
+  pillar: ContextCraftBadgePillar;
+  /**
+     * @minLength 1
+     * @maxLength 1
+     */
+  letter: string;
+  earned: boolean;
+  bestScore: number;
+  maxScore: number;
+  threshold: number;
+  firstEarnedAt: string | null;
+  evidenceArtifactId: string | null;
+}
+
 export interface IngestStartSessionInput {
   /**
      * @minLength 1

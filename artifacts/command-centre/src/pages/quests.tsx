@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { TopNav } from "@/components/layout/TopNav";
-import { useListMyBadges, useClaimAiseBadge, useGetMe } from "@workspace/api-client-react";
+import {
+  useListMyBadges,
+  useClaimAiseBadge,
+  useGetMe,
+  useListMyContextCraftBadges,
+} from "@workspace/api-client-react";
+import { PillarTriangle } from "@/components/shared/PillarTriangle";
 import type { BadgeProgress } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,6 +55,7 @@ const BADGE_META: Record<string, { name: string; fullName: string; description: 
 
 export default function Quests() {
   const { data, isLoading, refetch } = useListMyBadges();
+  const { data: contextCraft, isLoading: isLoadingCC } = useListMyContextCraftBadges();
   const { data: me } = useGetMe();
   const { toast } = useToast();
   const recipientName =
@@ -92,6 +99,50 @@ export default function Quests() {
             Achievements that unlock advanced FORGE.BONSAI capabilities and credentials.
           </p>
         </div>
+
+        {/* CONTEXT CRAFT MINI-QUESTS */}
+        <Card className="mb-8 border-l-4 border-l-secondary/60 bg-card">
+          <CardHeader>
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <CardTitle className="font-display tracking-wider text-xl">
+                  CONTEXT CRAFT MINI-QUESTS
+                </CardTitle>
+                <CardDescription className="font-serif text-sm mt-1">
+                  Training badges for the 7 pillars of a well-structured prompt.
+                  Each badge auto-activates when an F1 or F2 prompt scores ≥ 6
+                  on that pillar.
+                </CardDescription>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] font-mono text-muted-foreground">EARNED</div>
+                <div className="font-display text-2xl tracking-wider text-primary">
+                  {(contextCraft ?? []).filter((b) => b.earned).length}
+                  <span className="text-muted-foreground text-base"> / 7</span>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoadingCC ? (
+              <div className="flex flex-wrap gap-4 justify-center">
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-16" />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-start">
+                {(contextCraft ?? []).map((b) => (
+                  <PillarTriangle key={b.pillar} badge={b} />
+                ))}
+              </div>
+            )}
+            <p className="mt-5 text-xs font-mono text-muted-foreground">
+              Tip: open a session, run the F1 Diagnostic on a richer prompt, and
+              watch the triangles light up as each pillar crosses the threshold.
+            </p>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { maybeAwardContextCraftBadges } from "../lib/badges";
 import { z } from "zod/v4";
 import { randomUUID } from "node:crypto";
 import {
@@ -102,6 +103,15 @@ export async function persistArtifact(
       spartanCert: input.spartanCert ?? null,
     })
     .returning();
+  // Best-effort: upsert Context Craft mini-quest badges from pillar sub-scores.
+  // Only F1/F2 artifacts carry a per-pillar `jcse` breakdown; the awarder is a
+  // no-op otherwise.
+  maybeAwardContextCraftBadges(input.userId, row!.id, input.artifactContent).catch(
+    () => {
+      // Swallowed: awarder is best-effort and already logs internally; never
+      // surface a rejection that could trip the global unhandledRejection hook.
+    },
+  );
   return row!;
 }
 

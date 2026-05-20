@@ -229,6 +229,26 @@ export const DeleteSessionParams = zod.object({
 
 
 /**
+ * @summary List the 7 Context Craft pillar mini-quest badges (earned + locked)
+ */
+export const listMyContextCraftBadgesResponseLetterMax = 1;
+
+
+
+export const ListMyContextCraftBadgesResponseItem = zod.object({
+  "pillar": zod.enum(['SYSTEM', 'ROLE', 'INSTRUCTION', 'DATA', 'FORMAT', 'EXAMPLE', 'CONSTRAINT']),
+  "letter": zod.string().min(1).max(listMyContextCraftBadgesResponseLetterMax),
+  "earned": zod.boolean(),
+  "bestScore": zod.number(),
+  "maxScore": zod.number(),
+  "threshold": zod.number(),
+  "firstEarnedAt": zod.coerce.date().nullable(),
+  "evidenceArtifactId": zod.string().uuid().nullable()
+})
+export const ListMyContextCraftBadgesResponse = zod.array(ListMyContextCraftBadgesResponseItem)
+
+
+/**
  * @summary Get the ingestion record linked to this session (404 if origin=manual)
  */
 export const GetSessionIngestionParams = zod.object({

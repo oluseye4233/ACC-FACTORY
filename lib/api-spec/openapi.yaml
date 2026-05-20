@@ -198,6 +198,22 @@ paths:
         "204":
           description: Deleted
 
+  /me/context-craft-badges:
+    get:
+      operationId: listMyContextCraftBadges
+      tags: [me]
+      summary: List the 7 Context Craft pillar mini-quest badges (earned + locked)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ContextCraftBadge" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /sessions/{id}/ingestion:
     get:
       operationId: getSessionIngestion
@@ -950,6 +966,21 @@ components:
         summary: { type: string }
         seedPrompt: { type: string }
         createdAt: { type: string, format: date-time }
+
+    ContextCraftBadge:
+      type: object
+      required: [pillar, letter, earned, bestScore, maxScore, threshold, firstEarnedAt, evidenceArtifactId]
+      properties:
+        pillar:
+          type: string
+          enum: [SYSTEM, ROLE, INSTRUCTION, DATA, FORMAT, EXAMPLE, CONSTRAINT]
+        letter: { type: string, minLength: 1, maxLength: 1 }
+        earned: { type: boolean }
+        bestScore: { type: integer }
+        maxScore: { type: integer }
+        threshold: { type: integer }
+        firstEarnedAt: { type: string, format: date-time, nullable: true }
+        evidenceArtifactId: { type: string, format: uuid, nullable: true }
 
     IngestStartSessionInput:
       type: object

@@ -3,7 +3,12 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod/v4";
 import { db, commandCentreBadgesTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
-import { classifyAiseUrl, computeBadgeProgress, headOk } from "../lib/badges";
+import {
+  classifyAiseUrl,
+  computeBadgeProgress,
+  headOk,
+  listContextCraftBadges,
+} from "../lib/badges";
 
 const router: IRouter = Router();
 
@@ -12,6 +17,16 @@ router.get("/me/badges", requireAuth, async (req, res): Promise<void> => {
   const progress = await computeBadgeProgress(userId);
   res.json(progress);
 });
+
+router.get(
+  "/me/context-craft-badges",
+  requireAuth,
+  async (req, res): Promise<void> => {
+    const userId = req.localUser!.id;
+    const progress = await listContextCraftBadges(userId);
+    res.json(progress);
+  },
+);
 
 const AiseClaimBody = z.object({
   spcDnaAgentUrl: z.string().url().optional(),

@@ -1,5 +1,116 @@
 import { and, eq, sql } from "drizzle-orm";
-import { db, harnessArtifactsTable, commandCentreBadgesTable, type BadgeId } from "@workspace/db";
+import {
+  db,
+  harnessArtifactsTable,
+  commandCentreBadgesTable,
+  contextCraftBadgesTable,
+  CONTEXT_CRAFT_PILLARS,
+  PILLAR_LETTERS,
+  type BadgeId,
+  type ContextCraftPillar,
+} from "@workspace/db";
+
+/**
+ * 7 Context Craft Pillars (S/R/I/D/F/E/C) — mini-quest training badges.
+ * Auto-award when an F1/F2 artifact's per-pillar JCSE sub-score crosses the
+ * threshold (the "precise" band in the rubric). Persistent: once earned,
+ * never lost.
+ */
+export const CONTEXT_CRAFT_THRESHOLD = 6;
+const PILLAR_MAX: Record<ContextCraftPillar, number> = {
+  SYSTEM: 7,
+  ROLE: 7,
+  INSTRUCTION: 8,
+  DATA: 7,
+  FORMAT: 7,
+  EXAMPLE: 7,
+  CONSTRAINT: 7,
+};
+// Lowercased keys as they appear in F1/F2 jcse objects.
+const JCSE_KEY: Record<ContextCraftPillar, string> = {
+  SYSTEM: "system",
+  ROLE: "role",
+  INSTRUCTION: "instruction",
+  DATA: "data",
+  FORMAT: "format",
+  EXAMPLE: "example",
+  CONSTRAINT: "constraint",
+};
+
+export interface ContextCraftBadgeProgress {
+  pillar: ContextCraftPillar;
+  letter: string;
+  earned: boolean;
+  bestScore: number;
+  maxScore: number;
+  threshold: number;
+  firstEarnedAt: string | null;
+  evidenceArtifactId: string | null;
+}
+
+/**
+ * Inspect a freshly-persisted artifact and upsert any Context Craft badges the
+ * pillar sub-scores qualify for. Safe to call on any artifact; only F1/F2 carry
+ * a per-pillar `jcse` breakdown. Failures are swallowed (best-effort).
+ */
+export async function maybeAwardContextCraftBadges(
+  userId: string,
+  artifactId: string,
+  artifactContent: Record<string, unknown>,
+): Promise<void> {
+  const jcse = (artifactContent.jcse ?? null) as Record<string, unknown> | null;
+  if (!jcse || typeof jcse !== "object") return;
+  try {
+    for (const pillar of CONTEXT_CRAFT_PILLARS) {
+      const raw = jcse[JCSE_KEY[pillar]];
+      const score = typeof raw === "number" ? raw : null;
+      if (score === null || score < CONTEXT_CRAFT_THRESHOLD) continue;
+      // INSERT … ON CONFLICT DO UPDATE keeps the original `firstEarnedAt` but
+      // bumps `bestScore` and updates the evidence artifact on each new best.
+      await db
+        .insert(contextCraftBadgesTable)
+        .values({
+          userId,
+          pillar,
+          bestScore: score,
+          evidenceArtifactId: artifactId,
+        })
+        .onConflictDoUpdate({
+          target: [contextCraftBadgesTable.userId, contextCraftBadgesTable.pillar],
+          set: {
+            bestScore: sql`GREATEST(${contextCraftBadgesTable.bestScore}, ${score})`,
+            evidenceArtifactId: sql`CASE WHEN ${score} > ${contextCraftBadgesTable.bestScore} THEN ${artifactId} ELSE ${contextCraftBadgesTable.evidenceArtifactId} END`,
+            updatedAt: new Date(),
+          },
+        });
+    }
+  } catch {
+    // Best-effort: a badge-write failure must never break an engine response.
+  }
+}
+
+export async function listContextCraftBadges(
+  userId: string,
+): Promise<ContextCraftBadgeProgress[]> {
+  const rows = await db
+    .select()
+    .from(contextCraftBadgesTable)
+    .where(eq(contextCraftBadgesTable.userId, userId));
+  const byPillar = new Map(rows.map((r) => [r.pillar, r]));
+  return CONTEXT_CRAFT_PILLARS.map((pillar) => {
+    const row = byPillar.get(pillar);
+    return {
+      pillar,
+      letter: PILLAR_LETTERS[pillar],
+      earned: Boolean(row),
+      bestScore: row?.bestScore ?? 0,
+      maxScore: PILLAR_MAX[pillar],
+      threshold: CONTEXT_CRAFT_THRESHOLD,
+      firstEarnedAt: row?.firstEarnedAt ? row.firstEarnedAt.toISOString() : null,
+      evidenceArtifactId: row?.evidenceArtifactId ?? null,
+    };
+  });
+}
 
 export interface BadgeProgress {
   badgeId: BadgeId;
