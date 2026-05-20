@@ -16,6 +16,7 @@ const SIGNED_IN_LINKS: Array<{ href: string; label: string }> = [
   { href: "/sessions", label: "Sessions" },
   { href: "/prompts", label: "Prompts" },
   { href: "/quests", label: "Quests" },
+  { href: "/demo", label: "Demo" },
   { href: "/pricing", label: "Pricing" },
   { href: "/billing", label: "Billing" },
   { href: "/account", label: "Account" },
@@ -111,6 +112,12 @@ export function TopNav() {
           <Show when="signed-out">
             <div className="hidden sm:flex items-center gap-3">
               <Link
+                href="/demo"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Demo
+              </Link>
+              <Link
                 href="/pricing"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
@@ -145,6 +152,13 @@ export function TopNav() {
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="mt-6 flex flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={() => go("/demo")}
+                    className="text-left font-mono text-sm uppercase tracking-wider py-3 border-b border-border/60"
+                  >
+                    Demo
+                  </button>
                   <button
                     type="button"
                     onClick={() => go("/pricing")}

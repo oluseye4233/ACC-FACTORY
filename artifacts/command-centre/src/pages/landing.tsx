@@ -31,9 +31,15 @@ export default function Landing() {
                   <Link href="/sign-up">INITIATE SESSION</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
-                  <Link href="/pricing">VIEW CAPABILITIES</Link>
+                  <Link href="/demo">TAKE THE 7-STAGE TOUR</Link>
                 </Button>
               </div>
+              <Link
+                href="/pricing"
+                className="text-sm font-mono text-muted-foreground hover:text-primary transition-colors underline underline-offset-4"
+              >
+                or view pricing &amp; capabilities →
+              </Link>
             </div>
           </div>
         </section>
