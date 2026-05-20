@@ -54,3 +54,9 @@ id = "HxZorPwY3PlpCzRIX1jPB"
 uri = "file://docs/azure-foundry-agent-template.yaml"
 type = "unspecified"
 title = "Azure AI Foundry Agent Template (SPC → Foundry mapping)"
+
+[[outputs]]
+id = "GA8hlgP74gkrM6TWnNFyF"
+uri = "file://docs/PDD.md"
+type = "text"
+title = "ATANDA Command Centre — PDD v1.0 (Investor Preview)"
