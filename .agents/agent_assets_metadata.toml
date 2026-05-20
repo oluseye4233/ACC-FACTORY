@@ -66,3 +66,9 @@ id = "eP1ffLoW6BrV1fxJBWK48"
 uri = "file://docs/PDD.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — PDD v1.0 (PDF)"
+
+[[outputs]]
+id = "sALuQbevpvtFUqt4Fo_qn"
+uri = "file://docs/PWDD.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — PWDD v1.0 (SPARTAN-Certified, PDF)"
