@@ -38,6 +38,7 @@ router.get("/me", requireAuth, async (req, res): Promise<void> => {
         f5: s.f5Today,
         f6: s.f6Today,
         f7: s.f7Today,
+        f8: s.f8Today,
       },
     },
   });
@@ -82,6 +83,7 @@ router.patch("/me/profile", requireAuth, async (req, res): Promise<void> => {
         f5: s.f5Today,
         f6: s.f6Today,
         f7: s.f7Today,
+        f8: s.f8Today,
       },
     },
   });

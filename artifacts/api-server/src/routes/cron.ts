@@ -20,6 +20,7 @@ router.post("/cron/reset-harness-limits", async (req, res): Promise<void> => {
       f5Today: 0,
       f6Today: 0,
       f7Today: 0,
+      f8Today: 0,
       limitsResetAt: new Date(),
     });
   res.json({ ok: true });

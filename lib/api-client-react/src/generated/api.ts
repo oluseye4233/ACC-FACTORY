@@ -26,6 +26,7 @@ import type {
   BadgeProgress,
   CheckoutInput,
   CheckoutSession,
+  CodebaseBundle,
   ContextCraftBadge,
   DeepHealth,
   DeleteAccountInput,
@@ -47,6 +48,7 @@ import type {
   HarnessF6Input,
   HarnessF6VdjInput,
   HarnessF7Input,
+  HarnessF8Input,
   HarnessSession,
   HealthStatus,
   IngestStartSessionInput,
@@ -2035,6 +2037,77 @@ export const useHarnessF7Stream = <TError = ErrorType<ForbiddenResponse>,
         TContext
       > => {
       return useMutation(getHarnessF7StreamMutationOptions(options));
+    }
+
+export const getHarnessF8Url = () => {
+
+
+
+
+  return `/api/harness/f8`
+}
+
+/**
+ * @summary Code DJ — scaffold a codebase from a certified MVP PDD (Architect tier)
+ */
+export const harnessF8 = async (harnessF8Input: HarnessF8Input, options?: RequestInit): Promise<CodebaseBundle> => {
+
+  return customFetch<CodebaseBundle>(getHarnessF8Url(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      harnessF8Input,)
+  }
+);}
+
+
+
+
+export const getHarnessF8MutationOptions = <TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF8>>, TError,{data: BodyType<HarnessF8Input>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof harnessF8>>, TError,{data: BodyType<HarnessF8Input>}, TContext> => {
+
+const mutationKey = ['harnessF8'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof harnessF8>>, {data: BodyType<HarnessF8Input>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  harnessF8(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HarnessF8MutationResult = NonNullable<Awaited<ReturnType<typeof harnessF8>>>
+    export type HarnessF8MutationBody = BodyType<HarnessF8Input>
+    export type HarnessF8MutationError = ErrorType<ForbiddenResponse | NotFoundResponse>
+
+    /**
+ * @summary Code DJ — scaffold a codebase from a certified MVP PDD (Architect tier)
+ */
+export const useHarnessF8 = <TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF8>>, TError,{data: BodyType<HarnessF8Input>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof harnessF8>>,
+        TError,
+        {data: BodyType<HarnessF8Input>},
+        TContext
+      > => {
+      return useMutation(getHarnessF8MutationOptions(options));
     }
 
 export const getHarnessEscalationsStreamUrl = (params: HarnessEscalationsStreamParams,) => {

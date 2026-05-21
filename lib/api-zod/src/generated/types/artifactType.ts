@@ -17,4 +17,5 @@ export const ArtifactType = {
   SPC: 'SPC',
   ATLAS_PDD: 'ATLAS_PDD',
   MVP_PDD: 'MVP_PDD',
+  CODEBASE_BUNDLE: 'CODEBASE_BUNDLE',
 } as const;

@@ -27,6 +27,7 @@ export const commandCentreSubscribersTable = pgTable("command_centre_subscribers
   f5Today: integer("f5_today").notNull().default(0),
   f6Today: integer("f6_today").notNull().default(0),
   f7Today: integer("f7_today").notNull().default(0),
+  f8Today: integer("f8_today").notNull().default(0),
   limitsResetAt: timestamp("limits_reset_at", { withTimezone: true }).notNull().defaultNow(),
 
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -87,7 +87,60 @@ export const ArtifactType = {
   SPC: 'SPC',
   ATLAS_PDD: 'ATLAS_PDD',
   MVP_PDD: 'MVP_PDD',
+  CODEBASE_BUNDLE: 'CODEBASE_BUNDLE',
 } as const;
+
+/**
+ * Deployment / framework target for the Code DJ scaffold.
+ */
+export type CodeDjPlatform = typeof CodeDjPlatform[keyof typeof CodeDjPlatform];
+
+
+export const CodeDjPlatform = {
+  'nextjs-vercel': 'nextjs-vercel',
+  'react-vite-static': 'react-vite-static',
+  'express-replit': 'express-replit',
+  'expo-mobile': 'expo-mobile',
+  'pnpm-monorepo': 'pnpm-monorepo',
+} as const;
+
+export interface CodebaseFile {
+  /** Project-root-relative path, e.g. src/index.ts */
+  path: string;
+  /** ISO-ish language hint, e.g. typescript, json, md, env */
+  language: string;
+  content: string;
+}
+
+export interface CodebaseManifest {
+  framework: string;
+  language: string;
+  entrypoint: string;
+  installCommand: string;
+  runCommand: string;
+  /** @nullable */
+  buildCommand?: string | null;
+  deployTarget: string;
+}
+
+export interface HarnessF8Input {
+  sessionId: string;
+  mvpPddArtifactId: string;
+  platform: CodeDjPlatform;
+  /**
+     * Optional operator hints for the Code DJ (preferred libs, naming, etc.).
+     * @maxLength 2000
+     */
+  notes?: string;
+}
+
+export interface CodebaseBundle {
+  artifactId: string;
+  platform: CodeDjPlatform;
+  manifest: CodebaseManifest;
+  files: CodebaseFile[];
+  notes: string;
+}
 
 export type SubscriberUsage = {
   f1: number;
@@ -97,6 +150,7 @@ export type SubscriberUsage = {
   f5: number;
   f6: number;
   f7: number;
+  f8: number;
 };
 
 export interface Subscriber {

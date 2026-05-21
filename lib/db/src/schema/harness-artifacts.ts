@@ -12,6 +12,7 @@ export const ARTIFACT_TYPES = [
   "SPC",
   "ATLAS_PDD",
   "MVP_PDD",
+  "CODEBASE_BUNDLE",
 ] as const;
 export type ArtifactType = (typeof ARTIFACT_TYPES)[number];
 

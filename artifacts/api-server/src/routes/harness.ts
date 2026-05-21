@@ -11,6 +11,7 @@ import { handleF5 } from "../engines/f5";
 import { handleF6 } from "../engines/f6";
 import { handleF6Vdj } from "../engines/f6vdj";
 import { handleF7Stream } from "../engines/f7";
+import { handleF8CodeDj } from "../engines/f8codedj";
 import { handleEvolve } from "../engines/de";
 import { hasBadge } from "./badges-gate";
 
@@ -63,6 +64,14 @@ router.post(
   requireTier("PRACTITIONER"),
   rateLimit(7),
   handleF7Stream,
+);
+
+router.post(
+  "/harness/f8",
+  requireAuth,
+  requireTier("ARCHITECT"),
+  rateLimit(8),
+  handleF8CodeDj,
 );
 
 router.post(

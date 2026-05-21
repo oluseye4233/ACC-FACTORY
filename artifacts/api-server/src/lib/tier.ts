@@ -15,12 +15,14 @@ const TIER_RANK: Record<SubscriberTier, number> = {
   INSTITUTION: 3,
 };
 
-// Daily rate-limits per tier per feature. -1 = unlimited.
+// Daily rate-limits per tier per feature. -1 = unlimited, 0 = not available on this tier.
+// F8 (Code DJ) is Architect-and-above only; lower tiers are explicitly 0 so the
+// rate-limit guard 403s instead of silently letting the request through.
 const RATE_LIMITS: Record<SubscriberTier, Record<number, number>> = {
-  EXPLORER: { 1: 5, 2: 3, 3: 1, 4: 1, 5: 0, 6: 0, 7: 0 },
-  PRACTITIONER: { 1: 50, 2: 25, 3: 10, 4: 10, 5: 5, 6: 5, 7: 3 },
-  ARCHITECT: { 1: -1, 2: -1, 3: -1, 4: -1, 5: -1, 6: -1, 7: -1 },
-  INSTITUTION: { 1: -1, 2: -1, 3: -1, 4: -1, 5: -1, 6: -1, 7: -1 },
+  EXPLORER:     { 1: 5,  2: 3,  3: 1,  4: 1,  5: 0,  6: 0,  7: 0, 8: 0 },
+  PRACTITIONER: { 1: 50, 2: 25, 3: 10, 4: 10, 5: 5,  6: 5,  7: 3, 8: 0 },
+  ARCHITECT:    { 1: -1, 2: -1, 3: -1, 4: -1, 5: -1, 6: -1, 7: -1, 8: 2 },
+  INSTITUTION:  { 1: -1, 2: -1, 3: -1, 4: -1, 5: -1, 6: -1, 7: -1, 8: -1 },
 };
 
 const FEATURE_COL: Record<number, string> = {
@@ -31,6 +33,7 @@ const FEATURE_COL: Record<number, string> = {
   5: "f5_today",
   6: "f6_today",
   7: "f7_today",
+  8: "f8_today",
 };
 
 export function requireTier(minTier: SubscriberTier) {
@@ -76,7 +79,7 @@ export function requireTier(minTier: SubscriberTier) {
   };
 }
 
-export function rateLimit(featureId: 1 | 2 | 3 | 4 | 5 | 6 | 7) {
+export function rateLimit(featureId: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const sub = req.subscriber;
     if (!sub) {

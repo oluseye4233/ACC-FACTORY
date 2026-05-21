@@ -14,4 +14,5 @@ export type SubscriberUsage = {
   f5: number;
   f6: number;
   f7: number;
+  f8: number;
 };

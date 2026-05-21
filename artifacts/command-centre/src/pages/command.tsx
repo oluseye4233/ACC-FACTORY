@@ -123,7 +123,7 @@ export default function Command() {
               </div>
               
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {ENGINES.filter(e => e.id <= 7).map((engine) => {
+                {ENGINES.filter(e => e.id <= 7 || e.id === 9).map((engine) => {
                   const usageKey = `f${engine.id}` as keyof typeof usage;
                   const currentUsage = (usage as any)?.[usageKey] || 0;
                   const usagePercent = dailyCap < 999 ? Math.min(100, (currentUsage / dailyCap) * 100) : 0;

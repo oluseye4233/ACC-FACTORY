@@ -31,6 +31,7 @@ import { F4MicroPdd } from "@/components/workspaces/F4MicroPdd";
 import { F5BuildSpc } from "@/components/workspaces/F5BuildSpc";
 import { F6DraftPdd } from "@/components/workspaces/F6DraftPdd";
 import { F7ConvertMvp } from "@/components/workspaces/F7ConvertMvp";
+import { F8CodeDj } from "@/components/workspaces/F8CodeDj";
 
 export default function SessionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -67,6 +68,10 @@ export default function SessionDetail() {
   const activeEngine = ENGINES.find(e => e.id === activeEngineId) || ENGINES[0];
   
   const getFeatureStatus = (engineId: number) => {
+    // Side-step engines (F6-VDJ = 8, F8 Code DJ = 9) are not part of the F1→F7
+    // linear pipeline and so are not represented in feature_states. Surface
+    // them as AVAILABLE; the server tier/badge gates are the real authorities.
+    if (engineId > 7) return FeatureStatus.AVAILABLE;
     const state = featureStates?.find(fs => fs.featureId === engineId);
     return state?.status || FeatureStatus.LOCKED;
   };
@@ -246,6 +251,7 @@ export default function SessionDetail() {
                 {activeEngineId === 5 && <F5BuildSpc sessionId={id} />}
                 {activeEngineId === 6 && <F6DraftPdd sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 7 && <F7ConvertMvp sessionId={id} artifacts={artifacts || []} />}
+                {activeEngineId === 9 && <F8CodeDj sessionId={id} artifacts={artifacts || []} />}
               </>
             )}
           </div>

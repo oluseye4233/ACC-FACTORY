@@ -47,4 +47,10 @@ export const ENGINES = [
     title: "VDJ",
     description: "Recommend IDEs and vibes for ATLAS PDDs",
   },
+  {
+    id: 9,
+    name: "F8",
+    title: "CODE DJ",
+    description: "Architect-only — scaffold a complete codebase from a certified MVP PDD / PWDD",
+  },
 ];
