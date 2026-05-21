@@ -102,3 +102,9 @@ id = "_P1QchhfKYkq_GrLI60IJ"
 uri = "file://docs/PWDD.md"
 type = "text"
 title = "ATANDA Command Centre — PWDD (Markdown)"
+
+[[outputs]]
+id = "uxS9ty4Sg0ySYhMrWcpJk"
+uri = "file://docs/ATANDA_Command_Centre_PWDD_Investor.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — PWDD (Investor Edition)"
