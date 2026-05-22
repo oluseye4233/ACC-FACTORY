@@ -38,7 +38,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldAlert, AlertTriangle } from "lucide-react";
+import { ShieldAlert, AlertTriangle, ChevronDown } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 type RevokeBadgeId = "AISE" | "AISE_BUILD";
 
@@ -330,6 +335,67 @@ export default function AdminBadges() {
                       </div>
                     )}
                   </div>
+
+                  {preview.history.length > 0 && (
+                    <Collapsible data-testid="history-collapsible">
+                      <CollapsibleTrigger
+                        className="flex items-center gap-1 font-mono text-xs uppercase tracking-wider text-muted-foreground hover-elevate active-elevate-2 rounded px-2 py-1 -mx-2 [&[data-state=open]>svg]:rotate-180"
+                        data-testid="button-toggle-history"
+                      >
+                        <ChevronDown className="w-3 h-3 transition-transform" />
+                        <span>
+                          View full history ({preview.history.length})
+                        </span>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <ol
+                          className="mt-2 max-h-64 overflow-y-auto border border-border rounded divide-y divide-border"
+                          data-testid="history-list"
+                        >
+                          {preview.history
+                            .slice()
+                            .reverse()
+                            .map((entry, idx) => {
+                              const seq = preview.history.length - idx;
+                              return (
+                                <li
+                                  key={`${entry.revokedAt}-${idx}`}
+                                  className="p-3 space-y-1"
+                                  data-testid={`history-entry-${seq}`}
+                                >
+                                  <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
+                                    <span className="text-primary font-semibold">
+                                      #{seq}
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      {new Date(entry.revokedAt)
+                                        .toISOString()
+                                        .replace("T", " ")
+                                        .slice(0, 19)}
+                                      Z
+                                    </span>
+                                  </div>
+                                  {entry.revokedByUserId && (
+                                    <div className="font-mono text-xs">
+                                      <span className="text-muted-foreground">
+                                        by admin:{" "}
+                                      </span>
+                                      {entry.revokedByUserId.slice(0, 8)}…
+                                    </div>
+                                  )}
+                                  <div className="font-mono text-xs whitespace-pre-wrap">
+                                    <span className="text-muted-foreground">
+                                      reason:{" "}
+                                    </span>
+                                    {entry.reason}
+                                  </div>
+                                </li>
+                              );
+                            })}
+                        </ol>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
 
                   {isRepeat && (
                     <div
