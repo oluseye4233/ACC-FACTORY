@@ -6,6 +6,7 @@ A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authe
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server (workflow `artifacts/api-server: API Server`)
 - `pnpm run typecheck` — full typecheck across all packages
+- `pnpm run test` — run workspace tests (currently `@workspace/api-server` vitest integration suite; provider-switching tests skip cleanly when `AI_INTEGRATIONS_*` env vars are absent)
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
