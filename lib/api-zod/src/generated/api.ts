@@ -1153,7 +1153,9 @@ export const VerifyCertificateResponse = zod.object({
   "class": zod.string().nullish(),
   "crP": zod.number().nullish(),
   "issuedAt": zod.coerce.date().nullish(),
-  "sessionName": zod.string().nullish()
+  "sessionName": zod.string().nullish(),
+  "provider": zod.string().nullish(),
+  "modelId": zod.string().nullish()
 })
 
 

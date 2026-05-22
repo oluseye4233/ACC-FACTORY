@@ -845,6 +845,10 @@ export interface VerifyResult {
   issuedAt?: string | null;
   /** @nullable */
   sessionName?: string | null;
+  /** @nullable */
+  provider?: string | null;
+  /** @nullable */
+  modelId?: string | null;
 }
 
 export type ExemplarSummarySource = typeof ExemplarSummarySource[keyof typeof ExemplarSummarySource];

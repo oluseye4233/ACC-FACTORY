@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ShieldCheck, ShieldAlert, BadgeCheck } from "lucide-react";
 import { CertTierChip } from "@/components/shared/CertTierChip";
+import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { format } from "date-fns";
 
 export default function Verify() {
@@ -106,6 +107,15 @@ export default function Verify() {
                         {data.issuedAt ? format(new Date(data.issuedAt), 'yyyy-MM-dd HH:mm') : 'UNKNOWN'}
                       </span>
                     </div>
+                    {data.provider ? (
+                      <div className="pt-2 border-t border-border/50">
+                        <GeneratedBy
+                          provider={data.provider}
+                          modelId={data.modelId}
+                          testId="verify-generated-by"
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ) : null}

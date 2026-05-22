@@ -33,6 +33,8 @@ router.get("/verify", async (req, res): Promise<void> => {
     crP: typeof c.crP === "number" ? c.crP : null,
     issuedAt: typeof c.issuedAt === "string" ? c.issuedAt : null,
     sessionName: r.sessionName,
+    provider: r.artifact.provider ?? null,
+    modelId: r.artifact.modelId ?? null,
   });
 });
 

@@ -1782,6 +1782,8 @@ components:
         crP: { type: ["number", "null"] }
         issuedAt: { type: ["string", "null"], format: date-time }
         sessionName: { type: ["string", "null"] }
+        provider: { type: ["string", "null"] }
+        modelId: { type: ["string", "null"] }
 
     ExemplarSummary:
       type: object

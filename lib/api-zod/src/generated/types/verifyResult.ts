@@ -18,4 +18,8 @@ export interface VerifyResult {
   issuedAt?: Date | null;
   /** @nullable */
   sessionName?: string | null;
+  /** @nullable */
+  provider?: string | null;
+  /** @nullable */
+  modelId?: string | null;
 }
