@@ -20,6 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminBadgeRevocationsList,
+  AdminListBadgeRevocationsParams,
   AdminRevokeBadgeInput,
   AdminRevokeBadgeResult,
   AiseClaimInput,
@@ -3893,6 +3895,90 @@ export const useAdminRevokeBadge = <TError = ErrorType<ForbiddenResponse | NotFo
       > => {
       return useMutation(getAdminRevokeBadgeMutationOptions(options));
     }
+
+export const getAdminListBadgeRevocationsUrl = (params?: AdminListBadgeRevocationsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/badges/revocations?${stringifiedParams}` : `/api/admin/badges/revocations`
+}
+
+/**
+ * @summary List recent badge revocations (admin only)
+ */
+export const adminListBadgeRevocations = async (params?: AdminListBadgeRevocationsParams, options?: RequestInit): Promise<AdminBadgeRevocationsList> => {
+
+  return customFetch<AdminBadgeRevocationsList>(getAdminListBadgeRevocationsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminListBadgeRevocationsQueryKey = (params?: AdminListBadgeRevocationsParams,) => {
+    return [
+    `/api/admin/badges/revocations`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getAdminListBadgeRevocationsQueryOptions = <TData = Awaited<ReturnType<typeof adminListBadgeRevocations>>, TError = ErrorType<ForbiddenResponse>>(params?: AdminListBadgeRevocationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminListBadgeRevocations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminListBadgeRevocationsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListBadgeRevocations>>> = ({ signal }) => adminListBadgeRevocations(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminListBadgeRevocations>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AdminListBadgeRevocationsQueryResult = NonNullable<Awaited<ReturnType<typeof adminListBadgeRevocations>>>
+export type AdminListBadgeRevocationsQueryError = ErrorType<ForbiddenResponse>
+
+
+/**
+ * @summary List recent badge revocations (admin only)
+ */
+
+export function useAdminListBadgeRevocations<TData = Awaited<ReturnType<typeof adminListBadgeRevocations>>, TError = ErrorType<ForbiddenResponse>>(
+ params?: AdminListBadgeRevocationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminListBadgeRevocations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAdminListBadgeRevocationsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getHarnessEvolveUrl = () => {
 

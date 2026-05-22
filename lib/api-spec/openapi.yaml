@@ -919,6 +919,25 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /admin/badges/revocations:
+    get:
+      operationId: adminListBadgeRevocations
+      tags: [admin]
+      summary: List recent badge revocations (admin only)
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminBadgeRevocationsList" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /harness/evolve:
     post:
       operationId: harnessEvolve
@@ -1863,6 +1882,37 @@ components:
         badgeId: { type: string, enum: [AISE, AISE_BUILD] }
         revokedAt: { type: string, format: date-time }
         reason: { type: string }
+
+    BadgeRevocationParty:
+      type: object
+      required: [userId]
+      properties:
+        userId: { type: string, format: uuid }
+        email:
+          type: string
+          nullable: true
+        displayName:
+          type: string
+          nullable: true
+
+    BadgeRevocationEntry:
+      type: object
+      required: [id, badgeId, reason, revokedAt, admin, target]
+      properties:
+        id: { type: string, format: uuid }
+        badgeId: { type: string }
+        reason: { type: string }
+        revokedAt: { type: string, format: date-time }
+        admin: { $ref: "#/components/schemas/BadgeRevocationParty" }
+        target: { $ref: "#/components/schemas/BadgeRevocationParty" }
+
+    AdminBadgeRevocationsList:
+      type: object
+      required: [revocations]
+      properties:
+        revocations:
+          type: array
+          items: { $ref: "#/components/schemas/BadgeRevocationEntry" }
 
     HarnessEvolveInput:
       type: object

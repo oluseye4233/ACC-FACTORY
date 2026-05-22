@@ -1062,6 +1062,33 @@ export const AdminRevokeBadgeResponse = zod.object({
 
 
 /**
+ * @summary List recent badge revocations (admin only)
+ */
+export const AdminListBadgeRevocationsQueryParams = zod.object({
+  "limit": zod.coerce.number().optional()
+})
+
+export const AdminListBadgeRevocationsResponse = zod.object({
+  "revocations": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "badgeId": zod.string(),
+  "reason": zod.string(),
+  "revokedAt": zod.coerce.date(),
+  "admin": zod.object({
+  "userId": zod.string().uuid(),
+  "email": zod.string().nullish(),
+  "displayName": zod.string().nullish()
+}),
+  "target": zod.object({
+  "userId": zod.string().uuid(),
+  "email": zod.string().nullish(),
+  "displayName": zod.string().nullish()
+})
+}))
+})
+
+
+/**
  * @summary DE-SPC — synthesise a Digitally Evolved SPC from N MA birth packages (requires ASPE badge)
  */
 export const harnessEvolveBodyMaArtifactIdsMin = 2;

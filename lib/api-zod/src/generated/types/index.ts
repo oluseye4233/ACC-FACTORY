@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './adminBadgeRevocationsList';
+export * from './adminListBadgeRevocationsParams';
 export * from './adminRevokeBadgeInput';
 export * from './adminRevokeBadgeInputBadgeId';
 export * from './adminRevokeBadgeResult';
@@ -21,6 +23,8 @@ export * from './badgeProgressEvidence';
 export * from './badgeProgressProgress';
 export * from './badgeProgressRequirements';
 export * from './badgeProgressStatus';
+export * from './badgeRevocationEntry';
+export * from './badgeRevocationParty';
 export * from './cartridgeCheckoutInput';
 export * from './cartridgeCreditsSummary';
 export * from './cartridgeDocumentSummary';

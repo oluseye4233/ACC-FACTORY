@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useClerk, Show } from "@clerk/react";
 import { Button } from "@/components/ui/button";
 import { DEMO_MODE } from "@/lib/demo-mode";
+import { useGetMe } from "@workspace/api-client-react";
 import {
   Sheet,
   SheetContent,
@@ -30,6 +31,12 @@ export function TopNav() {
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [, setLocation] = useLocation();
+  const { data: me } = useGetMe();
+
+  const signedInLinks =
+    me?.role === "ADMIN"
+      ? [...SIGNED_IN_LINKS, { href: "/admin/badges", label: "Admin" }]
+      : SIGNED_IN_LINKS;
 
   const go = (href: string) => {
     setMobileOpen(false);
@@ -45,7 +52,7 @@ export function TopNav() {
           </Link>
           <Show when="signed-in">
             <nav className="hidden lg:flex items-center gap-4 text-sm font-medium text-muted-foreground">
-              {SIGNED_IN_LINKS.map((l) => (
+              {signedInLinks.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
@@ -87,7 +94,7 @@ export function TopNav() {
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="mt-6 flex flex-col">
-                  {SIGNED_IN_LINKS.map((l) => (
+                  {signedInLinks.map((l) => (
                     <button
                       key={l.href}
                       type="button"

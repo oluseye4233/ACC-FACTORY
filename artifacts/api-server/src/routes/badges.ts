@@ -1,7 +1,13 @@
 import { Router, type IRouter } from "express";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod/v4";
-import { db, commandCentreBadgesTable, usersTable } from "@workspace/db";
+import {
+  db,
+  commandCentreBadgesTable,
+  usersTable,
+  badgeRevocationsTable,
+} from "@workspace/db";
 import { requireAuth, requireAdmin } from "../lib/auth";
 import {
   classifyAiseUrl,
@@ -222,6 +228,18 @@ router.post(
     }
 
     const revokedAt = new Date();
+
+    const insertedRevocation = await db
+      .insert(badgeRevocationsTable)
+      .values({
+        adminUserId,
+        targetUserId: userId,
+        badgeId,
+        reason,
+        revokedAt,
+      })
+      .returning({ id: badgeRevocationsTable.id });
+
     req.log.info(
       {
         event: "badge.revoke",
@@ -230,6 +248,7 @@ router.post(
         badgeId,
         reason,
         revokedBadgeRowId: deleted[0]!.id,
+        revocationId: insertedRevocation[0]?.id ?? null,
         revokedAt: revokedAt.toISOString(),
       },
       "Admin revoked badge",
@@ -241,6 +260,57 @@ router.post(
       badgeId,
       revokedAt: revokedAt.toISOString(),
       reason,
+    });
+  },
+);
+
+router.get(
+  "/admin/badges/revocations",
+  requireAuth,
+  requireAdmin,
+  async (req, res): Promise<void> => {
+    const limitParam = Number.parseInt(String(req.query.limit ?? "50"), 10);
+    const limit = Math.min(Math.max(Number.isFinite(limitParam) ? limitParam : 50, 1), 200);
+
+    const adminUsers = alias(usersTable, "admin_users");
+    const targetUsers = alias(usersTable, "target_users");
+
+    const rows = await db
+      .select({
+        id: badgeRevocationsTable.id,
+        badgeId: badgeRevocationsTable.badgeId,
+        reason: badgeRevocationsTable.reason,
+        revokedAt: badgeRevocationsTable.revokedAt,
+        adminUserId: badgeRevocationsTable.adminUserId,
+        adminEmail: adminUsers.email,
+        adminDisplayName: adminUsers.displayName,
+        targetUserId: badgeRevocationsTable.targetUserId,
+        targetEmail: targetUsers.email,
+        targetDisplayName: targetUsers.displayName,
+      })
+      .from(badgeRevocationsTable)
+      .leftJoin(adminUsers, eq(adminUsers.id, badgeRevocationsTable.adminUserId))
+      .leftJoin(targetUsers, eq(targetUsers.id, badgeRevocationsTable.targetUserId))
+      .orderBy(desc(badgeRevocationsTable.revokedAt))
+      .limit(limit);
+
+    res.json({
+      revocations: rows.map((r) => ({
+        id: r.id,
+        badgeId: r.badgeId,
+        reason: r.reason,
+        revokedAt: r.revokedAt.toISOString(),
+        admin: {
+          userId: r.adminUserId,
+          email: r.adminEmail,
+          displayName: r.adminDisplayName,
+        },
+        target: {
+          userId: r.targetUserId,
+          email: r.targetEmail,
+          displayName: r.targetDisplayName,
+        },
+      })),
     });
   },
 );

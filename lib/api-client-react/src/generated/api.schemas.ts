@@ -1010,6 +1010,25 @@ export interface AdminRevokeBadgeResult {
   reason: string;
 }
 
+export interface BadgeRevocationParty {
+  userId: string;
+  email?: string | null;
+  displayName?: string | null;
+}
+
+export interface BadgeRevocationEntry {
+  id: string;
+  badgeId: string;
+  reason: string;
+  revokedAt: string;
+  admin: BadgeRevocationParty;
+  target: BadgeRevocationParty;
+}
+
+export interface AdminBadgeRevocationsList {
+  revocations: BadgeRevocationEntry[];
+}
+
 export interface HarnessEvolveInput {
   sessionId: string;
   /**
@@ -1059,6 +1078,10 @@ export const ListMyPromptsKind = {
   PROMPT_DIAGNOSTIC: 'PROMPT_DIAGNOSTIC',
   SPC: 'SPC',
 } as const;
+
+export type AdminListBadgeRevocationsParams = {
+limit?: number;
+};
 
 export type VerifyCertificateParams = {
 cert: string;
