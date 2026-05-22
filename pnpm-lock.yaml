@@ -783,6 +783,9 @@ importers:
 
   scripts:
     dependencies:
+      '@workspace/db':
+        specifier: workspace:*
+        version: link:../lib/db
       marked:
         specifier: ^18.0.3
         version: 18.0.3

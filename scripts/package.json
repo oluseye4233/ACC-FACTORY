@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
+    "backfill-artifact-provider": "tsx ./src/backfill-artifact-provider.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
@@ -12,6 +13,7 @@
     "tsx": "catalog:"
   },
   "dependencies": {
+    "@workspace/db": "workspace:*",
     "marked": "^18.0.3",
     "pdfkit": "^0.17.2"
   }
