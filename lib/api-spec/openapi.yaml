@@ -1183,6 +1183,8 @@ components:
         certTier: { type: ["string", "null"] }
         groState: { type: string }
         spartanCert: { type: ["object", "null"], additionalProperties: true }
+        provider: { type: ["string", "null"], enum: [claude, openai, gemini, null] }
+        modelId: { type: ["string", "null"] }
         createdAt: { type: string, format: date-time }
 
     JcseBreakdown:

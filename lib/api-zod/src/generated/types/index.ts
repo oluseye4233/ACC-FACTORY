@@ -44,6 +44,7 @@ export * from './featureStatus';
 export * from './forbiddenResponse';
 export * from './harnessArtifact';
 export * from './harnessArtifactArtifactContent';
+export * from './harnessArtifactProvider';
 export * from './harnessArtifactSpartanCert';
 export * from './harnessEscalationsStreamParams';
 export * from './harnessEvolveInput';

@@ -107,11 +107,16 @@ export interface PersistArtifactInput {
   certTier?: string | null;
   groState?: string;
   spartanCert?: Record<string, unknown> | null;
+  provider?: LlmProvider | null;
+  modelId?: string | null;
 }
 
 export async function persistArtifact(
   input: PersistArtifactInput,
 ): Promise<typeof harnessArtifactsTable.$inferSelect> {
+  const provider = input.provider ?? null;
+  const modelId =
+    input.modelId ?? (provider ? PROVIDER_MODELS[provider] ?? null : null);
   const [row] = await db
     .insert(harnessArtifactsTable)
     .values({
@@ -124,6 +129,8 @@ export async function persistArtifact(
       certTier: input.certTier ?? null,
       groState: input.groState ?? "SAFE_LIFE",
       spartanCert: input.spartanCert ?? null,
+      provider,
+      modelId,
     })
     .returning();
   maybeAwardContextCraftBadges(input.userId, row!.id, input.artifactContent).catch(

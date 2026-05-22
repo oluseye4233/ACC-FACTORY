@@ -130,6 +130,7 @@ export async function handleEvolve(req: Request, res: Response): Promise<void> {
     certTier: certTierForJcse(synth.jcse.total),
     groState: "SAFE_LIFE",
     spartanCert: null,
+    provider,
   });
 
   // Mark as digitally evolved.

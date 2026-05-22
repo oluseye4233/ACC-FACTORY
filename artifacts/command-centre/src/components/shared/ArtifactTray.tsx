@@ -2,7 +2,18 @@ import { HarnessArtifact } from "@workspace/api-client-react";
 import { format } from "date-fns";
 import { CertTierChip } from "./CertTierChip";
 import { GRODot } from "./GRODot";
-import { FileText } from "lucide-react";
+import { FileText, Sparkles } from "lucide-react";
+
+const PROVIDER_LABEL: Record<string, string> = {
+  claude: "Claude",
+  openai: "OpenAI",
+  gemini: "Gemini",
+};
+
+function providerLabel(provider: string | null | undefined): string | null {
+  if (!provider) return null;
+  return PROVIDER_LABEL[provider] ?? provider;
+}
 
 interface ArtifactTrayProps {
   artifacts: HarnessArtifact[];
@@ -44,6 +55,19 @@ export function ArtifactTray({ artifacts, onSelect }: ArtifactTrayProps) {
             
             {artifact.certTier && <CertTierChip tier={artifact.certTier} />}
             {artifact.groState && <GRODot state={artifact.groState} />}
+            {providerLabel(artifact.provider) && (
+              <span
+                className="flex items-center gap-1 text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground"
+                title={artifact.modelId ?? undefined}
+                data-testid={`artifact-provider-${artifact.id}`}
+              >
+                <Sparkles className="h-3 w-3" />
+                {providerLabel(artifact.provider)}
+                {artifact.modelId ? (
+                  <span className="text-foreground/70">·{artifact.modelId}</span>
+                ) : null}
+              </span>
+            )}
           </div>
         </button>
       ))}

@@ -85,6 +85,7 @@ export async function handleF5(req: Request, res: Response): Promise<void> {
       artifactType: "SPC",
       artifactContent: spc,
       groState: spc.gro,
+      provider,
     });
     await advanceFeatureState(sessionId, 5);
     res.json({

@@ -32,6 +32,8 @@ export const harnessArtifactsTable = pgTable("harness_artifacts", {
   groState: text("gro_state").notNull().default("SAFE_LIFE"),
   spartanCert: jsonb("spartan_cert"),
   spcOrigin: text("spc_origin").notNull().default("artisanal").$type<"artisanal" | "digitally_evolved">(),
+  provider: text("provider"),
+  modelId: text("model_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

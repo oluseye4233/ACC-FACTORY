@@ -7,6 +7,7 @@
  */
 import type { ArtifactType } from './artifactType';
 import type { HarnessArtifactArtifactContent } from './harnessArtifactArtifactContent';
+import type { HarnessArtifactProvider } from './harnessArtifactProvider';
 import type { HarnessArtifactSpartanCert } from './harnessArtifactSpartanCert';
 
 export interface HarnessArtifact {
@@ -22,5 +23,9 @@ export interface HarnessArtifact {
   groState?: string;
   /** @nullable */
   spartanCert?: HarnessArtifactSpartanCert;
+  /** @nullable */
+  provider?: HarnessArtifactProvider;
+  /** @nullable */
+  modelId?: string | null;
   createdAt: Date;
 }

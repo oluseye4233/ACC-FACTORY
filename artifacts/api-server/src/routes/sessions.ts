@@ -65,6 +65,8 @@ function serializeArtifact(a: typeof harnessArtifactsTable.$inferSelect) {
     certTier: a.certTier,
     groState: a.groState,
     spartanCert: (a.spartanCert ?? null) as Record<string, unknown> | null,
+    provider: a.provider,
+    modelId: a.modelId,
     createdAt: a.createdAt.toISOString(),
   };
 }

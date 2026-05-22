@@ -347,6 +347,18 @@ export interface FeatureState {
   updatedAt: string;
 }
 
+/**
+ * @nullable
+ */
+export type HarnessArtifactProvider = typeof HarnessArtifactProvider[keyof typeof HarnessArtifactProvider] | null;
+
+
+export const HarnessArtifactProvider = {
+  claude: 'claude',
+  openai: 'openai',
+  gemini: 'gemini',
+} as const;
+
 export type HarnessArtifactArtifactContent = { [key: string]: unknown };
 
 /**
@@ -367,6 +379,10 @@ export interface HarnessArtifact {
   groState?: string;
   /** @nullable */
   spartanCert?: HarnessArtifactSpartanCert;
+  /** @nullable */
+  provider?: HarnessArtifactProvider;
+  /** @nullable */
+  modelId?: string | null;
   createdAt: string;
 }
 

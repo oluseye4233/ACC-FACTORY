@@ -141,6 +141,7 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
     featureId: 3,
     artifactType: "MA_BIRTH_PACKAGE",
     artifactContent: out,
+    provider,
   });
   await advanceFeatureState(sessionId, 3);
 

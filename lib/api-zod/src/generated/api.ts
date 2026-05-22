@@ -199,6 +199,8 @@ export const GetSessionResponse = zod.object({
   "certTier": zod.string().nullish(),
   "groState": zod.string().optional(),
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "modelId": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }))
 })
@@ -353,6 +355,8 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "certTier": zod.string().nullish(),
   "groState": zod.string().optional(),
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "modelId": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 export const ListSessionArtifactsResponse = zod.array(ListSessionArtifactsResponseItem)
@@ -372,6 +376,8 @@ export const GetArtifactResponse = zod.object({
   "certTier": zod.string().nullish(),
   "groState": zod.string().optional(),
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "modelId": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 
@@ -932,6 +938,8 @@ export const HarnessEvolveResponse = zod.object({
   "certTier": zod.string().nullish(),
   "groState": zod.string().optional(),
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "modelId": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 

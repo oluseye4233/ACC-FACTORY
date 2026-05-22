@@ -63,6 +63,7 @@ export async function handleF4(req: Request, res: Response): Promise<void> {
     featureId: 4,
     artifactType: "MICRO_PDD",
     artifactContent: out,
+    provider,
   });
   await advanceFeatureState(sessionId, 4);
   res.json({ ...out, artifactId: artifact.id });

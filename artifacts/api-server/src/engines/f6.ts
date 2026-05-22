@@ -82,6 +82,7 @@ export async function handleF6(req: Request, res: Response): Promise<void> {
     featureId: 6,
     artifactType: "ATLAS_PDD",
     artifactContent: out,
+    provider,
   });
   await advanceFeatureState(sessionId, 6);
   res.json({ ...out, artifactId: artifact.id });

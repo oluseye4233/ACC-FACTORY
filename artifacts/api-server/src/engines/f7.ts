@@ -130,6 +130,7 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
     artifactType: "MVP_PDD",
     artifactContent: { sections: out.sections, donut: out.donut },
     spartanCert: cert,
+    provider,
   });
   await advanceFeatureState(sessionId, 7);
 

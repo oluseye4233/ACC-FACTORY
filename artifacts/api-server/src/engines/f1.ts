@@ -91,6 +91,7 @@ export async function handleF1(req: Request, res: Response): Promise<void> {
     artifactContent: out,
     jcseScore: out.jcse.total,
     certTier,
+    provider,
   });
   await advanceFeatureState(sessionId, 1);
   res.json({ ...out, certTier, artifactId: artifact.id });
