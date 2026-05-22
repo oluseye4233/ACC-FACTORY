@@ -422,6 +422,15 @@ export default function AdminBadges() {
                         {preview.lastReason}
                       </div>
                     )}
+                    <div
+                      className="whitespace-pre-wrap"
+                      data-testid="preview-reason"
+                    >
+                      <span className="text-muted-foreground">
+                        this reason:{" "}
+                      </span>
+                      {reason.trim()}
+                    </div>
                   </div>
 
                   {preview.history.length > 0 && (
