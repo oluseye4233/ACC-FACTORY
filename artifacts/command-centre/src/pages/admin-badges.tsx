@@ -5,6 +5,7 @@ import {
   useGetMe,
   useAdminListBadgeRevocations,
   useAdminRevokeBadge,
+  useAdminRestoreBadge,
   adminPreviewBadgeRevocation,
 } from "@workspace/api-client-react";
 import type { AdminBadgeRevocationPreview } from "@workspace/api-client-react";
@@ -37,8 +38,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldAlert, AlertTriangle, ChevronDown } from "lucide-react";
+import { ShieldAlert, AlertTriangle, ChevronDown, RotateCcw } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -74,6 +83,8 @@ function ordinal(n: number): string {
   }
 }
 
+const pairKey = (userId: string, badgeId: string) => `${userId}::${badgeId}`;
+
 export default function AdminBadges() {
   const { data: me, isLoading: isLoadingMe } = useGetMe();
   const { toast } = useToast();
@@ -88,7 +99,16 @@ export default function AdminBadges() {
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [repeatAck, setRepeatAck] = useState(false);
 
+  const [restoreTarget, setRestoreTarget] = useState<{
+    userId: string;
+    badgeId: RevokeBadgeId;
+    targetLabel: string;
+  } | null>(null);
+  const [restoreNote, setRestoreNote] = useState("");
+  const [restoredPairs, setRestoredPairs] = useState<Set<string>>(new Set());
+
   const revoke = useAdminRevokeBadge();
+  const restore = useAdminRestoreBadge();
   const {
     data: revocationsData,
     isLoading: isLoadingRevs,
@@ -162,12 +182,80 @@ export default function AdminBadges() {
           setConfirmOpen(false);
           setPreview(null);
           setRepeatAck(false);
+          setRestoredPairs((prev) => {
+            const next = new Set(prev);
+            next.delete(pairKey(tid, badgeId));
+            return next;
+          });
           void refetch();
         },
         onError: (err) => {
           const data = (err as { data?: { error?: string } })?.data;
           toast({
             title: "Revoke failed",
+            description: data?.error ?? "Try again.",
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  };
+
+  const openRestoreDialog = (
+    userId: string,
+    bId: RevokeBadgeId,
+    targetLabel: string,
+  ) => {
+    setRestoreTarget({ userId, badgeId: bId, targetLabel });
+    setRestoreNote("");
+  };
+
+  const closeRestoreDialog = () => {
+    if (restore.isPending) return;
+    setRestoreTarget(null);
+    setRestoreNote("");
+  };
+
+  const handleRestoreConfirm = () => {
+    if (!restoreTarget) return;
+    const note = restoreNote.trim();
+    const { userId, badgeId: bId } = restoreTarget;
+    restore.mutate(
+      {
+        data: {
+          userId,
+          badgeId: bId,
+          ...(note.length > 0 ? { note } : {}),
+        },
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Badge restored",
+            description: `${bId} reinstated for ${restoreTarget.targetLabel}.`,
+          });
+          setRestoredPairs((prev) => {
+            const next = new Set(prev);
+            next.add(pairKey(userId, bId));
+            return next;
+          });
+          setRestoreTarget(null);
+          setRestoreNote("");
+          void refetch();
+        },
+        onError: (err) => {
+          const data = (err as { data?: { error?: string; status?: string } })
+            ?.data;
+          // If already restored / not currently revoked, mark as restored locally so the UI reflects it.
+          if (data?.status && data.status !== "REVOKED") {
+            setRestoredPairs((prev) => {
+              const next = new Set(prev);
+              next.add(pairKey(userId, bId));
+              return next;
+            });
+          }
+          toast({
+            title: "Restore failed",
             description: data?.error ?? "Try again.",
             variant: "destructive",
           });
@@ -478,40 +566,134 @@ export default function AdminBadges() {
               </p>
             ) : (
               <div className="space-y-3">
-                {revocations.map((r) => (
-                  <div
-                    key={r.id}
-                    className="border border-border rounded p-3 space-y-1"
-                    data-testid={`revocation-${r.id}`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-mono text-xs uppercase text-primary">
-                        {r.badgeId}
-                      </span>
-                      <span className="font-mono text-xs text-muted-foreground">
-                        {new Date(r.revokedAt).toISOString().replace("T", " ").slice(0, 19)}
-                        Z
-                      </span>
+                {revocations.map((r) => {
+                  const isRestored = restoredPairs.has(
+                    pairKey(r.target.userId, r.badgeId),
+                  );
+                  const targetLabel = partyLabel(r.target);
+                  return (
+                    <div
+                      key={r.id}
+                      className={`border border-border rounded p-3 space-y-1 ${
+                        isRestored ? "opacity-60" : ""
+                      }`}
+                      data-testid={`revocation-${r.id}`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs uppercase text-primary">
+                            {r.badgeId}
+                          </span>
+                          {isRestored && (
+                            <span
+                              className="font-mono text-[10px] uppercase px-1.5 py-0.5 rounded bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30"
+                              data-testid={`badge-restored-${r.id}`}
+                            >
+                              RESTORED
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {new Date(r.revokedAt)
+                              .toISOString()
+                              .replace("T", " ")
+                              .slice(0, 19)}
+                            Z
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isRestored || restore.isPending}
+                            onClick={() =>
+                              openRestoreDialog(
+                                r.target.userId,
+                                r.badgeId as RevokeBadgeId,
+                                targetLabel,
+                              )
+                            }
+                            data-testid={`button-restore-${r.id}`}
+                          >
+                            <RotateCcw className="w-3 h-3 mr-1" />
+                            {isRestored ? "RESTORED" : "RESTORE"}
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="font-mono text-xs">
+                        <span className="text-muted-foreground">target: </span>
+                        {targetLabel}
+                      </div>
+                      <div className="font-mono text-xs">
+                        <span className="text-muted-foreground">by admin: </span>
+                        {partyLabel(r.admin)}
+                      </div>
+                      <div className="font-mono text-xs whitespace-pre-wrap">
+                        <span className="text-muted-foreground">reason: </span>
+                        {r.reason}
+                      </div>
                     </div>
-                    <div className="font-mono text-xs">
-                      <span className="text-muted-foreground">target: </span>
-                      {partyLabel(r.target)}
-                    </div>
-                    <div className="font-mono text-xs">
-                      <span className="text-muted-foreground">by admin: </span>
-                      {partyLabel(r.admin)}
-                    </div>
-                    <div className="font-mono text-xs whitespace-pre-wrap">
-                      <span className="text-muted-foreground">reason: </span>
-                      {r.reason}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
         </Card>
       </main>
+
+      <Dialog
+        open={restoreTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) closeRestoreDialog();
+        }}
+      >
+        <DialogContent data-testid="dialog-restore-badge">
+          <DialogHeader>
+            <DialogTitle className="font-display tracking-wider">
+              RESTORE BADGE
+            </DialogTitle>
+            <DialogDescription className="font-mono text-xs">
+              Reinstate{" "}
+              <span className="text-foreground">{restoreTarget?.badgeId}</span>{" "}
+              for{" "}
+              <span className="text-foreground">
+                {restoreTarget?.targetLabel}
+              </span>
+              . The revocation audit trail is preserved.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="restore-note" className="font-mono text-xs">
+              NOTE (optional, max 1000 chars)
+            </Label>
+            <Textarea
+              id="restore-note"
+              value={restoreNote}
+              onChange={(e) => setRestoreNote(e.target.value)}
+              maxLength={1000}
+              rows={3}
+              placeholder="Optional note shown to the user when their badge is restored…"
+              data-testid="input-restore-note"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={closeRestoreDialog}
+              disabled={restore.isPending}
+              data-testid="button-restore-cancel"
+            >
+              CANCEL
+            </Button>
+            <Button
+              onClick={handleRestoreConfirm}
+              disabled={restore.isPending}
+              data-testid="button-restore-confirm"
+            >
+              {restore.isPending ? "RESTORING…" : "CONFIRM RESTORE"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
