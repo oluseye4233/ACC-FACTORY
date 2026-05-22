@@ -3,10 +3,12 @@ import type { Request, Response } from "express";
 import { HarnessF8Body } from "@workspace/api-zod";
 import { F8_CODE_DJ_SYSTEM } from "./prompts";
 import {
-  callClaudeJson,
+  callLlmJson,
   loadArtifact,
   ownedSessionOr404,
   persistArtifact,
+  resolveProvider,
+  sendProviderTierError,
 } from "./shared";
 
 const PLATFORMS = [
@@ -58,12 +60,19 @@ export async function handleF8CodeDj(
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { sessionId, mvpPddArtifactId, platform, notes } = parsed.data;
+  const { sessionId, mvpPddArtifactId, platform, notes, provider: bodyProvider } = parsed.data;
 
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
     return;
+  }
+  let provider;
+  try {
+    provider = resolveProvider(req, bodyProvider, guard.preferredModelProvider);
+  } catch (err) {
+    if (sendProviderTierError(res, err)) return;
+    throw err;
   }
 
   const mvp = await loadArtifact(mvpPddArtifactId, guard.userId);
@@ -94,7 +103,8 @@ export async function handleF8CodeDj(
 
   let out: z.infer<typeof CodebaseOutputSchema>;
   try {
-    out = await callClaudeJson(
+    out = await callLlmJson(
+      provider,
       F8_CODE_DJ_SYSTEM,
       userPrompt,
       CodebaseOutputSchema,
@@ -104,6 +114,7 @@ export async function handleF8CodeDj(
       { sessionId, userId: guard.userId, engineId: 9 },
     );
   } catch (err) {
+    if (sendProviderTierError(res, err)) return;
     req.log.error({ err }, "F8 Code DJ engine call failed");
     res.status(502).json({
       error: "Engine call failed",

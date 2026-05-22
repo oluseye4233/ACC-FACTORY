@@ -21,6 +21,11 @@ import { Card } from "@/components/ui/card";
 import { JCSECounter } from "@/components/shared/JCSECounter";
 import { CertTierChip } from "@/components/shared/CertTierChip";
 import { WorkspaceShell, ErrorBanner, PILLAR_LABELS } from "./_shared";
+import {
+  ProviderOverride,
+  overrideToBody,
+  type OverrideValue,
+} from "@/components/shared/ProviderOverride";
 import { extractApiError } from "@/lib/sse";
 import { CheckCircle2 } from "lucide-react";
 
@@ -68,6 +73,8 @@ export function F2BuildAtomic({ sessionId, artifacts }: Props) {
   const [hydrated, setHydrated] = useState(false);
   const [result, setResult] = useState<AtomicPrompt | undefined>();
   const [error, setError] = useState<string | null>(null);
+  const [providerOverride, setProviderOverride] =
+    useState<OverrideValue>("session");
 
   useEffect(() => {
     if (hydrated || !f1Source) return;
@@ -106,7 +113,9 @@ export function F2BuildAtomic({ sessionId, artifacts }: Props) {
       return;
     }
     setError(null);
-    m.mutate({ data: { sessionId, tuple } });
+    m.mutate({
+      data: { sessionId, tuple, ...overrideToBody(providerOverride) },
+    });
   };
 
   return (
@@ -154,14 +163,22 @@ export function F2BuildAtomic({ sessionId, artifacts }: Props) {
             ))}
           </Accordion>
           {error && <ErrorBanner message={error} />}
-          <Button
-            data-testid="f2-certify"
-            onClick={certify}
-            disabled={m.isPending}
-            className="font-display tracking-wider"
-          >
-            {m.isPending ? "CERTIFYING..." : "CERTIFY ATOMIC PROMPT"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <ProviderOverride
+              value={providerOverride}
+              onChange={setProviderOverride}
+              disabled={m.isPending}
+              testId="f2-provider"
+            />
+            <Button
+              data-testid="f2-certify"
+              onClick={certify}
+              disabled={m.isPending}
+              className="font-display tracking-wider flex-1"
+            >
+              {m.isPending ? "CERTIFYING..." : "CERTIFY ATOMIC PROMPT"}
+            </Button>
+          </div>
         </Card>
 
         <div className="flex flex-col gap-4">

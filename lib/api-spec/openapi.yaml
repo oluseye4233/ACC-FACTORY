@@ -951,6 +951,7 @@ components:
           type: string
           description: Optional operator hints for the Code DJ (preferred libs, naming, etc.).
           maxLength: 2000
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     CodebaseBundle:
       type: object
@@ -1071,15 +1072,23 @@ components:
             additionalProperties: true
         engineRunCount: { type: integer }
 
+    LlmProvider:
+      type: string
+      enum: [claude, openai, gemini]
+      description: |
+        LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude
+        providers (`openai`, `gemini`) require PRACTITIONER tier or higher.
+
     HarnessSession:
       type: object
-      required: [id, sessionName, status, origin, ingestionId, createdAt, updatedAt]
+      required: [id, sessionName, status, origin, ingestionId, preferredModelProvider, createdAt, updatedAt]
       properties:
         id: { type: string, format: uuid }
         sessionName: { type: string }
         status: { type: string }
         origin: { type: string, enum: [manual, ingested] }
         ingestionId: { type: string, format: uuid, nullable: true }
+        preferredModelProvider: { $ref: "#/components/schemas/LlmProvider" }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
 
@@ -1141,12 +1150,14 @@ components:
       required: [sessionName]
       properties:
         sessionName: { type: string, minLength: 1, maxLength: 255 }
+        preferredModelProvider: { $ref: "#/components/schemas/LlmProvider" }
 
     SessionUpdate:
       type: object
       properties:
         sessionName: { type: string, minLength: 1, maxLength: 255 }
         status: { type: string }
+        preferredModelProvider: { $ref: "#/components/schemas/LlmProvider" }
 
     FeatureState:
       type: object
@@ -1246,6 +1257,7 @@ components:
       properties:
         sessionId: { type: string, format: uuid }
         prompt: { type: string, minLength: 10 }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     HarnessF2Input:
       type: object
@@ -1253,6 +1265,7 @@ components:
       properties:
         sessionId: { type: string, format: uuid }
         tuple: { $ref: "#/components/schemas/AtomicPromptTuple" }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     HarnessF3Input:
       type: object
@@ -1261,6 +1274,7 @@ components:
         sessionId: { type: string, format: uuid }
         atomicPrompt: { $ref: "#/components/schemas/AtomicPromptTuple" }
         intent: { type: string }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     MaClassification:
       type: object
@@ -1305,6 +1319,7 @@ components:
         sessionId: { type: string, format: uuid }
         sourceArtifactId: { type: string, format: uuid }
         targetVibe: { type: string }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     MicroPdd:
       type: object
@@ -1326,6 +1341,7 @@ components:
           type: object
           additionalProperties: true
         finalize: { type: boolean }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     SpcSection:
       type: object
@@ -1369,6 +1385,7 @@ components:
         mode: { type: string, enum: [FROM_SPC, FRESH] }
         sourceArtifactId: { type: ["string", "null"], format: uuid }
         brief: { type: ["string", "null"] }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     AtlasPdd:
       type: object
@@ -1386,6 +1403,7 @@ components:
       properties:
         sessionId: { type: string, format: uuid }
         pddArtifactId: { type: string, format: uuid }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     VdjRecommendation:
       type: object
@@ -1409,6 +1427,7 @@ components:
       properties:
         sessionId: { type: string, format: uuid }
         pddArtifactId: { type: string, format: uuid }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     SpartanCert:
       type: object
@@ -1620,3 +1639,4 @@ components:
           items: { type: string, format: uuid }
           minItems: 2
           maxItems: 12
+        provider: { $ref: "#/components/schemas/LlmProvider" }

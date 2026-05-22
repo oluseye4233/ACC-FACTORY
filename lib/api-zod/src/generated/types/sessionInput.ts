@@ -5,6 +5,7 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { LlmProvider } from './llmProvider';
 
 export interface SessionInput {
   /**
@@ -12,4 +13,5 @@ export interface SessionInput {
      * @maxLength 255
      */
   sessionName: string;
+  preferredModelProvider?: LlmProvider;
 }

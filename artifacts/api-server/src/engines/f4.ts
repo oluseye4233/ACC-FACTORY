@@ -4,10 +4,12 @@ import { HarnessF4Body } from "@workspace/api-zod";
 import { F4_SYSTEM } from "./prompts";
 import {
   advanceFeatureState,
-  callClaudeJson,
+  callLlmJson,
   loadArtifact,
   ownedSessionOr404,
   persistArtifact,
+  resolveProvider,
+  sendProviderTierError,
 } from "./shared";
 
 const F4OutputSchema = z.object({
@@ -23,11 +25,18 @@ export async function handleF4(req: Request, res: Response): Promise<void> {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { sessionId, sourceArtifactId, targetVibe } = parsed.data;
+  const { sessionId, sourceArtifactId, targetVibe, provider: bodyProvider } = parsed.data;
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
     return;
+  }
+  let provider;
+  try {
+    provider = resolveProvider(req, bodyProvider, guard.preferredModelProvider);
+  } catch (err) {
+    if (sendProviderTierError(res, err)) return;
+    throw err;
   }
   const source = await loadArtifact(sourceArtifactId, guard.userId);
   if (!source || source.sessionId !== sessionId) {
@@ -37,12 +46,13 @@ export async function handleF4(req: Request, res: Response): Promise<void> {
   const userPrompt = `Source artifact (${source.artifactType}):\n${JSON.stringify(source.artifactContent, null, 2)}\n\nTarget VIBE: ${targetVibe}`;
   let out: z.infer<typeof F4OutputSchema>;
   try {
-    out = await callClaudeJson(F4_SYSTEM, userPrompt, F4OutputSchema, {
+    out = await callLlmJson(provider, F4_SYSTEM, userPrompt, F4OutputSchema, {
       sessionId,
       userId: guard.userId,
       engineId: 4,
     });
   } catch (err) {
+    if (sendProviderTierError(res, err)) return;
     req.log.error({ err }, "F4 engine call failed");
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });
     return;

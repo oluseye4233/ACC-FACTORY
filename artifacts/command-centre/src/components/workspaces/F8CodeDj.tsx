@@ -21,6 +21,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
+import {
+  ProviderOverride,
+  overrideToBody,
+  type OverrideValue,
+} from "@/components/shared/ProviderOverride";
 import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
 import { Cpu, Download, FileCode, ShieldCheck } from "lucide-react";
@@ -66,6 +71,8 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
   const [activeFile, setActiveFile] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [providerOverride, setProviderOverride] =
+    useState<OverrideValue>("session");
 
   const mutation = useHarnessF8();
 
@@ -96,6 +103,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
           mvpPddArtifactId: sourceId,
           platform,
           ...(notes.trim() ? { notes: notes.trim() } : {}),
+          ...overrideToBody(providerOverride),
         },
       })) as CodebaseBundle;
       setResult(out);
@@ -205,7 +213,13 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
             className="font-mono text-xs min-h-[60px]"
           />
 
-          <div className="flex justify-end mt-3">
+          <div className="flex items-center justify-end gap-2 mt-3">
+            <ProviderOverride
+              value={providerOverride}
+              onChange={setProviderOverride}
+              disabled={mutation.isPending}
+              testId="f8-provider"
+            />
             <Button
               data-testid="f8-run"
               onClick={run}

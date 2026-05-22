@@ -5,6 +5,7 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { LlmProvider } from './llmProvider';
 
 export interface SessionUpdate {
   /**
@@ -13,4 +14,5 @@ export interface SessionUpdate {
      */
   sessionName?: string;
   status?: string;
+  preferredModelProvider?: LlmProvider;
 }

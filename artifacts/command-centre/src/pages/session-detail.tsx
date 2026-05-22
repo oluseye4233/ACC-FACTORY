@@ -32,6 +32,7 @@ import { F5BuildSpc } from "@/components/workspaces/F5BuildSpc";
 import { F6DraftPdd } from "@/components/workspaces/F6DraftPdd";
 import { F7ConvertMvp } from "@/components/workspaces/F7ConvertMvp";
 import { F8CodeDj } from "@/components/workspaces/F8CodeDj";
+import { ProviderSelector } from "@/components/shared/ProviderSelector";
 
 export default function SessionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -139,7 +140,13 @@ export default function SessionDetail() {
           )}
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          {session && (
+            <ProviderSelector
+              sessionId={session.id}
+              value={session.preferredModelProvider}
+            />
+          )}
           {/* Mobile-only: open Harness Sequence */}
           <Sheet open={sequenceOpen} onOpenChange={setSequenceOpen}>
             <SheetTrigger asChild>

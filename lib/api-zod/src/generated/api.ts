@@ -145,6 +145,7 @@ export const ListSessionsResponseItem = zod.object({
   "status": zod.string(),
   "origin": zod.enum(['manual', 'ingested']),
   "ingestionId": zod.string().uuid().nullable(),
+  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -156,7 +157,8 @@ export const createSessionBodySessionNameMax = 255;
 
 
 export const CreateSessionBody = zod.object({
-  "sessionName": zod.string().min(1).max(createSessionBodySessionNameMax)
+  "sessionName": zod.string().min(1).max(createSessionBodySessionNameMax),
+  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 
@@ -175,6 +177,7 @@ export const GetSessionResponse = zod.object({
   "status": zod.string(),
   "origin": zod.enum(['manual', 'ingested']),
   "ingestionId": zod.string().uuid().nullable(),
+  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),
@@ -211,7 +214,8 @@ export const updateSessionBodySessionNameMax = 255;
 
 export const UpdateSessionBody = zod.object({
   "sessionName": zod.string().min(1).max(updateSessionBodySessionNameMax).optional(),
-  "status": zod.string().optional()
+  "status": zod.string().optional(),
+  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 export const UpdateSessionResponse = zod.object({
@@ -220,6 +224,7 @@ export const UpdateSessionResponse = zod.object({
   "status": zod.string(),
   "origin": zod.enum(['manual', 'ingested']),
   "ingestionId": zod.string().uuid().nullable(),
+  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -380,7 +385,8 @@ export const harnessF1BodyPromptMin = 10;
 
 export const HarnessF1Body = zod.object({
   "sessionId": zod.string().uuid(),
-  "prompt": zod.string().min(harnessF1BodyPromptMin)
+  "prompt": zod.string().min(harnessF1BodyPromptMin),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF1Response = zod.object({
@@ -430,7 +436,8 @@ export const HarnessF2Body = zod.object({
   "constraint": zod.string(),
   "format": zod.string(),
   "data": zod.string()
-})
+}),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF2Response = zod.object({
@@ -472,7 +479,8 @@ export const HarnessF3StreamBody = zod.object({
   "format": zod.string(),
   "data": zod.string()
 }),
-  "intent": zod.string().optional()
+  "intent": zod.string().optional(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 
@@ -482,7 +490,8 @@ export const HarnessF3StreamBody = zod.object({
 export const HarnessF4Body = zod.object({
   "sessionId": zod.string().uuid(),
   "sourceArtifactId": zod.string().uuid(),
-  "targetVibe": zod.string()
+  "targetVibe": zod.string(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF4Response = zod.object({
@@ -505,7 +514,8 @@ export const HarnessF5Body = zod.object({
   "sessionId": zod.string().uuid(),
   "step": zod.number().min(1).max(harnessF5BodyStepMax).optional(),
   "answers": zod.record(zod.string(), zod.unknown()).optional(),
-  "finalize": zod.boolean().optional()
+  "finalize": zod.boolean().optional(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF5Response = zod.object({
@@ -533,7 +543,8 @@ export const HarnessF6Body = zod.object({
   "sessionId": zod.string().uuid(),
   "mode": zod.enum(['FROM_SPC', 'FRESH']),
   "sourceArtifactId": zod.string().uuid().nullish(),
-  "brief": zod.string().nullish()
+  "brief": zod.string().nullish(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF6Response = zod.object({
@@ -550,7 +561,8 @@ export const HarnessF6Response = zod.object({
  */
 export const HarnessF6VdjBody = zod.object({
   "sessionId": zod.string().uuid(),
-  "pddArtifactId": zod.string().uuid()
+  "pddArtifactId": zod.string().uuid(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF6VdjResponse = zod.object({
@@ -569,7 +581,8 @@ export const HarnessF6VdjResponse = zod.object({
  */
 export const HarnessF7StreamBody = zod.object({
   "sessionId": zod.string().uuid(),
-  "pddArtifactId": zod.string().uuid()
+  "pddArtifactId": zod.string().uuid(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 
@@ -584,7 +597,8 @@ export const HarnessF8Body = zod.object({
   "sessionId": zod.string().uuid(),
   "mvpPddArtifactId": zod.string().uuid(),
   "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment \/ framework target for the Code DJ scaffold.'),
-  "notes": zod.string().max(harnessF8BodyNotesMax).optional().describe('Optional operator hints for the Code DJ (preferred libs, naming, etc.).')
+  "notes": zod.string().max(harnessF8BodyNotesMax).optional().describe('Optional operator hints for the Code DJ (preferred libs, naming, etc.).'),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF8Response = zod.object({
@@ -904,7 +918,8 @@ export const harnessEvolveBodyMaArtifactIdsMax = 12;
 
 export const HarnessEvolveBody = zod.object({
   "sessionId": zod.string().uuid(),
-  "maArtifactIds": zod.array(zod.string().uuid()).min(harnessEvolveBodyMaArtifactIdsMin).max(harnessEvolveBodyMaArtifactIdsMax)
+  "maArtifactIds": zod.array(zod.string().uuid()).min(harnessEvolveBodyMaArtifactIdsMin).max(harnessEvolveBodyMaArtifactIdsMax),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessEvolveResponse = zod.object({

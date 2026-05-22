@@ -7,6 +7,9 @@ import { ingestionDocumentsTable } from "./ingestion-documents";
 export const SESSION_ORIGINS = ["manual", "ingested"] as const;
 export type SessionOrigin = (typeof SESSION_ORIGINS)[number];
 
+export const LLM_PROVIDERS = ["claude", "openai", "gemini"] as const;
+export type LlmProvider = (typeof LLM_PROVIDERS)[number];
+
 export const harnessSessionsTable = pgTable("harness_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
@@ -15,6 +18,10 @@ export const harnessSessionsTable = pgTable("harness_sessions", {
   sessionName: varchar("session_name", { length: 255 }).notNull().default("Untitled Session"),
   status: text("status").notNull().default("ACTIVE"),
   origin: text("origin").notNull().$type<SessionOrigin>().default("manual"),
+  preferredModelProvider: text("preferred_model_provider")
+    .notNull()
+    .$type<LlmProvider>()
+    .default("claude"),
   ingestionId: uuid("ingestion_id").references(() => ingestionDocumentsTable.id, {
     onDelete: "set null",
   }),

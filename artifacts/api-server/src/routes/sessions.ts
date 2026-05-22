@@ -8,6 +8,25 @@ import {
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { CreateSessionBody, UpdateSessionBody } from "@workspace/api-zod";
+import type { Response } from "express";
+
+function rejectProviderIfExplorer(
+  res: Response,
+  provider: string | null | undefined,
+  tier: string,
+): boolean {
+  if (!provider || provider === "claude") return false;
+  if (tier === "EXPLORER") {
+    res.status(403).json({
+      error: "PROVIDER_REQUIRES_TIER",
+      code: "PROVIDER_REQUIRES_TIER",
+      detail: `Provider '${provider}' requires PRACTITIONER tier or above`,
+      provider,
+    });
+    return true;
+  }
+  return false;
+}
 
 const router: IRouter = Router();
 
@@ -18,6 +37,7 @@ function serializeSession(s: typeof harnessSessionsTable.$inferSelect) {
     status: s.status,
     origin: s.origin,
     ingestionId: s.ingestionId,
+    preferredModelProvider: s.preferredModelProvider,
     createdAt: s.createdAt.toISOString(),
     updatedAt: s.updatedAt.toISOString(),
   };
@@ -64,9 +84,17 @@ router.post("/sessions", requireAuth, async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const tier = req.subscriber?.tier ?? "EXPLORER";
+  if (rejectProviderIfExplorer(res, parsed.data.preferredModelProvider, tier)) return;
   const [created] = await db
     .insert(harnessSessionsTable)
-    .values({ userId: req.localUser!.id, sessionName: parsed.data.sessionName })
+    .values({
+      userId: req.localUser!.id,
+      sessionName: parsed.data.sessionName,
+      ...(parsed.data.preferredModelProvider
+        ? { preferredModelProvider: parsed.data.preferredModelProvider }
+        : {}),
+    })
     .returning();
   await db.insert(harnessFeatureStateTable).values(
     [1, 2, 3, 4, 5, 6, 7].map((featureId) => ({
@@ -137,6 +165,11 @@ router.patch("/sessions/:id", requireAuth, async (req, res): Promise<void> => {
   const updates: Partial<typeof harnessSessionsTable.$inferInsert> = {};
   if (parsed.data.sessionName !== undefined) updates.sessionName = parsed.data.sessionName;
   if (parsed.data.status !== undefined) updates.status = parsed.data.status;
+  if (parsed.data.preferredModelProvider !== undefined) {
+    const tier = req.subscriber?.tier ?? "EXPLORER";
+    if (rejectProviderIfExplorer(res, parsed.data.preferredModelProvider, tier)) return;
+    updates.preferredModelProvider = parsed.data.preferredModelProvider;
+  }
   const [updated] = await db
     .update(harnessSessionsTable)
     .set(updates)

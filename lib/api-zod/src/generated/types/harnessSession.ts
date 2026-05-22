@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { HarnessSessionOrigin } from './harnessSessionOrigin';
+import type { LlmProvider } from './llmProvider';
 
 export interface HarnessSession {
   id: string;
@@ -13,6 +14,7 @@ export interface HarnessSession {
   status: string;
   origin: HarnessSessionOrigin;
   ingestionId: string | null;
+  preferredModelProvider: LlmProvider;
   createdAt: Date;
   updatedAt: Date;
 }

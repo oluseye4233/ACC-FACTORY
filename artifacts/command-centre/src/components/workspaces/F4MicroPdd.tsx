@@ -20,6 +20,11 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
+import {
+  ProviderOverride,
+  overrideToBody,
+  type OverrideValue,
+} from "@/components/shared/ProviderOverride";
 import { extractApiError } from "@/lib/sse";
 import { downloadZip } from "@/lib/zipExport";
 import { Download, Workflow } from "lucide-react";
@@ -51,6 +56,8 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
   const [vibe, setVibe] = useState("");
   const [result, setResult] = useState<MicroPdd | undefined>();
   const [error, setError] = useState<string | null>(null);
+  const [providerOverride, setProviderOverride] =
+    useState<OverrideValue>("session");
 
   const m = useHarnessF4({
     mutation: {
@@ -87,7 +94,14 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
       return;
     }
     setError(null);
-    m.mutate({ data: { sessionId, sourceArtifactId: sourceId, targetVibe: vibe } });
+    m.mutate({
+      data: {
+        sessionId,
+        sourceArtifactId: sourceId,
+        targetVibe: vibe,
+        ...overrideToBody(providerOverride),
+      },
+    });
   };
 
   const exportZip = async () => {
@@ -134,14 +148,22 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
                 className="font-mono text-xs"
               />
             </div>
-            <Button
-              data-testid="f4-convert"
-              onClick={convert}
-              disabled={m.isPending}
-              className="font-display tracking-wider"
-            >
-              {m.isPending ? "CONVERTING..." : "CONVERT"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <ProviderOverride
+                value={providerOverride}
+                onChange={setProviderOverride}
+                disabled={m.isPending}
+                testId="f4-provider"
+              />
+              <Button
+                data-testid="f4-convert"
+                onClick={convert}
+                disabled={m.isPending}
+                className="font-display tracking-wider flex-1"
+              >
+                {m.isPending ? "CONVERTING..." : "CONVERT"}
+              </Button>
+            </div>
           </div>
           {error && <div className="mt-3"><ErrorBanner message={error} /></div>}
         </Card>

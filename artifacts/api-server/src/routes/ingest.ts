@@ -18,7 +18,13 @@ import {
   linkCreditToDocument,
   releaseIngestionCredit,
 } from "../lib/ingestion-credits";
-import { callClaudeJson } from "../engines/shared";
+import {
+  callLlmJson,
+  isLlmProvider,
+  resolveProvider,
+  sendProviderTierError,
+} from "../engines/shared";
+import type { LlmProvider } from "@workspace/db";
 import { serializeSession } from "./sessions";
 
 const MAX_UPLOAD_BYTES = 1 * 1024 * 1024; // 1 MB
@@ -242,14 +248,30 @@ router.post(
         .filter((line): line is string => line !== null)
         .join("\n");
 
+      // Provider resolution: ingestion has no session yet, so the body
+      // override (if any) is the only signal; default 'claude'. Tier gate is
+      // identical to engine routes — Explorer is hard-locked to Claude.
+      const bodyProvider = isLlmProvider(req.body?.provider)
+        ? (req.body.provider as LlmProvider)
+        : undefined;
+      let provider: LlmProvider;
+      try {
+        provider = resolveProvider(req, bodyProvider, "claude");
+      } catch (err) {
+        if (sendProviderTierError(res, err)) return;
+        throw err;
+      }
+
       let normalized: Normalization;
       try {
-        normalized = await callClaudeJson(
+        normalized = await callLlmJson(
+          provider,
           NORMALIZATION_SYSTEM_PROMPT,
           userMsg,
           NormalizationSchema,
         );
       } catch (err) {
+        if (sendProviderTierError(res, err)) return;
         req.log.error({ err }, "Ingestion normalisation failed");
         res
           .status(502)

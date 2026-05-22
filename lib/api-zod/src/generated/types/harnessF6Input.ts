@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { HarnessF6InputMode } from './harnessF6InputMode';
+import type { LlmProvider } from './llmProvider';
 
 export interface HarnessF6Input {
   sessionId: string;
@@ -14,4 +15,5 @@ export interface HarnessF6Input {
   sourceArtifactId?: string | null;
   /** @nullable */
   brief?: string | null;
+  provider?: LlmProvider;
 }

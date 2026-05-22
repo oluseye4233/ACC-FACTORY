@@ -6,8 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AtomicPromptTuple } from './atomicPromptTuple';
+import type { LlmProvider } from './llmProvider';
 
 export interface HarnessF2Input {
   sessionId: string;
   tuple: AtomicPromptTuple;
+  provider?: LlmProvider;
 }

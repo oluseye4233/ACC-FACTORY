@@ -24,6 +24,11 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkspaceShell, ErrorBanner } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
+import {
+  ProviderOverride,
+  overrideToBody,
+  type OverrideValue,
+} from "@/components/shared/ProviderOverride";
 import { extractApiError } from "@/lib/sse";
 import { downloadZip } from "@/lib/zipExport";
 import { Download, Layers } from "lucide-react";
@@ -68,6 +73,10 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
   const [vdj, setVdj] = useState<VdjRecommendation | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [providerOverride, setProviderOverride] =
+    useState<OverrideValue>("session");
+  const [vdjProviderOverride, setVdjProviderOverride] =
+    useState<OverrideValue>("session");
 
   const f6 = useHarnessF6({
     mutation: {
@@ -100,13 +109,27 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
         setError("Pick an SPC source");
         return;
       }
-      f6.mutate({ data: { sessionId, mode, sourceArtifactId: sourceId } });
+      f6.mutate({
+        data: {
+          sessionId,
+          mode,
+          sourceArtifactId: sourceId,
+          ...overrideToBody(providerOverride),
+        },
+      });
     } else {
       if (!brief.trim()) {
         setError("Brief required for FRESH mode");
         return;
       }
-      f6.mutate({ data: { sessionId, mode, brief } });
+      f6.mutate({
+        data: {
+          sessionId,
+          mode,
+          brief,
+          ...overrideToBody(providerOverride),
+        },
+      });
     }
   };
 
@@ -118,7 +141,9 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
       setError("No PDD artifact available");
       return;
     }
-    vdjM.mutate({ data: { sessionId, pddArtifactId: id } });
+    vdjM.mutate({
+      data: { sessionId, pddArtifactId: id, ...overrideToBody(vdjProviderOverride) },
+    });
   };
 
   const exportZip = async () => {
@@ -187,6 +212,12 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
                 />
               </div>
             )}
+            <ProviderOverride
+              value={providerOverride}
+              onChange={setProviderOverride}
+              disabled={f6.isPending}
+              testId="f6-provider"
+            />
             <Button
               data-testid="f6-draft"
               onClick={draft}
@@ -276,16 +307,24 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
               <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 VIBE DJ
               </h4>
-              <Button
-                onClick={recommendVdj}
-                size="sm"
-                variant="outline"
-                disabled={vdjM.isPending || (!pddArtifactId && !pddArtifacts.length)}
-                className="font-mono text-xs"
-                data-testid="f6-vdj"
-              >
-                {vdjM.isPending ? "MIXING..." : "RECOMMEND"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <ProviderOverride
+                  value={vdjProviderOverride}
+                  onChange={setVdjProviderOverride}
+                  disabled={vdjM.isPending}
+                  testId="f6vdj-provider"
+                />
+                <Button
+                  onClick={recommendVdj}
+                  size="sm"
+                  variant="outline"
+                  disabled={vdjM.isPending || (!pddArtifactId && !pddArtifacts.length)}
+                  className="font-mono text-xs"
+                  data-testid="f6-vdj"
+                >
+                  {vdjM.isPending ? "MIXING..." : "RECOMMEND"}
+                </Button>
+              </div>
             </div>
             {vdj ? (
               <div className="space-y-3">

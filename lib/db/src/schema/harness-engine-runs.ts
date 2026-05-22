@@ -11,6 +11,7 @@ export const harnessEngineRunsTable = pgTable("harness_engine_runs", {
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   engineId: integer("engine_id").notNull(),
+  provider: text("provider").notNull().default("claude"),
   modelId: text("model_id").notNull(),
   inputTokens: integer("input_tokens").notNull().default(0),
   outputTokens: integer("output_tokens").notNull().default(0),

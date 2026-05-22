@@ -7,11 +7,15 @@ import { sendCertIssued } from "@workspace/email";
 import { F7_SYSTEM } from "./prompts";
 import {
   advanceFeatureState,
-  callClaudeJson,
+  callLlmJson,
   generateCertId,
   loadArtifact,
   ownedSessionOr404,
   persistArtifact,
+  resolveProvider,
+  sendProviderTierError,
+  ProviderRequiresTierError,
+  ProviderNotConfiguredError,
 } from "./shared";
 
 const SPARTAN_STEPS = [
@@ -39,11 +43,18 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { sessionId, pddArtifactId } = parsed.data;
+  const { sessionId, pddArtifactId, provider: bodyProvider } = parsed.data;
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
     return;
+  }
+  let provider;
+  try {
+    provider = resolveProvider(req, bodyProvider, guard.preferredModelProvider);
+  } catch (err) {
+    if (sendProviderTierError(res, err)) return;
+    throw err;
   }
   const pdd = await loadArtifact(pddArtifactId, guard.userId);
   if (!pdd || pdd.sessionId !== sessionId || pdd.artifactType !== "ATLAS_PDD") {
@@ -68,7 +79,7 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
 
   const llmPromise = (async () => {
     const userPrompt = `Compress this ATLAS PDD via the 7-step SPARTAN SCM:\n${JSON.stringify(pdd.artifactContent, null, 2)}`;
-    return callClaudeJson(F7_SYSTEM, userPrompt, F7OutputSchema, {
+    return callLlmJson(provider, F7_SYSTEM, userPrompt, F7OutputSchema, {
       sessionId,
       userId: guard.userId,
       engineId: 7,
@@ -89,8 +100,18 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
   try {
     out = await llmPromise;
   } catch (err) {
-    req.log.error({ err }, "F7 engine call failed");
-    send("error", { error: "Engine call failed", detail: (err as Error).message });
+    const code =
+      err instanceof ProviderRequiresTierError
+        ? "PROVIDER_REQUIRES_TIER"
+        : err instanceof ProviderNotConfiguredError
+          ? "PROVIDER_NOT_CONFIGURED"
+          : "ENGINE_CALL_FAILED";
+    const provider =
+      err instanceof ProviderRequiresTierError || err instanceof ProviderNotConfiguredError
+        ? err.provider
+        : undefined;
+    req.log.error({ err, code }, "F7 engine call failed");
+    send("error", { error: code, code, provider, detail: (err as Error).message });
     if (!clientClosed) res.end();
     return;
   }

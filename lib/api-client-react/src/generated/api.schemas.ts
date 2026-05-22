@@ -123,6 +123,20 @@ export interface CodebaseManifest {
   deployTarget: string;
 }
 
+/**
+ * LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude
+providers (`openai`, `gemini`) require PRACTITIONER tier or higher.
+
+ */
+export type LlmProvider = typeof LlmProvider[keyof typeof LlmProvider];
+
+
+export const LlmProvider = {
+  claude: 'claude',
+  openai: 'openai',
+  gemini: 'gemini',
+} as const;
+
 export interface HarnessF8Input {
   sessionId: string;
   mvpPddArtifactId: string;
@@ -132,6 +146,7 @@ export interface HarnessF8Input {
      * @maxLength 2000
      */
   notes?: string;
+  provider?: LlmProvider;
 }
 
 export interface CodebaseBundle {
@@ -243,6 +258,7 @@ export interface HarnessSession {
   status: string;
   origin: HarnessSessionOrigin;
   ingestionId: string | null;
+  preferredModelProvider: LlmProvider;
   createdAt: string;
   updatedAt: string;
 }
@@ -366,6 +382,7 @@ export interface SessionInput {
      * @maxLength 255
      */
   sessionName: string;
+  preferredModelProvider?: LlmProvider;
 }
 
 export interface SessionUpdate {
@@ -375,6 +392,7 @@ export interface SessionUpdate {
      */
   sessionName?: string;
   status?: string;
+  preferredModelProvider?: LlmProvider;
 }
 
 export interface JcseBreakdown {
@@ -442,17 +460,20 @@ export interface HarnessF1Input {
   sessionId: string;
   /** @minLength 10 */
   prompt: string;
+  provider?: LlmProvider;
 }
 
 export interface HarnessF2Input {
   sessionId: string;
   tuple: AtomicPromptTuple;
+  provider?: LlmProvider;
 }
 
 export interface HarnessF3Input {
   sessionId: string;
   atomicPrompt: AtomicPromptTuple;
   intent?: string;
+  provider?: LlmProvider;
 }
 
 export type MaClassificationPhase = typeof MaClassificationPhase[keyof typeof MaClassificationPhase];
@@ -500,6 +521,7 @@ export interface HarnessF4Input {
   sessionId: string;
   sourceArtifactId: string;
   targetVibe: string;
+  provider?: LlmProvider;
 }
 
 export interface MicroPdd {
@@ -522,6 +544,7 @@ export interface HarnessF5Input {
   step?: number;
   answers?: HarnessF5InputAnswers;
   finalize?: boolean;
+  provider?: LlmProvider;
 }
 
 export interface SpcSection {
@@ -574,6 +597,7 @@ export interface HarnessF6Input {
   sourceArtifactId?: string | null;
   /** @nullable */
   brief?: string | null;
+  provider?: LlmProvider;
 }
 
 export interface AtlasPdd {
@@ -588,6 +612,7 @@ export interface AtlasPdd {
 export interface HarnessF6VdjInput {
   sessionId: string;
   pddArtifactId: string;
+  provider?: LlmProvider;
 }
 
 export type VdjRecommendationAlternativesItem = {
@@ -605,6 +630,7 @@ export interface VdjRecommendation {
 export interface HarnessF7Input {
   sessionId: string;
   pddArtifactId: string;
+  provider?: LlmProvider;
 }
 
 export type SpartanCertClass = typeof SpartanCertClass[keyof typeof SpartanCertClass];
@@ -868,6 +894,7 @@ export interface HarnessEvolveInput {
      * @maxItems 12
      */
   maArtifactIds: string[];
+  provider?: LlmProvider;
 }
 
 /**

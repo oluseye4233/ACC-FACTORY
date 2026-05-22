@@ -9,15 +9,31 @@ import {
   harnessFeatureStateTable,
   harnessEscalationsTable,
   harnessEngineRunsTable,
+  LLM_PROVIDERS,
   type ArtifactType,
+  type LlmProvider,
 } from "@workspace/db";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
-import type { Request } from "express";
+import {
+  getOpenAi,
+  OpenAiIntegrationNotConfiguredError,
+} from "@workspace/integrations-openai-ai";
+import {
+  getGemini,
+  GeminiIntegrationNotConfiguredError,
+} from "@workspace/integrations-gemini-ai";
+import type { Request, Response } from "express";
 import { computeCostUsd } from "../lib/pricing";
 import { logger } from "../lib/logger";
 
-// Sonnet 4 generation; per skill rules — max_tokens minimum 8192.
-export const MODEL = "claude-sonnet-4-6";
+// Provider-specific default models.
+export const PROVIDER_MODELS: Record<LlmProvider, string> = {
+  claude: "claude-sonnet-4-6",
+  openai: "gpt-5.4",
+  gemini: "gemini-3.1-pro-preview",
+};
+// Legacy export — Anthropic-only callers still reference MODEL.
+export const MODEL = PROVIDER_MODELS.claude;
 export const MAX_TOKENS = 8192;
 
 export type CertTier = "BRONZE" | "SILVER" | "GOLD" | "PLATINUM" | "NONE";
@@ -30,9 +46,6 @@ export interface RunContext {
 }
 
 export function certTierForJcse(total: number): CertTier {
-  // Canonical HIVE 14-D certification bands (per GENERAL_TECHNICAL_TERMS_REGISTRY
-  // v1.0 §3 / MASTER_SPC_PLATFORM_REGISTRY v1.0). Hard deployment gate is 45+
-  // (Ultra-Premium territory) but the tier labels themselves are the HIVE bands.
   if (total >= 48) return "PLATINUM";
   if (total >= 43) return "GOLD";
   if (total >= 36) return "SILVER";
@@ -43,18 +56,28 @@ export function certTierForJcse(total: number): CertTier {
 export async function ownedSessionOr404(
   req: Request,
   sessionId: string,
-): Promise<{ ok: true; userId: string } | { ok: false; status: number; error: string }> {
+): Promise<
+  | { ok: true; userId: string; preferredModelProvider: LlmProvider }
+  | { ok: false; status: number; error: string }
+> {
   const userId = req.localUser?.id;
   if (!userId) return { ok: false, status: 401, error: "Unauthorized" };
   const rows = await db
-    .select({ id: harnessSessionsTable.id })
+    .select({
+      id: harnessSessionsTable.id,
+      preferredModelProvider: harnessSessionsTable.preferredModelProvider,
+    })
     .from(harnessSessionsTable)
     .where(
       and(eq(harnessSessionsTable.id, sessionId), eq(harnessSessionsTable.userId, userId)),
     )
     .limit(1);
   if (rows.length === 0) return { ok: false, status: 404, error: "Session not found" };
-  return { ok: true, userId };
+  return {
+    ok: true,
+    userId,
+    preferredModelProvider: rows[0]!.preferredModelProvider as LlmProvider,
+  };
 }
 
 export async function loadArtifact(
@@ -103,14 +126,8 @@ export async function persistArtifact(
       spartanCert: input.spartanCert ?? null,
     })
     .returning();
-  // Best-effort: upsert Context Craft mini-quest badges from pillar sub-scores.
-  // Only F1/F2 artifacts carry a per-pillar `jcse` breakdown; the awarder is a
-  // no-op otherwise.
   maybeAwardContextCraftBadges(input.userId, row!.id, input.artifactContent).catch(
-    () => {
-      // Swallowed: awarder is best-effort and already logs internally; never
-      // surface a rejection that could trip the global unhandledRejection hook.
-    },
+    () => {},
   );
   return row!;
 }
@@ -160,52 +177,226 @@ export async function recordEscalation(
 
 async function recordRun(
   ctx: RunContext,
+  provider: LlmProvider,
+  modelId: string,
   inputTokens: number,
   outputTokens: number,
   durationMs: number,
 ): Promise<void> {
   try {
-    const cost = computeCostUsd(MODEL, inputTokens, outputTokens);
+    const cost = computeCostUsd(modelId, inputTokens, outputTokens);
     await db.insert(harnessEngineRunsTable).values({
       sessionId: ctx.sessionId,
       userId: ctx.userId,
       engineId: ctx.engineId,
-      modelId: MODEL,
+      provider,
+      modelId,
       inputTokens,
       outputTokens,
       costUsd: cost.toFixed(6),
       durationMs,
     });
   } catch (err) {
-    // Telemetry must never break a request.
     logger.warn({ err }, "Failed to record harness_engine_runs row");
   }
 }
 
-/** Call Anthropic with a system+user prompt; return the raw assistant text. */
-export async function callClaude(
+// ─── Provider resolution + tier gate ──────────────────────────────────────
+
+const PROVIDER_SET = new Set<string>(LLM_PROVIDERS);
+
+export function isLlmProvider(v: unknown): v is LlmProvider {
+  return typeof v === "string" && PROVIDER_SET.has(v);
+}
+
+export class ProviderRequiresTierError extends Error {
+  readonly code = "PROVIDER_REQUIRES_TIER";
+  constructor(public provider: LlmProvider) {
+    super(`Provider '${provider}' requires PRACTITIONER tier or higher.`);
+  }
+}
+
+/** Raised when the selected provider's integration env vars are missing. */
+export class ProviderNotConfiguredError extends Error {
+  readonly code = "PROVIDER_NOT_CONFIGURED";
+  constructor(public provider: LlmProvider, message: string) {
+    super(message);
+  }
+}
+
+/**
+ * Resolve the LLM provider for a request:
+ *   1. explicit body.provider (if valid)
+ *   2. session.preferredModelProvider
+ *   3. fallback to "claude"
+ *
+ * Then enforce tier: Explorer is hard-locked to Claude. Any non-claude
+ * choice from an Explorer throws `ProviderRequiresTierError`.
+ */
+export function resolveProvider(
+  req: Request,
+  bodyProvider: unknown,
+  sessionPreferred: LlmProvider,
+): LlmProvider {
+  const requested: LlmProvider = isLlmProvider(bodyProvider)
+    ? bodyProvider
+    : sessionPreferred;
+  const tier = req.subscriber?.tier ?? "EXPLORER";
+  if (requested !== "claude" && tier === "EXPLORER") {
+    throw new ProviderRequiresTierError(requested);
+  }
+  return requested;
+}
+
+/**
+ * Send the typed 403 for ProviderRequiresTierError; returns true if handled.
+ * Engines call this from their try/catch around resolveProvider.
+ */
+export function sendProviderTierError(res: Response, err: unknown): boolean {
+  if (err instanceof ProviderRequiresTierError) {
+    res.status(403).json({
+      error: "PROVIDER_REQUIRES_TIER",
+      code: "PROVIDER_REQUIRES_TIER",
+      detail: err.message,
+      provider: err.provider,
+    });
+    return true;
+  }
+  if (err instanceof ProviderNotConfiguredError) {
+    res.status(503).json({
+      error: "PROVIDER_NOT_CONFIGURED",
+      code: "PROVIDER_NOT_CONFIGURED",
+      detail: err.message,
+      provider: err.provider,
+    });
+    return true;
+  }
+  return false;
+}
+
+// ─── Generic LLM call layer ───────────────────────────────────────────────
+
+async function callClaudeImpl(
   systemPrompt: string,
   userPrompt: string,
-  ctx?: RunContext,
-): Promise<string> {
-  const start = Date.now();
+): Promise<{ text: string; inputTokens: number; outputTokens: number; modelId: string }> {
+  const modelId = PROVIDER_MODELS.claude;
   const message = await anthropic.messages.create({
-    model: MODEL,
+    model: modelId,
     max_tokens: MAX_TOKENS,
     system: systemPrompt,
     messages: [{ role: "user", content: userPrompt }],
   });
+  const block = message.content[0];
+  const text = block && block.type === "text" ? block.text : "";
+  return {
+    text,
+    inputTokens: message.usage?.input_tokens ?? 0,
+    outputTokens: message.usage?.output_tokens ?? 0,
+    modelId,
+  };
+}
+
+async function callOpenAIImpl(
+  systemPrompt: string,
+  userPrompt: string,
+  jsonMode: boolean,
+): Promise<{ text: string; inputTokens: number; outputTokens: number; modelId: string }> {
+  const modelId = PROVIDER_MODELS.openai;
+  let client;
+  try {
+    client = getOpenAi();
+  } catch (err) {
+    if (err instanceof OpenAiIntegrationNotConfiguredError) {
+      throw new ProviderNotConfiguredError("openai", err.message);
+    }
+    throw err;
+  }
+  const completion = await client.chat.completions.create({
+    model: modelId,
+    max_completion_tokens: MAX_TOKENS,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    ...(jsonMode ? { response_format: { type: "json_object" as const } } : {}),
+  });
+  const text = completion.choices[0]?.message?.content ?? "";
+  return {
+    text,
+    inputTokens: completion.usage?.prompt_tokens ?? 0,
+    outputTokens: completion.usage?.completion_tokens ?? 0,
+    modelId,
+  };
+}
+
+async function callGeminiImpl(
+  systemPrompt: string,
+  userPrompt: string,
+  jsonMode: boolean,
+): Promise<{ text: string; inputTokens: number; outputTokens: number; modelId: string }> {
+  const modelId = PROVIDER_MODELS.gemini;
+  let client;
+  try {
+    client = getGemini();
+  } catch (err) {
+    if (err instanceof GeminiIntegrationNotConfiguredError) {
+      throw new ProviderNotConfiguredError("gemini", err.message);
+    }
+    throw err;
+  }
+  const response = await client.models.generateContent({
+    model: modelId,
+    contents: userPrompt,
+    config: {
+      systemInstruction: systemPrompt,
+      maxOutputTokens: MAX_TOKENS,
+      ...(jsonMode ? { responseMimeType: "application/json" } : {}),
+    },
+  });
+  const text = response.text ?? "";
+  const usage = response.usageMetadata;
+  return {
+    text,
+    inputTokens: usage?.promptTokenCount ?? 0,
+    outputTokens: usage?.candidatesTokenCount ?? 0,
+    modelId,
+  };
+}
+
+export async function callLlm(
+  provider: LlmProvider,
+  systemPrompt: string,
+  userPrompt: string,
+  ctx?: RunContext,
+  opts?: { jsonMode?: boolean },
+): Promise<string> {
+  const start = Date.now();
+  const jsonMode = opts?.jsonMode ?? false;
+  let result: { text: string; inputTokens: number; outputTokens: number; modelId: string };
+  switch (provider) {
+    case "openai":
+      result = await callOpenAIImpl(systemPrompt, userPrompt, jsonMode);
+      break;
+    case "gemini":
+      result = await callGeminiImpl(systemPrompt, userPrompt, jsonMode);
+      break;
+    case "claude":
+    default:
+      result = await callClaudeImpl(systemPrompt, userPrompt);
+      break;
+  }
   if (ctx) {
     await recordRun(
       ctx,
-      message.usage?.input_tokens ?? 0,
-      message.usage?.output_tokens ?? 0,
+      provider,
+      result.modelId,
+      result.inputTokens,
+      result.outputTokens,
       Date.now() - start,
     );
   }
-  const block = message.content[0];
-  if (!block || block.type !== "text") return "";
-  return block.text;
+  return result.text;
 }
 
 /** Extract the first JSON object/array from a string (tolerates stray prose). */
@@ -233,14 +424,14 @@ export function extractJson(raw: string): unknown {
   throw new Error(`Failed to parse engine JSON response. Raw head: ${raw.slice(0, 200)}`);
 }
 
-/** Call Claude and parse JSON, validated against the provided Zod schema. */
-export async function callClaudeJson<T>(
+export async function callLlmJson<T>(
+  provider: LlmProvider,
   systemPrompt: string,
   userPrompt: string,
   schema: z.ZodType<T>,
   ctx?: RunContext,
 ): Promise<T> {
-  const raw = await callClaude(systemPrompt, userPrompt, ctx);
+  const raw = await callLlm(provider, systemPrompt, userPrompt, ctx, { jsonMode: true });
   const parsed = extractJson(raw);
   const result = schema.safeParse(parsed);
   if (!result.success) {
@@ -249,6 +440,27 @@ export async function callClaudeJson<T>(
     );
   }
   return result.data;
+}
+
+// ─── Legacy wrappers (Anthropic-only callers) ─────────────────────────────
+
+/** @deprecated Use callLlm(provider, …) instead. */
+export async function callClaude(
+  systemPrompt: string,
+  userPrompt: string,
+  ctx?: RunContext,
+): Promise<string> {
+  return callLlm("claude", systemPrompt, userPrompt, ctx);
+}
+
+/** @deprecated Use callLlmJson(provider, …) instead. */
+export async function callClaudeJson<T>(
+  systemPrompt: string,
+  userPrompt: string,
+  schema: z.ZodType<T>,
+  ctx?: RunContext,
+): Promise<T> {
+  return callLlmJson("claude", systemPrompt, userPrompt, schema, ctx);
 }
 
 /** Generate a SPARTAN cert ID. Format: SPARTAN-<YYYYMMDD>-<short-uuid>. */

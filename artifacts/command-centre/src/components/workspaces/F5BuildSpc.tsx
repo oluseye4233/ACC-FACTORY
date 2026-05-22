@@ -11,6 +11,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { WorkspaceShell, ErrorBanner } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
+import {
+  ProviderOverride,
+  overrideToBody,
+  type OverrideValue,
+} from "@/components/shared/ProviderOverride";
 import { extractApiError } from "@/lib/sse";
 import { Download, Send } from "lucide-react";
 import { downloadZip } from "@/lib/zipExport";
@@ -48,6 +53,8 @@ export function F5BuildSpc({ sessionId }: Props) {
   const [spc, setSpc] = useState<Spc | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [providerOverride, setProviderOverride] =
+    useState<OverrideValue>("session");
 
   useEffect(() => {
     try {
@@ -102,7 +109,7 @@ export function F5BuildSpc({ sessionId }: Props) {
   const start = () => {
     setTranscript([]);
     setSpc(undefined);
-    m.mutate({ data: { sessionId } });
+    m.mutate({ data: { sessionId, ...overrideToBody(providerOverride) } });
   };
 
   const submit = () => {
@@ -123,6 +130,7 @@ export function F5BuildSpc({ sessionId }: Props) {
         step: currentStep,
         answers,
         finalize,
+        ...overrideToBody(providerOverride),
       },
     });
   };
@@ -154,6 +162,12 @@ export function F5BuildSpc({ sessionId }: Props) {
               FORGE 7-Step Indicator
             </h4>
             <div className="flex gap-2">
+              <ProviderOverride
+                value={providerOverride}
+                onChange={setProviderOverride}
+                disabled={m.isPending}
+                testId="f5-provider"
+              />
               {currentStep === 0 && (
                 <Button
                   data-testid="f5-start"

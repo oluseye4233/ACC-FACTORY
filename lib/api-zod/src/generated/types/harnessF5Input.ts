@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { HarnessF5InputAnswers } from './harnessF5InputAnswers';
+import type { LlmProvider } from './llmProvider';
 
 export interface HarnessF5Input {
   sessionId: string;
@@ -16,4 +17,5 @@ export interface HarnessF5Input {
   step?: number;
   answers?: HarnessF5InputAnswers;
   finalize?: boolean;
+  provider?: LlmProvider;
 }

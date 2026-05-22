@@ -4,10 +4,12 @@ import { HarnessF1Body } from "@workspace/api-zod";
 import { F1_SYSTEM } from "./prompts";
 import {
   advanceFeatureState,
-  callClaudeJson,
+  callLlmJson,
   certTierForJcse,
   ownedSessionOr404,
   persistArtifact,
+  resolveProvider,
+  sendProviderTierError,
 } from "./shared";
 
 const Pillar = z.enum(["SYSTEM", "ROLE", "INSTRUCTION", "EXAMPLE", "CONSTRAINT", "FORMAT", "DATA"]);
@@ -52,21 +54,29 @@ export async function handleF1(req: Request, res: Response): Promise<void> {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { sessionId, prompt } = parsed.data;
+  const { sessionId, prompt, provider: bodyProvider } = parsed.data;
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
     return;
   }
+  let provider;
+  try {
+    provider = resolveProvider(req, bodyProvider, guard.preferredModelProvider);
+  } catch (err) {
+    if (sendProviderTierError(res, err)) return;
+    throw err;
+  }
   const userPrompt = `Diagnose this user prompt against the 7 Context Craft pillars.\n\n<<<USER_PROMPT>>>\n${prompt}\n<<<END_USER_PROMPT>>>`;
   let out: z.infer<typeof F1OutputSchema>;
   try {
-    out = await callClaudeJson(F1_SYSTEM, userPrompt, F1OutputSchema, {
+    out = await callLlmJson(provider, F1_SYSTEM, userPrompt, F1OutputSchema, {
       sessionId,
       userId: guard.userId,
       engineId: 1,
     });
   } catch (err) {
+    if (sendProviderTierError(res, err)) return;
     req.log.error({ err }, "F1 engine call failed");
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });
     return;

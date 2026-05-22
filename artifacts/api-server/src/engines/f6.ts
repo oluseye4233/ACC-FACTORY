@@ -4,10 +4,12 @@ import { HarnessF6Body } from "@workspace/api-zod";
 import { F6_SYSTEM } from "./prompts";
 import {
   advanceFeatureState,
-  callClaudeJson,
+  callLlmJson,
   loadArtifact,
   ownedSessionOr404,
   persistArtifact,
+  resolveProvider,
+  sendProviderTierError,
 } from "./shared";
 
 const F6OutputSchema = z.object({
@@ -23,11 +25,18 @@ export async function handleF6(req: Request, res: Response): Promise<void> {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { sessionId, mode, sourceArtifactId, brief } = parsed.data;
+  const { sessionId, mode, sourceArtifactId, brief, provider: bodyProvider } = parsed.data;
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
     return;
+  }
+  let provider;
+  try {
+    provider = resolveProvider(req, bodyProvider, guard.preferredModelProvider);
+  } catch (err) {
+    if (sendProviderTierError(res, err)) return;
+    throw err;
   }
 
   let userPrompt: string;
@@ -56,12 +65,13 @@ export async function handleF6(req: Request, res: Response): Promise<void> {
 
   let out: z.infer<typeof F6OutputSchema>;
   try {
-    out = await callClaudeJson(F6_SYSTEM, userPrompt, F6OutputSchema, {
+    out = await callLlmJson(provider, F6_SYSTEM, userPrompt, F6OutputSchema, {
       sessionId,
       userId: guard.userId,
       engineId: 6,
     });
   } catch (err) {
+    if (sendProviderTierError(res, err)) return;
     req.log.error({ err }, "F6 engine call failed");
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });
     return;

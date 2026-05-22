@@ -4,9 +4,11 @@ import { HarnessF5Body } from "@workspace/api-zod";
 import { F5_QUESTION_SYSTEM, F5_FINALIZE_SYSTEM } from "./prompts";
 import {
   advanceFeatureState,
-  callClaudeJson,
+  callLlmJson,
   ownedSessionOr404,
   persistArtifact,
+  resolveProvider,
+  sendProviderTierError,
 } from "./shared";
 
 const TOTAL_STEPS = 7;
@@ -44,11 +46,18 @@ export async function handleF5(req: Request, res: Response): Promise<void> {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { sessionId, step, answers, finalize } = parsed.data;
+  const { sessionId, step, answers, finalize, provider: bodyProvider } = parsed.data;
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
     return;
+  }
+  let provider;
+  try {
+    provider = resolveProvider(req, bodyProvider, guard.preferredModelProvider);
+  } catch (err) {
+    if (sendProviderTierError(res, err)) return;
+    throw err;
   }
 
   const accumulated = (answers ?? {}) as Record<string, unknown>;
@@ -56,13 +65,15 @@ export async function handleF5(req: Request, res: Response): Promise<void> {
   if (finalize) {
     let spc: z.infer<typeof SpcOutputSchema>;
     try {
-      spc = await callClaudeJson(
+      spc = await callLlmJson(
+        provider,
         F5_FINALIZE_SYSTEM,
         `Accumulated FORGE 7-step answers:\n${JSON.stringify(accumulated, null, 2)}`,
         SpcOutputSchema,
         { sessionId, userId: guard.userId, engineId: 5 },
       );
     } catch (err) {
+      if (sendProviderTierError(res, err)) return;
       req.log.error({ err }, "F5 finalize failed");
       res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });
       return;
@@ -88,13 +99,15 @@ export async function handleF5(req: Request, res: Response): Promise<void> {
   const nextStep = Math.max(1, Math.min(TOTAL_STEPS, (step ?? 0) + 1));
   let q: z.infer<typeof QuestionOutputSchema>;
   try {
-    q = await callClaudeJson(
+    q = await callLlmJson(
+      provider,
       F5_QUESTION_SYSTEM,
       `Current step: ${nextStep} of ${TOTAL_STEPS}.\nAnswers so far:\n${JSON.stringify(accumulated, null, 2)}`,
       QuestionOutputSchema,
       { sessionId, userId: guard.userId, engineId: 5 },
     );
   } catch (err) {
+    if (sendProviderTierError(res, err)) return;
     req.log.error({ err }, "F5 question failed");
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });
     return;

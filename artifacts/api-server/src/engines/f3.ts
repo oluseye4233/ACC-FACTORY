@@ -4,10 +4,14 @@ import { HarnessF3StreamBody } from "@workspace/api-zod";
 import { F3_SYSTEM } from "./prompts";
 import {
   advanceFeatureState,
-  callClaudeJson,
+  callLlmJson,
   ownedSessionOr404,
   persistArtifact,
   recordEscalation,
+  resolveProvider,
+  sendProviderTierError,
+  ProviderRequiresTierError,
+  ProviderNotConfiguredError,
 } from "./shared";
 
 const ORGANELLES = [
@@ -52,11 +56,18 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { sessionId, atomicPrompt, intent } = parsed.data;
+  const { sessionId, atomicPrompt, intent, provider: bodyProvider } = parsed.data;
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
     return;
+  }
+  let provider;
+  try {
+    provider = resolveProvider(req, bodyProvider, guard.preferredModelProvider);
+  } catch (err) {
+    if (sendProviderTierError(res, err)) return;
+    throw err;
   }
 
   res.setHeader("Content-Type", "text/event-stream");
@@ -78,7 +89,7 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
   // package in parallel.
   const llmPromise = (async () => {
     const userPrompt = `Atomic Prompt:\n${JSON.stringify(atomicPrompt, null, 2)}\n\nIntent: ${intent ?? "(none provided)"}`;
-    return callClaudeJson(F3_SYSTEM, userPrompt, F3OutputSchema, {
+    return callLlmJson(provider, F3_SYSTEM, userPrompt, F3OutputSchema, {
       sessionId,
       userId: guard.userId,
       engineId: 3,
@@ -99,8 +110,18 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
   try {
     out = await llmPromise;
   } catch (err) {
-    req.log.error({ err }, "F3 engine call failed");
-    send("error", { error: "Engine call failed", detail: (err as Error).message });
+    const code =
+      err instanceof ProviderRequiresTierError
+        ? "PROVIDER_REQUIRES_TIER"
+        : err instanceof ProviderNotConfiguredError
+          ? "PROVIDER_NOT_CONFIGURED"
+          : "ENGINE_CALL_FAILED";
+    const provider =
+      err instanceof ProviderRequiresTierError || err instanceof ProviderNotConfiguredError
+        ? err.provider
+        : undefined;
+    req.log.error({ err, code }, "F3 engine call failed");
+    send("error", { error: code, code, provider, detail: (err as Error).message });
     if (!clientClosed) res.end();
     return;
   }

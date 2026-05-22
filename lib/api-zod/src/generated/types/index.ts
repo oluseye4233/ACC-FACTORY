@@ -69,6 +69,7 @@ export * from './ingestStartSessionInput';
 export * from './jcseBreakdown';
 export * from './listMyPromptsKind';
 export * from './listMyPromptsParams';
+export * from './llmProvider';
 export * from './maBirthPackage';
 export * from './maBirthPackageBirthPackage';
 export * from './maBirthPackageOrganellesItem';

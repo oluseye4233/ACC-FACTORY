@@ -5,9 +5,11 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { LlmProvider } from './llmProvider';
 
 export interface HarnessF4Input {
   sessionId: string;
   sourceArtifactId: string;
   targetVibe: string;
+  provider?: LlmProvider;
 }

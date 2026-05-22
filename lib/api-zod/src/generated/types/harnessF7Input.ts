@@ -5,8 +5,10 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { LlmProvider } from './llmProvider';
 
 export interface HarnessF7Input {
   sessionId: string;
   pddArtifactId: string;
+  provider?: LlmProvider;
 }

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CodeDjPlatform } from './codeDjPlatform';
+import type { LlmProvider } from './llmProvider';
 
 export interface HarnessF8Input {
   sessionId: string;
@@ -16,4 +17,5 @@ export interface HarnessF8Input {
      * @maxLength 2000
      */
   notes?: string;
+  provider?: LlmProvider;
 }

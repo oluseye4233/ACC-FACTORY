@@ -12,6 +12,11 @@ import { Card } from "@/components/ui/card";
 import { JCSECounter } from "@/components/shared/JCSECounter";
 import { CertTierChip } from "@/components/shared/CertTierChip";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
+import {
+  ProviderOverride,
+  overrideToBody,
+  type OverrideValue,
+} from "@/components/shared/ProviderOverride";
 import { extractApiError } from "@/lib/sse";
 import { Cpu, Activity, Sparkles, TriangleAlert } from "lucide-react";
 
@@ -25,6 +30,8 @@ export function F1TestPrompt({ sessionId, latest }: Props) {
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState<PromptDiagnostic | undefined>(latest);
   const [error, setError] = useState<string | null>(null);
+  const [providerOverride, setProviderOverride] =
+    useState<OverrideValue>("session");
 
   const m = useHarnessF1({
     mutation: {
@@ -44,7 +51,9 @@ export function F1TestPrompt({ sessionId, latest }: Props) {
       return;
     }
     setError(null);
-    m.mutate({ data: { sessionId, prompt } });
+    m.mutate({
+      data: { sessionId, prompt, ...overrideToBody(providerOverride) },
+    });
   };
 
   return (
@@ -65,14 +74,22 @@ export function F1TestPrompt({ sessionId, latest }: Props) {
             className="flex-1 font-mono text-sm resize-none min-h-[280px] bg-background/50"
           />
           {error && <ErrorBanner message={error} />}
-          <Button
-            data-testid="f1-analyse"
-            onClick={onAnalyse}
-            disabled={m.isPending}
-            className="font-display tracking-wider"
-          >
-            {m.isPending ? "ANALYSING..." : "ANALYSE"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <ProviderOverride
+              value={providerOverride}
+              onChange={setProviderOverride}
+              disabled={m.isPending}
+              testId="f1-provider"
+            />
+            <Button
+              data-testid="f1-analyse"
+              onClick={onAnalyse}
+              disabled={m.isPending}
+              className="font-display tracking-wider flex-1"
+            >
+              {m.isPending ? "ANALYSING..." : "ANALYSE"}
+            </Button>
+          </div>
         </Card>
 
         <div className="flex flex-col gap-4 min-h-0">

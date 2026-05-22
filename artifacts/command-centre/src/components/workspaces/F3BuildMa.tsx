@@ -15,6 +15,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
+import {
+  ProviderOverride,
+  overrideToBody,
+  type OverrideValue,
+} from "@/components/shared/ProviderOverride";
 import { streamSse, extractApiError } from "@/lib/sse";
 import { Hexagon, ShieldAlert, Radio } from "lucide-react";
 
@@ -120,6 +125,8 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
   const [escalated, setEscalated] = useState(false);
   const [pkg, setPkg] = useState<MaBirthPackage | undefined>();
   const [error, setError] = useState<string | null>(null);
+  const [providerOverride, setProviderOverride] =
+    useState<OverrideValue>("session");
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -146,7 +153,12 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
     try {
       await streamSse(
         getHarnessF3StreamUrl(),
-        { sessionId, atomicPrompt: tuple, intent: intent || undefined },
+        {
+          sessionId,
+          atomicPrompt: tuple,
+          intent: intent || undefined,
+          ...overrideToBody(providerOverride),
+        },
         (e) => {
           if (e.event === "organelle") {
             const o = e.data as Organelle;
@@ -214,6 +226,12 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
               onChange={(e) => setIntent(e.target.value)}
               placeholder="Optional: declare seed intent..."
               className="flex-1 font-mono text-xs bg-background/50 min-w-[200px]"
+            />
+            <ProviderOverride
+              value={providerOverride}
+              onChange={setProviderOverride}
+              disabled={running}
+              testId="f3-provider"
             />
             <Button
               data-testid="f3-activate"

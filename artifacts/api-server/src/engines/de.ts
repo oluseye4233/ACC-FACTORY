@@ -3,10 +3,12 @@ import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod/v4";
 import { db, harnessArtifactsTable } from "@workspace/db";
 import {
-  callClaudeJson,
+  callLlmJson,
   certTierForJcse,
   ownedSessionOr404,
   persistArtifact,
+  resolveProvider,
+  sendProviderTierError,
   type RunContext,
 } from "./shared";
 import { logger } from "../lib/logger";
@@ -61,6 +63,7 @@ const DeSpcSchema = z.object({
 const EvolveBody = z.object({
   sessionId: z.string().uuid(),
   maArtifactIds: z.array(z.string().uuid()).min(2).max(12),
+  provider: z.enum(["claude", "openai", "gemini"]).optional(),
 });
 
 export async function handleEvolve(req: Request, res: Response): Promise<void> {
@@ -69,11 +72,18 @@ export async function handleEvolve(req: Request, res: Response): Promise<void> {
     res.status(400).json({ error: "Invalid body", detail: parsed.error.message });
     return;
   }
-  const { sessionId, maArtifactIds } = parsed.data;
+  const { sessionId, maArtifactIds, provider: bodyProvider } = parsed.data;
   const owns = await ownedSessionOr404(req, sessionId);
   if (!owns.ok) {
     res.status(owns.status).json({ error: owns.error });
     return;
+  }
+  let provider;
+  try {
+    provider = resolveProvider(req, bodyProvider, owns.preferredModelProvider);
+  } catch (err) {
+    if (sendProviderTierError(res, err)) return;
+    throw err;
   }
   const mas = await db
     .select()
@@ -102,8 +112,9 @@ export async function handleEvolve(req: Request, res: Response): Promise<void> {
   const ctx: RunContext = { sessionId, userId: owns.userId, engineId: 8 };
   let synth;
   try {
-    synth = await callClaudeJson(DE_SYSTEM, userPrompt, DeSpcSchema, ctx);
+    synth = await callLlmJson(provider, DE_SYSTEM, userPrompt, DeSpcSchema, ctx);
   } catch (err) {
+    if (sendProviderTierError(res, err)) return;
     logger.error({ err, sessionId }, "DE-SPC synthesis failed");
     res.status(502).json({ error: "DE-SPC synthesis failed", detail: String((err as Error).message) });
     return;

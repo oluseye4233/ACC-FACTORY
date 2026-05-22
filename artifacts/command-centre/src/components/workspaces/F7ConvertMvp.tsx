@@ -21,6 +21,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CertTierChip } from "@/components/shared/CertTierChip";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
+import {
+  ProviderOverride,
+  overrideToBody,
+  type OverrideValue,
+} from "@/components/shared/ProviderOverride";
 import { useToast } from "@/hooks/use-toast";
 import { streamSse, extractApiError } from "@/lib/sse";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
@@ -61,6 +66,8 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
   const [result, setResult] = useState<MvpPdd | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [providerOverride, setProviderOverride] =
+    useState<OverrideValue>("session");
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -93,7 +100,11 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
     try {
       await streamSse(
         getHarnessF7StreamUrl(),
-        { sessionId, pddArtifactId: sourceId },
+        {
+          sessionId,
+          pddArtifactId: sourceId,
+          ...overrideToBody(providerOverride),
+        },
         (e) => {
           if (e.event === "step") {
             const d = e.data as { name?: string; index?: number };
@@ -164,14 +175,20 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
                 </SelectContent>
               </Select>
             </div>
-            <Button
-              data-testid="f7-compress"
-              onClick={run}
-              disabled={running}
-              className="font-display tracking-wider"
-            >
-              {running ? "COMPRESSING..." : "SPARTAN COMPRESS"}
-            </Button>
+            <div className="flex items-end gap-2">
+              <ProviderOverride
+                value={providerOverride}
+                onChange={setProviderOverride}
+              />
+              <Button
+                data-testid="f7-compress"
+                onClick={run}
+                disabled={running}
+                className="font-display tracking-wider"
+              >
+                {running ? "COMPRESSING..." : "SPARTAN COMPRESS"}
+              </Button>
+            </div>
           </div>
           {error && <div className="mt-3"><ErrorBanner message={error} /></div>}
         </Card>
