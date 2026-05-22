@@ -30,6 +30,13 @@ export function getGemini(): GoogleGenAI {
     apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
     httpOptions: {
       baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
+      // The Replit AI Integrations Gemini proxy serves
+      // `/models/<model>:generateContent` directly under its base URL — it
+      // does NOT route the `/v1beta` (or `/v1`) API-version prefix that
+      // @google/genai appends by default. Setting an explicit empty
+      // apiVersion suppresses that prefix so requests resolve to a
+      // proxy-supported endpoint instead of failing with INVALID_ENDPOINT.
+      apiVersion: "",
     },
   });
   return _client;
