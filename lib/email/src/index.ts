@@ -111,6 +111,35 @@ export function sendBadgeRevoked(args: {
   });
 }
 
+export function sendBadgeRestored(args: {
+  to: string;
+  badgeId: string;
+  badgeName: string;
+  note: string | null;
+  badgesUrl: string;
+}): Promise<EmailResult> {
+  const escapedNote = args.note
+    ? args.note.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    : null;
+  const noteBlock = escapedNote
+    ? `<p>Note from the administrator:</p>
+    <p style="font-family:monospace;background:#0d0d0d;padding:12px;border:1px solid #262626;white-space:pre-wrap;">${escapedNote}</p>`
+    : "";
+  const body = `<p>Good news — an administrator has <strong>restored</strong> your <strong>${args.badgeName}</strong> badge.</p>
+    <p>The earlier revocation has been cleared and the badge is once again marked as CLAIMED on your profile.
+    The original revocation record is preserved in the audit trail.</p>
+    ${noteBlock}
+    <p><a href="${args.badgesUrl}" style="color:#1A6B3A;">View your badges →</a></p>`;
+  const noteText = args.note ? `\nNote: ${args.note}` : "";
+  const text = `Your ${args.badgeName} badge has been restored by an administrator.${noteText}\nView: ${args.badgesUrl}`;
+  return send({
+    to: args.to,
+    subject: `BADGE RESTORED · ${args.badgeId}`,
+    html: wrap("BADGE RESTORED", body),
+    text,
+  });
+}
+
 export function sendSubscriptionCancelled(args: {
   to: string;
   tier: string;

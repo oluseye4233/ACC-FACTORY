@@ -919,6 +919,32 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /admin/badges/restore:
+    post:
+      operationId: adminRestoreBadge
+      tags: [admin]
+      summary: Restore a previously revoked AISE or AISE_BUILD badge (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminRestoreBadgeInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminRestoreBadgeResult" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Badge is not currently revoked
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
   /admin/badges/revocations:
     get:
       operationId: adminListBadgeRevocations
@@ -1856,6 +1882,8 @@ components:
           revokedAt,
           revokedReason,
           revocationCount,
+          restoredAt,
+          restoredNote,
         ]
       properties:
         badgeId: { type: string, enum: [ASPE, AISA, AISE, AISA_PWDD, AISE_BUILD] }
@@ -1869,6 +1897,8 @@ components:
         revokedAt: { type: ["string", "null"], format: date-time }
         revokedReason: { type: ["string", "null"] }
         revocationCount: { type: integer, minimum: 0 }
+        restoredAt: { type: ["string", "null"], format: date-time }
+        restoredNote: { type: ["string", "null"] }
 
     AiseClaimInput:
       type: object
@@ -1905,6 +1935,26 @@ components:
         revokedAt: { type: string, format: date-time }
         reason: { type: string }
         revocationCount: { type: integer, minimum: 1 }
+
+    AdminRestoreBadgeInput:
+      type: object
+      required: [userId, badgeId]
+      properties:
+        userId: { type: string, format: uuid }
+        badgeId: { type: string, enum: [AISE, AISE_BUILD] }
+        note: { type: string, maxLength: 1000 }
+
+    AdminRestoreBadgeResult:
+      type: object
+      required: [ok, userId, badgeId, restoredAt, status, revocationCount]
+      properties:
+        ok: { type: boolean }
+        userId: { type: string, format: uuid }
+        badgeId: { type: string, enum: [AISE, AISE_BUILD] }
+        restoredAt: { type: string, format: date-time }
+        status: { type: string, enum: [CLAIMED] }
+        revocationCount: { type: integer, minimum: 0 }
+        note: { type: string, nullable: true }
 
     BadgeRevocationParty:
       type: object

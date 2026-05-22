@@ -29,6 +29,13 @@ const CLEAR_REVOCATION = {
   revokedByUserId: null,
 } as const;
 
+/** Wipe any prior admin-restore notice (so it doesn't linger on a fresh re-claim). */
+const CLEAR_RESTORATION = {
+  restoredAt: null,
+  restoredByUserId: null,
+  restoredNote: null,
+} as const;
+
 const router: IRouter = Router();
 
 router.get("/me/badges", requireAuth, async (req, res): Promise<void> => {
@@ -125,7 +132,7 @@ router.post("/me/badges/aise/claim", requireAuth, async (req, res): Promise<void
   } else {
     await db
       .update(commandCentreBadgesTable)
-      .set({ status: "CLAIMED", evidence, claimedAt: now, ...CLEAR_REVOCATION })
+      .set({ status: "CLAIMED", evidence, claimedAt: now, ...CLEAR_REVOCATION, ...CLEAR_RESTORATION })
       .where(eq(commandCentreBadgesTable.id, existing[0]!.id));
   }
 
@@ -188,7 +195,7 @@ router.post("/me/badges/engineer", requireAuth, async (req, res): Promise<void> 
   } else {
     await db
       .update(commandCentreBadgesTable)
-      .set({ status: "CLAIMED", evidence, claimedAt: now, ...CLEAR_REVOCATION })
+      .set({ status: "CLAIMED", evidence, claimedAt: now, ...CLEAR_REVOCATION, ...CLEAR_RESTORATION })
       .where(eq(commandCentreBadgesTable.id, existing[0]!.id));
   }
 
@@ -320,6 +327,119 @@ router.post(
       revokedAt: revokedAt.toISOString(),
       reason,
       revocationCount: historyLength,
+    });
+  },
+);
+
+const AdminRestoreBadgeBody = z.object({
+  userId: z.string().uuid(),
+  badgeId: z.enum(["AISE", "AISE_BUILD"]),
+  note: z.string().max(1000).optional(),
+});
+
+router.post(
+  "/admin/badges/restore",
+  requireAuth,
+  requireAdmin,
+  async (req, res): Promise<void> => {
+    const parsed = AdminRestoreBadgeBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Invalid body", detail: parsed.error.message });
+      return;
+    }
+    const { userId, badgeId, note } = parsed.data;
+    const adminUserId = req.localUser!.id;
+
+    const targetRows = await db
+      .select({ id: usersTable.id, email: usersTable.email, displayName: usersTable.displayName })
+      .from(usersTable)
+      .where(eq(usersTable.id, userId))
+      .limit(1);
+    if (targetRows.length === 0) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    const targetUser = targetRows[0]!;
+
+    const existing = await db
+      .select()
+      .from(commandCentreBadgesTable)
+      .where(
+        and(
+          eq(commandCentreBadgesTable.userId, userId),
+          eq(commandCentreBadgesTable.badgeId, badgeId),
+        ),
+      )
+      .limit(1);
+
+    if (existing.length === 0) {
+      res.status(404).json({ error: "Badge not found for that user" });
+      return;
+    }
+
+    const row = existing[0]!;
+    if (row.status !== "REVOKED") {
+      res.status(409).json({ error: "Badge is not currently revoked", status: row.status });
+      return;
+    }
+
+    const restoredAt = new Date();
+
+    // Preserve revoke_history untouched so the audit trail isn't lost.
+    // Persist restored_at / restored_by / restored_note so the user-facing
+    // /me/badges endpoint can surface an in-app "badge restored" notice
+    // (with the admin's optional note) until the user next re-claims.
+    await db
+      .update(commandCentreBadgesTable)
+      .set({
+        status: "CLAIMED",
+        ...CLEAR_REVOCATION,
+        restoredAt,
+        restoredByUserId: adminUserId,
+        restoredNote: note ?? null,
+      })
+      .where(eq(commandCentreBadgesTable.id, row.id));
+
+    const revocationCount = row.revokeHistory?.length ?? 0;
+
+    req.log.info(
+      {
+        event: "badge.restore",
+        adminUserId,
+        targetUserId: userId,
+        badgeId,
+        note: note ?? null,
+        badgeRowId: row.id,
+        restoredAt: restoredAt.toISOString(),
+        priorRevocationCount: revocationCount,
+      },
+      "Admin restored badge",
+    );
+
+    if (targetUser.email) {
+      try {
+        const { sendBadgeRestored } = await import("@workspace/email");
+        const badgesUrl = `${process.env.PUBLIC_BASE_URL ?? ""}/quests`;
+        sendBadgeRestored({
+          to: targetUser.email,
+          badgeId,
+          badgeName: BADGE_DISPLAY_NAMES[badgeId],
+          note: note ?? null,
+          badgesUrl,
+        }).catch((err) => req.log.warn({ err }, "sendBadgeRestored failed"));
+      } catch (err) {
+        req.log.warn({ err }, "sendBadgeRestored import failed");
+      }
+    }
+
+    res.json({
+      ok: true,
+      userId,
+      badgeId,
+      restoredAt: restoredAt.toISOString(),
+      status: "CLAIMED" as const,
+      revocationCount,
+      note: note ?? null,
     });
   },
 );

@@ -975,6 +975,10 @@ export interface BadgeProgress {
   revokedReason: string | null;
   /** @minimum 0 */
   revocationCount: number;
+  /** @nullable */
+  restoredAt: string | null;
+  /** @nullable */
+  restoredNote: string | null;
 }
 
 export interface AiseClaimInput {
@@ -1029,6 +1033,47 @@ export interface AdminRevokeBadgeResult {
   reason: string;
   /** @minimum 1 */
   revocationCount: number;
+}
+
+export type AdminRestoreBadgeInputBadgeId = typeof AdminRestoreBadgeInputBadgeId[keyof typeof AdminRestoreBadgeInputBadgeId];
+
+
+export const AdminRestoreBadgeInputBadgeId = {
+  AISE: 'AISE',
+  AISE_BUILD: 'AISE_BUILD',
+} as const;
+
+export interface AdminRestoreBadgeInput {
+  userId: string;
+  badgeId: AdminRestoreBadgeInputBadgeId;
+  /** @maxLength 1000 */
+  note?: string;
+}
+
+export type AdminRestoreBadgeResultBadgeId = typeof AdminRestoreBadgeResultBadgeId[keyof typeof AdminRestoreBadgeResultBadgeId];
+
+
+export const AdminRestoreBadgeResultBadgeId = {
+  AISE: 'AISE',
+  AISE_BUILD: 'AISE_BUILD',
+} as const;
+
+export type AdminRestoreBadgeResultStatus = typeof AdminRestoreBadgeResultStatus[keyof typeof AdminRestoreBadgeResultStatus];
+
+
+export const AdminRestoreBadgeResultStatus = {
+  CLAIMED: 'CLAIMED',
+} as const;
+
+export interface AdminRestoreBadgeResult {
+  ok: boolean;
+  userId: string;
+  badgeId: AdminRestoreBadgeResultBadgeId;
+  restoredAt: string;
+  status: AdminRestoreBadgeResultStatus;
+  /** @minimum 0 */
+  revocationCount: number;
+  note?: string | null;
 }
 
 export interface BadgeRevocationParty {

@@ -536,6 +536,9 @@ function SeniorBadgesSection({
                 resubmitHint="Re-submit fresh evidence below to restore the badge."
               />
             )}
+            {engineerClaimed && engineer && (
+              <RestorationNotice badge={engineer} testIdPrefix="engineer" />
+            )}
             <div className="mt-4">
               {engineerClaimed ? (
                 <div className="space-y-2 text-xs font-mono">
@@ -592,6 +595,41 @@ function SeniorBadgesSection({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function RestorationNotice({
+  badge,
+  testIdPrefix,
+}: {
+  badge: BadgeProgress;
+  testIdPrefix: string;
+}) {
+  if (!badge.restoredAt) return null;
+  const restoredAt = new Date(badge.restoredAt).toLocaleString();
+  return (
+    <div
+      className="mt-4 p-3 rounded border border-emerald-500/60 bg-emerald-500/10 space-y-2"
+      data-testid={`notice-${testIdPrefix}-restored`}
+    >
+      <div className="flex items-center gap-2 text-emerald-300 font-mono text-xs font-bold tracking-wider">
+        BADGE RESTORED BY ADMIN
+      </div>
+      <div className="text-[10px] font-mono text-muted-foreground">
+        Restored {restoredAt}
+      </div>
+      {badge.restoredNote && (
+        <div
+          className="font-serif text-xs text-foreground/90 whitespace-pre-wrap"
+          data-testid={`text-${testIdPrefix}-restore-note`}
+        >
+          "{badge.restoredNote}"
+        </div>
+      )}
+      <div className="font-mono text-[11px] text-muted-foreground">
+        The previous revocation has been cleared. Your badge is active again — the audit history is preserved.
+      </div>
+    </div>
   );
 }
 
@@ -881,6 +919,9 @@ function AiseClaimCard({
             testIdPrefix="aise"
             resubmitHint="A successful re-submission immediately clears the revoked state."
           />
+        )}
+        {aiseBadge?.status === "CLAIMED" && (
+          <RestorationNotice badge={aiseBadge} testIdPrefix="aise" />
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>

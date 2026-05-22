@@ -22,6 +22,8 @@ import type {
 import type {
   AdminBadgeRevocationsList,
   AdminListBadgeRevocationsParams,
+  AdminRestoreBadgeInput,
+  AdminRestoreBadgeResult,
   AdminRevokeBadgeInput,
   AdminRevokeBadgeResult,
   AiseClaimInput,
@@ -3894,6 +3896,77 @@ export const useAdminRevokeBadge = <TError = ErrorType<ForbiddenResponse | NotFo
         TContext
       > => {
       return useMutation(getAdminRevokeBadgeMutationOptions(options));
+    }
+
+export const getAdminRestoreBadgeUrl = () => {
+
+
+
+
+  return `/api/admin/badges/restore`
+}
+
+/**
+ * @summary Restore a previously revoked AISE or AISE_BUILD badge (admin only)
+ */
+export const adminRestoreBadge = async (adminRestoreBadgeInput: AdminRestoreBadgeInput, options?: RequestInit): Promise<AdminRestoreBadgeResult> => {
+
+  return customFetch<AdminRestoreBadgeResult>(getAdminRestoreBadgeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      adminRestoreBadgeInput,)
+  }
+);}
+
+
+
+
+export const getAdminRestoreBadgeMutationOptions = <TError = ErrorType<ForbiddenResponse | NotFoundResponse | ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRestoreBadge>>, TError,{data: BodyType<AdminRestoreBadgeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminRestoreBadge>>, TError,{data: BodyType<AdminRestoreBadgeInput>}, TContext> => {
+
+const mutationKey = ['adminRestoreBadge'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminRestoreBadge>>, {data: BodyType<AdminRestoreBadgeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  adminRestoreBadge(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminRestoreBadgeMutationResult = NonNullable<Awaited<ReturnType<typeof adminRestoreBadge>>>
+    export type AdminRestoreBadgeMutationBody = BodyType<AdminRestoreBadgeInput>
+    export type AdminRestoreBadgeMutationError = ErrorType<ForbiddenResponse | NotFoundResponse | ErrorResponse>
+
+    /**
+ * @summary Restore a previously revoked AISE or AISE_BUILD badge (admin only)
+ */
+export const useAdminRestoreBadge = <TError = ErrorType<ForbiddenResponse | NotFoundResponse | ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRestoreBadge>>, TError,{data: BodyType<AdminRestoreBadgeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminRestoreBadge>>,
+        TError,
+        {data: BodyType<AdminRestoreBadgeInput>},
+        TContext
+      > => {
+      return useMutation(getAdminRestoreBadgeMutationOptions(options));
     }
 
 export const getAdminListBadgeRevocationsUrl = (params?: AdminListBadgeRevocationsParams,) => {

@@ -28,4 +28,8 @@ export interface BadgeProgress {
   revokedReason: string | null;
   /** @minimum 0 */
   revocationCount: number;
+  /** @nullable */
+  restoredAt: Date | null;
+  /** @nullable */
+  restoredNote: string | null;
 }

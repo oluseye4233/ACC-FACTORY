@@ -35,6 +35,11 @@ export const commandCentreBadgesTable = pgTable(
       .notNull()
       .default(sql`'[]'::jsonb`)
       .$type<BadgeRevocationRecord[]>(),
+    restoredAt: timestamp("restored_at", { withTimezone: true }),
+    restoredByUserId: uuid("restored_by_user_id").references(() => usersTable.id, {
+      onDelete: "set null",
+    }),
+    restoredNote: text("restored_note"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()

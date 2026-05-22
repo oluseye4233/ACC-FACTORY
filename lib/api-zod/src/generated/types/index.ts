@@ -8,6 +8,11 @@
 
 export * from './adminBadgeRevocationsList';
 export * from './adminListBadgeRevocationsParams';
+export * from './adminRestoreBadgeInput';
+export * from './adminRestoreBadgeInputBadgeId';
+export * from './adminRestoreBadgeResult';
+export * from './adminRestoreBadgeResultBadgeId';
+export * from './adminRestoreBadgeResultStatus';
 export * from './adminRevokeBadgeInput';
 export * from './adminRevokeBadgeInputBadgeId';
 export * from './adminRevokeBadgeResult';

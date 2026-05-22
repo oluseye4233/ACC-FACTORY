@@ -124,6 +124,8 @@ export interface BadgeProgress {
   revokedAt: string | null;
   revokedReason: string | null;
   revocationCount: number;
+  restoredAt: string | null;
+  restoredNote: string | null;
 }
 
 export const AISE_DOMAIN_ALLOWLIST: { kind: string; pattern: RegExp }[] = [
@@ -288,6 +290,8 @@ export async function computeBadgeProgress(userId: string): Promise<BadgeProgres
       revokedAt: row?.revokedAt ? row.revokedAt.toISOString() : null,
       revokedReason: row?.revokedReason ?? null,
       revocationCount: Array.isArray(history) ? history.length : 0,
+      restoredAt: row?.restoredAt ? row.restoredAt.toISOString() : null,
+      restoredNote: row?.restoredNote ?? null,
     };
   }
 

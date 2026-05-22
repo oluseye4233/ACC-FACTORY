@@ -1003,7 +1003,9 @@ export const ListMyBadgesResponseItem = zod.object({
   "claimedAt": zod.coerce.date().nullable(),
   "revokedAt": zod.coerce.date().nullable(),
   "revokedReason": zod.string().nullable(),
-  "revocationCount": zod.number().min(listMyBadgesResponseRevocationCountMin)
+  "revocationCount": zod.number().min(listMyBadgesResponseRevocationCountMin),
+  "restoredAt": zod.coerce.date().nullable(),
+  "restoredNote": zod.string().nullable()
 })
 export const ListMyBadgesResponse = zod.array(ListMyBadgesResponseItem)
 
@@ -1034,7 +1036,9 @@ export const ClaimAiseBadgeResponseItem = zod.object({
   "claimedAt": zod.coerce.date().nullable(),
   "revokedAt": zod.coerce.date().nullable(),
   "revokedReason": zod.string().nullable(),
-  "revocationCount": zod.number().min(claimAiseBadgeResponseRevocationCountMin)
+  "revocationCount": zod.number().min(claimAiseBadgeResponseRevocationCountMin),
+  "restoredAt": zod.coerce.date().nullable(),
+  "restoredNote": zod.string().nullable()
 })
 export const ClaimAiseBadgeResponse = zod.array(ClaimAiseBadgeResponseItem)
 
@@ -1067,7 +1071,9 @@ export const ClaimEngineerBadgeResponseItem = zod.object({
   "claimedAt": zod.coerce.date().nullable(),
   "revokedAt": zod.coerce.date().nullable(),
   "revokedReason": zod.string().nullable(),
-  "revocationCount": zod.number().min(claimEngineerBadgeResponseRevocationCountMin)
+  "revocationCount": zod.number().min(claimEngineerBadgeResponseRevocationCountMin),
+  "restoredAt": zod.coerce.date().nullable(),
+  "restoredNote": zod.string().nullable()
 })
 export const ClaimEngineerBadgeResponse = zod.array(ClaimEngineerBadgeResponseItem)
 
@@ -1095,6 +1101,34 @@ export const AdminRevokeBadgeResponse = zod.object({
   "revokedAt": zod.coerce.date(),
   "reason": zod.string(),
   "revocationCount": zod.number().min(1)
+})
+
+
+/**
+ * @summary Restore a previously revoked AISE or AISE_BUILD badge (admin only)
+ */
+export const adminRestoreBadgeBodyNoteMax = 1000;
+
+
+
+export const AdminRestoreBadgeBody = zod.object({
+  "userId": zod.string().uuid(),
+  "badgeId": zod.enum(['AISE', 'AISE_BUILD']),
+  "note": zod.string().max(adminRestoreBadgeBodyNoteMax).optional()
+})
+
+export const adminRestoreBadgeResponseRevocationCountMin = 0;
+
+
+
+export const AdminRestoreBadgeResponse = zod.object({
+  "ok": zod.boolean(),
+  "userId": zod.string().uuid(),
+  "badgeId": zod.enum(['AISE', 'AISE_BUILD']),
+  "restoredAt": zod.coerce.date(),
+  "status": zod.enum(['CLAIMED']),
+  "revocationCount": zod.number().min(adminRestoreBadgeResponseRevocationCountMin),
+  "note": zod.string().nullish()
 })
 
 
