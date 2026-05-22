@@ -203,6 +203,10 @@ export const GetSessionResponse = zod.object({
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
   "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
+  "runDurationMs": zod.number().nullish(),
+  "runInputTokens": zod.number().nullish(),
+  "runOutputTokens": zod.number().nullish(),
+  "runAt": zod.coerce.date().nullish(),
   "createdAt": zod.coerce.date()
 }))
 })
@@ -360,6 +364,10 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
   "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
+  "runDurationMs": zod.number().nullish(),
+  "runInputTokens": zod.number().nullish(),
+  "runOutputTokens": zod.number().nullish(),
+  "runAt": zod.coerce.date().nullish(),
   "createdAt": zod.coerce.date()
 })
 export const ListSessionArtifactsResponse = zod.array(ListSessionArtifactsResponseItem)
@@ -381,6 +389,10 @@ export const GetArtifactResponse = zod.object({
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
   "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
+  "runDurationMs": zod.number().nullish(),
+  "runInputTokens": zod.number().nullish(),
+  "runOutputTokens": zod.number().nullish(),
+  "runAt": zod.coerce.date().nullish(),
   "createdAt": zod.coerce.date()
 })
 
@@ -1139,6 +1151,10 @@ export const HarnessEvolveResponse = zod.object({
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
   "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
+  "runDurationMs": zod.number().nullish(),
+  "runInputTokens": zod.number().nullish(),
+  "runOutputTokens": zod.number().nullish(),
+  "runAt": zod.coerce.date().nullish(),
   "createdAt": zod.coerce.date()
 })
 

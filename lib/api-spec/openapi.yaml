@@ -1343,6 +1343,10 @@ components:
         spartanCert: { type: ["object", "null"], additionalProperties: true }
         provider: { type: ["string", "null"], enum: [claude, openai, gemini, null] }
         modelId: { type: ["string", "null"] }
+        runDurationMs: { type: ["integer", "null"] }
+        runInputTokens: { type: ["integer", "null"] }
+        runOutputTokens: { type: ["integer", "null"] }
+        runAt: { type: ["string", "null"], format: date-time }
         createdAt: { type: string, format: date-time }
 
     JcseBreakdown:

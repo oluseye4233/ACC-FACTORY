@@ -385,6 +385,14 @@ export interface HarnessArtifact {
   provider?: HarnessArtifactProvider;
   /** @nullable */
   modelId?: string | null;
+  /** @nullable */
+  runDurationMs?: number | null;
+  /** @nullable */
+  runInputTokens?: number | null;
+  /** @nullable */
+  runOutputTokens?: number | null;
+  /** @nullable */
+  runAt?: string | null;
   createdAt: string;
 }
 

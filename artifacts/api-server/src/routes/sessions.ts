@@ -4,6 +4,7 @@ import {
   db,
   harnessSessionsTable,
   harnessArtifactsTable,
+  harnessEngineRunsTable,
   harnessFeatureStateTable,
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
@@ -55,7 +56,17 @@ function serializeFeatureState(f: typeof harnessFeatureStateTable.$inferSelect) 
   };
 }
 
-function serializeArtifact(a: typeof harnessArtifactsTable.$inferSelect) {
+export interface ArtifactRunMeta {
+  durationMs: number;
+  inputTokens: number;
+  outputTokens: number;
+  createdAt: Date;
+}
+
+function serializeArtifact(
+  a: typeof harnessArtifactsTable.$inferSelect,
+  run?: ArtifactRunMeta | null,
+) {
   return {
     id: a.id,
     sessionId: a.sessionId,
@@ -68,8 +79,50 @@ function serializeArtifact(a: typeof harnessArtifactsTable.$inferSelect) {
     spartanCert: (a.spartanCert ?? null) as Record<string, unknown> | null,
     provider: a.provider,
     modelId: a.modelId,
+    runDurationMs: run ? run.durationMs : null,
+    runInputTokens: run ? run.inputTokens : null,
+    runOutputTokens: run ? run.outputTokens : null,
+    runAt: run ? run.createdAt.toISOString() : null,
     createdAt: a.createdAt.toISOString(),
   };
+}
+
+async function loadArtifactRunMap(
+  sessionId: string,
+  artifacts: Array<typeof harnessArtifactsTable.$inferSelect>,
+): Promise<Map<string, ArtifactRunMeta>> {
+  const map = new Map<string, ArtifactRunMeta>();
+  if (artifacts.length === 0) return map;
+  const runs = await db
+    .select({
+      engineId: harnessEngineRunsTable.engineId,
+      provider: harnessEngineRunsTable.provider,
+      modelId: harnessEngineRunsTable.modelId,
+      inputTokens: harnessEngineRunsTable.inputTokens,
+      outputTokens: harnessEngineRunsTable.outputTokens,
+      durationMs: harnessEngineRunsTable.durationMs,
+      createdAt: harnessEngineRunsTable.createdAt,
+    })
+    .from(harnessEngineRunsTable)
+    .where(eq(harnessEngineRunsTable.sessionId, sessionId))
+    .orderBy(desc(harnessEngineRunsTable.createdAt));
+  for (const a of artifacts) {
+    const match = runs.find(
+      (r) =>
+        r.createdAt.getTime() <= a.createdAt.getTime() &&
+        (a.provider == null || r.provider === a.provider) &&
+        (a.modelId == null || r.modelId === a.modelId),
+    );
+    if (match) {
+      map.set(a.id, {
+        durationMs: match.durationMs,
+        inputTokens: match.inputTokens,
+        outputTokens: match.outputTokens,
+        createdAt: match.createdAt,
+      });
+    }
+  }
+  return map;
 }
 
 router.get("/sessions", requireAuth, async (req, res): Promise<void> => {
@@ -146,10 +199,11 @@ router.get("/sessions/:id", requireAuth, async (req, res): Promise<void> => {
       .where(eq(harnessArtifactsTable.sessionId, id))
       .orderBy(desc(harnessArtifactsTable.createdAt)),
   ]);
+  const runMap = await loadArtifactRunMap(id, arts);
   res.json({
     session: serializeSession(session),
     featureState: fs.map(serializeFeatureState),
-    artifacts: arts.map(serializeArtifact),
+    artifacts: arts.map((a) => serializeArtifact(a, runMap.get(a.id) ?? null)),
   });
 });
 
@@ -219,8 +273,9 @@ router.get("/sessions/:id/artifacts", requireAuth, async (req, res): Promise<voi
     .from(harnessArtifactsTable)
     .where(eq(harnessArtifactsTable.sessionId, id))
     .orderBy(desc(harnessArtifactsTable.createdAt));
-  res.json(rows.map(serializeArtifact));
+  const runMap = await loadArtifactRunMap(id, rows);
+  res.json(rows.map((a) => serializeArtifact(a, runMap.get(a.id) ?? null)));
 });
 
 export default router;
-export { serializeArtifact, serializeFeatureState };
+export { serializeArtifact, serializeFeatureState, loadArtifactRunMap };

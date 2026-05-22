@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { and, eq } from "drizzle-orm";
 import { db, harnessArtifactsTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
-import { serializeArtifact } from "./sessions";
+import { serializeArtifact, loadArtifactRunMap } from "./sessions";
 
 const router: IRouter = Router();
 
@@ -22,7 +22,9 @@ router.get("/artifacts/:id", requireAuth, async (req, res): Promise<void> => {
     res.status(404).json({ error: "Artifact not found" });
     return;
   }
-  res.json(serializeArtifact(rows[0]!));
+  const artifact = rows[0]!;
+  const runMap = await loadArtifactRunMap(artifact.sessionId, [artifact]);
+  res.json(serializeArtifact(artifact, runMap.get(artifact.id) ?? null));
 });
 
 export default router;
