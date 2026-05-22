@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { JCSECounter } from "@/components/shared/JCSECounter";
 import { CertTierChip } from "@/components/shared/CertTierChip";
+import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { WorkspaceShell, ErrorBanner, PILLAR_LABELS } from "./_shared";
 import {
   ProviderOverride,
@@ -60,6 +61,14 @@ interface Props {
 
 export function F2BuildAtomic({ sessionId, artifacts }: Props) {
   const qc = useQueryClient();
+
+  const latestArtifact = useMemo(
+    () =>
+      artifacts
+        .filter((a) => a.artifactType === ArtifactType.ATOMIC_PROMPT)
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0],
+    [artifacts],
+  );
 
   const f1Source = useMemo(
     () =>
@@ -215,6 +224,15 @@ export function F2BuildAtomic({ sessionId, artifacts }: Props) {
                 </h4>
                 <CertTierChip tier={result.certTier} />
               </div>
+              {latestArtifact?.provider && (
+                <div className="mb-3">
+                  <GeneratedBy
+                    provider={latestArtifact.provider}
+                    modelId={latestArtifact.modelId}
+                    testId="f2-generated-by"
+                  />
+                </div>
+              )}
               <div className="flex items-baseline gap-3">
                 <JCSECounter score={result.jcse.total} size="md" />
                 <div className="grid grid-cols-7 gap-1 flex-1">

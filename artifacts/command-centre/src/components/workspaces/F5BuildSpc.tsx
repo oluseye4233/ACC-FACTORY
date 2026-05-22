@@ -5,10 +5,13 @@ import {
   getListSessionArtifactsQueryKey,
   getListFeatureStateQueryKey,
   Spc,
+  HarnessArtifact,
+  ArtifactType,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { WorkspaceShell, ErrorBanner } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
 import {
@@ -38,11 +41,16 @@ interface QA {
 
 interface Props {
   sessionId: string;
+  artifacts?: HarnessArtifact[];
 }
 
-export function F5BuildSpc({ sessionId }: Props) {
+export function F5BuildSpc({ sessionId, artifacts }: Props) {
   const qc = useQueryClient();
   const storeKey = `f5:${sessionId}`;
+
+  const latestArtifact = (artifacts ?? [])
+    .filter((a) => a.artifactType === ArtifactType.SPC)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
 
   const [transcript, setTranscript] = useState<QA[]>([]);
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -274,9 +282,18 @@ export function F5BuildSpc({ sessionId }: Props) {
 
           <Card className="p-5 bg-card/50 flex flex-col min-h-[400px]">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
-                SPC Preview · 15 Sections
-              </h4>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
+                  SPC Preview · 15 Sections
+                </h4>
+                {spc && latestArtifact?.provider && (
+                  <GeneratedBy
+                    provider={latestArtifact.provider}
+                    modelId={latestArtifact.modelId}
+                    testId="f5-generated-by"
+                  />
+                )}
+              </div>
               {spc && (
                 <Button
                   onClick={exportSpc}

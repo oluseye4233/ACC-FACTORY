@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import {
   ProviderOverride,
@@ -49,6 +50,14 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
       artifacts
         .filter((a) => a.artifactType === ArtifactType.MA_BIRTH_PACKAGE)
         .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)),
+    [artifacts],
+  );
+
+  const latestArtifact = useMemo(
+    () =>
+      artifacts
+        .filter((a) => a.artifactType === ArtifactType.MICRO_PDD)
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0],
     [artifacts],
   );
 
@@ -171,9 +180,18 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
         {result ? (
           <Card className="p-5 bg-card/50 flex-1 flex flex-col min-h-0">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
-                Micro PDD
-              </h4>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
+                  Micro PDD
+                </h4>
+                {latestArtifact?.provider && (
+                  <GeneratedBy
+                    provider={latestArtifact.provider}
+                    modelId={latestArtifact.modelId}
+                    testId="f4-generated-by"
+                  />
+                )}
+              </div>
               <Button
                 onClick={exportZip}
                 size="sm"

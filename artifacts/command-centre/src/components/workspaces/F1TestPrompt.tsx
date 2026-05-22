@@ -1,16 +1,19 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessF1,
   getListSessionArtifactsQueryKey,
   getListFeatureStateQueryKey,
   PromptDiagnostic,
+  HarnessArtifact,
+  ArtifactType,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { JCSECounter } from "@/components/shared/JCSECounter";
 import { CertTierChip } from "@/components/shared/CertTierChip";
+import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import {
   ProviderOverride,
@@ -23,9 +26,17 @@ import { Cpu, Activity, Sparkles, TriangleAlert } from "lucide-react";
 interface Props {
   sessionId: string;
   latest?: PromptDiagnostic;
+  artifacts?: HarnessArtifact[];
 }
 
-export function F1TestPrompt({ sessionId, latest }: Props) {
+export function F1TestPrompt({ sessionId, latest, artifacts }: Props) {
+  const latestArtifact = useMemo(
+    () =>
+      (artifacts ?? [])
+        .filter((a) => a.artifactType === ArtifactType.PROMPT_DIAGNOSTIC)
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0],
+    [artifacts],
+  );
   const qc = useQueryClient();
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState<PromptDiagnostic | undefined>(latest);
@@ -101,6 +112,13 @@ export function F1TestPrompt({ sessionId, latest }: Props) {
             />
           ) : (
             <>
+              {latestArtifact?.provider && (
+                <GeneratedBy
+                  provider={latestArtifact.provider}
+                  modelId={latestArtifact.modelId}
+                  testId="f1-generated-by"
+                />
+              )}
               <Card className="p-5 bg-card/50 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <JCSECounter score={result.jcse.total} size="lg" />

@@ -251,11 +251,11 @@ export default function SessionDetail() {
             {/* STAGE 3 WORKSPACES */}
             {id && (
               <>
-                {activeEngineId === 1 && <F1TestPrompt sessionId={id} />}
+                {activeEngineId === 1 && <F1TestPrompt sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 2 && <F2BuildAtomic sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 3 && <F3BuildMa sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 4 && <F4MicroPdd sessionId={id} artifacts={artifacts || []} />}
-                {activeEngineId === 5 && <F5BuildSpc sessionId={id} />}
+                {activeEngineId === 5 && <F5BuildSpc sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 6 && <F6DraftPdd sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 7 && <F7ConvertMvp sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 9 && <F8CodeDj sessionId={id} artifacts={artifacts || []} />}

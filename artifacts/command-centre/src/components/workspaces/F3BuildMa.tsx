@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import {
   ProviderOverride,
@@ -114,6 +115,14 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
     () =>
       artifacts
         .filter((a) => a.artifactType === ArtifactType.ATOMIC_PROMPT)
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0],
+    [artifacts],
+  );
+
+  const latestArtifact = useMemo(
+    () =>
+      artifacts
+        .filter((a) => a.artifactType === ArtifactType.MA_BIRTH_PACKAGE)
         .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0],
     [artifacts],
   );
@@ -312,9 +321,18 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
 
             {pkg && (
               <Card className="p-5 bg-card/50">
-                <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary mb-3">
-                  Birth Package
-                </h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
+                    Birth Package
+                  </h4>
+                  {latestArtifact?.provider && (
+                    <GeneratedBy
+                      provider={latestArtifact.provider}
+                      modelId={latestArtifact.modelId}
+                      testId="f3-generated-by"
+                    />
+                  )}
+                </div>
                 <Tabs defaultValue="overview">
                   <TabsList className="grid grid-cols-5">
                     {(["overview", "capability", "knowledge", "behaviour", "lifecycle"] as const).map((k) => (

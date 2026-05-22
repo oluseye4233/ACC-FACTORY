@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
 import {
@@ -46,6 +47,14 @@ interface Props {
 export function F8CodeDj({ sessionId, artifacts }: Props) {
   const qc = useQueryClient();
   const { toast } = useToast();
+
+  const latestArtifact = useMemo(
+    () =>
+      artifacts
+        .filter((a) => a.artifactType === ArtifactType.CODEBASE_BUNDLE)
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0],
+    [artifacts],
+  );
 
   const certifiedMvpSources = useMemo(
     () =>
@@ -252,6 +261,15 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
                   </span>{" "}
                   · deploy → {result.manifest.deployTarget}
                 </div>
+                {latestArtifact?.provider && (
+                  <div className="mt-2">
+                    <GeneratedBy
+                      provider={latestArtifact.provider}
+                      modelId={latestArtifact.modelId}
+                      testId="f8-generated-by"
+                    />
+                  </div>
+                )}
               </div>
               <Button
                 size="sm"

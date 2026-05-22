@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { WorkspaceShell, ErrorBanner } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
 import {
@@ -61,6 +62,14 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
   const pddArtifacts = useMemo(
     () => artifacts.filter((a) => a.artifactType === ArtifactType.ATLAS_PDD),
     [artifacts],
+  );
+
+  const latestPddArtifact = useMemo(
+    () =>
+      pddArtifacts
+        .slice()
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0],
+    [pddArtifacts],
   );
 
   const [mode, setMode] = useState<HarnessF6InputMode>(
@@ -258,9 +267,18 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
         <div className="grid lg:grid-cols-[1.6fr_1fr] gap-4 flex-1 min-h-0">
           <Card className="p-5 bg-card/50 flex flex-col min-h-[400px]">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
-                4-Part ATLAS PDD
-              </h4>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
+                  4-Part ATLAS PDD
+                </h4>
+                {pdd && latestPddArtifact?.provider && (
+                  <GeneratedBy
+                    provider={latestPddArtifact.provider}
+                    modelId={latestPddArtifact.modelId}
+                    testId="f6-generated-by"
+                  />
+                )}
+              </div>
               {pdd && (
                 <Button
                   onClick={exportZip}

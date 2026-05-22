@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CertTierChip } from "@/components/shared/CertTierChip";
+import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
 import {
@@ -57,6 +58,14 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
       artifacts
         .filter((a) => a.artifactType === ArtifactType.ATLAS_PDD)
         .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)),
+    [artifacts],
+  );
+
+  const latestArtifact = useMemo(
+    () =>
+      artifacts
+        .filter((a) => a.artifactType === ArtifactType.MVP_PDD)
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0],
     [artifacts],
   );
 
@@ -236,6 +245,15 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
               <div className="font-mono text-[10px] text-muted-foreground mt-1">
                 CR_p · {result.cert.crP.toFixed(2)}
               </div>
+              {latestArtifact?.provider && (
+                <div className="mt-3">
+                  <GeneratedBy
+                    provider={latestArtifact.provider}
+                    modelId={latestArtifact.modelId}
+                    testId="f7-generated-by"
+                  />
+                </div>
+              )}
               {donutData.length > 0 && (
                 <div className="w-full h-[180px] mt-4">
                   <ResponsiveContainer>
