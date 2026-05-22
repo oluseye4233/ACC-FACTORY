@@ -832,7 +832,7 @@ export const ListMyPromptsResponse = zod.object({
  * @summary Compute current Quest Badge progress (ASPE / AISA / AISE)
  */
 export const ListMyBadgesResponseItem = zod.object({
-  "badgeId": zod.enum(['ASPE', 'AISA', 'AISE']),
+  "badgeId": zod.enum(['ASPE', 'AISA', 'AISE', 'AISA_PWDD', 'AISE_BUILD']),
   "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED']),
   "eligible": zod.boolean(),
   "progress": zod.record(zod.string(), zod.number()),
@@ -856,7 +856,7 @@ export const ClaimAiseBadgeBody = zod.object({
 })
 
 export const ClaimAiseBadgeResponseItem = zod.object({
-  "badgeId": zod.enum(['ASPE', 'AISA', 'AISE']),
+  "badgeId": zod.enum(['ASPE', 'AISA', 'AISE', 'AISA_PWDD', 'AISE_BUILD']),
   "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED']),
   "eligible": zod.boolean(),
   "progress": zod.record(zod.string(), zod.number()),
@@ -866,6 +866,32 @@ export const ClaimAiseBadgeResponseItem = zod.object({
   "claimedAt": zod.coerce.date().nullable()
 })
 export const ClaimAiseBadgeResponse = zod.array(ClaimAiseBadgeResponseItem)
+
+
+/**
+ * @summary Submit a live build URL for the Advanced Intelligent Systems Engineer badge (SSRF-verified)
+ */
+export const claimEngineerBadgeBodyEvidenceNoteMax = 500;
+
+
+
+export const ClaimEngineerBadgeBody = zod.object({
+  "url": zod.string().url(),
+  "evidenceNote": zod.string().min(1).max(claimEngineerBadgeBodyEvidenceNoteMax),
+  "sessionId": zod.string().uuid().optional()
+})
+
+export const ClaimEngineerBadgeResponseItem = zod.object({
+  "badgeId": zod.enum(['ASPE', 'AISA', 'AISE', 'AISA_PWDD', 'AISE_BUILD']),
+  "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED']),
+  "eligible": zod.boolean(),
+  "progress": zod.record(zod.string(), zod.number()),
+  "requirements": zod.record(zod.string(), zod.number()),
+  "evidence": zod.record(zod.string(), zod.unknown()),
+  "unlockedAt": zod.coerce.date().nullable(),
+  "claimedAt": zod.coerce.date().nullable()
+})
+export const ClaimEngineerBadgeResponse = zod.array(ClaimEngineerBadgeResponseItem)
 
 
 /**

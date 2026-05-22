@@ -1,7 +1,7 @@
 import { jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { usersTable } from "./users";
 
-export const BADGE_IDS = ["ASPE", "AISA", "AISE"] as const;
+export const BADGE_IDS = ["ASPE", "AISA", "AISE", "AISA_PWDD", "AISE_BUILD"] as const;
 export type BadgeId = (typeof BADGE_IDS)[number];
 
 export const BADGE_STATUSES = ["LOCKED", "UNLOCKED", "CLAIMED"] as const;

@@ -13,4 +13,6 @@ export const BadgeProgressBadgeId = {
   ASPE: 'ASPE',
   AISA: 'AISA',
   AISE: 'AISE',
+  AISA_PWDD: 'AISA_PWDD',
+  AISE_BUILD: 'AISE_BUILD',
 } as const;

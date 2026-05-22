@@ -31,6 +31,7 @@ import type {
   DeepHealth,
   DeleteAccountInput,
   DeleteAccountResult,
+  EngineerClaimInput,
   ErrorResponse,
   Exemplar,
   ExemplarSummary,
@@ -3299,6 +3300,77 @@ export const useClaimAiseBadge = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getClaimAiseBadgeMutationOptions(options));
+    }
+
+export const getClaimEngineerBadgeUrl = () => {
+
+
+
+
+  return `/api/me/badges/engineer`
+}
+
+/**
+ * @summary Submit a live build URL for the Advanced Intelligent Systems Engineer badge (SSRF-verified)
+ */
+export const claimEngineerBadge = async (engineerClaimInput: EngineerClaimInput, options?: RequestInit): Promise<BadgeProgress[]> => {
+
+  return customFetch<BadgeProgress[]>(getClaimEngineerBadgeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      engineerClaimInput,)
+  }
+);}
+
+
+
+
+export const getClaimEngineerBadgeMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimEngineerBadge>>, TError,{data: BodyType<EngineerClaimInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof claimEngineerBadge>>, TError,{data: BodyType<EngineerClaimInput>}, TContext> => {
+
+const mutationKey = ['claimEngineerBadge'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof claimEngineerBadge>>, {data: BodyType<EngineerClaimInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  claimEngineerBadge(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClaimEngineerBadgeMutationResult = NonNullable<Awaited<ReturnType<typeof claimEngineerBadge>>>
+    export type ClaimEngineerBadgeMutationBody = BodyType<EngineerClaimInput>
+    export type ClaimEngineerBadgeMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Submit a live build URL for the Advanced Intelligent Systems Engineer badge (SSRF-verified)
+ */
+export const useClaimEngineerBadge = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimEngineerBadge>>, TError,{data: BodyType<EngineerClaimInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof claimEngineerBadge>>,
+        TError,
+        {data: BodyType<EngineerClaimInput>},
+        TContext
+      > => {
+      return useMutation(getClaimEngineerBadgeMutationOptions(options));
     }
 
 export const getHarnessEvolveUrl = () => {

@@ -32,6 +32,7 @@ export * from './deepHealthDb';
 export * from './deepHealthEngines';
 export * from './deleteAccountInput';
 export * from './deleteAccountResult';
+export * from './engineerClaimInput';
 export * from './errorResponse';
 export * from './exemplar';
 export * from './exemplarSummary';

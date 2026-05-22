@@ -114,4 +114,67 @@ router.post("/me/badges/aise/claim", requireAuth, async (req, res): Promise<void
   res.json(progress);
 });
 
+const EngineerClaimBody = z.object({
+  url: z.string().url(),
+  evidenceNote: z.string().min(1).max(500),
+  sessionId: z.string().uuid().optional(),
+});
+
+router.post("/me/badges/engineer", requireAuth, async (req, res): Promise<void> => {
+  const parsed = EngineerClaimBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid body", detail: parsed.error.message });
+    return;
+  }
+  const userId = req.localUser!.id;
+  const { url, evidenceNote, sessionId } = parsed.data;
+
+  const reachable = await headOk(url);
+  if (!reachable) {
+    res.status(422).json({
+      error: "URL not reachable",
+      detail: "Must be a public HTTPS URL that responds to HEAD/GET (private/loopback/metadata addresses are refused).",
+    });
+    return;
+  }
+
+  const now = new Date();
+  const evidence = {
+    verifiedUrl: url,
+    evidenceNote,
+    sessionId: sessionId ?? null,
+    verifiedAt: now.toISOString(),
+  };
+
+  const existing = await db
+    .select()
+    .from(commandCentreBadgesTable)
+    .where(
+      and(
+        eq(commandCentreBadgesTable.userId, userId),
+        eq(commandCentreBadgesTable.badgeId, "AISE_BUILD"),
+      ),
+    )
+    .limit(1);
+
+  if (existing.length === 0) {
+    await db.insert(commandCentreBadgesTable).values({
+      userId,
+      badgeId: "AISE_BUILD",
+      status: "CLAIMED",
+      evidence,
+      unlockedAt: now,
+      claimedAt: now,
+    });
+  } else {
+    await db
+      .update(commandCentreBadgesTable)
+      .set({ status: "CLAIMED", evidence, claimedAt: now })
+      .where(eq(commandCentreBadgesTable.id, existing[0]!.id));
+  }
+
+  const progress = await computeBadgeProgress(userId);
+  res.json(progress);
+});
+
 export default router;

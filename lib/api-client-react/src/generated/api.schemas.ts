@@ -811,6 +811,8 @@ export const BadgeProgressBadgeId = {
   ASPE: 'ASPE',
   AISA: 'AISA',
   AISE: 'AISE',
+  AISA_PWDD: 'AISA_PWDD',
+  AISE_BUILD: 'AISE_BUILD',
 } as const;
 
 export type BadgeProgressStatus = typeof BadgeProgressStatus[keyof typeof BadgeProgressStatus];
@@ -847,6 +849,16 @@ export interface AiseClaimInput {
   copilotUrl?: string;
   nativeAppUrl?: string;
   notes?: string;
+}
+
+export interface EngineerClaimInput {
+  url: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  evidenceNote: string;
+  sessionId?: string;
 }
 
 export interface HarnessEvolveInput {

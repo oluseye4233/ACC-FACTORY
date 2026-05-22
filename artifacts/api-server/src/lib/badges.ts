@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNotNull, sql } from "drizzle-orm";
 import {
   db,
   harnessArtifactsTable,
@@ -231,21 +231,35 @@ async function countByType(
 }
 
 export async function computeBadgeProgress(userId: string): Promise<BadgeProgress[]> {
-  const [spcs, mas, atlas, micro, mvp, stored] = await Promise.all([
+  const [spcs, mas, atlas, micro, mvp, pwddRows, stored] = await Promise.all([
     countByType(userId, "SPC"),
     countByType(userId, "MA_BIRTH_PACKAGE"),
     countByType(userId, "ATLAS_PDD"),
     countByType(userId, "MICRO_PDD"),
     countByType(userId, "MVP_PDD"),
+    db
+      .selectDistinct({ sessionId: harnessArtifactsTable.sessionId })
+      .from(harnessArtifactsTable)
+      .where(
+        and(
+          eq(harnessArtifactsTable.userId, userId),
+          eq(harnessArtifactsTable.artifactType, "MVP_PDD"),
+          isNotNull(harnessArtifactsTable.spartanCert),
+        ),
+      ),
     db.select().from(commandCentreBadgesTable).where(eq(commandCentreBadgesTable.userId, userId)),
   ]);
 
   const byId = new Map(stored.map((b) => [b.badgeId, b]));
+  const pwdds = pwddRows.length;
 
   const aspeEligible = spcs >= 3 && mas >= 4;
   const aisaEligible = atlas >= 1 && micro >= 1 && mvp >= 1;
   const aiseRow = byId.get("AISE");
   const aiseEligible = !!aiseRow && aiseRow.status === "CLAIMED";
+  const aisaPwddEligible = pwdds >= 3;
+  const aiseBuildRow = byId.get("AISE_BUILD");
+  const aiseBuildEligible = !!aiseBuildRow && aiseBuildRow.status === "CLAIMED";
 
   function pack(
     badgeId: BadgeId,
@@ -273,6 +287,13 @@ export async function computeBadgeProgress(userId: string): Promise<BadgeProgres
     pack("ASPE", aspeEligible, { spcs, mas }, { spcs: 3, mas: 4 }),
     pack("AISA", aisaEligible, { atlas, micro, mvp }, { atlas: 1, micro: 1, mvp: 1 }),
     pack("AISE", aiseEligible, { verifiedUrls: aiseRow ? 1 : 0 }, { verifiedUrls: 1 }),
+    pack("AISA_PWDD", aisaPwddEligible, { pwdds }, { pwdds: 3 }),
+    pack(
+      "AISE_BUILD",
+      aiseBuildEligible,
+      { verifiedBuilds: aiseBuildRow ? 1 : 0 },
+      { verifiedBuilds: 1 },
+    ),
   ];
 }
 

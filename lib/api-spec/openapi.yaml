@@ -757,6 +757,30 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
 
+  /me/badges/engineer:
+    post:
+      operationId: claimEngineerBadge
+      tags: [badges]
+      summary: Submit a live build URL for the Advanced Intelligent Systems Engineer badge (SSRF-verified)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EngineerClaimInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BadgeProgress" }
+        "422":
+          description: URL not reachable or failed SSRF guard
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
   /harness/evolve:
     post:
       operationId: harnessEvolve
@@ -1560,7 +1584,7 @@ components:
       type: object
       required: [badgeId, status, eligible, progress, requirements, evidence, unlockedAt, claimedAt]
       properties:
-        badgeId: { type: string, enum: [ASPE, AISA, AISE] }
+        badgeId: { type: string, enum: [ASPE, AISA, AISE, AISA_PWDD, AISE_BUILD] }
         status: { type: string, enum: [LOCKED, UNLOCKED, CLAIMED] }
         eligible: { type: boolean }
         progress: { type: object, additionalProperties: { type: integer } }
@@ -1577,6 +1601,14 @@ components:
         copilotUrl: { type: string, format: uri }
         nativeAppUrl: { type: string, format: uri }
         notes: { type: string }
+
+    EngineerClaimInput:
+      type: object
+      required: [url, evidenceNote]
+      properties:
+        url: { type: string, format: uri }
+        evidenceNote: { type: string, minLength: 1, maxLength: 500 }
+        sessionId: { type: string, format: uuid }
 
     HarnessEvolveInput:
       type: object
