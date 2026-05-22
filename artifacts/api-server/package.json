@@ -7,11 +7,13 @@
     "dev": "export NODE_ENV=development && pnpm run build && pnpm run start",
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@clerk/express": "^2.1.17",
     "@clerk/shared": "^4.12.0",
+    "@google/genai": "^1.0.0",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/instrumentation": "^0.218.0",
     "@sentry/node": "^10.53.1",
@@ -21,9 +23,8 @@
     "@workspace/email": "workspace:*",
     "@workspace/export": "workspace:*",
     "@workspace/integrations-anthropic-ai": "workspace:*",
-    "@workspace/integrations-openai-ai": "workspace:*",
     "@workspace/integrations-gemini-ai": "workspace:*",
-    "@google/genai": "^1.0.0",
+    "@workspace/integrations-openai-ai": "workspace:*",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "drizzle-orm": "catalog:",
@@ -46,6 +47,7 @@
     "esbuild": "0.27.3",
     "esbuild-plugin-pino": "^2.3.3",
     "pino-pretty": "^13.1.3",
-    "thread-stream": "3.1.0"
+    "thread-stream": "3.1.0",
+    "vitest": "^4.1.7"
   }
 }

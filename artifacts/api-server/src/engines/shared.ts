@@ -13,7 +13,10 @@ import {
   type ArtifactType,
   type LlmProvider,
 } from "@workspace/db";
-import { anthropic } from "@workspace/integrations-anthropic-ai";
+import {
+  getAnthropic,
+  AnthropicIntegrationNotConfiguredError,
+} from "@workspace/integrations-anthropic-ai";
 import {
   getOpenAi,
   OpenAiIntegrationNotConfiguredError,
@@ -288,7 +291,16 @@ async function callClaudeImpl(
   userPrompt: string,
 ): Promise<{ text: string; inputTokens: number; outputTokens: number; modelId: string }> {
   const modelId = PROVIDER_MODELS.claude;
-  const message = await anthropic.messages.create({
+  let client;
+  try {
+    client = getAnthropic();
+  } catch (err) {
+    if (err instanceof AnthropicIntegrationNotConfiguredError) {
+      throw new ProviderNotConfiguredError("claude", err.message);
+    }
+    throw err;
+  }
+  const message = await client.messages.create({
     model: modelId,
     max_tokens: MAX_TOKENS,
     system: systemPrompt,
