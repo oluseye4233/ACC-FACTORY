@@ -108,3 +108,9 @@ id = "uxS9ty4Sg0ySYhMrWcpJk"
 uri = "file://docs/ATANDA_Command_Centre_PWDD_Investor.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — PWDD (Investor Edition)"
+
+[[outputs]]
+id = "77teq5LtdLmaqhT837Wur"
+uri = "file://docs/ATANDA_Command_Centre_PWDD_ATLAS_Investor.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — ATLAS PWDD v2 (Investor Edition)"
