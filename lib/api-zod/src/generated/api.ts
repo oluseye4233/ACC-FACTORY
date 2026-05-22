@@ -1133,6 +1133,34 @@ export const AdminRestoreBadgeResponse = zod.object({
 
 
 /**
+ * @summary Preview a user's prior revocation history for a badge before revoking (admin only)
+ */
+export const AdminPreviewBadgeRevocationQueryParams = zod.object({
+  "userId": zod.coerce.string().uuid(),
+  "badgeId": zod.enum(['AISE', 'AISE_BUILD'])
+})
+
+export const adminPreviewBadgeRevocationResponseRevocationCountMin = 0;
+
+
+
+export const AdminPreviewBadgeRevocationResponse = zod.object({
+  "userId": zod.string().uuid(),
+  "badgeId": zod.enum(['AISE', 'AISE_BUILD']),
+  "badgeExists": zod.boolean(),
+  "currentStatus": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED', 'REVOKED']).nullable(),
+  "revocationCount": zod.number().min(adminPreviewBadgeRevocationResponseRevocationCountMin),
+  "lastRevokedAt": zod.coerce.date().nullish(),
+  "lastReason": zod.string().nullish(),
+  "history": zod.array(zod.object({
+  "revokedAt": zod.coerce.date(),
+  "revokedByUserId": zod.string().uuid().nullish(),
+  "reason": zod.string()
+}))
+})
+
+
+/**
  * @summary List recent badge revocations (admin only)
  */
 export const AdminListBadgeRevocationsQueryParams = zod.object({

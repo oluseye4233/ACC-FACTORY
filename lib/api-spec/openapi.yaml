@@ -945,6 +945,31 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
 
+  /admin/badges/revocation-preview:
+    get:
+      operationId: adminPreviewBadgeRevocation
+      tags: [admin]
+      summary: Preview a user's prior revocation history for a badge before revoking (admin only)
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: badgeId
+          in: query
+          required: true
+          schema: { type: string, enum: [AISE, AISE_BUILD] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminBadgeRevocationPreview" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /admin/badges/revocations:
     get:
       operationId: adminListBadgeRevocations
@@ -1978,6 +2003,40 @@ components:
         revokedAt: { type: string, format: date-time }
         admin: { $ref: "#/components/schemas/BadgeRevocationParty" }
         target: { $ref: "#/components/schemas/BadgeRevocationParty" }
+
+    AdminBadgeRevocationPreviewEntry:
+      type: object
+      required: [revokedAt, reason]
+      properties:
+        revokedAt: { type: string, format: date-time }
+        revokedByUserId:
+          type: string
+          format: uuid
+          nullable: true
+        reason: { type: string }
+
+    AdminBadgeRevocationPreview:
+      type: object
+      required: [userId, badgeId, badgeExists, currentStatus, revocationCount, history]
+      properties:
+        userId: { type: string, format: uuid }
+        badgeId: { type: string, enum: [AISE, AISE_BUILD] }
+        badgeExists: { type: boolean }
+        currentStatus:
+          type: string
+          enum: [LOCKED, UNLOCKED, CLAIMED, REVOKED]
+          nullable: true
+        revocationCount: { type: integer, minimum: 0 }
+        lastRevokedAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastReason:
+          type: string
+          nullable: true
+        history:
+          type: array
+          items: { $ref: "#/components/schemas/AdminBadgeRevocationPreviewEntry" }
 
     AdminBadgeRevocationsList:
       type: object

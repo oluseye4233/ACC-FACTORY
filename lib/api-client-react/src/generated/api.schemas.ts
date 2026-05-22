@@ -1091,6 +1091,42 @@ export interface BadgeRevocationEntry {
   target: BadgeRevocationParty;
 }
 
+export interface AdminBadgeRevocationPreviewEntry {
+  revokedAt: string;
+  revokedByUserId?: string | null;
+  reason: string;
+}
+
+export type AdminBadgeRevocationPreviewBadgeId = typeof AdminBadgeRevocationPreviewBadgeId[keyof typeof AdminBadgeRevocationPreviewBadgeId];
+
+
+export const AdminBadgeRevocationPreviewBadgeId = {
+  AISE: 'AISE',
+  AISE_BUILD: 'AISE_BUILD',
+} as const;
+
+export type AdminBadgeRevocationPreviewCurrentStatus = typeof AdminBadgeRevocationPreviewCurrentStatus[keyof typeof AdminBadgeRevocationPreviewCurrentStatus] | null;
+
+
+export const AdminBadgeRevocationPreviewCurrentStatus = {
+  LOCKED: 'LOCKED',
+  UNLOCKED: 'UNLOCKED',
+  CLAIMED: 'CLAIMED',
+  REVOKED: 'REVOKED',
+} as const;
+
+export interface AdminBadgeRevocationPreview {
+  userId: string;
+  badgeId: AdminBadgeRevocationPreviewBadgeId;
+  badgeExists: boolean;
+  currentStatus: AdminBadgeRevocationPreviewCurrentStatus;
+  /** @minimum 0 */
+  revocationCount: number;
+  lastRevokedAt?: string | null;
+  lastReason?: string | null;
+  history: AdminBadgeRevocationPreviewEntry[];
+}
+
 export interface AdminBadgeRevocationsList {
   revocations: BadgeRevocationEntry[];
 }
@@ -1143,6 +1179,19 @@ export const ListMyPromptsKind = {
   ATOMIC_PROMPT: 'ATOMIC_PROMPT',
   PROMPT_DIAGNOSTIC: 'PROMPT_DIAGNOSTIC',
   SPC: 'SPC',
+} as const;
+
+export type AdminPreviewBadgeRevocationParams = {
+userId: string;
+badgeId: AdminPreviewBadgeRevocationBadgeId;
+};
+
+export type AdminPreviewBadgeRevocationBadgeId = typeof AdminPreviewBadgeRevocationBadgeId[keyof typeof AdminPreviewBadgeRevocationBadgeId];
+
+
+export const AdminPreviewBadgeRevocationBadgeId = {
+  AISE: 'AISE',
+  AISE_BUILD: 'AISE_BUILD',
 } as const;
 
 export type AdminListBadgeRevocationsParams = {

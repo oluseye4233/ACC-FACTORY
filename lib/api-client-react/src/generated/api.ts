@@ -20,8 +20,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminBadgeRevocationPreview,
   AdminBadgeRevocationsList,
   AdminListBadgeRevocationsParams,
+  AdminPreviewBadgeRevocationParams,
   AdminRestoreBadgeInput,
   AdminRestoreBadgeResult,
   AdminRevokeBadgeInput,
@@ -3968,6 +3970,90 @@ export const useAdminRestoreBadge = <TError = ErrorType<ForbiddenResponse | NotF
       > => {
       return useMutation(getAdminRestoreBadgeMutationOptions(options));
     }
+
+export const getAdminPreviewBadgeRevocationUrl = (params: AdminPreviewBadgeRevocationParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/badges/revocation-preview?${stringifiedParams}` : `/api/admin/badges/revocation-preview`
+}
+
+/**
+ * @summary Preview a user's prior revocation history for a badge before revoking (admin only)
+ */
+export const adminPreviewBadgeRevocation = async (params: AdminPreviewBadgeRevocationParams, options?: RequestInit): Promise<AdminBadgeRevocationPreview> => {
+
+  return customFetch<AdminBadgeRevocationPreview>(getAdminPreviewBadgeRevocationUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminPreviewBadgeRevocationQueryKey = (params?: AdminPreviewBadgeRevocationParams,) => {
+    return [
+    `/api/admin/badges/revocation-preview`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getAdminPreviewBadgeRevocationQueryOptions = <TData = Awaited<ReturnType<typeof adminPreviewBadgeRevocation>>, TError = ErrorType<ForbiddenResponse | NotFoundResponse>>(params: AdminPreviewBadgeRevocationParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminPreviewBadgeRevocation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminPreviewBadgeRevocationQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminPreviewBadgeRevocation>>> = ({ signal }) => adminPreviewBadgeRevocation(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminPreviewBadgeRevocation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AdminPreviewBadgeRevocationQueryResult = NonNullable<Awaited<ReturnType<typeof adminPreviewBadgeRevocation>>>
+export type AdminPreviewBadgeRevocationQueryError = ErrorType<ForbiddenResponse | NotFoundResponse>
+
+
+/**
+ * @summary Preview a user's prior revocation history for a badge before revoking (admin only)
+ */
+
+export function useAdminPreviewBadgeRevocation<TData = Awaited<ReturnType<typeof adminPreviewBadgeRevocation>>, TError = ErrorType<ForbiddenResponse | NotFoundResponse>>(
+ params: AdminPreviewBadgeRevocationParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminPreviewBadgeRevocation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAdminPreviewBadgeRevocationQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getAdminListBadgeRevocationsUrl = (params?: AdminListBadgeRevocationsParams,) => {
   const normalizedParams = new URLSearchParams();

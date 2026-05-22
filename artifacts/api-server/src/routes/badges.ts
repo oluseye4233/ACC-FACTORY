@@ -444,6 +444,82 @@ router.post(
   },
 );
 
+const AdminPreviewQuery = z.object({
+  userId: z.string().uuid(),
+  badgeId: z.enum(["AISE", "AISE_BUILD"]),
+});
+
+router.get(
+  "/admin/badges/revocation-preview",
+  requireAuth,
+  requireAdmin,
+  async (req, res): Promise<void> => {
+    const parsed = AdminPreviewQuery.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Invalid query", detail: parsed.error.message });
+      return;
+    }
+    const { userId, badgeId } = parsed.data;
+
+    const targetRows = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.id, userId))
+      .limit(1);
+    if (targetRows.length === 0) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    const existing = await db
+      .select({
+        status: commandCentreBadgesTable.status,
+        revokeHistory: commandCentreBadgesTable.revokeHistory,
+      })
+      .from(commandCentreBadgesTable)
+      .where(
+        and(
+          eq(commandCentreBadgesTable.userId, userId),
+          eq(commandCentreBadgesTable.badgeId, badgeId),
+        ),
+      )
+      .limit(1);
+
+    if (existing.length === 0) {
+      res.json({
+        userId,
+        badgeId,
+        badgeExists: false,
+        currentStatus: null,
+        revocationCount: 0,
+        lastRevokedAt: null,
+        lastReason: null,
+        history: [],
+      });
+      return;
+    }
+
+    const row = existing[0]!;
+    const history = (row.revokeHistory ?? []) as BadgeRevocationRecord[];
+    const last = history.length > 0 ? history[history.length - 1]! : null;
+
+    res.json({
+      userId,
+      badgeId,
+      badgeExists: true,
+      currentStatus: row.status,
+      revocationCount: history.length,
+      lastRevokedAt: last?.revokedAt ?? null,
+      lastReason: last?.reason ?? null,
+      history: history.map((h) => ({
+        revokedAt: h.revokedAt,
+        revokedByUserId: h.revokedByUserId ?? null,
+        reason: h.reason,
+      })),
+    });
+  },
+);
+
 router.get(
   "/admin/badges/revocations",
   requireAuth,

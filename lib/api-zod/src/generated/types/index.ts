@@ -6,8 +6,14 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './adminBadgeRevocationPreview';
+export * from './adminBadgeRevocationPreviewBadgeId';
+export * from './adminBadgeRevocationPreviewCurrentStatus';
+export * from './adminBadgeRevocationPreviewEntry';
 export * from './adminBadgeRevocationsList';
 export * from './adminListBadgeRevocationsParams';
+export * from './adminPreviewBadgeRevocationBadgeId';
+export * from './adminPreviewBadgeRevocationParams';
 export * from './adminRestoreBadgeInput';
 export * from './adminRestoreBadgeInputBadgeId';
 export * from './adminRestoreBadgeResult';
