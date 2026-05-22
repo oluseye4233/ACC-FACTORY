@@ -270,11 +270,11 @@ cannot crash startup; calling code receives a typed
 
 | Badge | Type | Earned by | Acronym storage id | Notes |
 |-------|------|-----------|--------------------|-------|
-| ASPE | Live | ≥3 SPCs + ≥4 MAs | `ASPE` | Gates DE-SPC |
-| AISA | Live | ≥1 ATLAS + ≥1 Micro PDD + ≥1 MVP PDD | `AISA` | Composite craft |
-| AISE | Stored | Verified live URL on a certified MVP PDD | `AISE` | Original Internet-Surface Engineer |
-| Senior Architect | Live | ≥3 certified PWDDs / MVP PDDs | `AISA_PWDD` | New top-tier; gold styling; downloadable cert |
-| Senior Engineer | Stored | Operator-submitted live URL of an AI agent / app built from a PWDD, passed through SSRF guard, plus 500-char evidence note | `AISE_BUILD` | New top-tier; revocable by admin; downloadable cert |
+| ASPE — Atomic Super Prompt Engineer | Live | ≥3 SPCs + ≥4 MAs | `ASPE` | Gates DE-SPC |
+| AISA — Atomic Intelligent Systems Architect | Live | ≥1 ATLAS + ≥1 Micro PDD + ≥1 MVP PDD | `AISA` | Composite craft |
+| AISE — Atomic Intelligent Systems Engineer | Stored | Verified live URL on a certified MVP PDD | `AISE` | Evidence-trust badge; revocable |
+| Senior Architect — Advanced Intelligence Systems Architect | Live | ≥3 certified PWDDs / MVP PDDs | `AISA_PWDD` | New top-tier; gold styling; downloadable cert |
+| Senior Engineer — Advanced Intelligent Systems Engineer | Stored | Operator-submitted live URL of an AI agent / app built from a PWDD, passed through SSRF guard, plus 500-char evidence note | `AISE_BUILD` | New top-tier; revocable by admin; downloadable cert |
 | Context Craft × 7 | Stored | Per-pillar JCSE sub-score ≥ 6 in any F1/F2 artifact | `(pillar)` | S / R / I / D / F / E / C |
 
 Storage ids deliberately disambiguated to avoid colliding with the legacy
@@ -282,17 +282,65 @@ trio. Display names use the full prose titles. Senior badges render
 above the existing wall with a gold gradient + hex-clip tile and a
 PNG / JPEG / SVG download menu.
 
-### 3.6 Admin badge revocation flow
+### 3.6 Admin badge revocation, appeal, and restore flow
 
-`POST /api/admin/badges/revoke` (gated by `requireAuth + requireAdmin`):
+The evidence-trust badges (AISE and AISE_BUILD) now have a full
+lifecycle: claim → revoke → user appeal → admin restore. None of it is
+silent.
+
+**Revoke** — `POST /api/admin/badges/revoke` (`requireAuth + requireAdmin`):
 
 1. Validate body: `{ userId, badgeId in [AISE, AISE_BUILD], reason 1..1000 }`.
 2. Confirm target user exists (404 otherwise).
-3. Delete the `command_centre_badges` row for `(userId, badgeId)`.
-4. Emit a structured pino audit line:
-   `event=badge.revoke adminUserId=… targetUserId=… badgeId=… reason=… revokedBadgeRowId=… revokedAt=…`
-5. `computeBadgeProgress` stops returning `CLAIMED` on the user's next
-   call (badge reverts to LOCKED).
+3. **Soft-delete** the `command_centre_badges` row: set
+   `status='REVOKED'`, stamp `revokedAt`, `revokedReason`,
+   `revokedByUserId`, and append the full record to a `revoke_history`
+   jsonb array (repeat revocations are visible on the row itself).
+4. Insert a row into the dedicated `badge_revocations` audit table
+   (`admin_user_id`, `target_user_id`, `badge_id`, `reason`,
+   `revoked_at`) so admins can review without grepping logs.
+5. Emit a structured pino line
+   (`event=badge.revoke adminUserId=… targetUserId=… badgeId=… reason=… revocationCount=… repeat=…`).
+6. Best-effort `sendBadgeRevoked` email with HTML-escaped reason
+   (dry-run fallback when `RESEND_API_KEY` is unset).
+7. `computeBadgeProgress` now returns `REVOKED` (not `LOCKED`) with
+   `revokedAt`, `revokedReason`, and `revocationCount` so the user's
+   `/quests` page can render the in-app notice.
+
+**Appeal** — user re-submits via the existing AISE / AISE_BUILD claim
+endpoints. The card on `/quests` switches to an "APPEAL" panel showing
+the admin's reason + repeat counter. On successful re-claim the
+revocation fields are cleared and the badge returns to `CLAIMED`.
+
+**Restore** — `POST /api/admin/badges/restore`
+(`requireAuth + requireAdmin`):
+
+1. Validate body: `{ userId, badgeId, note?: 1..1000 }`.
+2. 409 if the badge is not currently `REVOKED`.
+3. Clear `revokedAt` / `revokedReason` / `revokedByUserId`; set
+   `restoredAt` / `restoredByUserId` / `restoredNote`; flip status to
+   `CLAIMED`. `revoke_history` is preserved verbatim.
+4. Best-effort `sendBadgeRestored` email.
+5. `BadgeProgress` now also exposes `restoredAt` and `restoredNote`
+   so the user sees an emerald "restored" panel on `/quests`.
+
+**Admin console** — `/admin/badges` (admin-only route, TopNav link
+shown only for admins):
+
+- Revoke form (target UUID, badge select, required reason) that opens a
+  preview dialog showing badge row status, prior revocation count, last
+  reason, the trimmed reason about to be persisted, and a collapsible
+  full revocation timeline (`history[]`, reverse-chronological).
+- Repeat-revoke (count ≥ 2) requires an explicit "I know this is a
+  repeat" acknowledgement checkbox; the confirm button relabels to
+  `CONFIRM Nth REVOKE` so it is impossible to miss.
+- `GET /api/admin/badges/revocations` (limit 1..200) feeds a "Recent
+  Revocations" list with admin + target identities resolved via two
+  aliased joins on `users`.
+- Each row has a one-click `RESTORE` button that opens a small dialog
+  with an optional note Textarea; restored rows visually dim with a
+  green pill and a disabled button until the next revoke for the same
+  pair.
 
 Scope is intentionally limited to the **evidence-trust** badges (AISE
 and AISE_BUILD). Live-computed badges (ASPE, AISA, AISA_PWDD) cannot
@@ -428,14 +476,29 @@ investments.*
 | #2 | Advanced Cartridge Ingestion ($499.99 / project) | New schema (`cartridge_packages` + `cartridge_credits` + child docs/spcs/links); scope-required wizard; scope-protected context injection on every engine call; Stripe checkout + idempotent webhook branch; F1–F7 auto-unlock on session start. |
 | #3 | Senior Architect + Senior Engineer badges | Two new stored ids (`AISA_PWDD` live, `AISE_BUILD` stored); SSRF-hardened URL claim; new Senior section on `/quests`. |
 | #4 | Shareable Senior badge certificates | PNG / JPEG / SVG export with gold "SENIOR · ADVANCED SYSTEMS" ribbon; per-badge metadata (threshold note, verified URL, evidence excerpt). |
-| #5 | Admin Senior Engineer badge revocation | `POST /admin/badges/revoke`; structured `event=badge.revoke` audit log; row-delete reverts compute to LOCKED. |
+| #5 | Admin Senior Engineer badge revocation | `POST /admin/badges/revoke`; structured `event=badge.revoke` audit log. |
 | #6 | Per-artifact provider + model attribution | Nullable `provider` + `model_id` on `harness_artifacts`; surfaced on artifact tray with a "Claude · claude-sonnet-4-6"-style badge. |
 | #7 | Per-engine model override | Inline dropdown on every workspace; defaults to session preference; single-run override does not mutate session default. |
+| #8 | Provider switching verified end-to-end | First api-server vitest suite; per-provider F1 smoke test; lazy Anthropic client; clean skip on unconfigured providers. |
+| #9 | Admin revocation audit log + console | New `badge_revocations` table; `GET /admin/badges/revocations` with admin/target identity joins; `/admin/badges` admin page. |
+| #10 | User appeal flow for revoked badges | Soft-delete with `REVOKED` status + `revoke_history` jsonb; `BadgeProgress` exposes revoke metadata; `/quests` renders inline notice + APPEAL panel; best-effort revoke email. |
+| #13 | Provider + model in artifact detail view | New shared `GeneratedBy` component; rendered above the artifact body in every F1–F8 workspace, with silent fallback for legacy artifacts. |
 | #14 | Historical provider backfill | Idempotent script joins `harness_artifacts` to `harness_engine_runs` (most-recent matching run by `session_id + engine_id ≤ created_at`) and populates older NULL provider / model_id rows. |
+| #15 | Gemini provider fix | One-line `httpOptions.apiVersion: ""` in `@google/genai` client so the Replit Gemini proxy resolves correctly; full 3-provider test matrix now passes. |
+| #16 | Provider regressions caught in CI | Root `pnpm run test` + registered validation steps so the per-provider smoke runs pre-merge. |
+| #18 | Admin restore endpoint + email + notice | `POST /admin/badges/restore`; clears revoke fields, sets `restoredAt`/`restoredNote`/`restoredByUserId`; preserves `revoke_history`; in-app emerald notice; `sendBadgeRestored` email. |
+| #19 | Repeat-revoke warning in admin UI | `GET /admin/badges/revocation-preview` feeds an AlertDialog with prior count, last reason, and an explicit ack checkbox when count ≥ 2; confirm button relabels to `CONFIRM Nth REVOKE`. |
+| #20 | Provider + model on public verify page | `VerifyResult` schema gains `provider` + `modelId`; `/verify?cert=…` renders `<GeneratedBy />`; recipients get end-to-end provenance. |
+| #21 | Full run telemetry in artifact tray tooltip | `HarnessArtifact` gains `runDurationMs` / `runInputTokens` / `runOutputTokens` / `runAt`; loader joins by sessionId, provider, and modelId; Radix tooltip on the provider chip surfaces the full run. |
+| #24 | One-click admin restore button | `RESTORE` button on every revocation row in the admin console; small confirmation dialog with optional note; restored rows dim with a green pill. |
+| #26 | Full revoke history in confirm dialog | Collapsible reverse-chronological timeline of all prior revocations inside the revoke AlertDialog; scroll-contained for long histories. |
+| #28 | Trimmed reason shown in revoke confirm | The confirm dialog now previews the exact reason about to be persisted and emailed (`data-testid=preview-reason`). |
 
 ### 4.2 Verified surface
 
 - `pnpm run typecheck` clean across all packages.
+- `pnpm run test` green — per-provider F1 smoke runs against Claude,
+  OpenAI, and Gemini all pass (no skips after the Gemini fix).
 - `GET /api/healthz` returns 200; the three workflows
   (`api-server`, `command-centre`, `mockup-sandbox`) all run.
 - Stripe webhook test replay path returns `{ok:true, replay:true}`.
@@ -443,20 +506,20 @@ investments.*
   SSRF guard.
 - Backfill script idempotent (second run reports 0 updates after a
   full first pass).
+- Revoke → appeal → restore round-trip exercised against the dev DB
+  with the new admin console.
 
 ### 4.3 In flight (proposed / pending tasks not yet merged)
 
 | Task | Title | Investor relevance |
 |------|-------|--------------------|
-| #8 | Verify provider switching end-to-end with a real run | Smoke / acceptance test of the new LLM-agnostic surface. |
-| #9 | Admin log of who revoked which badge and why | Surfaces the structured audit log to an admin console UI. |
-| #10 | User-side appeal flow for revoked badges | Closes the loop on revocation. |
 | #11 | One-click sharing of senior certificates | LinkedIn / portfolio-ready share targets on top of the existing downloads. |
 | #12 | Public verification of senior certificates | Stranger-facing verify endpoint for shared certs. |
-| #13 | Provider + model in artifact detail view | Per-artifact transparency beyond the tray badge. |
-| #15 | Fix Gemini provider | Real-world hardening for the third provider option. |
-| #16 | CI-level catch for broken providers | Prevents a provider regression slipping through review. |
-| #17 | Surface badge revocations to the affected user | Closes the silent-loss gap on revoked badges. |
+| #17 | Surface badge revocations to the affected user (notification surface) | Closes the silent-loss gap on revoked badges with an explicit notification. |
+| #22 | Show how much each session has cost to run | Surfaces the per-call provider/model cost telemetry as a per-session total. |
+| #23 | Link each artifact directly to the run that produced it | Click-through from artifact to its `harness_engine_runs` row. |
+| #25 | Extend the provider-switching matrix beyond F1 | End-to-end coverage of F2–F7, F6-VDJ, F8, and DE-SPC across all providers. |
+| #27 | Let users pick which Gemini model their sessions run on | Multi-model Gemini selector once #15 is fully battle-tested. |
 
 ### 4.4 Roadmap — the next three investments
 
