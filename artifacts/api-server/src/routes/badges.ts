@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod/v4";
-import { db, commandCentreBadgesTable } from "@workspace/db";
-import { requireAuth } from "../lib/auth";
+import { db, commandCentreBadgesTable, usersTable } from "@workspace/db";
+import { requireAuth, requireAdmin } from "../lib/auth";
 import {
   classifyAiseUrl,
   computeBadgeProgress,
@@ -176,5 +176,73 @@ router.post("/me/badges/engineer", requireAuth, async (req, res): Promise<void> 
   const progress = await computeBadgeProgress(userId);
   res.json(progress);
 });
+
+const AdminRevokeBadgeBody = z.object({
+  userId: z.string().uuid(),
+  badgeId: z.enum(["AISE", "AISE_BUILD"]),
+  reason: z.string().min(1).max(1000),
+});
+
+router.post(
+  "/admin/badges/revoke",
+  requireAuth,
+  requireAdmin,
+  async (req, res): Promise<void> => {
+    const parsed = AdminRevokeBadgeBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Invalid body", detail: parsed.error.message });
+      return;
+    }
+    const { userId, badgeId, reason } = parsed.data;
+    const adminUserId = req.localUser!.id;
+
+    const targetExists = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.id, userId))
+      .limit(1);
+    if (targetExists.length === 0) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    const deleted = await db
+      .delete(commandCentreBadgesTable)
+      .where(
+        and(
+          eq(commandCentreBadgesTable.userId, userId),
+          eq(commandCentreBadgesTable.badgeId, badgeId),
+        ),
+      )
+      .returning({ id: commandCentreBadgesTable.id });
+
+    if (deleted.length === 0) {
+      res.status(404).json({ error: "Badge not found for that user" });
+      return;
+    }
+
+    const revokedAt = new Date();
+    req.log.info(
+      {
+        event: "badge.revoke",
+        adminUserId,
+        targetUserId: userId,
+        badgeId,
+        reason,
+        revokedBadgeRowId: deleted[0]!.id,
+        revokedAt: revokedAt.toISOString(),
+      },
+      "Admin revoked badge",
+    );
+
+    res.json({
+      ok: true,
+      userId,
+      badgeId,
+      revokedAt: revokedAt.toISOString(),
+      reason,
+    });
+  },
+);
 
 export default router;

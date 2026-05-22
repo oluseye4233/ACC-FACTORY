@@ -6,6 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './adminRevokeBadgeInput';
+export * from './adminRevokeBadgeInputBadgeId';
+export * from './adminRevokeBadgeResult';
+export * from './adminRevokeBadgeResultBadgeId';
 export * from './aiseClaimInput';
 export * from './artifactType';
 export * from './atlasPdd';

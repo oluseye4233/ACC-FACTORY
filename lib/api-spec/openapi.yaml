@@ -781,6 +781,27 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
 
+  /admin/badges/revoke:
+    post:
+      operationId: adminRevokeBadge
+      tags: [admin]
+      summary: Revoke a user's AISE or AISE_BUILD badge (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminRevokeBadgeInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminRevokeBadgeResult" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /harness/evolve:
     post:
       operationId: harnessEvolve
@@ -1630,6 +1651,24 @@ components:
         url: { type: string, format: uri }
         evidenceNote: { type: string, minLength: 1, maxLength: 500 }
         sessionId: { type: string, format: uuid }
+
+    AdminRevokeBadgeInput:
+      type: object
+      required: [userId, badgeId, reason]
+      properties:
+        userId: { type: string, format: uuid }
+        badgeId: { type: string, enum: [AISE, AISE_BUILD] }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+
+    AdminRevokeBadgeResult:
+      type: object
+      required: [ok, userId, badgeId, revokedAt, reason]
+      properties:
+        ok: { type: boolean }
+        userId: { type: string, format: uuid }
+        badgeId: { type: string, enum: [AISE, AISE_BUILD] }
+        revokedAt: { type: string, format: date-time }
+        reason: { type: string }
 
     HarnessEvolveInput:
       type: object

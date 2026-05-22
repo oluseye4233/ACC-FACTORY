@@ -20,6 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminRevokeBadgeInput,
+  AdminRevokeBadgeResult,
   AiseClaimInput,
   AtlasPdd,
   AtomicPrompt,
@@ -3371,6 +3373,77 @@ export const useClaimEngineerBadge = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getClaimEngineerBadgeMutationOptions(options));
+    }
+
+export const getAdminRevokeBadgeUrl = () => {
+
+
+
+
+  return `/api/admin/badges/revoke`
+}
+
+/**
+ * @summary Revoke a user's AISE or AISE_BUILD badge (admin only)
+ */
+export const adminRevokeBadge = async (adminRevokeBadgeInput: AdminRevokeBadgeInput, options?: RequestInit): Promise<AdminRevokeBadgeResult> => {
+
+  return customFetch<AdminRevokeBadgeResult>(getAdminRevokeBadgeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      adminRevokeBadgeInput,)
+  }
+);}
+
+
+
+
+export const getAdminRevokeBadgeMutationOptions = <TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRevokeBadge>>, TError,{data: BodyType<AdminRevokeBadgeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminRevokeBadge>>, TError,{data: BodyType<AdminRevokeBadgeInput>}, TContext> => {
+
+const mutationKey = ['adminRevokeBadge'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminRevokeBadge>>, {data: BodyType<AdminRevokeBadgeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  adminRevokeBadge(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminRevokeBadgeMutationResult = NonNullable<Awaited<ReturnType<typeof adminRevokeBadge>>>
+    export type AdminRevokeBadgeMutationBody = BodyType<AdminRevokeBadgeInput>
+    export type AdminRevokeBadgeMutationError = ErrorType<ForbiddenResponse | NotFoundResponse>
+
+    /**
+ * @summary Revoke a user's AISE or AISE_BUILD badge (admin only)
+ */
+export const useAdminRevokeBadge = <TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRevokeBadge>>, TError,{data: BodyType<AdminRevokeBadgeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminRevokeBadge>>,
+        TError,
+        {data: BodyType<AdminRevokeBadgeInput>},
+        TContext
+      > => {
+      return useMutation(getAdminRevokeBadgeMutationOptions(options));
     }
 
 export const getHarnessEvolveUrl = () => {

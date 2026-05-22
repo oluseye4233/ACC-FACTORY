@@ -915,6 +915,28 @@ export const ClaimEngineerBadgeResponse = zod.array(ClaimEngineerBadgeResponseIt
 
 
 /**
+ * @summary Revoke a user's AISE or AISE_BUILD badge (admin only)
+ */
+export const adminRevokeBadgeBodyReasonMax = 1000;
+
+
+
+export const AdminRevokeBadgeBody = zod.object({
+  "userId": zod.string().uuid(),
+  "badgeId": zod.enum(['AISE', 'AISE_BUILD']),
+  "reason": zod.string().min(1).max(adminRevokeBadgeBodyReasonMax)
+})
+
+export const AdminRevokeBadgeResponse = zod.object({
+  "ok": zod.boolean(),
+  "userId": zod.string().uuid(),
+  "badgeId": zod.enum(['AISE', 'AISE_BUILD']),
+  "revokedAt": zod.coerce.date(),
+  "reason": zod.string()
+})
+
+
+/**
  * @summary DE-SPC — synthesise a Digitally Evolved SPC from N MA birth packages (requires ASPE badge)
  */
 export const harnessEvolveBodyMaArtifactIdsMin = 2;

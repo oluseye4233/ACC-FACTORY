@@ -903,6 +903,40 @@ export interface EngineerClaimInput {
   sessionId?: string;
 }
 
+export type AdminRevokeBadgeInputBadgeId = typeof AdminRevokeBadgeInputBadgeId[keyof typeof AdminRevokeBadgeInputBadgeId];
+
+
+export const AdminRevokeBadgeInputBadgeId = {
+  AISE: 'AISE',
+  AISE_BUILD: 'AISE_BUILD',
+} as const;
+
+export interface AdminRevokeBadgeInput {
+  userId: string;
+  badgeId: AdminRevokeBadgeInputBadgeId;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  reason: string;
+}
+
+export type AdminRevokeBadgeResultBadgeId = typeof AdminRevokeBadgeResultBadgeId[keyof typeof AdminRevokeBadgeResultBadgeId];
+
+
+export const AdminRevokeBadgeResultBadgeId = {
+  AISE: 'AISE',
+  AISE_BUILD: 'AISE_BUILD',
+} as const;
+
+export interface AdminRevokeBadgeResult {
+  ok: boolean;
+  userId: string;
+  badgeId: AdminRevokeBadgeResultBadgeId;
+  revokedAt: string;
+  reason: string;
+}
+
 export interface HarnessEvolveInput {
   sessionId: string;
   /**
