@@ -34,6 +34,7 @@ import Quests from "@/pages/quests";
 import Account from "@/pages/account";
 import Demo from "@/pages/demo";
 import Ingest from "@/pages/ingest";
+import Cartridge from "@/pages/cartridge";
 import { DEMO_MODE } from "@/lib/demo-mode";
 import { DemoBanner } from "@/components/DemoBanner";
 
@@ -215,6 +216,7 @@ function ClerkProviderWithRoutes() {
             <Route path="/sessions" component={() => <ProtectedRoute component={Sessions} />} />
             <Route path="/session/new" component={() => <ProtectedRoute component={SessionNew} />} />
             <Route path="/ingest" component={() => <ProtectedRoute component={Ingest} />} />
+            <Route path="/cartridge" component={() => <ProtectedRoute component={Cartridge} />} />
             <Route path="/session/:id" component={() => <ProtectedRoute component={SessionDetail} />} />
             <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
             <Route path="/prompts" component={() => <ProtectedRoute component={Prompts} />} />

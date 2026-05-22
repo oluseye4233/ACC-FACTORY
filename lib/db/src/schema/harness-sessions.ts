@@ -3,8 +3,9 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
 import { ingestionDocumentsTable } from "./ingestion-documents";
+import { cartridgePackagesTable } from "./cartridge";
 
-export const SESSION_ORIGINS = ["manual", "ingested"] as const;
+export const SESSION_ORIGINS = ["manual", "ingested", "cartridge"] as const;
 export type SessionOrigin = (typeof SESSION_ORIGINS)[number];
 
 export const LLM_PROVIDERS = ["claude", "openai", "gemini"] as const;
@@ -25,6 +26,9 @@ export const harnessSessionsTable = pgTable("harness_sessions", {
   ingestionId: uuid("ingestion_id").references(() => ingestionDocumentsTable.id, {
     onDelete: "set null",
   }),
+  cartridgeId: uuid("cartridge_id").references(() => cartridgePackagesTable.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
@@ -32,6 +36,7 @@ export const harnessSessionsTable = pgTable("harness_sessions", {
     .$onUpdate(() => new Date()),
 }, (t) => ({
   ingestionIdx: index("harness_sessions_ingestion_id_idx").on(t.ingestionId),
+  cartridgeIdx: index("harness_sessions_cartridge_id_idx").on(t.cartridgeId),
 }));
 
 export const insertHarnessSessionSchema = createInsertSchema(harnessSessionsTable).omit({

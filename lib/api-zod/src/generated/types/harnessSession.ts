@@ -14,6 +14,7 @@ export interface HarnessSession {
   status: string;
   origin: HarnessSessionOrigin;
   ingestionId: string | null;
+  cartridgeId: string | null;
   preferredModelProvider: LlmProvider;
   createdAt: Date;
   updatedAt: Date;

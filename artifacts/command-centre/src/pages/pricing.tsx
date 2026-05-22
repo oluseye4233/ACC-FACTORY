@@ -7,6 +7,7 @@ import {
   useGetPricing,
   useBillingCheckout,
   useBillingIngestionCheckout,
+  useBillingCartridgeCheckout,
   PricingTier,
   SubscriberTier,
   CheckoutInputInterval,
@@ -83,6 +84,26 @@ export default function Pricing() {
   const [interval, setInterval] = useState<"monthly" | "yearly">("monthly");
   const checkout = useBillingCheckout();
   const ingestionCheckout = useBillingIngestionCheckout();
+  const cartridgeCheckout = useBillingCartridgeCheckout();
+
+  const handleBuyCartridgeCredit = () => {
+    if (!BILLING_ENABLED) {
+      window.location.href = `mailto:${ACCESS_REQUEST_EMAIL}?subject=${encodeURIComponent(
+        "Early access — Advanced Cartridge project credit",
+      )}&body=${encodeURIComponent(
+        "Hello,\n\nI'd like to purchase an ATANDA Advanced Cartridge project credit during the private preview.\n\nName:\nOrganisation:\nProject:\n\nThank you.",
+      )}`;
+      return;
+    }
+    cartridgeCheckout.mutate(
+      { data: {} },
+      {
+        onSuccess: (res) => {
+          if (res.url) window.location.href = res.url;
+        },
+      },
+    );
+  };
   const { toast } = useToast();
   const { isSignedIn } = useAuth();
   const [, setLocation] = useLocation();
@@ -349,6 +370,69 @@ export default function Pricing() {
                       : !BILLING_ENABLED
                         ? "REQUEST ACCESS"
                         : "BUY A PROJECT CREDIT"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Advanced Cartridge per-project add-on */}
+        <section className="pb-20">
+          <div className="container px-4 md:px-6 max-w-5xl">
+            <div className="rounded-lg border border-primary/30 bg-card overflow-hidden">
+              <div className="grid md:grid-cols-[1fr_auto] gap-6 p-6 md:p-8 items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-primary mb-3">
+                    <FileUp className="h-3 w-3" />
+                    STANDALONE · PREMIUM PER-PROJECT
+                  </div>
+                  <h3 className="font-display text-2xl md:text-3xl tracking-wider mb-2">
+                    ADVANCED CARTRIDGE <span className="text-primary">— PER PROJECT</span>
+                  </h3>
+                  <p className="font-serif text-muted-foreground leading-relaxed mb-4 max-w-2xl">
+                    For real projects that arrive with{" "}
+                    <span className="text-foreground">multiple documents</span>,{" "}
+                    <span className="text-foreground">prior SPCs</span>, and a
+                    live <span className="text-foreground">codebase or database</span>.
+                    You define the project scope; the HARNESS protects that
+                    scope across F1 → F7 and ships a certified PWDD + MVP-PDD
+                    ready for F8 Code DJ hand-off.
+                  </p>
+                  <ul className="grid sm:grid-cols-2 gap-2 text-sm">
+                    {[
+                      "Required scope statement — pinned in every prompt",
+                      "Up to 5 supporting docs + 10 SPCs",
+                      "Optional git / database link descriptors",
+                      "Works on any account tier (Explorer included)",
+                      "Failed builds are refunded automatically",
+                      "Credit never expires",
+                    ].map((feat, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="md:text-right">
+                  <div className="flex md:flex-col items-baseline md:items-end gap-2 mb-4">
+                    <span className="text-5xl font-display tracking-wider">$499.99</span>
+                    <span className="text-muted-foreground font-mono text-sm">
+                      / project
+                    </span>
+                  </div>
+                  <Button
+                    onClick={handleBuyCartridgeCredit}
+                    disabled={cartridgeCheckout.isPending}
+                    className="w-full md:w-auto font-display tracking-wider"
+                    data-testid="button-buy-cartridge-credit"
+                  >
+                    {cartridgeCheckout.isPending
+                      ? "OPENING CHECKOUT…"
+                      : !BILLING_ENABLED
+                        ? "REQUEST ACCESS"
+                        : "BUY A CARTRIDGE CREDIT"}
                   </Button>
                 </div>
               </div>

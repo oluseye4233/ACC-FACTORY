@@ -12,4 +12,5 @@ export type HarnessSessionOrigin = typeof HarnessSessionOrigin[keyof typeof Harn
 export const HarnessSessionOrigin = {
   manual: 'manual',
   ingested: 'ingested',
+  cartridge: 'cartridge',
 } as const;

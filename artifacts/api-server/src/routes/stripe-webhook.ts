@@ -5,6 +5,7 @@ import {
   db,
   commandCentreSubscribersTable,
   ingestionCreditsTable,
+  cartridgeCreditsTable,
   stripeWebhookEventsTable,
   usersTable,
   type SubscriberTier,
@@ -141,6 +142,42 @@ router.post(
             // Stripe customer id and insert a credit row keyed by checkout
             // session id (unique constraint = idempotency net beyond the
             // outer stripe_webhook_events PK).
+            if (
+              session.mode === "payment" &&
+              session.metadata?.kind === "cartridge_credit"
+            ) {
+              const subRows = await tx
+                .select({ userId: commandCentreSubscribersTable.userId })
+                .from(commandCentreSubscribersTable)
+                .where(eq(commandCentreSubscribersTable.stripeCustomerId, customerId))
+                .limit(1);
+              const userId = subRows[0]?.userId;
+              if (!userId) {
+                req.log.warn(
+                  { customerId, sessionId: session.id },
+                  "Cartridge credit purchase: no local user found for Stripe customer",
+                );
+                break;
+              }
+              const paymentIntentId =
+                typeof session.payment_intent === "string"
+                  ? session.payment_intent
+                  : session.payment_intent?.id ?? null;
+              await tx
+                .insert(cartridgeCreditsTable)
+                .values({
+                  userId,
+                  status: "available",
+                  stripeCheckoutSessionId: session.id,
+                  stripePaymentIntentId: paymentIntentId,
+                  amountUsdCents: session.amount_total ?? null,
+                })
+                .onConflictDoNothing({
+                  target: cartridgeCreditsTable.stripeCheckoutSessionId,
+                });
+              break;
+            }
+
             if (
               session.mode === "payment" &&
               session.metadata?.kind === "ingestion_credit"

@@ -145,6 +145,57 @@ router.post("/billing/ingestion/checkout", requireAuth, async (req, res): Promis
   res.json({ url: session.url ?? "" });
 });
 
+router.post("/billing/cartridge/checkout", requireAuth, async (req, res): Promise<void> => {
+  const priceId = process.env.STRIPE_PRICE_CARTRIDGE_PROJECT;
+  if (!priceId) {
+    res.status(503).json({
+      error: "Cartridge project price not configured (set STRIPE_PRICE_CARTRIDGE_PROJECT)",
+    });
+    return;
+  }
+  let stripe;
+  try {
+    stripe = await getUncachableStripeClient();
+  } catch (err) {
+    req.log.error({ err }, "Stripe client unavailable");
+    res.status(503).json({ error: "Billing not configured" });
+    return;
+  }
+  const successUrl =
+    typeof req.body?.successUrl === "string" ? req.body.successUrl : null;
+  const cancelUrl =
+    typeof req.body?.cancelUrl === "string" ? req.body.cancelUrl : null;
+  const origin =
+    req.headers.origin?.toString() ||
+    (req.headers["x-forwarded-proto"] && req.headers.host
+      ? `${req.headers["x-forwarded-proto"]}://${req.headers.host}`
+      : "");
+  let customerId = req.subscriber!.stripeCustomerId ?? undefined;
+  if (!customerId) {
+    const customer = await stripe.customers.create({
+      email: req.localUser!.email ?? undefined,
+      metadata: { localUserId: req.localUser!.id, clerkUserId: req.clerkUserId! },
+    });
+    customerId = customer.id;
+    await db
+      .update(commandCentreSubscribersTable)
+      .set({ stripeCustomerId: customerId })
+      .where(eq(commandCentreSubscribersTable.id, req.subscriber!.id));
+  }
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    customer: customerId,
+    line_items: [{ price: priceId, quantity: 1 }],
+    payment_intent_data: {
+      metadata: { kind: "cartridge_credit", localUserId: req.localUser!.id },
+    },
+    success_url: successUrl ?? `${origin}/cartridge?status=credit_purchased`,
+    cancel_url: cancelUrl ?? `${origin}/cartridge?status=cancel`,
+    metadata: { kind: "cartridge_credit", localUserId: req.localUser!.id },
+  });
+  res.json({ url: session.url ?? "" });
+});
+
 router.post("/billing/portal", requireAuth, async (req, res): Promise<void> => {
   const parsed = BillingPortalBody.safeParse(req.body ?? {});
   if (!parsed.success) {

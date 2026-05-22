@@ -143,8 +143,9 @@ export const ListSessionsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "sessionName": zod.string(),
   "status": zod.string(),
-  "origin": zod.enum(['manual', 'ingested']),
+  "origin": zod.enum(['manual', 'ingested', 'cartridge']),
   "ingestionId": zod.string().uuid().nullable(),
+  "cartridgeId": zod.string().uuid().nullable(),
   "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
@@ -175,8 +176,9 @@ export const GetSessionResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionName": zod.string(),
   "status": zod.string(),
-  "origin": zod.enum(['manual', 'ingested']),
+  "origin": zod.enum(['manual', 'ingested', 'cartridge']),
   "ingestionId": zod.string().uuid().nullable(),
+  "cartridgeId": zod.string().uuid().nullable(),
   "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
@@ -224,8 +226,9 @@ export const UpdateSessionResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionName": zod.string(),
   "status": zod.string(),
-  "origin": zod.enum(['manual', 'ingested']),
+  "origin": zod.enum(['manual', 'ingested', 'cartridge']),
   "ingestionId": zod.string().uuid().nullable(),
+  "cartridgeId": zod.string().uuid().nullable(),
   "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
@@ -676,6 +679,128 @@ export const GetIngestionCreditsResponse = zod.object({
   "available": zod.number().min(getIngestionCreditsResponseAvailableMin),
   "consumed": zod.number().min(getIngestionCreditsResponseConsumedMin),
   "total": zod.number().min(getIngestionCreditsResponseTotalMin)
+})
+
+
+/**
+ * @summary One-time Stripe checkout for a single Advanced Cartridge credit
+ */
+export const BillingCartridgeCheckoutBody = zod.object({
+  "successUrl": zod.string().nullish(),
+  "cancelUrl": zod.string().nullish()
+})
+
+export const BillingCartridgeCheckoutResponse = zod.object({
+  "url": zod.string()
+})
+
+
+/**
+ * @summary Available + consumed cartridge credit balance for the current user
+ */
+export const getCartridgeCreditsResponseAvailableMin = 0;
+
+export const getCartridgeCreditsResponseConsumedMin = 0;
+
+export const getCartridgeCreditsResponseTotalMin = 0;
+
+
+
+export const GetCartridgeCreditsResponse = zod.object({
+  "available": zod.number().min(getCartridgeCreditsResponseAvailableMin),
+  "consumed": zod.number().min(getCartridgeCreditsResponseConsumedMin),
+  "total": zod.number().min(getCartridgeCreditsResponseTotalMin)
+})
+
+
+export const GetCartridgeParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetCartridgeResponse = zod.object({
+  "id": zod.string().uuid(),
+  "projectName": zod.string(),
+  "outcomeOneLiner": zod.string(),
+  "scopeStatement": zod.string(),
+  "targetPlatformHint": zod.string().nullish(),
+  "seedPrompt": zod.string(),
+  "summary": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "documents": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSizeBytes": zod.number(),
+  "extractedTextChars": zod.number(),
+  "summary": zod.string()
+})),
+  "spcs": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "label": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string()
+})),
+  "links": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "kind": zod.enum(['git', 'database']),
+  "descriptor": zod.string(),
+  "note": zod.string().nullable()
+}))
+})
+
+
+/**
+ * @summary Create a HARNESS session bound to a cartridge package (origin=cartridge)
+ */
+export const StartSessionFromCartridgeParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const startSessionFromCartridgeBodySessionNameMax = 255;
+
+
+
+export const StartSessionFromCartridgeBody = zod.object({
+  "sessionName": zod.string().min(1).max(startSessionFromCartridgeBodySessionNameMax).optional()
+})
+
+
+/**
+ * @summary Get the cartridge bound to this session (404 if not a cartridge session)
+ */
+export const GetSessionCartridgeParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetSessionCartridgeResponse = zod.object({
+  "id": zod.string().uuid(),
+  "projectName": zod.string(),
+  "outcomeOneLiner": zod.string(),
+  "scopeStatement": zod.string(),
+  "targetPlatformHint": zod.string().nullish(),
+  "seedPrompt": zod.string(),
+  "summary": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "documents": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSizeBytes": zod.number(),
+  "extractedTextChars": zod.number(),
+  "summary": zod.string()
+})),
+  "spcs": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "label": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string()
+})),
+  "links": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "kind": zod.enum(['git', 'database']),
+  "descriptor": zod.string(),
+  "note": zod.string().nullable()
+}))
 })
 
 

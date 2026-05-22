@@ -13,6 +13,7 @@ import promptsRouter from "./prompts";
 import exportsRouter from "./exports";
 import badgesRouter from "./badges";
 import ingestRouter from "./ingest";
+import cartridgeRouter from "./cartridge";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(verifyRouter);
 router.use(exemplarsRouter);
 router.use(harnessRouter);
 router.use(ingestRouter);
+router.use(cartridgeRouter);
 
 export default router;

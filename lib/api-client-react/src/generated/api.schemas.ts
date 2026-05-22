@@ -250,6 +250,7 @@ export type HarnessSessionOrigin = typeof HarnessSessionOrigin[keyof typeof Harn
 export const HarnessSessionOrigin = {
   manual: 'manual',
   ingested: 'ingested',
+  cartridge: 'cartridge',
 } as const;
 
 export interface HarnessSession {
@@ -258,6 +259,7 @@ export interface HarnessSession {
   status: string;
   origin: HarnessSessionOrigin;
   ingestionId: string | null;
+  cartridgeId: string | null;
   preferredModelProvider: LlmProvider;
   createdAt: string;
   updatedAt: string;
@@ -699,6 +701,77 @@ export interface CheckoutInput {
 
 export interface CheckoutSession {
   url: string;
+}
+
+export interface CartridgeCheckoutInput {
+  /** @nullable */
+  successUrl?: string | null;
+  /** @nullable */
+  cancelUrl?: string | null;
+}
+
+export interface CartridgeCreditsSummary {
+  /** @minimum 0 */
+  available: number;
+  /** @minimum 0 */
+  consumed: number;
+  /** @minimum 0 */
+  total: number;
+}
+
+export type CartridgeLinkKind = typeof CartridgeLinkKind[keyof typeof CartridgeLinkKind];
+
+
+export const CartridgeLinkKind = {
+  git: 'git',
+  database: 'database',
+} as const;
+
+export interface CartridgeDocumentSummary {
+  id: string;
+  originalFilename: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  extractedTextChars: number;
+  summary: string;
+}
+
+export interface CartridgeSpcSummary {
+  id: string;
+  label: string;
+  summary: string;
+  body: string;
+}
+
+export interface CartridgeLinkSummary {
+  id: string;
+  kind: CartridgeLinkKind;
+  descriptor: string;
+  /** @nullable */
+  note: string | null;
+}
+
+export interface CartridgePackage {
+  id: string;
+  projectName: string;
+  outcomeOneLiner: string;
+  scopeStatement: string;
+  /** @nullable */
+  targetPlatformHint?: string | null;
+  seedPrompt: string;
+  summary: string;
+  createdAt: string;
+  documents: CartridgeDocumentSummary[];
+  spcs: CartridgeSpcSummary[];
+  links: CartridgeLinkSummary[];
+}
+
+export interface CartridgeStartSessionInput {
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  sessionName?: string;
 }
 
 export interface IngestionCheckoutInput {

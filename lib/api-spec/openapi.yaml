@@ -555,6 +555,123 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/IngestionCreditsSummary" }
 
+  /billing/cartridge/checkout:
+    post:
+      operationId: billingCartridgeCheckout
+      tags: [billing]
+      summary: One-time Stripe checkout for a single Advanced Cartridge credit
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CartridgeCheckoutInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CheckoutSession" }
+        "503":
+          description: Billing not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /cartridge-credits:
+    get:
+      operationId: getCartridgeCredits
+      tags: [billing]
+      summary: Available + consumed cartridge credit balance for the current user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CartridgeCreditsSummary" }
+
+  /cartridge:
+    post:
+      operationId: createCartridge
+      tags: [sessions]
+      summary: |
+        Create a cartridge package (multi-document + SPCs + optional links).
+        Atomically claims one available cartridge credit. Scope statement is
+        mandatory and validated server-side (code SCOPE_REQUIRED).
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CartridgePackage" }
+        "400":
+          description: Scope validation failed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "402":
+          description: Payment required — no cartridge credit available
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /cartridge/{id}:
+    get:
+      operationId: getCartridge
+      tags: [sessions]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CartridgePackage" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /cartridge/{id}/start-session:
+    post:
+      operationId: startSessionFromCartridge
+      tags: [sessions]
+      summary: Create a HARNESS session bound to a cartridge package (origin=cartridge)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CartridgeStartSessionInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HarnessSession" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /sessions/{id}/cartridge:
+    get:
+      operationId: getSessionCartridge
+      tags: [sessions]
+      summary: Get the cartridge bound to this session (404 if not a cartridge session)
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CartridgePackage" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /billing/portal:
     post:
       operationId: billingPortal
@@ -1102,13 +1219,14 @@ components:
 
     HarnessSession:
       type: object
-      required: [id, sessionName, status, origin, ingestionId, preferredModelProvider, createdAt, updatedAt]
+      required: [id, sessionName, status, origin, ingestionId, cartridgeId, preferredModelProvider, createdAt, updatedAt]
       properties:
         id: { type: string, format: uuid }
         sessionName: { type: string }
         status: { type: string }
-        origin: { type: string, enum: [manual, ingested] }
+        origin: { type: string, enum: [manual, ingested, cartridge] }
         ingestionId: { type: string, format: uuid, nullable: true }
+        cartridgeId: { type: string, format: uuid, nullable: true }
         preferredModelProvider: { $ref: "#/components/schemas/LlmProvider" }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
@@ -1492,6 +1610,82 @@ components:
       required: [url]
       properties:
         url: { type: string }
+
+    CartridgeCheckoutInput:
+      type: object
+      properties:
+        successUrl: { type: ["string", "null"] }
+        cancelUrl: { type: ["string", "null"] }
+
+    CartridgeCreditsSummary:
+      type: object
+      required: [available, consumed, total]
+      properties:
+        available: { type: integer, minimum: 0 }
+        consumed: { type: integer, minimum: 0 }
+        total: { type: integer, minimum: 0 }
+
+    CartridgeLinkKind:
+      type: string
+      enum: [git, database]
+
+    CartridgeDocumentSummary:
+      type: object
+      required: [id, originalFilename, mimeType, fileSizeBytes, extractedTextChars, summary]
+      properties:
+        id: { type: string, format: uuid }
+        originalFilename: { type: string }
+        mimeType: { type: string }
+        fileSizeBytes: { type: integer }
+        extractedTextChars: { type: integer }
+        summary: { type: string }
+
+    CartridgeSpcSummary:
+      type: object
+      required: [id, label, summary, body]
+      properties:
+        id: { type: string, format: uuid }
+        label: { type: string }
+        summary: { type: string }
+        body: { type: string }
+
+    CartridgeLinkSummary:
+      type: object
+      required: [id, kind, descriptor, note]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { $ref: "#/components/schemas/CartridgeLinkKind" }
+        descriptor: { type: string }
+        note: { type: ["string", "null"] }
+
+    CartridgePackage:
+      type: object
+      required:
+        [id, projectName, outcomeOneLiner, scopeStatement, seedPrompt, summary,
+         createdAt, documents, spcs, links]
+      properties:
+        id: { type: string, format: uuid }
+        projectName: { type: string }
+        outcomeOneLiner: { type: string }
+        scopeStatement: { type: string }
+        targetPlatformHint: { type: ["string", "null"] }
+        seedPrompt: { type: string }
+        summary: { type: string }
+        createdAt: { type: string, format: date-time }
+        documents:
+          type: array
+          items: { $ref: "#/components/schemas/CartridgeDocumentSummary" }
+        spcs:
+          type: array
+          items: { $ref: "#/components/schemas/CartridgeSpcSummary" }
+        links:
+          type: array
+          items: { $ref: "#/components/schemas/CartridgeLinkSummary" }
+
+    CartridgeStartSessionInput:
+      type: object
+      properties:
+        sessionName: { type: string, minLength: 1, maxLength: 255 }
 
     IngestionCheckoutInput:
       type: object

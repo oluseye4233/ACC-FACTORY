@@ -30,13 +30,14 @@ function rejectProviderIfExplorer(
 
 const router: IRouter = Router();
 
-function serializeSession(s: typeof harnessSessionsTable.$inferSelect) {
+export function serializeSession(s: typeof harnessSessionsTable.$inferSelect) {
   return {
     id: s.id,
     sessionName: s.sessionName,
     status: s.status,
     origin: s.origin,
     ingestionId: s.ingestionId,
+    cartridgeId: s.cartridgeId,
     preferredModelProvider: s.preferredModelProvider,
     createdAt: s.createdAt.toISOString(),
     updatedAt: s.updatedAt.toISOString(),
@@ -222,4 +223,4 @@ router.get("/sessions/:id/artifacts", requireAuth, async (req, res): Promise<voi
 });
 
 export default router;
-export { serializeArtifact, serializeSession, serializeFeatureState };
+export { serializeArtifact, serializeFeatureState };

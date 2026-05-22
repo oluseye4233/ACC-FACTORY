@@ -26,6 +26,10 @@ import type {
   AtlasPdd,
   AtomicPrompt,
   BadgeProgress,
+  CartridgeCheckoutInput,
+  CartridgeCreditsSummary,
+  CartridgePackage,
+  CartridgeStartSessionInput,
   CheckoutInput,
   CheckoutSession,
   CodebaseBundle,
@@ -2398,6 +2402,450 @@ export function useGetIngestionCredits<TData = Awaited<ReturnType<typeof getInge
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetIngestionCreditsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getBillingCartridgeCheckoutUrl = () => {
+
+
+
+
+  return `/api/billing/cartridge/checkout`
+}
+
+/**
+ * @summary One-time Stripe checkout for a single Advanced Cartridge credit
+ */
+export const billingCartridgeCheckout = async (cartridgeCheckoutInput?: CartridgeCheckoutInput, options?: RequestInit): Promise<CheckoutSession> => {
+
+  return customFetch<CheckoutSession>(getBillingCartridgeCheckoutUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      cartridgeCheckoutInput,)
+  }
+);}
+
+
+
+
+export const getBillingCartridgeCheckoutMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof billingCartridgeCheckout>>, TError,{data?: BodyType<CartridgeCheckoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof billingCartridgeCheckout>>, TError,{data?: BodyType<CartridgeCheckoutInput>}, TContext> => {
+
+const mutationKey = ['billingCartridgeCheckout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof billingCartridgeCheckout>>, {data?: BodyType<CartridgeCheckoutInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  billingCartridgeCheckout(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BillingCartridgeCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof billingCartridgeCheckout>>>
+    export type BillingCartridgeCheckoutMutationBody = BodyType<CartridgeCheckoutInput> | undefined
+    export type BillingCartridgeCheckoutMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary One-time Stripe checkout for a single Advanced Cartridge credit
+ */
+export const useBillingCartridgeCheckout = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof billingCartridgeCheckout>>, TError,{data?: BodyType<CartridgeCheckoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof billingCartridgeCheckout>>,
+        TError,
+        {data?: BodyType<CartridgeCheckoutInput>},
+        TContext
+      > => {
+      return useMutation(getBillingCartridgeCheckoutMutationOptions(options));
+    }
+
+export const getGetCartridgeCreditsUrl = () => {
+
+
+
+
+  return `/api/cartridge-credits`
+}
+
+/**
+ * @summary Available + consumed cartridge credit balance for the current user
+ */
+export const getCartridgeCredits = async ( options?: RequestInit): Promise<CartridgeCreditsSummary> => {
+
+  return customFetch<CartridgeCreditsSummary>(getGetCartridgeCreditsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCartridgeCreditsQueryKey = () => {
+    return [
+    `/api/cartridge-credits`
+    ] as const;
+    }
+
+
+export const getGetCartridgeCreditsQueryOptions = <TData = Awaited<ReturnType<typeof getCartridgeCredits>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCartridgeCredits>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCartridgeCreditsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCartridgeCredits>>> = ({ signal }) => getCartridgeCredits({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCartridgeCredits>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCartridgeCreditsQueryResult = NonNullable<Awaited<ReturnType<typeof getCartridgeCredits>>>
+export type GetCartridgeCreditsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Available + consumed cartridge credit balance for the current user
+ */
+
+export function useGetCartridgeCredits<TData = Awaited<ReturnType<typeof getCartridgeCredits>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCartridgeCredits>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCartridgeCreditsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateCartridgeUrl = () => {
+
+
+
+
+  return `/api/cartridge`
+}
+
+/**
+ * @summary Create a cartridge package (multi-document + SPCs + optional links).
+Atomically claims one available cartridge credit. Scope statement is
+mandatory and validated server-side (code SCOPE_REQUIRED).
+
+ */
+export const createCartridge = async ( options?: RequestInit): Promise<CartridgePackage> => {
+
+  return customFetch<CartridgePackage>(getCreateCartridgeUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateCartridgeMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCartridge>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCartridge>>, TError,void, TContext> => {
+
+const mutationKey = ['createCartridge'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCartridge>>, void> = () => {
+
+
+          return  createCartridge(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCartridgeMutationResult = NonNullable<Awaited<ReturnType<typeof createCartridge>>>
+
+    export type CreateCartridgeMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Create a cartridge package (multi-document + SPCs + optional links).
+Atomically claims one available cartridge credit. Scope statement is
+mandatory and validated server-side (code SCOPE_REQUIRED).
+
+ */
+export const useCreateCartridge = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCartridge>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCartridge>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCreateCartridgeMutationOptions(options));
+    }
+
+export const getGetCartridgeUrl = (id: string,) => {
+
+
+
+
+  return `/api/cartridge/${id}`
+}
+
+export const getCartridge = async (id: string, options?: RequestInit): Promise<CartridgePackage> => {
+
+  return customFetch<CartridgePackage>(getGetCartridgeUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCartridgeQueryKey = (id: string,) => {
+    return [
+    `/api/cartridge/${id}`
+    ] as const;
+    }
+
+
+export const getGetCartridgeQueryOptions = <TData = Awaited<ReturnType<typeof getCartridge>>, TError = ErrorType<NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCartridge>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCartridgeQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCartridge>>> = ({ signal }) => getCartridge(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCartridge>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCartridgeQueryResult = NonNullable<Awaited<ReturnType<typeof getCartridge>>>
+export type GetCartridgeQueryError = ErrorType<NotFoundResponse>
+
+
+
+export function useGetCartridge<TData = Awaited<ReturnType<typeof getCartridge>>, TError = ErrorType<NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCartridge>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCartridgeQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getStartSessionFromCartridgeUrl = (id: string,) => {
+
+
+
+
+  return `/api/cartridge/${id}/start-session`
+}
+
+/**
+ * @summary Create a HARNESS session bound to a cartridge package (origin=cartridge)
+ */
+export const startSessionFromCartridge = async (id: string,
+    cartridgeStartSessionInput?: CartridgeStartSessionInput, options?: RequestInit): Promise<HarnessSession> => {
+
+  return customFetch<HarnessSession>(getStartSessionFromCartridgeUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      cartridgeStartSessionInput,)
+  }
+);}
+
+
+
+
+export const getStartSessionFromCartridgeMutationOptions = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startSessionFromCartridge>>, TError,{id: string;data?: BodyType<CartridgeStartSessionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startSessionFromCartridge>>, TError,{id: string;data?: BodyType<CartridgeStartSessionInput>}, TContext> => {
+
+const mutationKey = ['startSessionFromCartridge'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startSessionFromCartridge>>, {id: string;data?: BodyType<CartridgeStartSessionInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  startSessionFromCartridge(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartSessionFromCartridgeMutationResult = NonNullable<Awaited<ReturnType<typeof startSessionFromCartridge>>>
+    export type StartSessionFromCartridgeMutationBody = BodyType<CartridgeStartSessionInput> | undefined
+    export type StartSessionFromCartridgeMutationError = ErrorType<NotFoundResponse>
+
+    /**
+ * @summary Create a HARNESS session bound to a cartridge package (origin=cartridge)
+ */
+export const useStartSessionFromCartridge = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startSessionFromCartridge>>, TError,{id: string;data?: BodyType<CartridgeStartSessionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startSessionFromCartridge>>,
+        TError,
+        {id: string;data?: BodyType<CartridgeStartSessionInput>},
+        TContext
+      > => {
+      return useMutation(getStartSessionFromCartridgeMutationOptions(options));
+    }
+
+export const getGetSessionCartridgeUrl = (id: string,) => {
+
+
+
+
+  return `/api/sessions/${id}/cartridge`
+}
+
+/**
+ * @summary Get the cartridge bound to this session (404 if not a cartridge session)
+ */
+export const getSessionCartridge = async (id: string, options?: RequestInit): Promise<CartridgePackage> => {
+
+  return customFetch<CartridgePackage>(getGetSessionCartridgeUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSessionCartridgeQueryKey = (id: string,) => {
+    return [
+    `/api/sessions/${id}/cartridge`
+    ] as const;
+    }
+
+
+export const getGetSessionCartridgeQueryOptions = <TData = Awaited<ReturnType<typeof getSessionCartridge>>, TError = ErrorType<NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSessionCartridge>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSessionCartridgeQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSessionCartridge>>> = ({ signal }) => getSessionCartridge(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSessionCartridge>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSessionCartridgeQueryResult = NonNullable<Awaited<ReturnType<typeof getSessionCartridge>>>
+export type GetSessionCartridgeQueryError = ErrorType<NotFoundResponse>
+
+
+/**
+ * @summary Get the cartridge bound to this session (404 if not a cartridge session)
+ */
+
+export function useGetSessionCartridge<TData = Awaited<ReturnType<typeof getSessionCartridge>>, TError = ErrorType<NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSessionCartridge>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSessionCartridgeQueryOptions(id,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

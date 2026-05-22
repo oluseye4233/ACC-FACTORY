@@ -380,17 +380,28 @@ export async function callLlm(
 ): Promise<string> {
   const start = Date.now();
   const jsonMode = opts?.jsonMode ?? false;
+
+  // Inject CARTRIDGE CONTEXT (scope-first, protected) for cartridge sessions.
+  // Lives at the TOP of the system prompt so every engine — F1 through F8,
+  // F6-VDJ and DE-SPC — is bound by the same operator-defined scope.
+  let finalSystem = systemPrompt;
+  if (ctx?.sessionId) {
+    const { loadCartridgeContext } = await import("../lib/cartridge-context");
+    const block = await loadCartridgeContext(ctx.sessionId);
+    if (block) finalSystem = `${block}\n\n${systemPrompt}`;
+  }
+
   let result: { text: string; inputTokens: number; outputTokens: number; modelId: string };
   switch (provider) {
     case "openai":
-      result = await callOpenAIImpl(systemPrompt, userPrompt, jsonMode);
+      result = await callOpenAIImpl(finalSystem, userPrompt, jsonMode);
       break;
     case "gemini":
-      result = await callGeminiImpl(systemPrompt, userPrompt, jsonMode);
+      result = await callGeminiImpl(finalSystem, userPrompt, jsonMode);
       break;
     case "claude":
     default:
-      result = await callClaudeImpl(systemPrompt, userPrompt);
+      result = await callClaudeImpl(finalSystem, userPrompt);
       break;
   }
   if (ctx) {
