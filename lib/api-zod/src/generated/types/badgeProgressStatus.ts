@@ -13,4 +13,5 @@ export const BadgeProgressStatus = {
   LOCKED: 'LOCKED',
   UNLOCKED: 'UNLOCKED',
   CLAIMED: 'CLAIMED',
+  REVOKED: 'REVOKED',
 } as const;

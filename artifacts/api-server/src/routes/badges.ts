@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod/v4";
 import {
@@ -7,6 +7,7 @@ import {
   commandCentreBadgesTable,
   usersTable,
   badgeRevocationsTable,
+  type BadgeRevocationRecord,
 } from "@workspace/db";
 import { requireAuth, requireAdmin } from "../lib/auth";
 import {
@@ -15,6 +16,18 @@ import {
   headOk,
   listContextCraftBadges,
 } from "../lib/badges";
+
+const BADGE_DISPLAY_NAMES: Record<"AISE" | "AISE_BUILD", string> = {
+  AISE: "AI Solution Engineer (AISE)",
+  AISE_BUILD: "Advanced Intelligent Systems Engineer (AISE_BUILD)",
+};
+
+/** Fields to clear on the badge row when a user successfully re-claims after a revoke. */
+const CLEAR_REVOCATION = {
+  revokedAt: null,
+  revokedReason: null,
+  revokedByUserId: null,
+} as const;
 
 const router: IRouter = Router();
 
@@ -112,7 +125,7 @@ router.post("/me/badges/aise/claim", requireAuth, async (req, res): Promise<void
   } else {
     await db
       .update(commandCentreBadgesTable)
-      .set({ status: "CLAIMED", evidence, claimedAt: now })
+      .set({ status: "CLAIMED", evidence, claimedAt: now, ...CLEAR_REVOCATION })
       .where(eq(commandCentreBadgesTable.id, existing[0]!.id));
   }
 
@@ -175,7 +188,7 @@ router.post("/me/badges/engineer", requireAuth, async (req, res): Promise<void> 
   } else {
     await db
       .update(commandCentreBadgesTable)
-      .set({ status: "CLAIMED", evidence, claimedAt: now })
+      .set({ status: "CLAIMED", evidence, claimedAt: now, ...CLEAR_REVOCATION })
       .where(eq(commandCentreBadgesTable.id, existing[0]!.id));
   }
 
@@ -202,32 +215,59 @@ router.post(
     const { userId, badgeId, reason } = parsed.data;
     const adminUserId = req.localUser!.id;
 
-    const targetExists = await db
-      .select({ id: usersTable.id })
+    const targetRows = await db
+      .select({ id: usersTable.id, email: usersTable.email, displayName: usersTable.displayName })
       .from(usersTable)
       .where(eq(usersTable.id, userId))
       .limit(1);
-    if (targetExists.length === 0) {
+    if (targetRows.length === 0) {
       res.status(404).json({ error: "User not found" });
       return;
     }
+    const targetUser = targetRows[0]!;
 
-    const deleted = await db
-      .delete(commandCentreBadgesTable)
+    const existing = await db
+      .select()
+      .from(commandCentreBadgesTable)
       .where(
         and(
           eq(commandCentreBadgesTable.userId, userId),
           eq(commandCentreBadgesTable.badgeId, badgeId),
         ),
       )
-      .returning({ id: commandCentreBadgesTable.id });
+      .limit(1);
 
-    if (deleted.length === 0) {
+    if (existing.length === 0) {
       res.status(404).json({ error: "Badge not found for that user" });
       return;
     }
 
+    const row = existing[0]!;
+    if (row.status === "REVOKED") {
+      res.status(409).json({ error: "Badge is already revoked", revokedAt: row.revokedAt });
+      return;
+    }
+
     const revokedAt = new Date();
+    const record: BadgeRevocationRecord = {
+      revokedAt: revokedAt.toISOString(),
+      revokedByUserId: adminUserId,
+      reason,
+    };
+
+    const updated = await db
+      .update(commandCentreBadgesTable)
+      .set({
+        status: "REVOKED",
+        revokedAt,
+        revokedReason: reason,
+        revokedByUserId: adminUserId,
+        revokeHistory: sql`COALESCE(${commandCentreBadgesTable.revokeHistory}, '[]'::jsonb) || ${JSON.stringify([record])}::jsonb`,
+      })
+      .where(eq(commandCentreBadgesTable.id, row.id))
+      .returning({ id: commandCentreBadgesTable.id, revokeHistory: commandCentreBadgesTable.revokeHistory });
+
+    const historyLength = updated[0]?.revokeHistory?.length ?? 1;
 
     const insertedRevocation = await db
       .insert(badgeRevocationsTable)
@@ -247,12 +287,31 @@ router.post(
         targetUserId: userId,
         badgeId,
         reason,
-        revokedBadgeRowId: deleted[0]!.id,
+        revokedBadgeRowId: row.id,
         revocationId: insertedRevocation[0]?.id ?? null,
         revokedAt: revokedAt.toISOString(),
+        revocationCount: historyLength,
+        repeat: historyLength > 1,
       },
       "Admin revoked badge",
     );
+
+    if (targetUser.email) {
+      try {
+        const { sendBadgeRevoked } = await import("@workspace/email");
+        const appealUrl = `${process.env.PUBLIC_BASE_URL ?? ""}/quests`;
+        sendBadgeRevoked({
+          to: targetUser.email,
+          badgeId,
+          badgeName: BADGE_DISPLAY_NAMES[badgeId],
+          reason,
+          appealUrl,
+          isRepeat: historyLength > 1,
+        }).catch((err) => req.log.warn({ err }, "sendBadgeRevoked failed"));
+      } catch (err) {
+        req.log.warn({ err }, "sendBadgeRevoked import failed");
+      }
+    }
 
     res.json({
       ok: true,
@@ -260,6 +319,7 @@ router.post(
       badgeId,
       revokedAt: revokedAt.toISOString(),
       reason,
+      revocationCount: historyLength,
     });
   },
 );

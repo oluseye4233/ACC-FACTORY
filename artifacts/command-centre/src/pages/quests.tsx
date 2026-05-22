@@ -42,7 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { Award, CheckCircle2, Download, Lock, ShieldCheck, Trophy } from "lucide-react";
+import { AlertTriangle, Award, CheckCircle2, Download, Lock, ShieldCheck, Trophy } from "lucide-react";
 import badgeBg from "@assets/copilot_image_1779143975171_1779147194124.jpeg";
 import {
   downloadBadgeCertificate,
@@ -393,6 +393,7 @@ function SeniorBadgesSection({
   const architectEarned = !!architect && architect.eligible;
 
   const engineerClaimed = engineer?.status === "CLAIMED";
+  const engineerRevoked = engineer?.status === "REVOKED";
   const engineerEvidence = (engineer?.evidence ?? {}) as {
     verifiedUrl?: string;
     evidenceNote?: string;
@@ -514,10 +515,13 @@ function SeniorBadgesSection({
                 className={`text-[10px] font-mono font-bold px-2 py-1 rounded border ${
                   engineerClaimed
                     ? "bg-yellow-500/30 text-yellow-100 border-yellow-400/60"
+                    : engineerRevoked
+                    ? "bg-destructive/30 text-destructive-foreground border-destructive/60"
                     : "bg-background/60 text-muted-foreground border-muted-foreground/30"
                 }`}
+                data-testid="badge-engineer-status"
               >
-                {engineerClaimed ? "CLAIMED" : "EVIDENCE NEEDED"}
+                {engineerClaimed ? "CLAIMED" : engineerRevoked ? "REVOKED" : "EVIDENCE NEEDED"}
               </span>
             </div>
             <p className="font-serif text-xs text-muted-foreground mt-3">
@@ -525,6 +529,13 @@ function SeniorBadgesSection({
               built from one of your PWDDs. The URL is checked through the
               same SSRF-hardened verifier as AISE.
             </p>
+            {engineerRevoked && engineer && (
+              <RevocationNotice
+                badge={engineer}
+                testIdPrefix="engineer"
+                resubmitHint="Re-submit fresh evidence below to restore the badge."
+              />
+            )}
             <div className="mt-4">
               {engineerClaimed ? (
                 <div className="space-y-2 text-xs font-mono">
@@ -581,6 +592,49 @@ function SeniorBadgesSection({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function RevocationNotice({
+  badge,
+  testIdPrefix,
+  resubmitHint,
+}: {
+  badge: BadgeProgress;
+  testIdPrefix: string;
+  resubmitHint: string;
+}) {
+  const revokedAt = badge.revokedAt ? new Date(badge.revokedAt).toLocaleString() : null;
+  const repeat = badge.revocationCount > 1;
+  return (
+    <div
+      className="mt-4 p-3 rounded border border-destructive/60 bg-destructive/10 space-y-2"
+      data-testid={`notice-${testIdPrefix}-revoked`}
+    >
+      <div className="flex items-center gap-2 text-destructive font-mono text-xs font-bold tracking-wider">
+        <AlertTriangle className="h-4 w-4" />
+        BADGE REVOKED BY ADMIN
+        {repeat && (
+          <span className="ml-auto text-[10px] uppercase opacity-80">
+            ×{badge.revocationCount}
+          </span>
+        )}
+      </div>
+      {revokedAt && (
+        <div className="text-[10px] font-mono text-muted-foreground">
+          Revoked {revokedAt}
+        </div>
+      )}
+      {badge.revokedReason && (
+        <div
+          className="font-serif text-xs text-foreground/90 whitespace-pre-wrap"
+          data-testid={`text-${testIdPrefix}-revoke-reason`}
+        >
+          "{badge.revokedReason}"
+        </div>
+      )}
+      <div className="font-mono text-[11px] text-muted-foreground">{resubmitHint}</div>
+    </div>
   );
 }
 
@@ -806,16 +860,28 @@ function AiseClaimCard({
   }
 
   const verified = (aiseBadge?.evidence as { verified?: unknown[] } | undefined)?.verified ?? [];
+  const aiseRevoked = aiseBadge?.status === "REVOKED";
 
   return (
-    <Card className="bg-card border-l-4 border-l-primary/50">
+    <Card className={`bg-card border-l-4 ${aiseRevoked ? "border-l-destructive/60" : "border-l-primary/50"}`}>
       <CardHeader>
-        <CardTitle className="font-display tracking-wide text-xl">CLAIM AISE</CardTitle>
+        <CardTitle className="font-display tracking-wide text-xl">
+          {aiseRevoked ? "APPEAL AISE" : "CLAIM AISE"}
+        </CardTitle>
         <CardDescription className="text-xs font-mono">
-          Submit any combination of URLs. Each is checked against the AISE allowlist and verified reachable.
+          {aiseRevoked
+            ? "Your AISE badge was revoked by an admin. Submit fresh evidence below to restore it."
+            : "Submit any combination of URLs. Each is checked against the AISE allowlist and verified reachable."}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {aiseRevoked && aiseBadge && (
+          <RevocationNotice
+            badge={aiseBadge}
+            testIdPrefix="aise"
+            resubmitHint="A successful re-submission immediately clears the revoked state."
+          />
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label className="font-mono text-xs">CUSTOM GPT (chatgpt.com/g/…)</Label>

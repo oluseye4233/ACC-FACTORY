@@ -937,6 +937,7 @@ export const BadgeProgressStatus = {
   LOCKED: 'LOCKED',
   UNLOCKED: 'UNLOCKED',
   CLAIMED: 'CLAIMED',
+  REVOKED: 'REVOKED',
 } as const;
 
 export type BadgeProgressProgress = {[key: string]: number};
@@ -956,6 +957,12 @@ export interface BadgeProgress {
   unlockedAt: string | null;
   /** @nullable */
   claimedAt: string | null;
+  /** @nullable */
+  revokedAt: string | null;
+  /** @nullable */
+  revokedReason: string | null;
+  /** @minimum 0 */
+  revocationCount: number;
 }
 
 export interface AiseClaimInput {
@@ -1008,6 +1015,8 @@ export interface AdminRevokeBadgeResult {
   badgeId: AdminRevokeBadgeResultBadgeId;
   revokedAt: string;
   reason: string;
+  /** @minimum 1 */
+  revocationCount: number;
 }
 
 export interface BadgeRevocationParty {

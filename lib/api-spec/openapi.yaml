@@ -1837,16 +1837,32 @@ components:
 
     BadgeProgress:
       type: object
-      required: [badgeId, status, eligible, progress, requirements, evidence, unlockedAt, claimedAt]
+      required:
+        [
+          badgeId,
+          status,
+          eligible,
+          progress,
+          requirements,
+          evidence,
+          unlockedAt,
+          claimedAt,
+          revokedAt,
+          revokedReason,
+          revocationCount,
+        ]
       properties:
         badgeId: { type: string, enum: [ASPE, AISA, AISE, AISA_PWDD, AISE_BUILD] }
-        status: { type: string, enum: [LOCKED, UNLOCKED, CLAIMED] }
+        status: { type: string, enum: [LOCKED, UNLOCKED, CLAIMED, REVOKED] }
         eligible: { type: boolean }
         progress: { type: object, additionalProperties: { type: integer } }
         requirements: { type: object, additionalProperties: { type: integer } }
         evidence: { type: object, additionalProperties: true }
         unlockedAt: { type: ["string", "null"], format: date-time }
         claimedAt: { type: ["string", "null"], format: date-time }
+        revokedAt: { type: ["string", "null"], format: date-time }
+        revokedReason: { type: ["string", "null"] }
+        revocationCount: { type: integer, minimum: 0 }
 
     AiseClaimInput:
       type: object
@@ -1875,13 +1891,14 @@ components:
 
     AdminRevokeBadgeResult:
       type: object
-      required: [ok, userId, badgeId, revokedAt, reason]
+      required: [ok, userId, badgeId, revokedAt, reason, revocationCount]
       properties:
         ok: { type: boolean }
         userId: { type: string, format: uuid }
         badgeId: { type: string, enum: [AISE, AISE_BUILD] }
         revokedAt: { type: string, format: date-time }
         reason: { type: string }
+        revocationCount: { type: integer, minimum: 1 }
 
     BadgeRevocationParty:
       type: object

@@ -976,15 +976,22 @@ export const ListMyPromptsResponse = zod.object({
 /**
  * @summary Compute current Quest Badge progress (ASPE / AISA / AISE)
  */
+export const listMyBadgesResponseRevocationCountMin = 0;
+
+
+
 export const ListMyBadgesResponseItem = zod.object({
   "badgeId": zod.enum(['ASPE', 'AISA', 'AISE', 'AISA_PWDD', 'AISE_BUILD']),
-  "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED']),
+  "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED', 'REVOKED']),
   "eligible": zod.boolean(),
   "progress": zod.record(zod.string(), zod.number()),
   "requirements": zod.record(zod.string(), zod.number()),
   "evidence": zod.record(zod.string(), zod.unknown()),
   "unlockedAt": zod.coerce.date().nullable(),
-  "claimedAt": zod.coerce.date().nullable()
+  "claimedAt": zod.coerce.date().nullable(),
+  "revokedAt": zod.coerce.date().nullable(),
+  "revokedReason": zod.string().nullable(),
+  "revocationCount": zod.number().min(listMyBadgesResponseRevocationCountMin)
 })
 export const ListMyBadgesResponse = zod.array(ListMyBadgesResponseItem)
 
@@ -1000,15 +1007,22 @@ export const ClaimAiseBadgeBody = zod.object({
   "notes": zod.string().optional()
 })
 
+export const claimAiseBadgeResponseRevocationCountMin = 0;
+
+
+
 export const ClaimAiseBadgeResponseItem = zod.object({
   "badgeId": zod.enum(['ASPE', 'AISA', 'AISE', 'AISA_PWDD', 'AISE_BUILD']),
-  "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED']),
+  "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED', 'REVOKED']),
   "eligible": zod.boolean(),
   "progress": zod.record(zod.string(), zod.number()),
   "requirements": zod.record(zod.string(), zod.number()),
   "evidence": zod.record(zod.string(), zod.unknown()),
   "unlockedAt": zod.coerce.date().nullable(),
-  "claimedAt": zod.coerce.date().nullable()
+  "claimedAt": zod.coerce.date().nullable(),
+  "revokedAt": zod.coerce.date().nullable(),
+  "revokedReason": zod.string().nullable(),
+  "revocationCount": zod.number().min(claimAiseBadgeResponseRevocationCountMin)
 })
 export const ClaimAiseBadgeResponse = zod.array(ClaimAiseBadgeResponseItem)
 
@@ -1026,15 +1040,22 @@ export const ClaimEngineerBadgeBody = zod.object({
   "sessionId": zod.string().uuid().optional()
 })
 
+export const claimEngineerBadgeResponseRevocationCountMin = 0;
+
+
+
 export const ClaimEngineerBadgeResponseItem = zod.object({
   "badgeId": zod.enum(['ASPE', 'AISA', 'AISE', 'AISA_PWDD', 'AISE_BUILD']),
-  "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED']),
+  "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED', 'REVOKED']),
   "eligible": zod.boolean(),
   "progress": zod.record(zod.string(), zod.number()),
   "requirements": zod.record(zod.string(), zod.number()),
   "evidence": zod.record(zod.string(), zod.unknown()),
   "unlockedAt": zod.coerce.date().nullable(),
-  "claimedAt": zod.coerce.date().nullable()
+  "claimedAt": zod.coerce.date().nullable(),
+  "revokedAt": zod.coerce.date().nullable(),
+  "revokedReason": zod.string().nullable(),
+  "revocationCount": zod.number().min(claimEngineerBadgeResponseRevocationCountMin)
 })
 export const ClaimEngineerBadgeResponse = zod.array(ClaimEngineerBadgeResponseItem)
 
@@ -1052,12 +1073,16 @@ export const AdminRevokeBadgeBody = zod.object({
   "reason": zod.string().min(1).max(adminRevokeBadgeBodyReasonMax)
 })
 
+
+
+
 export const AdminRevokeBadgeResponse = zod.object({
   "ok": zod.boolean(),
   "userId": zod.string().uuid(),
   "badgeId": zod.enum(['AISE', 'AISE_BUILD']),
   "revokedAt": zod.coerce.date(),
-  "reason": zod.string()
+  "reason": zod.string(),
+  "revocationCount": zod.number().min(1)
 })
 
 

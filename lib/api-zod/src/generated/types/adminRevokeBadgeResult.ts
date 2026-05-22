@@ -13,4 +13,6 @@ export interface AdminRevokeBadgeResult {
   badgeId: AdminRevokeBadgeResultBadgeId;
   revokedAt: Date;
   reason: string;
+  /** @minimum 1 */
+  revocationCount: number;
 }

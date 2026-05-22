@@ -22,4 +22,10 @@ export interface BadgeProgress {
   unlockedAt: Date | null;
   /** @nullable */
   claimedAt: Date | null;
+  /** @nullable */
+  revokedAt: Date | null;
+  /** @nullable */
+  revokedReason: string | null;
+  /** @minimum 0 */
+  revocationCount: number;
 }

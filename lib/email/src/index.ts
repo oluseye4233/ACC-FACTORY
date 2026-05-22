@@ -87,6 +87,30 @@ export function sendSubscriptionReceipt(args: {
   return send({ to: args.to, subject: `PAYMENT RECEIVED · ${args.tier}`, html: wrap("PAYMENT RECEIVED", body), text });
 }
 
+export function sendBadgeRevoked(args: {
+  to: string;
+  badgeId: string;
+  badgeName: string;
+  reason: string;
+  appealUrl: string;
+  isRepeat?: boolean;
+}): Promise<EmailResult> {
+  const repeat = args.isRepeat ? " (repeat revocation)" : "";
+  const escapedReason = args.reason.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const body = `<p>An administrator has revoked your <strong>${args.badgeName}</strong> badge${repeat}.</p>
+    <p style="font-family:monospace;background:#0d0d0d;padding:12px;border:1px solid #262626;white-space:pre-wrap;">${escapedReason}</p>
+    <p>If you believe this was a mistake or you want to appeal, you can re-submit fresh evidence
+    on your Quest Badges page. A successful re-submission immediately restores the badge.</p>
+    <p><a href="${args.appealUrl}" style="color:#1A6B3A;">Re-submit evidence →</a></p>`;
+  const text = `Your ${args.badgeName} badge was revoked${repeat}.\nReason: ${args.reason}\nAppeal / re-submit: ${args.appealUrl}`;
+  return send({
+    to: args.to,
+    subject: `BADGE REVOKED · ${args.badgeId}`,
+    html: wrap("BADGE REVOKED", body),
+    text,
+  });
+}
+
 export function sendSubscriptionCancelled(args: {
   to: string;
   tier: string;

@@ -114,13 +114,16 @@ export async function listContextCraftBadges(
 
 export interface BadgeProgress {
   badgeId: BadgeId;
-  status: "LOCKED" | "UNLOCKED" | "CLAIMED";
+  status: "LOCKED" | "UNLOCKED" | "CLAIMED" | "REVOKED";
   eligible: boolean;
   progress: Record<string, number>;
   requirements: Record<string, number>;
   evidence: Record<string, unknown>;
   unlockedAt: string | null;
   claimedAt: string | null;
+  revokedAt: string | null;
+  revokedReason: string | null;
+  revocationCount: number;
 }
 
 export const AISE_DOMAIN_ALLOWLIST: { kind: string; pattern: RegExp }[] = [
@@ -268,9 +271,11 @@ export async function computeBadgeProgress(userId: string): Promise<BadgeProgres
     requirements: Record<string, number>,
   ): BadgeProgress {
     const row = byId.get(badgeId);
-    let status: "LOCKED" | "UNLOCKED" | "CLAIMED" = "LOCKED";
-    if (row?.status === "CLAIMED") status = "CLAIMED";
+    let status: "LOCKED" | "UNLOCKED" | "CLAIMED" | "REVOKED" = "LOCKED";
+    if (row?.status === "REVOKED") status = "REVOKED";
+    else if (row?.status === "CLAIMED") status = "CLAIMED";
     else if (eligible || row?.status === "UNLOCKED") status = "UNLOCKED";
+    const history = (row?.revokeHistory ?? []) as Array<unknown>;
     return {
       badgeId,
       status,
@@ -280,6 +285,9 @@ export async function computeBadgeProgress(userId: string): Promise<BadgeProgres
       evidence: (row?.evidence as Record<string, unknown> | undefined) ?? {},
       unlockedAt: row?.unlockedAt ? row.unlockedAt.toISOString() : null,
       claimedAt: row?.claimedAt ? row.claimedAt.toISOString() : null,
+      revokedAt: row?.revokedAt ? row.revokedAt.toISOString() : null,
+      revokedReason: row?.revokedReason ?? null,
+      revocationCount: Array.isArray(history) ? history.length : 0,
     };
   }
 
