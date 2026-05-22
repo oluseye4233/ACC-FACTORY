@@ -47,6 +47,7 @@ import badgeBg from "@assets/copilot_image_1779143975171_1779147194124.jpeg";
 import {
   downloadBadgeCertificate,
   type BadgeFormat,
+  type CertificateBadgeId,
 } from "@/lib/badge-certificate";
 
 const BADGE_META: Record<string, { name: string; fullName: string; description: string; reqText: string; icon: typeof Trophy }> = {
@@ -100,6 +101,43 @@ export default function Quests() {
       toast({
         title: "Badge downloaded",
         description: `Your personalized ${b.badgeId} certificate has been saved.`,
+      });
+    } catch (err) {
+      toast({
+        title: "Download failed",
+        description: (err as Error).message ?? "Try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSeniorDownload = async (
+    badgeId: CertificateBadgeId,
+    badgeFullName: string,
+    description: string,
+    thresholdNote: string,
+    unlockedAt: string | null,
+    format: BadgeFormat,
+    extras: { verifiedUrl?: string | null; evidenceExcerpt?: string | null } = {},
+  ): Promise<void> => {
+    try {
+      await downloadBadgeCertificate({
+        badgeId,
+        badgeFullName,
+        description,
+        recipientName,
+        recipientEmail,
+        unlockedAt,
+        format,
+        senior: {
+          thresholdNote,
+          verifiedUrl: extras.verifiedUrl ?? null,
+          evidenceExcerpt: extras.evidenceExcerpt ?? null,
+        },
+      });
+      toast({
+        title: "Certificate downloaded",
+        description: `Your personalized ${badgeId} senior certificate has been saved.`,
       });
     } catch (err) {
       toast({
@@ -175,6 +213,8 @@ export default function Quests() {
             <SeniorBadgesSection
               badges={data ?? []}
               onChanged={() => refetch()}
+              recipientName={recipientName}
+              onDownload={handleSeniorDownload}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -329,9 +369,21 @@ export default function Quests() {
 function SeniorBadgesSection({
   badges,
   onChanged,
+  recipientName,
+  onDownload,
 }: {
   badges: BadgeProgress[];
   onChanged: () => void;
+  recipientName: string;
+  onDownload: (
+    badgeId: CertificateBadgeId,
+    badgeFullName: string,
+    description: string,
+    thresholdNote: string,
+    unlockedAt: string | null,
+    format: BadgeFormat,
+    extras?: { verifiedUrl?: string | null; evidenceExcerpt?: string | null },
+  ) => Promise<void>;
 }) {
   const architect = badges.find((b) => b.badgeId === "AISA_PWDD");
   const engineer = badges.find((b) => b.badgeId === "AISE_BUILD");
@@ -419,6 +471,24 @@ function SeniorBadgesSection({
                 />
               </div>
             </div>
+            {architectEarned && (
+              <div className="mt-4 pt-3 border-t border-yellow-500/30">
+                <SeniorDownloadMenu
+                  recipientName={recipientName}
+                  testIdPrefix="architect"
+                  onPick={(format) =>
+                    void onDownload(
+                      "AISA_PWDD",
+                      "Advanced Intelligence Systems Architect",
+                      "Earned for shipping 3 SPARTAN-certified PWDD-stage projects.",
+                      `${pwdds} of ${pwddTarget} PWDD-stage projects certified`,
+                      architect?.unlockedAt ?? null,
+                      format,
+                    )
+                  }
+                />
+              </div>
+            )}
           </div>
 
           {/* Engineer tile */}
@@ -485,10 +555,83 @@ function SeniorBadgesSection({
                 <EngineerClaimDialog onClaimed={onChanged} />
               )}
             </div>
+            {engineerClaimed && (
+              <div className="mt-4 pt-3 border-t border-yellow-500/30">
+                <SeniorDownloadMenu
+                  recipientName={recipientName}
+                  testIdPrefix="engineer"
+                  onPick={(format) =>
+                    void onDownload(
+                      "AISE_BUILD",
+                      "Advanced Intelligent Systems Engineer",
+                      "Awarded for shipping a verified live system built from a PWDD.",
+                      "Verified live build",
+                      engineerEvidence.verifiedAt ?? null,
+                      format,
+                      {
+                        verifiedUrl: engineerEvidence.verifiedUrl ?? null,
+                        evidenceExcerpt: engineerEvidence.evidenceNote ?? null,
+                      },
+                    )
+                  }
+                />
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function SeniorDownloadMenu({
+  recipientName,
+  testIdPrefix,
+  onPick,
+}: {
+  recipientName: string;
+  testIdPrefix: string;
+  onPick: (format: BadgeFormat) => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full font-mono text-xs gap-2 border-yellow-500/50 text-yellow-100 hover:bg-yellow-500/15"
+          data-testid={`button-download-${testIdPrefix}`}
+        >
+          <Download className="h-3.5 w-3.5" />
+          DOWNLOAD CERTIFICATE
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="font-mono text-xs">
+        <DropdownMenuLabel>
+          Senior · Personalized for{" "}
+          <span className="text-foreground">{recipientName}</span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => onPick("png")}
+          data-testid={`menu-${testIdPrefix}-png`}
+        >
+          PNG — highest quality
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onPick("jpeg")}
+          data-testid={`menu-${testIdPrefix}-jpeg`}
+        >
+          JPEG — easier to share
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onPick("svg")}
+          data-testid={`menu-${testIdPrefix}-svg`}
+        >
+          SVG — vector, scales to any size
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
