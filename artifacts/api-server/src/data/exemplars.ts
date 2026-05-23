@@ -102,6 +102,18 @@ const ENTRIES: Entry[] = [
     filename: "TITAN_ULTRA_SI_SPC_v1_0_1779069054056.md",
   },
   {
+    id: "gamemxt-ultra-si",
+    title: "GAMEMXT ULTRA SI",
+    tagline:
+      "The Engagement Sovereign — dual-track gamification + training/mentorship architect for any SPC or BOK",
+    jcse: 49,
+    certClass: "PLATINUM",
+    source: "canonical",
+    kind: "SPC",
+    disc: "ID — Influence + Dominance (Engagement-led architect, decisive game design)",
+    filename: "GAMEMXT_ULTRA_SI_SPC_v1_0_1779538911328.md",
+  },
+  {
     id: "atanda-cc-mvp-pdd",
     title: "ATANDA Command Centre — MVP ATLAS PDD",
     tagline: "Parent PDD this product was built from",
