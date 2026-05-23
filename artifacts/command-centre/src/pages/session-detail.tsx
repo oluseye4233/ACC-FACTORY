@@ -77,6 +77,13 @@ export default function SessionDetail() {
     return state?.status || FeatureStatus.LOCKED;
   };
 
+  // The "next" engine to attract attention to is the lowest-id stage in the
+  // linear F1→F7 pipeline that is AVAILABLE (not yet COMPLETE and not LOCKED).
+  // Side-step engines (F6-VDJ, F8) are never marked NEXT — they are operator-
+  // initiated, not part of the production sequence.
+  const nextEngineId = ENGINES.filter((e) => e.id <= 7)
+    .find((e) => getFeatureStatus(e.id) === FeatureStatus.AVAILABLE)?.id;
+
   const renderSequenceList = (onPick?: () => void) =>
     isLoadingFeatures ? (
       Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-12 w-full mb-1" />)
@@ -87,6 +94,7 @@ export default function SessionDetail() {
           {...engine}
           status={getFeatureStatus(engine.id)}
           isActive={activeEngineId === engine.id}
+          isNext={engine.id === nextEngineId}
           onClick={() => {
             if (getFeatureStatus(engine.id) !== FeatureStatus.LOCKED) {
               setActiveEngineId(engine.id);
