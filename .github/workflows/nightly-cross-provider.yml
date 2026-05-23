@@ -163,13 +163,17 @@ jobs:
           # the providers whose tests actually failed. Every test in the
           # provider-switching suites is named "<provider>: ...", so a failed
           # test's `fullName` / `name` starts with `claude:`, `openai:`, or
-          # `gemini:`. Map `claude` -> `anthropic` to match the env-var
+          # `gemini:`. The engine label (F2, F4, F6-VDJ, F8 Code DJ, DE-SPC,
+          # ...) follows immediately after the provider prefix, so we can pull
+          # both out in one pass and surface (provider, engine) pairs to the
+          # chat ping. Map `claude` -> `anthropic` to match the env-var
           # provider names used in the fallback / chat message.
           report=.nightly-out/vitest.json
           regressed=""
+          pairs=""
           parsed=0
           if [ -f "$report" ] && jq -e . "$report" >/dev/null 2>&1; then
-            regressed="$(
+            failed_names="$(
               jq -r '
                 [ ..
                   | objects
@@ -178,14 +182,52 @@ jobs:
                 ]
                 | map(select(type == "string"))
                 | map(select(test("^(claude|openai|gemini):"; "i")))
-                | map(capture("^(?<p>claude|openai|gemini):"; "i").p)
-                | map(ascii_downcase)
-                | map(if . == "claude" then "anthropic" else . end)
-                | unique
-                | join(",")
+                | .[]
               ' "$report" 2>/dev/null || true
             )"
+            if [ -n "$failed_names" ]; then
+              regressed="$(
+                printf '%s\n' "$failed_names" \
+                  | jq -R -s -r '
+                    split("\n")
+                    | map(select(length > 0))
+                    | map(capture("^(?<p>claude|openai|gemini):"; "i").p)
+                    | map(ascii_downcase)
+                    | map(if . == "claude" then "anthropic" else . end)
+                    | unique
+                    | join(",")
+                  '
+              )"
+              # `capture` throws on non-matching strings, so filter to
+              # provider-prefixed names that also carry a known engine
+              # label first. Names like "<provider>: returns 200 ..."
+              # (the generic F1 smoke test) deliberately fall through —
+              # they'll still be counted in the provider list above so
+              # the chat ping stays actionable.
+              pairs="$(
+                printf '%s\n' "$failed_names" \
+                  | jq -R -s -r '
+                    split("\n")
+                    | map(select(length > 0))
+                    | map(select(test("^(claude|openai|gemini):\\s+(DE-SPC|F[0-9]+-VDJ|F[0-9]+ Code DJ|F[0-9]+)"; "i")))
+                    | map(capture("^(?<p>claude|openai|gemini):\\s+(?<e>DE-SPC|F[0-9]+-VDJ|F[0-9]+ Code DJ|F[0-9]+)"; "i"))
+                    | map(.p |= ascii_downcase | .p |= (if . == "claude" then "anthropic" else . end))
+                    | group_by(.p)
+                    | map({ p: .[0].p, engines: (map(.e) | unique) })
+                    | sort_by(.p)
+                    | map("\(.p): \(.engines | join(", "))")
+                    | join("; ")
+                  ' 2>/dev/null || true
+              )"
+              if [ -z "$pairs" ] && [ -n "$failed_names" ]; then
+                echo "::warning::Provider failures had no parseable engine labels — falling back to provider-only notification."
+              fi
+            fi
             parsed=1
+          fi
+          if [ -n "$pairs" ]; then
+            echo "pairs=$pairs" >> "$GITHUB_OUTPUT"
+            echo "Regressed (provider, engine) pairs parsed from vitest report: $pairs"
           fi
           if [ -n "$regressed" ]; then
             echo "providers=$regressed" >> "$GITHUB_OUTPUT"
@@ -218,8 +260,9 @@ jobs:
         with:
           script: |
             const providers = `${{ steps.regressed.outputs.providers }}`;
+            const pairs = `${{ steps.regressed.outputs.pairs }}`;
             const title = `Nightly cross-provider engine checks failed (${context.runId})`;
-            const body = [
+            const lines = [
               `The nightly job exercising HARNESS engines against live providers failed.`,
               ``,
               `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
@@ -227,7 +270,11 @@ jobs:
               `Triggered by: ${context.eventName}`,
               `Commit: ${context.sha}`,
               `Regressed providers: ${providers}`,
-            ].join("\n");
+            ];
+            if (pairs) {
+              lines.push(`Failed (provider, engine) pairs: ${pairs}`);
+            }
+            const body = lines.join("\n");
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -243,6 +290,7 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           COMMIT_SHA: ${{ github.sha }}
           PROVIDERS: ${{ steps.regressed.outputs.providers }}
+          PAIRS: ${{ steps.regressed.outputs.pairs }}
         run: |
           if [ -z "$SLACK_WEBHOOK_URL" ]; then
             echo "NIGHTLY_SLACK_WEBHOOK_URL not configured — skipping Slack notification."
@@ -253,6 +301,10 @@ jobs:
 *Run:* ${RUN_URL}
 *Commit:* ${short_sha}
 *Regressed providers:* ${PROVIDERS}"
+          if [ -n "$PAIRS" ]; then
+            text="${text}
+*Failed (provider, engine) pairs:* ${PAIRS}"
+          fi
           payload=$(jq -nc --arg text "$text" '{text: $text}')
           # Slack and Discord both accept a `text` field on their incoming
           # webhooks, so the same payload works for either destination.
