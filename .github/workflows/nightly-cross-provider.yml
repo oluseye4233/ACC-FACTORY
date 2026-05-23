@@ -1,0 +1,105 @@
+name: Nightly cross-provider engine checks
+
+on:
+  schedule:
+    # 07:00 UTC every day (after most provider rate-limit windows reset).
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-cross-provider
+  cancel-in-progress: false
+
+jobs:
+  live-providers:
+    name: Engines × live providers
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: workspace_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/workspace_test
+      NODE_ENV: test
+      # Live provider credentials — when present, the cross-provider engine
+      # regression suite in artifacts/api-server/test/provider-switching*.test.ts
+      # actually issues calls to each SDK and asserts no JSON-mode / shape drift.
+      AI_INTEGRATIONS_ANTHROPIC_BASE_URL: ${{ secrets.AI_INTEGRATIONS_ANTHROPIC_BASE_URL }}
+      AI_INTEGRATIONS_ANTHROPIC_API_KEY: ${{ secrets.AI_INTEGRATIONS_ANTHROPIC_API_KEY }}
+      AI_INTEGRATIONS_OPENAI_BASE_URL: ${{ secrets.AI_INTEGRATIONS_OPENAI_BASE_URL }}
+      AI_INTEGRATIONS_OPENAI_API_KEY: ${{ secrets.AI_INTEGRATIONS_OPENAI_API_KEY }}
+      AI_INTEGRATIONS_GEMINI_BASE_URL: ${{ secrets.AI_INTEGRATIONS_GEMINI_BASE_URL }}
+      AI_INTEGRATIONS_GEMINI_API_KEY: ${{ secrets.AI_INTEGRATIONS_GEMINI_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Push DB schema
+        run: pnpm --filter @workspace/db run push-force
+
+      - name: Verify provider credentials are present
+        run: |
+          missing=0
+          for var in \
+            AI_INTEGRATIONS_ANTHROPIC_BASE_URL AI_INTEGRATIONS_ANTHROPIC_API_KEY \
+            AI_INTEGRATIONS_OPENAI_BASE_URL    AI_INTEGRATIONS_OPENAI_API_KEY \
+            AI_INTEGRATIONS_GEMINI_BASE_URL    AI_INTEGRATIONS_GEMINI_API_KEY; do
+            if [ -z "${!var}" ]; then
+              echo "::error::missing secret: $var"
+              missing=1
+            fi
+          done
+          if [ $missing -ne 0 ]; then
+            echo "::error::Configure AI_INTEGRATIONS_* secrets in the repository / environment before this job will exercise live providers."
+            exit 1
+          fi
+
+      - name: Test (live providers)
+        run: pnpm --filter @workspace/api-server run test
+
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `Nightly cross-provider engine checks failed (${context.runId})`;
+            const body = [
+              `The nightly job exercising HARNESS engines against live providers failed.`,
+              ``,
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              ``,
+              `Triggered by: ${context.eventName}`,
+              `Commit: ${context.sha}`,
+            ].join("\n");
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ["ci", "cross-provider", "nightly"],
+            });
