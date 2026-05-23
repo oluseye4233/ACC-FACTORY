@@ -146,11 +146,32 @@ jobs:
               labels: ["ci", "cross-provider", "nightly", "fixture-drift"],
             });
 
-      - name: Notify on failure
+      - name: Detect regressed providers
+        if: failure()
+        id: regressed
+        run: |
+          # Best-effort scan of the test output is unavailable here (we don't tee
+          # the step above), so fall back to checking which provider env vars
+          # were configured for this run. Any of them could be the regressor;
+          # listing the configured set keeps the chat ping actionable without
+          # making us re-parse vitest output.
+          providers=()
+          [ -n "$AI_INTEGRATIONS_ANTHROPIC_API_KEY" ] && providers+=("anthropic")
+          [ -n "$AI_INTEGRATIONS_OPENAI_API_KEY" ]    && providers+=("openai")
+          [ -n "$AI_INTEGRATIONS_GEMINI_API_KEY" ]    && providers+=("gemini")
+          if [ ${#providers[@]} -eq 0 ]; then
+            list="unknown (no provider credentials were configured)"
+          else
+            list="$(IFS=, ; echo "${providers[*]}")"
+          fi
+          echo "providers=$list" >> "$GITHUB_OUTPUT"
+
+      - name: Notify on failure (GitHub issue)
         if: failure()
         uses: actions/github-script@v7
         with:
           script: |
+            const providers = `${{ steps.regressed.outputs.providers }}`;
             const title = `Nightly cross-provider engine checks failed (${context.runId})`;
             const body = [
               `The nightly job exercising HARNESS engines against live providers failed.`,
@@ -159,6 +180,7 @@ jobs:
               ``,
               `Triggered by: ${context.eventName}`,
               `Commit: ${context.sha}`,
+              `Providers exercised: ${providers}`,
             ].join("\n");
             await github.rest.issues.create({
               owner: context.repo.owner,
@@ -167,3 +189,34 @@ jobs:
               body,
               labels: ["ci", "cross-provider", "nightly"],
             });
+
+      - name: Notify on failure (Slack webhook)
+        if: failure()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.NIGHTLY_SLACK_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+          PROVIDERS: ${{ steps.regressed.outputs.providers }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "NIGHTLY_SLACK_WEBHOOK_URL not configured — skipping Slack notification."
+            exit 0
+          fi
+          short_sha="${COMMIT_SHA:0:7}"
+          text=":rotating_light: Nightly cross-provider engine checks failed
+*Run:* ${RUN_URL}
+*Commit:* ${short_sha}
+*Providers exercised:* ${PROVIDERS}"
+          payload=$(jq -nc --arg text "$text" '{text: $text}')
+          # Slack and Discord both accept a `text` field on their incoming
+          # webhooks, so the same payload works for either destination.
+          http_status=$(curl --silent --show-error --output /tmp/notify-body \
+            --write-out '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            --data "$payload" \
+            "$SLACK_WEBHOOK_URL" || echo "000")
+          echo "Chat webhook responded HTTP $http_status"
+          if [ "$http_status" != "200" ] && [ "$http_status" != "204" ]; then
+            echo "::warning::Chat notification webhook returned HTTP $http_status"
+            cat /tmp/notify-body || true
+          fi
