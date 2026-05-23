@@ -12,9 +12,12 @@ concurrency:
 
 jobs:
   live-providers:
-    name: Engines × live providers
+    name: Engines × live providers (RECORD=1)
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: read
+      issues: write
 
     services:
       postgres:
@@ -34,15 +37,17 @@ jobs:
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/workspace_test
       NODE_ENV: test
-      # Live provider credentials — when present, the cross-provider engine
-      # regression suite in artifacts/api-server/test/provider-switching*.test.ts
-      # actually issues calls to each SDK and asserts no JSON-mode / shape drift.
+      # Live provider credentials — the nightly job runs the test suite with
+      # RECORD=1 so it actually issues calls to each SDK, rewrites the cached
+      # fixtures in artifacts/api-server/test/__fixtures__/llm/<provider>/ and
+      # surfaces any drift as a workflow artifact + GitHub issue.
       AI_INTEGRATIONS_ANTHROPIC_BASE_URL: ${{ secrets.AI_INTEGRATIONS_ANTHROPIC_BASE_URL }}
       AI_INTEGRATIONS_ANTHROPIC_API_KEY: ${{ secrets.AI_INTEGRATIONS_ANTHROPIC_API_KEY }}
       AI_INTEGRATIONS_OPENAI_BASE_URL: ${{ secrets.AI_INTEGRATIONS_OPENAI_BASE_URL }}
       AI_INTEGRATIONS_OPENAI_API_KEY: ${{ secrets.AI_INTEGRATIONS_OPENAI_API_KEY }}
       AI_INTEGRATIONS_GEMINI_BASE_URL: ${{ secrets.AI_INTEGRATIONS_GEMINI_BASE_URL }}
       AI_INTEGRATIONS_GEMINI_API_KEY: ${{ secrets.AI_INTEGRATIONS_GEMINI_API_KEY }}
+      FIXTURES_PATH: artifacts/api-server/test/__fixtures__/llm
 
     steps:
       - uses: actions/checkout@v4
@@ -79,8 +84,67 @@ jobs:
             exit 1
           fi
 
-      - name: Test (live providers)
-        run: pnpm --filter @workspace/api-server run test
+      - name: Test (live providers, RECORD=1)
+        id: test_live
+        run: pnpm --filter @workspace/api-server run test:live
+
+      - name: Detect fixture drift
+        id: drift
+        if: always() && steps.test_live.outcome == 'success'
+        run: |
+          set -e
+          if git diff --quiet -- "$FIXTURES_PATH"; then
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+            echo "No fixture drift detected — replay cache is still byte-identical to live provider responses."
+          else
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+            echo "Fixture drift detected:"
+            git diff --stat -- "$FIXTURES_PATH"
+            mkdir -p .nightly-out
+            git diff -- "$FIXTURES_PATH" > .nightly-out/fixtures.diff
+            git status --porcelain -- "$FIXTURES_PATH" > .nightly-out/fixtures.status
+          fi
+
+      - name: Upload drifted fixtures
+        if: always() && steps.drift.outputs.drifted == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: llm-fixtures-${{ github.run_id }}
+          path: |
+            artifacts/api-server/test/__fixtures__/llm/**
+            .nightly-out/fixtures.diff
+            .nightly-out/fixtures.status
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Open issue on fixture drift
+        if: always() && steps.drift.outputs.drifted == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `Nightly LLM fixture drift detected (${context.runId})`;
+            const body = [
+              `The nightly \`RECORD=1\` run produced cached LLM fixtures that differ from the committed copies.`,
+              ``,
+              `This means at least one provider's response shape — or one of our engine prompts — has changed since the fixtures were last captured.`,
+              ``,
+              `**Next steps:**`,
+              `1. Download the \`llm-fixtures-${context.runId}\` artifact from the run below.`,
+              `2. Inspect \`fixtures.diff\` to see which provider / engine drifted.`,
+              `3. If the new responses are acceptable, replace \`artifacts/api-server/test/__fixtures__/llm/\` with the artifact contents and open a PR.`,
+              ``,
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              ``,
+              `Triggered by: ${context.eventName}`,
+              `Commit: ${context.sha}`,
+            ].join("\n");
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ["ci", "cross-provider", "nightly", "fixture-drift"],
+            });
 
       - name: Notify on failure
         if: failure()
