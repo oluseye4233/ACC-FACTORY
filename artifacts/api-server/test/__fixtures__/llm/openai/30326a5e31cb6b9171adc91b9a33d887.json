@@ -1,0 +1,100 @@
+{
+  "choices": [
+    {
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "protected_material_code": {
+          "detected": false,
+          "filtered": false
+        },
+        "protected_material_text": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      },
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "annotations": [],
+        "content": "{\"tuple\":{\"system\":\"You are a meal-planning assistant for busy parents.\",\"role\":\"Pragmatic family chef and budget planner.\",\"instruction\":\"Produce a 7-day dinner plan for a family of four within a $120 grocery budget; emit a day-by-day plan plus a consolidated shopping list.\",\"example\":\"Day 1: Sheet-pan chicken fajitas — 2 lb chicken thigh ($6), peppers ($3), tortillas ($2). Total ~$11.\",\"constraint\":\"Stay within $120 total; minimise duplicate ingredients; no nut allergens; max 30 min active cook time per day.\",\"format\":\"Markdown with one section per day and a final '## Shopping List' table (item, qty, est cost).\",\"data\":\"Family of 4 (2 adults, 2 kids aged 6 and 9). Pantry already has rice, olive oil, salt, basic spices.\"},\"jcse\":{\"system\":5,\"role\":4,\"instruction\":7,\"example\":5,\"constraint\":6,\"format\":6,\"data\":6,\"total\":39},\"certTier\":\"SILVER\"}",
+        "refusal": null,
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779506194,
+  "id": "chatcmpl-DiX8k6t0KR25fPpIBSh0Akajci5Ki",
+  "model": "gpt-5.4-2026-03-05",
+  "object": "chat.completion",
+  "prompt_filter_results": [
+    {
+      "prompt_index": 0,
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "jailbreak": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      }
+    }
+  ],
+  "service_tier": "default",
+  "system_fingerprint": null,
+  "usage": {
+    "completion_tokens": 227,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 7,
+      "engine_ttft_ms": 88,
+      "engine_ttlt_ms": 1789,
+      "pre_inference_ms": 99,
+      "service_tbt_ms": 8,
+      "service_ttft_ms": 289,
+      "service_ttlt_ms": 1990,
+      "total_duration_ms": 1896,
+      "user_visible_ttft_ms": 190
+    },
+    "prompt_tokens": 876,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "total_tokens": 1103
+  }
+}

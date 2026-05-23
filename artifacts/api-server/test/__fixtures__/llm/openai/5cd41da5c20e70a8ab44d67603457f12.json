@@ -1,0 +1,104 @@
+{
+  "choices": [
+    {
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "protected_material_code": {
+          "detected": true,
+          "filtered": false,
+          "citation": {
+            "URL": "https://github.com/Emilyv5/mean_belt/tree/45aa41426867756d8f56fc6feab47bb09c89ebb9/belt_exam_mean_v1%2Fbelt%2Fdist%2Fbelt%2Fmain-es2015.js",
+            "license": "NOASSERTION"
+          }
+        },
+        "protected_material_text": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      },
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "annotations": [],
+        "content": "{\n  \"platform\": \"react-vite-static\",\n  \"framework\": \"Vite + React 19\",\n  \"language\": \"typescript\",\n  \"files\": [\n    {\n      \"path\": \"package.json\",\n      \"language\": \"json\",\n      \"content\": \"{\\n  \\\"name\\\": \\\"dinner-planner-mvp\\\",\\n  \\\"private\\\": true,\\n  \\\"version\\\": \\\"0.1.0\\\",\\n  \\\"type\\\": \\\"module\\\",\\n  \\\"scripts\\\": {\\n    \\\"dev\\\": \\\"vite\\\",\\n    \\\"build\\\": \\\"tsc -b && vite build\\\",\\n    \\\"preview\\\": \\\"vite preview\\\"\\n  },\\n  \\\"dependencies\\\": {\\n    \\\"react\\\": \\\"^19.0.0\\\",\\n    \\\"react-dom\\\": \\\"^19.0.0\\\"\\n  },\\n  \\\"devDependencies\\\": {\\n    \\\"@types/react\\\": \\\"^19.0.0\\\",\\n    \\\"@types/react-dom\\\": \\\"^19.0.0\\\",\\n    \\\"@vitejs/plugin-react\\\": \\\"^4.3.4\\\",\\n    \\\"typescript\\\": \\\"^5.6.3\\\",\\n    \\\"vite\\\": \\\"^5.4.10\\\"\\n  }\\n}\"\n    },\n    {\n      \"path\": \"vite.config.ts\",\n      \"language\": \"typescript\",\n      \"content\": \"import { defineConfig } from \\\"vite\\\";\\nimport react from \\\"@vitejs/plugin-react\\\";\\n\\nexport default defineConfig({\\n  plugins: [react()]\\n});\\n\"\n    },\n    {\n      \"path\": \"index.html\",\n      \"language\": \"html\",\n      \"content\": \"<!doctype html>\\n<html lang=\\\"en\\\">\\n  <head>\\n    <meta charset=\\\"UTF-8\\\" />\\n    <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\" />\\n    <title>Dinner Planner MVP</title>\\n  </head>\\n  <body>\\n    <div id=\\\"root\\\"></div>\\n    <script type=\\\"module\\\" src=\\\"/src/main.tsx\\\"></script>\\n  </body>\\n</html>\\n\"\n    },\n    {\n      \"path\": \".env.example\",\n      \"language\": \"dotenv\",\n      \"content\": \"# No external credentials required for this MVP scaffold.\\n\"\n    },\n    {\n      \"path\": \"README.md\",\n      \"language\": \"markdown\",\n      \"content\": \"# Dinner Planner MVP\\n\\nStatic React scaffold for planning a week of dinners on a budget.\\n\\n## Run\\n\\n```sh\\npnpm install\\npnpm dev\\n```\\n\\n## Scope from certified PDD\\n\\n- Objective: plan a week of dinners on a $120 budget\\n- Input: budget, family size\\n- Output: days[], shoppingList[]\\n- Success: total cost <= budget and 7 distinct meals\\n\\n## Notes\\n\\nThis is a scaffold. Meal generation logic is intentionally simple and marked for follow-up where deeper implementation was not specified.\\n\"\n    },\n    {\n      \"path\": \"src/main.tsx\",\n      \"language\": \"typescript\",\n      \"content\": \"import React from \\\"react\\\";\\nimport ReactDOM from \\\"react-dom/client\\\";\\nimport { App } from \\\"./App\\\";\\nimport \\\"./styles.css\\\";\\n\\nReactDOM.createRoot(document.getElementById(\\\"root\\\") as HTMLElement).render(\\n  <React.StrictMode>\\n    <App />\\n  </React.StrictMode>\\n);\\n\"\n    },\n    {\n      \"path\": \"src/App.tsx\",\n      \"language\": \"typescript\",\n      \"content\": \"import { useMemo, useState } from \\\"react\\\";\\nimport { planDinners } from \\\"./planner\\\";\\n\\nexport function App() {\\n  const [budget, setBudget] = useState(120);\\n  const [familySize, setFamilySize] = useState(4);\\n\\n  const plan = useMemo(() => planDinners({ budget, familySize }), [budget, familySize]);\\n\\n  return (\\n    <main className=\\\"container\\\">\\n      <header>\\n        <h1>Dinner Planner</h1>\\n        <p>Plan a week of dinners on a budget.</p>\\n      </header>\\n\\n      <section className=\\\"card controls\\\">\\n        <label>\\n          Budget\\n          <input\\n            type=\\\"number\\\"\\n            min={1}\\n            value={budget}\\n            onChange={(e) => setBudget(Number(e.target.value))}\\n          />\\n        </label>\\n\\n        <label>\\n          Family size\\n          <input\\n            type=\\\"number\\\"\\n            min={1}\\n            value={familySize}\\n            onChange={(e) => setFamilySize(Number(e.target.value))}\\n          />\\n        </label>\\n      </section>\\n\\n      <section className=\\\"grid\\\">\\n        <div className=\\\"card\\\">\\n          <h2>Days</h2>\\n          <ul>\\n            {plan.days.map((day) => (\\n              <li key={day.day}>\\n                <strong>{day.day}:</strong> {day.meal} (${day.cost.toFixed(2)})\\n              </li>\\n            ))}\\n          </ul>\\n        </div>\\n\\n        <div className=\\\"card\\\">\\n          <h2>Shopping List</h2>\\n          <ul>\\n            {plan.shoppingList.map((item) => (\\n              <li key={item}>{item}</li>\\n            ))}\\n          </ul>\\n        </div>\\n      </section>\\n\\n      <section className=\\\"card summary\\\">\\n        <p><strong>Total cost:</strong> ${plan.totalCost.toFixed(2)}</p>\\n        <p><strong>Within budget:</strong> {plan.totalCost <= budget ? \\\"Yes\\\" : \\\"No\\\"}</p>\\n        <p><strong>Distinct meals:</strong> {new Set(plan.days.map((d) => d.meal)).size}</p>\\n      </section>\\n    </main>\\n  );\\n}\\n\"\n    },\n    {\n      \"path\": \"src/planner.ts\",\n      \"language\": \"typescript\",\n      \"content\": \"export type PlannerInput = {\\n  budget: number;\\n  familySize: number;\\n};\\n\\nexport type DayPlan = {\\n  day: string;\\n  meal: string;\\n  cost: number;\\n};\\n\\nexport type PlannerOutput = {\\n  days: DayPlan[];\\n  shoppingList: string[];\\n  totalCost: number;\\n};\\n\\nconst baseMeals = [\\n  { meal: \\\"Chicken Stir-Fry\\\", baseCost: 14, ingredients: [\\\"chicken\\\", \\\"rice\\\", \\\"broccoli\\\", \\\"soy sauce\\\"] },\\n  { meal: \\\"Spaghetti Marinara\\\", baseCost: 10, ingredients: [\\\"spaghetti\\\", \\\"tomato sauce\\\", \\\"garlic\\\", \\\"parmesan\\\"] },\\n  { meal: \\\"Bean Tacos\\\", baseCost: 9, ingredients: [\\\"tortillas\\\", \\\"beans\\\", \\\"lettuce\\\", \\\"cheese\\\"] },\\n  { meal: \\\"Veggie Curry\\\", baseCost: 12, ingredients: [\\\"coconut milk\\\", \\\"curry paste\\\", \\\"potatoes\\\", \\\"carrots\\\"] },\\n  { meal: \\\"Baked Salmon\\\", baseCost: 18, ingredients: [\\\"salmon\\\", \\\"lemon\\\", \\\"green beans\\\", \\\"potatoes\\\"] },\\n  { meal: \\\"Turkey Chili\\\", baseCost: 13, ingredients: [\\\"ground turkey\\\", \\\"beans\\\", \\\"tomatoes\\\", \\\"onion\\\"] },\\n  { meal: \\\"Fried Rice\\\", baseCost: 11, ingredients: [\\\"rice\\\", \\\"eggs\\\", \\\"peas\\\", \\\"carrots\\\"] }\\n];\\n\\nconst dayNames = [\\\"Monday\\\", \\\"Tuesday\\\", \\\"Wednesday\\\", \\\"Thursday\\\", \\\"Friday\\\", \\\"Saturday\\\", \\\"Sunday\\\"];\\n\\nexport function planDinners(input: PlannerInput): PlannerOutput {\\n  const multiplier = Math.max(1, input.familySize / 4);\\n  const days = dayNames.map((day, index) => {\\n    const template = baseMeals[index];\\n    return {\\n      day,\\n      meal: template.meal,\\n      cost: Number((template.baseCost * multiplier).toFixed(2))\\n    };\\n  });\\n\\n  const totalCost = Number(days.reduce((sum, day) => sum + day.cost, 0).toFixed(2));\\n  const shoppingList = Array.from(new Set(baseMeals.flatMap((meal) => meal.ingredients)));\\n\\n  // TODO(code-dj): \\\"Success criteria\\\" may require a smarter optimizer when scaled family costs exceed budget.\\n  // TODO(code-dj): \\\"I/O contract\\\" may require exporting raw days[] and shoppingList[] to another boundary.\\n\\n  return {\\n    days,\\n    shoppingList,\\n    totalCost\\n  };\\n}\\n\"\n    },\n    {\n      \"path\": \"src/styles.css\",\n      \"language\": \"css\",\n      \"content\": \":root {\\n  font-family: Arial, sans-serif;\\n  color: #1f2937;\\n  background: #f9fafb;\\n}\\n\\n* {\\n  box-sizing: border-box;\\n}\\n\\nbody {\\n  margin: 0;\\n}\\n\\n.container {\\n  max-width: 960px;\\n  margin: 0 auto;\\n  padding: 24px;\\n}\\n\\n.card {\\n  background: white;\\n  border: 1px solid #e5e7eb;\\n  border-radius: 12px;\\n  padding: 16px;\\n  margin-bottom: 16px;\\n}\\n\\n.controls {\\n  display: flex;\\n  gap: 16px;\\n}\\n\\n.controls label {\\n  display: flex;\\n  flex-direction: column;\\n  gap: 8px;\\n}\\n\\ninput {\\n  padding: 8px;\\n  border: 1px solid #d1d5db;\\n  border-radius: 8px;\\n}\\n\\n.grid {\\n  display: grid;\\n  grid-template-columns: 1fr 1fr;\\n  gap: 16px;\\n}\\n\\n@media (max-width: 700px) {\\n  .grid,\\n  .controls {\\n    grid-template-columns: 1fr;\\n    display: grid;\\n  }\\n}\\n\"\n    },\n    {\n      \"path\": \"tsconfig.json\",\n      \"language\": \"json\",\n      \"content\": \"{\\n  \\\"compilerOptions\\\": {\\n    \\\"target\\\": \\\"ES2020\\\",\\n    \\\"useDefineForClassFields\\\": true,\\n    \\\"lib\\\": [\\\"ES2020\\\", \\\"DOM\\\", \\\"DOM.Iterable\\\"],\\n    \\\"allowJs\\\": false,\\n    \\\"skipLibCheck\\\": true,\\n    \\\"esModuleInterop\\\": true,\\n    \\\"allowSyntheticDefaultImports\\\": true,\\n    \\\"strict\\\": true,\\n    \\\"forceConsistentCasingInFileNames\\\": true,\\n    \\\"module\\\": \\\"ESNext\\\",\\n    \\\"moduleResolution\\\": \\\"Node\\\",\\n    \\\"resolveJsonModule\\\": true,\\n    \\\"isolatedModules\\\": true,\\n    \\\"noEmit\\\": true,\\n    \\\"jsx\\\": \\\"react-jsx\\\"\\n  },\\n  \\\"include\\\": [\\\"src\\\"],\\n  \\\"references\\\": []\\n}\\n\"\n    }\n  ],\n  \"manifest\": {\n    \"framework\": \"Vite + React 19\",\n    \"language\": \"typescript\",\n    \"entrypoint\": \"src/main.tsx\",\n    \"installCommand\": \"pnpm install\",\n    \"runCommand\": \"pnpm dev\",\n    \"buildCommand\": \"pnpm build\",\n    \"deployTarget\": \"static hosting\"\n  },\n  \"notes\": \"Scaffolded a Vite React app with a single-screen planner UI, typed planner module, and basic styling. Files trace to Objective (app purpose/copy), I/O contract (budget and family size inputs; days[] and shoppingList[] outputs), and Success criteria (7 distinct meals, budget check summary). Left optimization depth as TODO in src/planner.ts because the PDD does not specify meal selection logic beyond the MVP contract.\"\n}",
+        "refusal": null,
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779506326,
+  "id": "chatcmpl-DiXAsAy9bT7eNx4RHCxr4HLxvduNG",
+  "model": "gpt-5.4-2026-03-05",
+  "object": "chat.completion",
+  "prompt_filter_results": [
+    {
+      "prompt_index": 0,
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "jailbreak": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      }
+    }
+  ],
+  "service_tier": "default",
+  "system_fingerprint": null,
+  "usage": {
+    "completion_tokens": 2698,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 8,
+      "engine_ttft_ms": 104,
+      "engine_ttlt_ms": 22221,
+      "pre_inference_ms": 69,
+      "service_tbt_ms": 8,
+      "service_ttft_ms": 232,
+      "service_ttlt_ms": 22346,
+      "total_duration_ms": 22316,
+      "user_visible_ttft_ms": 164
+    },
+    "prompt_tokens": 1121,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 1024
+    },
+    "total_tokens": 3819
+  }
+}

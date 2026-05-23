@@ -1,0 +1,46 @@
+{
+  "sdkHttpResponse": {
+    "headers": {
+      "content-encoding": "gzip",
+      "content-length": "764",
+      "content-type": "application/json; charset=UTF-8",
+      "date": "Sat, 23 May 2026 03:35:03 GMT",
+      "via": "1.1 google",
+      "x-request-id": "868ea2b3-87a0-4d9d-a53c-28027499db94"
+    }
+  },
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "{\n  \"recommendedIde\": \"v0.dev\",\n  \"recommendedVibe\": \"v0.dev + Next.js\",\n  \"rationale\": \"For a structured input/output tool (budget/diet constraints -> meal plan/shopping list), v0.dev excels at rapidly generating the UI components (forms, tables, lists). Combined with Next.js, it provides a solid foundation for integrating the required LLM API calls on the backend (e.g., using Vercel AI SDK) while maintaining a clean, responsive frontend. This stack is ideal for a one-shot prototype or small team building a utility app.\",\n  \"alternatives\": [\n    {\n      \"name\": \"Cursor + Next.js + Supabase\",\n      \"fit\": 0.8\n    },\n    {\n      \"name\": \"Bolt.new + Vite\",\n      \"fit\": 0.75\n    },\n    {\n      \"name\": \"Replit + Streamlit\",\n      \"fit\": 0.6\n    }\n  ]\n}"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "modelVersion": "gemini-3.1-pro-preview",
+  "responseId": "YyARapjlM53zvfIPtsH7sAE",
+  "usageMetadata": {
+    "promptTokenCount": 997,
+    "candidatesTokenCount": 231,
+    "totalTokenCount": 1228,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 997
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 231
+      }
+    ]
+  },
+  "text": "{\n  \"recommendedIde\": \"v0.dev\",\n  \"recommendedVibe\": \"v0.dev + Next.js\",\n  \"rationale\": \"For a structured input/output tool (budget/diet constraints -> meal plan/shopping list), v0.dev excels at rapidly generating the UI components (forms, tables, lists). Combined with Next.js, it provides a solid foundation for integrating the required LLM API calls on the backend (e.g., using Vercel AI SDK) while maintaining a clean, responsive frontend. This stack is ideal for a one-shot prototype or small team building a utility app.\",\n  \"alternatives\": [\n    {\n      \"name\": \"Cursor + Next.js + Supabase\",\n      \"fit\": 0.8\n    },\n    {\n      \"name\": \"Bolt.new + Vite\",\n      \"fit\": 0.75\n    },\n    {\n      \"name\": \"Replit + Streamlit\",\n      \"fit\": 0.6\n    }\n  ]\n}"
+}

@@ -1,0 +1,46 @@
+{
+  "sdkHttpResponse": {
+    "headers": {
+      "content-encoding": "gzip",
+      "content-length": "1671",
+      "content-type": "application/json; charset=UTF-8",
+      "date": "Sat, 23 May 2026 03:36:28 GMT",
+      "via": "1.1 google",
+      "x-request-id": "a9780548-6e16-45f4-9679-6f2cbcd47b90"
+    }
+  },
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "{\n  \"title\": \"Family Meal & Shopping Orchestrator\",\n  \"objective\": \"Design a 7-day dinner schedule under a specified budget and generate a consolidated, cost-estimated shopping list.\",\n  \"domain\": \"meal-planning\",\n  \"orchestrationPattern\": \"sequential\",\n  \"systemPrompt\": \"You are a dual-phase culinary orchestration system. Phase 1 (PLANNER) generates a 7-day dinner schedule adhering to budgetary constraints using common family-friendly recipes. Phase 2 (SHOPPER) analyzes the generated schedule, aggregates all required ingredients, applies unit conversions, and outputs a deduplicated shopping list with estimated bulk-buy costs. Execute these phases sequentially.\",\n  \"atomicPrompt\": {\n    \"system\": \"You are a dual-phase culinary orchestration system combining meal planning and grocery aggregation.\",\n    \"role\": \"Expert Family Nutritionist and Frugal Grocery Manager.\",\n    \"instruction\": \"1. Analyze user constraints (budget, dietary needs). 2. Plan a 7-day dinner schedule (PLANNER). 3. Extract all ingredients from the 7-day plan. 4. Consolidate and deduplicate ingredients, applying unit conversions and bulk-buy pricing heuristics (SHOPPER). 5. Output the final schedule and shopping list.\",\n    \"example\": \"Input: Budget $100, 4 people. Output: Schedule: Mon (Spaghetti Bolognese), Tue (Chicken Stir Fry)... Shopping List: 1 lb Ground Beef ($6.50), 2 lbs Chicken Breast ($8.00)... Total Estimated Cost: $95.50\",\n    \"constraint\": \"Must not exceed the specified budget. The shopping list must be deduplicated and include cost estimates based on bulk pricing. Recipes must be family-friendly.\",\n    \"format\": \"JSON containing 'schedule' (array of 7 days) and 'shopping_list' (array of ingredients with quantities and costs).\",\n    \"data\": \"Context: Weekly family meal planning.\"\n  },\n  \"successCriteria\": [\n    \"Generates exactly 7 dinners.\",\n    \"Estimated total cost of the shopping list is less than or equal to the provided budget.\",\n    \"Shopping list contains no duplicate ingredients.\",\n    \"All ingredients required for the 7 meals are present in the shopping list.\"\n  ],\n  \"guardrails\": [\n    \"Do not include rare or excessively expensive ingredients unless specifically requested.\",\n    \"Ensure unit conversions are accurate (e.g., combining 1 cup and 2 cups into 3 cups).\",\n    \"Halt and return an error if a 7-day plan cannot be formulated within the budget.\"\n  ],\n  \"outputs\": [\n    \"A 7-day meal schedule.\",\n    \"A consolidated, cost-estimated shopping list.\"\n  ],\n  \"telemetry\": [\n    \"total_planning_time_ms\",\n    \"budget_utilization_percentage\",\n    \"ingredient_deduplication_count\"\n  ],\n  \"maReferences\": [\n    \"05b40599-0f7e-4fc7-9f0b-e182a6e19f61\",\n    \"7dab328f-70f5-474a-80d1-497990612b4e\"\n  ],\n  \"jcse\": {\n    \"system\": 7,\n    \"role\": 7,\n    \"instruction\": 8,\n    \"example\": 7,\n    \"constraint\": 6,\n    \"format\": 6,\n    \"data\": 5,\n    \"total\": 46\n  },\n  \"notes\": \"Fuses PLANNER and SHOPPER micro-agents for an end-to-end meal planning pipeline.\"\n}"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "modelVersion": "gemini-3.1-pro-preview",
+  "responseId": "tCARapueHsiRq7UPnYWR-QQ",
+  "usageMetadata": {
+    "promptTokenCount": 1119,
+    "candidatesTokenCount": 838,
+    "totalTokenCount": 1957,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1119
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 838
+      }
+    ]
+  },
+  "text": "{\n  \"title\": \"Family Meal & Shopping Orchestrator\",\n  \"objective\": \"Design a 7-day dinner schedule under a specified budget and generate a consolidated, cost-estimated shopping list.\",\n  \"domain\": \"meal-planning\",\n  \"orchestrationPattern\": \"sequential\",\n  \"systemPrompt\": \"You are a dual-phase culinary orchestration system. Phase 1 (PLANNER) generates a 7-day dinner schedule adhering to budgetary constraints using common family-friendly recipes. Phase 2 (SHOPPER) analyzes the generated schedule, aggregates all required ingredients, applies unit conversions, and outputs a deduplicated shopping list with estimated bulk-buy costs. Execute these phases sequentially.\",\n  \"atomicPrompt\": {\n    \"system\": \"You are a dual-phase culinary orchestration system combining meal planning and grocery aggregation.\",\n    \"role\": \"Expert Family Nutritionist and Frugal Grocery Manager.\",\n    \"instruction\": \"1. Analyze user constraints (budget, dietary needs). 2. Plan a 7-day dinner schedule (PLANNER). 3. Extract all ingredients from the 7-day plan. 4. Consolidate and deduplicate ingredients, applying unit conversions and bulk-buy pricing heuristics (SHOPPER). 5. Output the final schedule and shopping list.\",\n    \"example\": \"Input: Budget $100, 4 people. Output: Schedule: Mon (Spaghetti Bolognese), Tue (Chicken Stir Fry)... Shopping List: 1 lb Ground Beef ($6.50), 2 lbs Chicken Breast ($8.00)... Total Estimated Cost: $95.50\",\n    \"constraint\": \"Must not exceed the specified budget. The shopping list must be deduplicated and include cost estimates based on bulk pricing. Recipes must be family-friendly.\",\n    \"format\": \"JSON containing 'schedule' (array of 7 days) and 'shopping_list' (array of ingredients with quantities and costs).\",\n    \"data\": \"Context: Weekly family meal planning.\"\n  },\n  \"successCriteria\": [\n    \"Generates exactly 7 dinners.\",\n    \"Estimated total cost of the shopping list is less than or equal to the provided budget.\",\n    \"Shopping list contains no duplicate ingredients.\",\n    \"All ingredients required for the 7 meals are present in the shopping list.\"\n  ],\n  \"guardrails\": [\n    \"Do not include rare or excessively expensive ingredients unless specifically requested.\",\n    \"Ensure unit conversions are accurate (e.g., combining 1 cup and 2 cups into 3 cups).\",\n    \"Halt and return an error if a 7-day plan cannot be formulated within the budget.\"\n  ],\n  \"outputs\": [\n    \"A 7-day meal schedule.\",\n    \"A consolidated, cost-estimated shopping list.\"\n  ],\n  \"telemetry\": [\n    \"total_planning_time_ms\",\n    \"budget_utilization_percentage\",\n    \"ingredient_deduplication_count\"\n  ],\n  \"maReferences\": [\n    \"05b40599-0f7e-4fc7-9f0b-e182a6e19f61\",\n    \"7dab328f-70f5-474a-80d1-497990612b4e\"\n  ],\n  \"jcse\": {\n    \"system\": 7,\n    \"role\": 7,\n    \"instruction\": 8,\n    \"example\": 7,\n    \"constraint\": 6,\n    \"format\": 6,\n    \"data\": 5,\n    \"total\": 46\n  },\n  \"notes\": \"Fuses PLANNER and SHOPPER micro-agents for an end-to-end meal planning pipeline.\"\n}"
+}

@@ -1,0 +1,100 @@
+{
+  "choices": [
+    {
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "protected_material_code": {
+          "detected": false,
+          "filtered": false
+        },
+        "protected_material_text": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      },
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "annotations": [],
+        "content": "{\"cheatSheet\":\"# Meal Planner Micro-Agent\\n\\nYou are building a stateless meal-planning endpoint inside a Next.js App Router project, optimized for Cursor. The agent takes household constraints and returns a structured 7-day dinner plan that stays under budget.\\n\\nBuild this because the source artifact is narrow and useful: one request in, one weekly plan out. No background jobs. No memory. No user accounts required to prove value. You can ship a usable v1 today.\\n\\nYour primary user is a busy household that wants family-friendly dinners without manually comparing recipes and grocery costs. Your secondary user is a developer who wants an API-first micro-agent they can later wrap with a UI.\\n\\nThe core behavior is fixed:\\n- Read constraints.\\n- Infer 7 dinners.\\n- Estimate total grocery spend.\\n- Return a structured plan.\\n- Stay stateless per call.\\n\\nKeep the scope hard:\\n- Out of scope: breakfast, lunch, pantry tracking, checkout integrations, nutrition optimization, persistent user profiles, real-time store pricing, and autonomous shopping.\\n- Also out of scope: a full AI orchestration framework. Use one server route and deterministic planning logic first.\\n\\nFor v1, use a curated in-code recipe catalog with estimated prices. That satisfies the source package’s knowledge requirement without needing external APIs. If you want model-assisted reasoning later, add it behind the same contract.\\n\\nSuccess means one POST request to `/api/plan` with constraints returns valid JSON containing exactly 7 dinners, a grocery summary, total estimated cost, and a budget pass/fail signal. If the output is machine-parseable and useful to a parent planning the week, you are done.\",\"worksheet\":\"# Build worksheet\\n\\n1. **Create** a new Next.js app in Cursor with TypeScript and App Router: `pnpm create next-app@latest meal-planner-agent --ts --app --eslint --src-dir --import-alias \\\"@/*\\\"`.\\n\\n2. **Enter** the project: `cd meal-planner-agent`.\\n\\n3. **Install** dependencies: `pnpm add zod`.\\n\\n4. **Create** `src/lib/catalog.ts` and define a small recipe catalog with 12–20 family-friendly dinners. Give each item `id`, `name`, `servings`, `estimatedCost`, `tags`, `ingredients`, and `steps`.\\n\\n5. **Create** `src/lib/schema.ts` and add Zod schemas for `PlanRequest`, `DinnerPlan`, `GroceryItem`, and `PlanResponse`.\\n\\n6. **Create** `src/lib/planner.ts` and export `generateMealPlan(input: PlanRequest): PlanResponse`. Implement deterministic logic that filters recipes by constraints, picks 7 dinners, prevents excessive repeats, and sums grocery costs.\\n\\n7. **Add** budget handling in `src/lib/planner.ts`. If the filtered set cannot fit the budget, still return 7 dinners but set `withinBudget` to `false` and add warnings explaining the shortfall.\\n\\n8. **Create** `src/app/api/plan/route.ts`. Parse `await request.json()`, validate with Zod, call `generateMealPlan`, and return `Response.json(result)` with status `200`. Return `400` for schema failures.\\n\\n9. **Create** `src/app/page.tsx` with a minimal form that posts to `/api/plan`. Include inputs for `budget`, `householdSize`, `days`, `dietaryTags`, `excludedIngredients`, and `preferredCuisines`.\\n\\n10. **Set** `days` to default to `7` in the UI and server, but reject any non-7 value in v1 to keep the contract tight.\\n\\n11. **Create** `.env.local` only if you later add an LLM. For this deterministic v1, no env vars are required.\\n\\n12. **Run** `pnpm dev` and test the API with `curl` before touching UI polish.\\n\\n13. **Verify** the JSON response includes 7 dinners, `totalEstimatedCost`, `withinBudget`, `groceryList`, and `warnings`.\\n\\n14. **Deploy** to Vercel after local validation. Keep the API route contract unchanged so you can swap the planner implementation later without breaking clients.\",\"buildLaunch\":\"# Build and launch\\n\\nUse the standard Cursor + Next.js flow.\\n\\n1. Scaffold the app:\\n- `pnpm create next-app@latest meal-planner-agent --ts --app --eslint --src-dir --import-alias \\\"@/*\\\"`\\n- `cd meal-planner-agent`\\n- `pnpm add zod`\\n\\n2. Create these files:\\n- `src/lib/catalog.ts`\\n- `src/lib/schema.ts`\\n- `src/lib/planner.ts`\\n- `src/app/api/plan/route.ts`\\n- `src/app/page.tsx`\\n\\n3. Start the dev server:\\n- `pnpm dev`\\n\\nExpected first-run output should look like:\\n- `▲ Next.js`\\n- `- Local:        http://localhost:3000`\\n- `- Ready in ...`\\n\\n4. Smoke test the API directly:\\n- `curl -X POST http://localhost:3000/api/plan -H \\\"Content-Type: application/json\\\" -d '{\\\"budget\\\":95,\\\"householdSize\\\":4,\\\"days\\\":7,\\\"dietaryTags\\\":[\\\"family-friendly\\\"],\\\"excludedIngredients\\\":[\\\"peanuts\\\"],\\\"preferredCuisines\\\":[\\\"american\\\",\\\"mexican\\\"]}'`\\n\\nExpected response shape:\\n- JSON object\\n- `days` equals `7`\\n- `dinners` array length equals `7`\\n- `totalEstimatedCost` is a number\\n- `withinBudget` is `true` or `false`\\n\\n5. Smoke test the validation path:\\n- `curl -X POST http://localhost:3000/api/plan -H \\\"Content-Type: application/json\\\" -d '{\\\"budget\\\":95,\\\"householdSize\\\":4,\\\"days\\\":5}'`\\n\\nExpected response:\\n- HTTP `400`\\n- JSON error with schema validation details saying v1 requires 7 days\\n\\n6. Deploy with Vercel from the Next.js project root:\\n- `pnpm dlx vercel`\\n\\nAfter deploy, hit `/api/plan` on the production URL with the same `curl` body. If the response shape matches local, your micro-agent is live.\",\"interfaceContract\":\"# Interface contract\\n\\nUse TypeScript + Zod in `src/lib/schema.ts`.\\n\\n```ts\\nimport { z } from \\\"zod\\\";\\n\\nexport const PlanRequestSchema = z.object({\\n  budget: z.number().positive(),\\n  householdSize: z.number().int().positive(),\\n  days: z.literal(7),\\n  dietaryTags: z.array(z.string()).default([]),\\n  excludedIngredients: z.array(z.string()).default([]),\\n  preferredCuisines: z.array(z.string()).default([]),\\n});\\n\\nexport type PlanRequest = z.infer<typeof PlanRequestSchema>;\\n\\nexport const DinnerPlanSchema = z.object({\\n  day: z.number().int().min(1).max(7),\\n  recipeId: z.string(),\\n  name: z.string(),\\n  cuisine: z.string(),\\n  estimatedCost: z.number().nonnegative(),\\n  servings: z.number().int().positive(),\\n  ingredients: z.array(z.string()),\\n  tags: z.array(z.string()),\\n  reason: z.string(),\\n});\\n\\nexport const GroceryItemSchema = z.object({\\n  name: z.string(),\\n  quantityNote: z.string(),\\n  estimatedCost: z.number().nonnegative(),\\n});\\n\\nexport const PlanResponseSchema = z.object({\\n  days: z.literal(7),\\n  dinners: z.array(DinnerPlanSchema).length(7),\\n  groceryList: z.array(GroceryItemSchema),\\n  totalEstimatedCost: z.number().nonnegative(),\\n  withinBudget: z.boolean(),\\n  warnings: z.array(z.string()),\\n});\\n\\nexport type PlanResponse = z.infer<typeof PlanResponseSchema>;\\n```\\n\\nImplement this function in `src/lib/planner.ts`:\\n\\n```ts\\nexport function generateMealPlan(input: PlanRequest): PlanResponse\\n```\\n\\nAPI contract for `POST /api/plan`:\\n\\nRequest body:\\n```ts\\nPlanRequest\\n```\\n\\nSuccess response `200`:\\n```ts\\nPlanResponse\\n```\\n\\nValidation failure `400`:\\n```ts\\n{\\n  error: \\\"INVALID_REQUEST\\\";\\n  issues: Array<{\\n    path: (string | number)[];\\n    message: string;\\n  }>;\\n}\\n```\\n\\nPlanning rules:\\n- Filter out recipes containing any `excludedIngredients`.\\n- Prefer recipes matching `dietaryTags` and `preferredCuisines`.\\n- Produce exactly 7 dinners.\\n- Avoid repeating the same `recipeId` unless the catalog is too small.\\n- Compute `totalEstimatedCost` as the sum of dinner and grocery estimates used by your planner.\\n- Set `withinBudget` to `totalEstimatedCost <= budget`.\\n- Add human-readable warnings when constraints force repeats or exceed budget.\\n\\nKeep this contract stable. You can replace deterministic logic with an LLM later only if the request and response shapes stay identical.\"}",
+        "refusal": null,
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779506219,
+  "id": "chatcmpl-DiX992bN7HuNtxglV11dF9yWorZRN",
+  "model": "gpt-5.4-2026-03-05",
+  "object": "chat.completion",
+  "prompt_filter_results": [
+    {
+      "prompt_index": 0,
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "jailbreak": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      }
+    }
+  ],
+  "service_tier": "default",
+  "system_fingerprint": null,
+  "usage": {
+    "completion_tokens": 2066,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 10,
+      "engine_ttft_ms": 85,
+      "engine_ttlt_ms": 21463,
+      "pre_inference_ms": 117,
+      "service_tbt_ms": 10,
+      "service_ttft_ms": 280,
+      "service_ttlt_ms": 21651,
+      "total_duration_ms": 21555,
+      "user_visible_ttft_ms": 163
+    },
+    "prompt_tokens": 740,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "total_tokens": 2806
+  }
+}

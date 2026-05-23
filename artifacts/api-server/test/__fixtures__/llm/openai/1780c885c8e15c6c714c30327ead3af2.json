@@ -1,0 +1,100 @@
+{
+  "choices": [
+    {
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "protected_material_code": {
+          "detected": false,
+          "filtered": false
+        },
+        "protected_material_text": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      },
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "annotations": [],
+        "content": "{\n  \"sections\": [\n    {\n      \"key\": \"card_identity_metadata\",\n      \"title\": \"Card Identity Metadata\",\n      \"body\": \"- Product: Weekly family dinner planner\\n- Scope: 7-day dinner plan\\n- Inputs: budget, family size, dietary constraints\\n- Outputs: per-day meal, ingredients, estimated cost, consolidated shopping list\\n- Source basis: worksheet, cheatSheet, execSummary, implementation\"\n    },\n    {\n      \"key\": \"executive_summary\",\n      \"title\": \"Executive Summary\",\n      \"body\": \"Deliver a 7-day dinner plan for a family of four within a $120 budget. Include a consolidated shopping list. Enforce total estimated meal cost at or below budget.\"\n    },\n    {\n      \"key\": \"dna_architecture\",\n      \"title\": \"DNA Architecture\",\n      \"body\": \"- Core function: generate weekly dinner plans\\n- Planning horizon: 7 days\\n- Target household: family of four\\n- Budget cap: 120\\n- Meal constraint: dinners only\\n- Time constraint: 30 minutes or less active cooking per dinner\\n- Dietary constraints: apply from input\"\n    },\n    {\n      \"key\": \"orchestration_layer\",\n      \"title\": \"Orchestration Layer\",\n      \"body\": \"- Ingest inputs: budget, family size, dietary constraints\\n- Generate structured meal plan with LLM\\n- Format output to deterministic JSON schema\\n- Validate total estimated cost against budget\\n- Return meal plan and shopping list\"\n    },\n    {\n      \"key\": \"n_layer_detection_engine\",\n      \"title\": \"N-Layer Detection Engine\",\n      \"body\": \"- Validation rule: sum of daily meal costs must be less than or equal to budget\\n- Schema rule: output must match days[] and shoppingList[]\\n- Constraint checks: 7 dinners required; active cook time per dinner must be 30 minutes or less; dietary constraints must be respected\"\n    },\n    {\n      \"key\": \"context_craft_pillars\",\n      \"title\": \"Context Craft Pillars\",\n      \"body\": \"- Budget discipline\\n- Family-size fit\\n- Dietary compliance\\n- Fast preparation\\n- Consolidated grocery planning\"\n    },\n    {\n      \"key\": \"hive_matrix_certification\",\n      \"title\": \"Hive Matrix Certification\",\n      \"body\": \"Source PDD does not specify; defer to source.\"\n    },\n    {\n      \"key\": \"workflow_examples\",\n      \"title\": \"Workflow Examples\",\n      \"body\": \"- Input: budget=120, familySize=4, dietaryConstraints=[]\\n- Output: 7 dinner entries with meal name, ingredients, estimated cost, and one consolidated shopping list\"\n    },\n    {\n      \"key\": \"integration_protocols\",\n      \"title\": \"Integration Protocols\",\n      \"body\": \"- Generation engine: LLM\\n- Output contract: deterministic JSON\\n- Required arrays: days[], shoppingList[]\"\n    },\n    {\n      \"key\": \"evolution_roadmap\",\n      \"title\": \"Evolution Roadmap\",\n      \"body\": \"Source PDD does not specify; defer to source.\"\n    },\n    {\n      \"key\": \"business_impact\",\n      \"title\": \"Business Impact\",\n      \"body\": \"- Produces a budget-bounded weekly dinner plan\\n- Reduces meal-planning effort\\n- Simplifies grocery shopping through consolidation\"\n    },\n    {\n      \"key\": \"risk_register\",\n      \"title\": \"Risk Register\",\n      \"body\": \"- Risk: generated plan exceeds budget\\n  - Mitigation: validate sum(costs) against budget\\n- Risk: output schema drift\\n  - Mitigation: deterministic JSON schema validation\\n- Risk: dietary mismatch\\n  - Mitigation: pass and check dietary constraints\"\n    },\n    {\n      \"key\": \"governance_signing\",\n      \"title\": \"Governance Signing\",\n      \"body\": \"- Acceptance criteria:\\n  - 7 dinners generated\\n  - Family size supported\\n  - Total estimated cost is less than or equal to budget\\n  - Shopping list is consolidated\\n  - Active cook time per dinner is 30 minutes or less\"\n    },\n    {\n      \"key\": \"lineage_traceability\",\n      \"title\": \"Lineage Traceability\",\n      \"body\": \"- worksheet -> inputs and outputs\\n- cheatSheet -> weekly planner, 7 dinners, shopping list, 30-minute cook limit\\n- execSummary -> family of four, 120 budget, consolidated shopping list\\n- implementation -> LLM generation, deterministic JSON schema, budget validation\"\n    },\n    {\n      \"key\": \"spc_signature\",\n      \"title\": \"SPC Signature\",\n      \"body\": \"- SPARTAN SCM compression applied\\n- Preserved load-bearing constraints: 7 days, family of four, 120 budget, consolidated shopping list, deterministic JSON, budget validation\\n- Certification status recorded below\"\n    }\n  ],\n  \"donut\": {\n    \"a\": 0.6,\n    \"b\": 0.2,\n    \"c\": 0.2\n  },\n  \"crP\": 0.42,\n  \"class\": \"B\"\n}",
+        "refusal": null,
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779506315,
+  "id": "chatcmpl-DiXAhOv2szhkJjMoc8t3PPc4M89Hm",
+  "model": "gpt-5.4-2026-03-05",
+  "object": "chat.completion",
+  "prompt_filter_results": [
+    {
+      "prompt_index": 0,
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "jailbreak": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      }
+    }
+  ],
+  "service_tier": "default",
+  "system_fingerprint": null,
+  "usage": {
+    "completion_tokens": 1074,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 10,
+      "engine_ttft_ms": 79,
+      "engine_ttlt_ms": 10410,
+      "pre_inference_ms": 117,
+      "service_tbt_ms": 10,
+      "service_ttft_ms": 253,
+      "service_ttlt_ms": 10638,
+      "total_duration_ms": 10498,
+      "user_visible_ttft_ms": 136
+    },
+    "prompt_tokens": 1127,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 1024
+    },
+    "total_tokens": 2201
+  }
+}

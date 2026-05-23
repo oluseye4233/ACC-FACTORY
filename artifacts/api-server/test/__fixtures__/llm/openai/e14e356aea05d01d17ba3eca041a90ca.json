@@ -1,0 +1,100 @@
+{
+  "choices": [
+    {
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "protected_material_code": {
+          "detected": false,
+          "filtered": false
+        },
+        "protected_material_text": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      },
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "annotations": [],
+        "content": "{\"recommendedIde\":\"Lovable\",\"recommendedVibe\":\"Lovable + Supabase\",\"rationale\":\"This is a solo-friendly, greenfield web app with a simple but complete full-stack loop: collect inputs, generate a structured 7-day plan, validate JSON and budget rules, and present a shopping list. Lovable fits because the product is lightweight, iteration speed matters more than deep custom infrastructure, and Supabase gives an easy place to store user sessions, meal plans, and schema-backed data if the prototype becomes a sustained product. The framework choice matches a browser-based SaaS-style planner likely headed to a hosted deployment surface such as Vercel/Supabase with minimal ops. The main deal-breaker versus the runner-up is that if you expect heavy custom logic and long-term engineering scale from day one, Cursor + Next.js + Supabase would age better than Lovable’s faster AI-native build loop.\",\"alternatives\":[{\"name\":\"Cursor + Next.js + Supabase\",\"fit\":0.84},{\"name\":\"Bolt.new + Vite\",\"fit\":0.72},{\"name\":\"v0.dev + Next.js\",\"fit\":0.61},{\"name\":\"Replit + Express\",\"fit\":0.48}]}",
+        "refusal": null,
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779506310,
+  "id": "chatcmpl-DiXAcFESDSB52tUSOFJNUcmLpfxiX",
+  "model": "gpt-5.4-2026-03-05",
+  "object": "chat.completion",
+  "prompt_filter_results": [
+    {
+      "prompt_index": 0,
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "jailbreak": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      }
+    }
+  ],
+  "service_tier": "default",
+  "system_fingerprint": null,
+  "usage": {
+    "completion_tokens": 253,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 16,
+      "engine_ttft_ms": 89,
+      "engine_ttlt_ms": 4027,
+      "pre_inference_ms": 108,
+      "service_tbt_ms": 15,
+      "service_ttft_ms": 336,
+      "service_ttlt_ms": 4183,
+      "total_duration_ms": 4081,
+      "user_visible_ttft_ms": 228
+    },
+    "prompt_tokens": 935,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "total_tokens": 1188
+  }
+}

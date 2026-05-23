@@ -6,7 +6,7 @@ A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authe
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server (workflow `artifacts/api-server: API Server`)
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run test` — run workspace tests (currently `@workspace/api-server` vitest integration suite; provider-switching tests skip cleanly when `AI_INTEGRATIONS_*` env vars are absent)
+- `pnpm run test` — run workspace tests. The `@workspace/api-server` provider-switching suite (30 tests across F1 + 9 other engines × 3 providers) replays cached LLM responses from `artifacts/api-server/test/__fixtures__/llm/<provider>/*.json` so it runs in ~15s with no network. To refresh: `cd artifacts/api-server && RECORD=1 npx vitest run` (calls live providers and rewrites fixtures; takes ~10 min). The cache key normalises UUIDs / ISO timestamps so fresh per-run ids don't bust the cache (`test/llm-cache.ts`).
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)

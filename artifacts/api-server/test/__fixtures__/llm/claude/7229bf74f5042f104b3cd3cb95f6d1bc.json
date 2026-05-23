@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-6",
+  "id": "msg_vrtx_013BtiiYYSuKStn4AicXoL3T",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"step\":1,\"question\":\"CHARTER — What is this Super Prompt Card designed to do, and who is the intended operator bringing it to life: are you building a tool for a specific profession, business function, or personal use case, and what does a successful outcome look like when someone walks away from a session with this card?\"}"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 73
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "choices": [
+    {
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "protected_material_code": {
+          "detected": false,
+          "filtered": false
+        },
+        "protected_material_text": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      },
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "annotations": [],
+        "content": "{\n  \"jcse\": {\n    \"system\": 0,\n    \"role\": 0,\n    \"instruction\": 7,\n    \"example\": 0,\n    \"constraint\": 5,\n    \"format\": 5,\n    \"data\": 5,\n    \"total\": 22\n  },\n  \"certTier\": \"NONE\",\n  \"pillars\": [\n    {\n      \"pillar\": \"SYSTEM\",\n      \"score\": 0,\n      \"max\": 7,\n      \"notes\": \"No operating frame, mission boundary, or governing context is specified.\",\n      \"gapHints\": [\n        \"Add a planning context and success criteria\",\n        \"State whether budget optimization or convenience is the priority\"\n      ]\n    },\n    {\n      \"pillar\": \"ROLE\",\n      \"score\": 0,\n      \"max\": 7,\n      \"notes\": \"No persona, expertise, or voice is assigned to the model.\",\n      \"gapHints\": [\n        \"Assign a role such as budget meal planner\",\n        \"Specify tone, expertise, or family-planning perspective\"\n      ]\n    },\n    {\n      \"pillar\": \"INSTRUCTION\",\n      \"score\": 7,\n      \"max\": 8,\n      \"notes\": \"The task is explicit and nearly atomic: create a one-week dinner menu and shopping list for the stated household and budget.\",\n      \"gapHints\": [\n        \"Clarify whether the shopping list should include prices\",\n        \"Specify if leftovers or repeat ingredients should be optimized\"\n      ]\n    },\n    {\n      \"pillar\": \"EXAMPLE\",\n      \"score\": 0,\n      \"max\": 7,\n      \"notes\": \"No examples or reference outputs are provided.\",\n      \"gapHints\": [\n        \"Provide a sample day entry\",\n        \"Show a preferred shopping list format\"\n      ]\n    },\n    {\n      \"pillar\": \"CONSTRAINT\",\n      \"score\": 5,\n      \"max\": 7,\n      \"notes\": \"Clear constraints are present: one week, dinners only, family of four, and a $120 grocery budget.\",\n      \"gapHints\": [\n        \"Add dietary restrictions or time limits if relevant\",\n        \"State whether pantry staples may be assumed\"\n      ]\n    },\n    {\n      \"pillar\": \"FORMAT\",\n      \"score\": 5,\n      \"max\": 7,\n      \"notes\": \"The output structure is partly specified with a day-by-day plan and shopping list, but schema details are absent.\",\n      \"gapHints\": [\n        \"Add an explicit output schema with sections\",\n        \"Specify desired detail per day such as meal name and estimated cost\"\n      ]\n    },\n    {\n      \"pillar\": \"DATA\",\n      \"score\": 5,\n      \"max\": 7,\n      \"notes\": \"Useful input data is included: target user, duration, household size, and budget. Ingredient preferences and pantry assumptions are missing.\",\n      \"gapHints\": [\n        \"Add dietary preferences and disliked ingredients\",\n        \"State pantry staples, store type, or regional pricing assumptions\"\n      ]\n    }\n  ],\n  \"atomicPrompt\": {\n    \"system\": \"You are planning practical, budget-conscious family dinners for a one-week period. (inferred)\",\n    \"role\": \"Act as a budget meal planner for busy families. (inferred)\",\n    \"instruction\": \"Plan a one-week dinner menu for a family of four and include a shopping list.\",\n    \"example\": \"Example day entry and shopping list format not provided. (inferred)\",\n    \"constraint\": \"Keep the plan to dinners only, cover 7 days, serve 4 people, and stay within a $120 grocery budget.\",\n    \"format\": \"Output a day-by-day dinner plan followed by a shopping list. (inferred)\",\n    \"data\": \"Busy parent; one-week horizon; family of four; $120 grocery budget.\"\n  },\n  \"strengths\": [\n    \"Clear core task with concrete planning objective\",\n    \"Specifies duration, household size, and budget\",\n    \"Includes intended audience context: busy parent\",\n    \"Requests two concrete deliverables\",\n    \"Scope is narrow enough for useful completion\"\n  ],\n  \"gaps\": [\n    \"Add an explicit role such as budget family meal planner\",\n    \"Add output schema with meal, ingredients, and estimated cost\",\n    \"Add dietary restrictions, dislikes, and allergy information\",\n    \"State pantry staple assumptions and pricing basis\",\n    \"Provide a sample day entry to anchor style\"\n  ]\n}",
+        "refusal": null,
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779505200,
+  "id": "chatcmpl-DiWsiyIDbDdadla2HBX8rH5EjhaEK",
+  "model": "gpt-5.4-2026-03-05",
+  "object": "chat.completion",
+  "prompt_filter_results": [
+    {
+      "prompt_index": 0,
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "jailbreak": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      }
+    }
+  ],
+  "service_tier": "default",
+  "system_fingerprint": null,
+  "usage": {
+    "completion_tokens": 933,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 11,
+      "engine_ttft_ms": 87,
+      "engine_ttlt_ms": 10320,
+      "pre_inference_ms": 95,
+      "service_tbt_ms": 11,
+      "service_ttft_ms": 251,
+      "service_ttlt_ms": 10486,
+      "total_duration_ms": 10390,
+      "user_visible_ttft_ms": 156
+    },
+    "prompt_tokens": 1195,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 1024
+    },
+    "total_tokens": 2128
+  }
+}

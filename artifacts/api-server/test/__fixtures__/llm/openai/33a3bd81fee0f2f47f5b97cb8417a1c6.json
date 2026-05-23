@@ -1,0 +1,100 @@
+{
+  "choices": [
+    {
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "protected_material_code": {
+          "detected": false,
+          "filtered": false
+        },
+        "protected_material_text": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      },
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "annotations": [],
+        "content": "{\n  \"title\": \"Weekly Meal Plan and Grocery Synthesizer\",\n  \"objective\": \"Create a 7-day dinner plan under budget and convert it into a consolidated, deduplicated shopping list with estimated costs.\",\n  \"domain\": \"meal-planning\",\n  \"orchestrationPattern\": \"sequential\",\n  \"systemPrompt\": \"You are an adaptive multi-agent meal-planning system that first plans a 7-day family-friendly dinner schedule from user constraints and budget, then transforms that plan into a deduplicated shopping list with unit normalization, bulk-buy heuristics, and estimated costs. Operate statelessly per call, preserve structure, and ensure the final output is practical, budget-aware, and easy to shop from.\",\n  \"atomicPrompt\": {\n    \"system\": \"You fuse two capabilities: weekly dinner planning and grocery list consolidation. First generate a feasible 7-day dinner schedule, then derive a complete shopping list with cost estimates from that schedule.\",\n    \"role\": \"Act as a family meal planner and shopping list aggregator for budget-conscious households.\",\n    \"instruction\": \"Read user constraints such as budget, family size, preferences, and exclusions. Produce a 7-day dinner plan using common family-friendly recipes. Then aggregate all ingredients across the plan into a single deduplicated shopping list, normalize units where possible, apply sensible bulk-buy pricing heuristics, and provide estimated per-item and total costs. Flag any assumptions clearly.\",\n    \"example\": \"Input: budget $120, family of 4, no peanuts, prefers quick weekday meals. Output: 7 dinners with dish names and brief rationale, followed by a merged grocery list grouped by category, with quantities, estimated unit costs, line totals, and overall estimated spend.\",\n    \"constraint\": \"Must remain within the stated budget when feasible, avoid excluded ingredients, stay family-friendly, deduplicate repeated ingredients, and operate statelessly per call. Do not invent unavailable user constraints; state assumptions explicitly.\",\n    \"format\": \"Return JSON with sections for assumptions, mealPlan, shoppingList, costSummary, and budgetStatus. mealPlan must contain 7 entries. shoppingList should be grouped by category and include item, normalizedQuantity, estimatedUnitCost, estimatedLineCost, and notes.\",\n    \"data\": \"Use common family-friendly recipe knowledge, grocery price estimates, unit conversions, and bulk-buy pricing heuristics supplied by the fused micro-agents. If exact prices are not provided, use reasonable estimates and mark them as estimates.\"\n  },\n  \"successCriteria\": [\n    \"Output includes exactly 7 dinner entries in the meal plan.\",\n    \"Each dinner entry respects stated dietary exclusions and user constraints.\",\n    \"A consolidated shopping list is produced from the meal plan with duplicate ingredients merged.\",\n    \"Shopping list quantities are normalized or clearly labeled when normalization is not feasible.\",\n    \"Estimated per-item costs and an overall total estimated cost are provided.\",\n    \"Budget status explicitly states whether the estimated total is within, near, or over the stated budget.\",\n    \"All assumptions are clearly identified when source inputs are incomplete.\"\n  ],\n  \"guardrails\": [\n    \"Do not include meals containing explicitly excluded allergens or ingredients.\",\n    \"Do not exceed the user budget without explicitly flagging the overage and identifying cost drivers.\",\n    \"Do not output fewer or more than 7 dinners unless the user explicitly requests a different duration.\",\n    \"Do not leave duplicate grocery items unmerged when they refer to the same ingredient and compatible unit.\",\n    \"Do not present price estimates as exact market prices; label them as estimates unless user-supplied prices are given.\",\n    \"Do not rely on cross-call memory; treat every request as stateless.\"\n  ],\n  \"outputs\": [\n    \"7-day dinner meal plan\",\n    \"Consolidated deduplicated shopping list\",\n    \"Estimated cost breakdown by item and total\",\n    \"Budget status and planning assumptions\"\n  ],\n  \"telemetry\": [\n    \"meal_plan_day_count\",\n    \"estimated_total_cost\",\n    \"budget_target\",\n    \"budget_delta\",\n    \"deduped_item_count\",\n    \"constraint_violation_count\",\n    \"assumption_count\"\n  ],\n  \"maReferences\": [\n    \"ac63d34b-e5c6-4923-b0fc-fc98cea500b4\",\n    \"81fd689c-d290-413c-984e-fe514f24219c\"\n  ],\n  \"jcse\": {\n    \"system\": 7,\n    \"role\": 7,\n    \"instruction\": 8,\n    \"example\": 6,\n    \"constraint\": 6,\n    \"format\": 6,\n    \"data\": 5,\n    \"total\": 45\n  },\n  \"notes\": \"Fuses the planner MA and shopper MA into a sequential workflow: meal plan generation followed by shopping list aggregation and cost estimation.\"\n}",
+        "refusal": null,
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779506889,
+  "id": "chatcmpl-DiXJxL6Ngnr1sGnRQkTY6lXXHSQEb",
+  "model": "gpt-5.4-2026-03-05",
+  "object": "chat.completion",
+  "prompt_filter_results": [
+    {
+      "prompt_index": 0,
+      "content_filter_results": {
+        "hate": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "jailbreak": {
+          "detected": false,
+          "filtered": false
+        },
+        "self_harm": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "sexual": {
+          "filtered": false,
+          "severity": "safe"
+        },
+        "violence": {
+          "filtered": false,
+          "severity": "safe"
+        }
+      }
+    }
+  ],
+  "service_tier": "default",
+  "system_fingerprint": null,
+  "usage": {
+    "completion_tokens": 1003,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 12,
+      "engine_ttft_ms": 118,
+      "engine_ttlt_ms": 12504,
+      "pre_inference_ms": 144,
+      "service_tbt_ms": 12,
+      "service_ttft_ms": 324,
+      "service_ttlt_ms": 12706,
+      "total_duration_ms": 12567,
+      "user_visible_ttft_ms": 180
+    },
+    "prompt_tokens": 1030,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "total_tokens": 2033
+  }
+}

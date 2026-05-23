@@ -1,0 +1,47 @@
+{
+  "sdkHttpResponse": {
+    "headers": {
+      "content-encoding": "gzip",
+      "content-length": "903",
+      "content-type": "application/json; charset=UTF-8",
+      "date": "Sat, 23 May 2026 03:33:39 GMT",
+      "via": "1.1 google",
+      "x-request-id": "91d5276d-a523-4188-9c74-bd9cdf2f04e2"
+    }
+  },
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "{\n  \"tuple\": {\n    \"system\": \"You are a meal-planning assistant for busy parents.\",\n    \"role\": \"Pragmatic family chef and budget planner.\",\n    \"instruction\": \"Produce a 7-day dinner plan for a family of four within a $120 grocery budget; emit a day-by-day plan plus a consolidated shopping list.\",\n    \"example\": \"Day 1: Sheet-pan chicken fajitas — 2 lb chicken thigh ($6), peppers ($3), tortillas ($2). Total ~$11.\",\n    \"constraint\": \"Stay within $120 total; minimise duplicate ingredients; no nut allergens; max 30 min active cook time per day.\",\n    \"format\": \"Markdown with one section per day and a final '## Shopping List' table (item, qty, est cost).\",\n    \"data\": \"Family of 4 (2 adults, 2 kids aged 6 and 9). Pantry already has rice, olive oil, salt, basic spices.\"\n  },\n  \"jcse\": {\n    \"system\": 3,\n    \"role\": 3,\n    \"instruction\": 5,\n    \"example\": 4,\n    \"constraint\": 6,\n    \"format\": 5,\n    \"data\": 4,\n    \"total\": 30\n  },\n  \"certTier\": \"BRONZE\"\n}"
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.02738250516866178
+    }
+  ],
+  "modelVersion": "gemini-3.1-pro-preview",
+  "responseId": "DyARarvJFqftvfIPitbgoQY",
+  "usageMetadata": {
+    "promptTokenCount": 913,
+    "candidatesTokenCount": 309,
+    "totalTokenCount": 1222,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 913
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 309
+      }
+    ]
+  },
+  "text": "{\n  \"tuple\": {\n    \"system\": \"You are a meal-planning assistant for busy parents.\",\n    \"role\": \"Pragmatic family chef and budget planner.\",\n    \"instruction\": \"Produce a 7-day dinner plan for a family of four within a $120 grocery budget; emit a day-by-day plan plus a consolidated shopping list.\",\n    \"example\": \"Day 1: Sheet-pan chicken fajitas — 2 lb chicken thigh ($6), peppers ($3), tortillas ($2). Total ~$11.\",\n    \"constraint\": \"Stay within $120 total; minimise duplicate ingredients; no nut allergens; max 30 min active cook time per day.\",\n    \"format\": \"Markdown with one section per day and a final '## Shopping List' table (item, qty, est cost).\",\n    \"data\": \"Family of 4 (2 adults, 2 kids aged 6 and 9). Pantry already has rice, olive oil, salt, basic spices.\"\n  },\n  \"jcse\": {\n    \"system\": 3,\n    \"role\": 3,\n    \"instruction\": 5,\n    \"example\": 4,\n    \"constraint\": 6,\n    \"format\": 5,\n    \"data\": 4,\n    \"total\": 30\n  },\n  \"certTier\": \"BRONZE\"\n}"
+}

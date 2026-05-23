@@ -1,0 +1,46 @@
+{
+  "sdkHttpResponse": {
+    "headers": {
+      "content-encoding": "gzip",
+      "content-type": "application/json; charset=UTF-8",
+      "date": "Sat, 23 May 2026 03:34:02 GMT",
+      "transfer-encoding": "chunked",
+      "via": "1.1 google",
+      "x-request-id": "33a09d0c-743f-41ca-926e-ee021d03820c"
+    }
+  },
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "{\n  \"cheatSheet\": \"# Meal Planner Micro-Agent\\n\\n**What:** A stateless micro-agent that generates a structured, 7-day dinner schedule.\\n\\n**Why:** Families need to plan meals within specific constraints (budget, dietary restrictions, time) without spending hours researching.\\n\\n**Who:** Parents, budget-conscious individuals, meal-prep enthusiasts.\\n\\n**Out of Scope:** \\n- Real-time grocery delivery API integrations.\\n- Managing persistent user accounts or historical meal plans (stateless design).\\n- Breakfast or lunch planning (strictly 7-day dinner schedule).\\n\\n**Success Criterion:** Given a set of constraints (e.g., \\\"Budget $100, no dairy, kid-friendly\\\"), the agent reliably emits a well-formed JSON array of 7 distinct dinners with estimated costs totaling less than the budget.\\n\\n**Stack Vibe:** Cursor + Next.js (App Router, Server Actions, Vercel AI SDK).\",\n  \"worksheet\": \"1. **Scaffold the Next.js app:** Initialize the project using `npx create-next-app@latest`.\\n2. **Install AI dependencies:** Add the Vercel AI SDK and your preferred provider (e.g., `@ai-sdk/openai`).\\n3. **Define the Schema:** Create a Zod schema in `lib/schema.ts` defining the expected 7-day meal plan structure.\\n4. **Create the Server Action:** Implement `generateMealPlan` in `app/actions.ts`. Use the `generateObject` function from the AI SDK, passing the user constraints and the Zod schema.\\n5. **Build the UI:** In `app/page.tsx`, create a form to accept user constraints (budget, dietary needs).\\n6. **Wire up the UI:** Connect the form submission to the `generateMealPlan` server action.\\n7. **Render the Output:** Display the returned 7-day schedule in a clean list or grid format.\\n8. **Implement Error Handling:** Add try/catch blocks in the server action to handle API failures and schema validation errors.\",\n  \"buildLaunch\": \"### 1. Scaffold & Install\\n\\nRun these commands in your terminal:\\n\\n```bash\\nnpx create-next-app@latest meal-planner --typescript --tailwind --eslint --app --src-dir --import-alias \\\"@/*\\\"\\ncd meal-planner\\nnpm install ai @ai-sdk/openai zod\\n```\\n\\n### 2. Configure Environment\\n\\nCreate a `.env.local` file in the root:\\n\\n```env\\nOPENAI_API_KEY=your_sk_key_here\\n```\\n\\n### 3. First-Run Smoke Test\\n\\nStart the development server:\\n\\n```bash\\nnpm run dev\\n```\\n\\nNavigate to `http://localhost:3000`. You should see the default Next.js starter page. Once you implement the basic form and server action, submitting \\\"$50 budget, vegetarian\\\" should immediately log the structured JSON response in your server console.\",\n  \"interfaceContract\": \"### Input Contract (Client -> Server Action)\\n\\n```typescript\\nimport { z } from \\\"zod\\\";\\n\\nexport const ConstraintsSchema = z.object({\\n  budget: z.number().min(10).describe(\\\"Total weekly dinner budget in USD\\\"),\\n  dietaryRestrictions: z.array(z.string()).optional(),\\n  familySize: z.number().min(1).default(4),\\n  specialRequests: z.string().optional()\\n});\\n\\nexport type MealConstraints = z.infer<typeof ConstraintsSchema>;\\n```\\n\\n### Output Contract (Server Action -> Client)\\n\\n```typescript\\nimport { z } from \\\"zod\\\";\\n\\nexport const MealPlanSchema = z.object({\\n  plan: z.array(\\n    z.object({\\n      day: z.enum([\\\"Monday\\\", \\\"Tuesday\\\", \\\"Wednesday\\\", \\\"Thursday\\\", \\\"Friday\\\", \\\"Saturday\\\", \\\"Sunday\\\"]),\\n      mealName: z.string(),\\n      description: z.string(),\\n      estimatedCost: z.number().describe(\\\"Estimated cost for this meal in USD\\\"),\\n      prepTimeMinutes: z.number(),\\n    })\\n  ).length(7),\\n  totalEstimatedCost: z.number(),\\n});\\n\\nexport type MealPlan = z.infer<typeof MealPlanSchema>;\\n```\"\n}"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "modelVersion": "gemini-3.1-pro-preview",
+  "responseId": "ICARavXiJuSuvfIPtc-YkQM",
+  "usageMetadata": {
+    "promptTokenCount": 797,
+    "candidatesTokenCount": 1008,
+    "totalTokenCount": 1805,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 797
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1008
+      }
+    ]
+  },
+  "text": "{\n  \"cheatSheet\": \"# Meal Planner Micro-Agent\\n\\n**What:** A stateless micro-agent that generates a structured, 7-day dinner schedule.\\n\\n**Why:** Families need to plan meals within specific constraints (budget, dietary restrictions, time) without spending hours researching.\\n\\n**Who:** Parents, budget-conscious individuals, meal-prep enthusiasts.\\n\\n**Out of Scope:** \\n- Real-time grocery delivery API integrations.\\n- Managing persistent user accounts or historical meal plans (stateless design).\\n- Breakfast or lunch planning (strictly 7-day dinner schedule).\\n\\n**Success Criterion:** Given a set of constraints (e.g., \\\"Budget $100, no dairy, kid-friendly\\\"), the agent reliably emits a well-formed JSON array of 7 distinct dinners with estimated costs totaling less than the budget.\\n\\n**Stack Vibe:** Cursor + Next.js (App Router, Server Actions, Vercel AI SDK).\",\n  \"worksheet\": \"1. **Scaffold the Next.js app:** Initialize the project using `npx create-next-app@latest`.\\n2. **Install AI dependencies:** Add the Vercel AI SDK and your preferred provider (e.g., `@ai-sdk/openai`).\\n3. **Define the Schema:** Create a Zod schema in `lib/schema.ts` defining the expected 7-day meal plan structure.\\n4. **Create the Server Action:** Implement `generateMealPlan` in `app/actions.ts`. Use the `generateObject` function from the AI SDK, passing the user constraints and the Zod schema.\\n5. **Build the UI:** In `app/page.tsx`, create a form to accept user constraints (budget, dietary needs).\\n6. **Wire up the UI:** Connect the form submission to the `generateMealPlan` server action.\\n7. **Render the Output:** Display the returned 7-day schedule in a clean list or grid format.\\n8. **Implement Error Handling:** Add try/catch blocks in the server action to handle API failures and schema validation errors.\",\n  \"buildLaunch\": \"### 1. Scaffold & Install\\n\\nRun these commands in your terminal:\\n\\n```bash\\nnpx create-next-app@latest meal-planner --typescript --tailwind --eslint --app --src-dir --import-alias \\\"@/*\\\"\\ncd meal-planner\\nnpm install ai @ai-sdk/openai zod\\n```\\n\\n### 2. Configure Environment\\n\\nCreate a `.env.local` file in the root:\\n\\n```env\\nOPENAI_API_KEY=your_sk_key_here\\n```\\n\\n### 3. First-Run Smoke Test\\n\\nStart the development server:\\n\\n```bash\\nnpm run dev\\n```\\n\\nNavigate to `http://localhost:3000`. You should see the default Next.js starter page. Once you implement the basic form and server action, submitting \\\"$50 budget, vegetarian\\\" should immediately log the structured JSON response in your server console.\",\n  \"interfaceContract\": \"### Input Contract (Client -> Server Action)\\n\\n```typescript\\nimport { z } from \\\"zod\\\";\\n\\nexport const ConstraintsSchema = z.object({\\n  budget: z.number().min(10).describe(\\\"Total weekly dinner budget in USD\\\"),\\n  dietaryRestrictions: z.array(z.string()).optional(),\\n  familySize: z.number().min(1).default(4),\\n  specialRequests: z.string().optional()\\n});\\n\\nexport type MealConstraints = z.infer<typeof ConstraintsSchema>;\\n```\\n\\n### Output Contract (Server Action -> Client)\\n\\n```typescript\\nimport { z } from \\\"zod\\\";\\n\\nexport const MealPlanSchema = z.object({\\n  plan: z.array(\\n    z.object({\\n      day: z.enum([\\\"Monday\\\", \\\"Tuesday\\\", \\\"Wednesday\\\", \\\"Thursday\\\", \\\"Friday\\\", \\\"Saturday\\\", \\\"Sunday\\\"]),\\n      mealName: z.string(),\\n      description: z.string(),\\n      estimatedCost: z.number().describe(\\\"Estimated cost for this meal in USD\\\"),\\n      prepTimeMinutes: z.number(),\\n    })\\n  ).length(7),\\n  totalEstimatedCost: z.number(),\\n});\\n\\nexport type MealPlan = z.infer<typeof MealPlanSchema>;\\n```\"\n}"
+}

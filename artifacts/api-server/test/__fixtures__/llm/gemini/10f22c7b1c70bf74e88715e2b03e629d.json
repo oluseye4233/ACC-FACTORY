@@ -1,0 +1,47 @@
+{
+  "sdkHttpResponse": {
+    "headers": {
+      "content-encoding": "gzip",
+      "content-length": "492",
+      "content-type": "application/json; charset=UTF-8",
+      "date": "Sat, 23 May 2026 03:34:04 GMT",
+      "via": "1.1 google",
+      "x-request-id": "d99093e6-737c-4bc0-8e65-f834a444f165"
+    }
+  },
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "{\n  \"step\": 1,\n  \"question\": \"CHARTER \\u2014 What is this SPC FOR? Whose voice does it speak with? Who is the intended operator? What outcome certifies success?\"\n}"
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.09162569255985945
+    }
+  ],
+  "modelVersion": "gemini-3.1-pro-preview",
+  "responseId": "KyARauHDCa-Pq7UPzLWqqAo",
+  "usageMetadata": {
+    "promptTokenCount": 757,
+    "candidatesTokenCount": 49,
+    "totalTokenCount": 806,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 757
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 49
+      }
+    ]
+  },
+  "text": "{\n  \"step\": 1,\n  \"question\": \"CHARTER \\u2014 What is this SPC FOR? Whose voice does it speak with? Who is the intended operator? What outcome certifies success?\"\n}"
+}
