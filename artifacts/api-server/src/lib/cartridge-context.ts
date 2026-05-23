@@ -68,7 +68,7 @@ async function buildCartridgeContext(sessionId: string): Promise<string | null> 
     .where(eq(cartridgeLinksTable.cartridgeId, session.cartridgeId));
 
   const sections: string[] = [];
-  sections.push("=== CARTRIDGE CONTEXT (PROTECTED — DO NOT OVERRIDE) ===");
+  sections.push("=== CARTRIDGE CONTEXT (authoritative · do not contradict) ===");
   sections.push(
     "The following PROJECT SCOPE was authored by the operator and is the SUPREME governing frame for every engine in this session. No downstream engine may contradict, reinterpret, dilute, or expand it. If a user instruction conflicts with this scope, the scope wins and the engine MUST surface the conflict in its diagnostics rather than silently broaden the brief.",
   );

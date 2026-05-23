@@ -23,6 +23,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { ArrowLeft, AlertTriangle, ListOrdered, Package } from "lucide-react";
 import { F1TestPrompt } from "@/components/workspaces/F1TestPrompt";
 import { F2BuildAtomic } from "@/components/workspaces/F2BuildAtomic";
@@ -137,12 +138,31 @@ export default function SessionDetail() {
                 </span>
               )}
               {isIngested && (
-                <span
-                  className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-secondary/20 text-secondary border border-secondary/30"
-                  title="This session was seeded from an ingested document. Its final artefact is a PWDD."
-                >
-                  INGESTED · PWDD
-                </span>
+                <HoverCard openDelay={120} closeDelay={80}>
+                  <HoverCardTrigger asChild>
+                    <span
+                      className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-secondary/20 text-secondary border border-secondary/30 cursor-help"
+                      data-testid="badge-ingested-pwdd"
+                    >
+                      INGESTED → PWDD
+                    </span>
+                  </HoverCardTrigger>
+                  <HoverCardContent side="bottom" align="start" sideOffset={6} className="w-80 p-0 overflow-hidden">
+                    <div className="px-4 py-2 border-b bg-secondary/10">
+                      <span className="font-mono text-xs font-bold text-secondary">PWDD output session</span>
+                    </div>
+                    <div className="px-4 py-3 space-y-2">
+                      <p className="text-xs font-semibold text-foreground leading-snug">
+                        PromptWare Design Document
+                      </p>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        This session was seeded by ingesting an <strong>IPDD</strong> (Ingestion Product Design
+                        Document — a human-authored INPUT). Its terminal F7 artefact is a HARNESS-certified
+                        <strong> PWDD</strong>, not a regular MVP-PDD.
+                      </p>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
               )}
             </div>
           )}
