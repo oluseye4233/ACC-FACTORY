@@ -48,7 +48,11 @@ export function TopNav() {
       <div className="container flex h-14 items-center justify-between gap-2 px-4">
         <div className="flex items-center gap-6 min-w-0">
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <span className="font-display text-xl tracking-wider text-primary">ATANDA</span>
+            <img
+              src={`${import.meta.env.BASE_URL}atanda-logo.png`}
+              alt="ATANDA"
+              className="h-9 w-auto"
+            />
           </Link>
           <Show when="signed-in">
             <nav className="hidden lg:flex items-center gap-4 text-sm font-medium text-muted-foreground">

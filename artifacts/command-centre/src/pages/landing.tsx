@@ -13,7 +13,16 @@ export default function Landing() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative overflow-hidden py-16 sm:py-20 md:py-32 lg:py-40">
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-secondary/5 -z-10" />
+          <video
+            className="absolute inset-0 w-full h-full object-cover -z-20"
+            src={`${import.meta.env.BASE_URL}atanda-hero.mp4`}
+            autoPlay
+            loop
+            muted
+            playsInline
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 bg-background/70 backdrop-blur-[1px] -z-10" />
           <div className="container px-4 md:px-6 relative">
             <div className="flex flex-col items-center text-center space-y-8 max-w-4xl mx-auto">
               <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary mb-4">

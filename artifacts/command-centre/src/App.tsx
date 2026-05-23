@@ -63,7 +63,7 @@ const clerkAppearance = {
   options: {
     logoPlacement: "inside" as const,
     logoLinkUrl: basePath || "/",
-    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+    logoImageUrl: `${window.location.origin}${basePath}/atanda-logo.png`,
   },
   variables: {
     colorPrimary: "hsl(144 61% 26%)", // primary
@@ -93,7 +93,7 @@ const clerkAppearance = {
     formFieldSuccessText: "text-xs text-[#1A6B3A]",
     alertText: "text-sm text-[#DF1A12]",
     logoBox: "flex justify-center mb-6",
-    logoImage: "h-8",
+    logoImage: "h-16 w-auto",
     socialButtonsBlockButton: "border-[#262626] bg-[#0D0D0D] hover:bg-[#262626] transition-colors",
     formButtonPrimary: "bg-[#1A6B3A] hover:bg-[#1A6B3A]/90 text-white font-display tracking-wider text-lg h-12",
     formFieldInput: "bg-[#0D0D0D] border-[#262626] text-[#f2f2f2] font-mono",
