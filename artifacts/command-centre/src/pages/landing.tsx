@@ -8,9 +8,11 @@ import { DEMO_MODE } from "@/lib/demo-mode";
 import video48HourDivergence from "@assets/The_48-Hour_Divergence_1779502673339.mp4";
 import videoForgeFactoryFloor from "@assets/FORGE_Factory_Floor_1779502866103.mp4";
 import videoIntelligenceAsset from "@assets/The_Intelligence_Asset__Beyond_the_Code_Barrier_1779539479111.mp4";
+import videoRiskToRigor from "@assets/ATANDA__Risk_to_Rigor_1779543682393.mp4";
 import paperInstrumentingCognition from "@assets/Instrumenting_Cognition_1779502799785.pdf";
 import paperAtandaCommandCentre from "@assets/ATANDA_Command_Centre_1779502924595.pdf";
 import paperCognitiveMint from "@assets/The_Cognitive_Mint_1779539510121.pdf";
+import paperDeterministicVault from "@assets/The_Deterministic_Vault_1779543698477.pdf";
 
 const VIDEOS = [
   {
@@ -30,6 +32,12 @@ const VIDEOS = [
     title: "The Intelligence Asset — Beyond the Code Barrier",
     blurb:
       "Why a SPARTAN-certified PDD is the asset, and the codebase is just one expression of it.",
+  },
+  {
+    src: videoRiskToRigor,
+    title: "ATANDA — Risk to Rigor",
+    blurb:
+      "How the HARNESS turns ambiguous build risk into auditable, certified engineering rigor.",
   },
 ] as const;
 
@@ -51,6 +59,12 @@ const WHITEPAPERS = [
     title: "The Cognitive Mint",
     blurb:
       "Why a SPARTAN-certified PDD is the mintable intelligence asset — and the codebase is a downstream artefact.",
+  },
+  {
+    href: paperDeterministicVault,
+    title: "The Deterministic Vault",
+    blurb:
+      "How the HARNESS locks every engine pass into an auditable, reproducible vault of evidence.",
   },
 ] as const;
 
@@ -161,7 +175,7 @@ export default function Landing() {
                 <BookOpen className="h-3.5 w-3.5" />
                 VIDEOS
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {VIDEOS.map((v, i) => (
                   <div
                     key={v.title}
@@ -203,7 +217,7 @@ export default function Landing() {
                 <FileText className="h-3.5 w-3.5" />
                 WHITEPAPERS
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {WHITEPAPERS.map((p, i) => (
                   <a
                     key={p.title}
