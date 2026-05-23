@@ -10,6 +10,7 @@ import videoForgeFactoryFloor from "@assets/FORGE_Factory_Floor_1779502866103.mp
 import videoIntelligenceAsset from "@assets/The_Intelligence_Asset__Beyond_the_Code_Barrier_1779539479111.mp4";
 import paperInstrumentingCognition from "@assets/Instrumenting_Cognition_1779502799785.pdf";
 import paperAtandaCommandCentre from "@assets/ATANDA_Command_Centre_1779502924595.pdf";
+import paperCognitiveMint from "@assets/The_Cognitive_Mint_1779539510121.pdf";
 
 const VIDEOS = [
   {
@@ -44,6 +45,12 @@ const WHITEPAPERS = [
     title: "ATANDA Command Centre",
     blurb:
       "Operator portal spec: tiers, on-ramps, badges, and the certified MVP-PDD pipeline.",
+  },
+  {
+    href: paperCognitiveMint,
+    title: "The Cognitive Mint",
+    blurb:
+      "Why a SPARTAN-certified PDD is the mintable intelligence asset — and the codebase is a downstream artefact.",
   },
 ] as const;
 
@@ -196,7 +203,7 @@ export default function Landing() {
                 <FileText className="h-3.5 w-3.5" />
                 WHITEPAPERS
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {WHITEPAPERS.map((p, i) => (
                   <a
                     key={p.title}
