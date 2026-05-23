@@ -102,6 +102,18 @@ const ENTRIES: Entry[] = [
     filename: "TITAN_ULTRA_SI_SPC_v1_0_1779069054056.md",
   },
   {
+    id: "code-dj",
+    title: "CODE DJ",
+    tagline:
+      "Code Distribution Junction — PromptWare-to-codebase conversion doctrine (powers F8 Code DJ)",
+    jcse: 50,
+    certClass: "PLATINUM",
+    source: "canonical",
+    kind: "SPC",
+    disc: "DC — Dominance + Conscientiousness (Decisive code allocation with systematic precision)",
+    filename: "CODE_DJ_SPC_v1_0_1779539676204.md",
+  },
+  {
     id: "gamemxt-ultra-si",
     title: "GAMEMXT ULTRA SI",
     tagline:
