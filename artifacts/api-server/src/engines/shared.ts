@@ -379,7 +379,17 @@ async function callGeminiImpl(
       ...(jsonMode ? { responseMimeType: "application/json" } : {}),
     },
   });
-  const text = response.text ?? "";
+  // Some Gemini proxy responses leave the SDK's `response.text` getter empty
+  // even though `candidates[0].content.parts[*].text` carries a valid body.
+  // Fall back to concatenating the parts so we don't 502 with "Failed to
+  // parse engine JSON response" on those payloads.
+  let text = response.text ?? "";
+  if (!text) {
+    const parts = response.candidates?.[0]?.content?.parts ?? [];
+    text = parts
+      .map((p) => (typeof p?.text === "string" ? p.text : ""))
+      .join("");
+  }
   const usage = response.usageMetadata;
   return {
     text,
