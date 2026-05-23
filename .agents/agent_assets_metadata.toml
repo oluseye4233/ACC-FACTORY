@@ -17,7 +17,7 @@ title = "ATANDA Command Centre — Scenario Walkthroughs (F1 to F7) for Every Pl
 id = "Z-rdVIPyaq-rj4Vwebh6n"
 uri = "file://docs/BUGMXT_Report_AccountDelete.pdf"
 type = "pdf"
-title = "BUGMXT SI — Bug Triage Report (Account delete + auth hardening)"
+title = "BUGMXT SI — Bug Triage Report (UX polish + ontology cleanup)"
 
 [[outputs]]
 id = "v1fFe3iAsQ0IV2RIkzItC"

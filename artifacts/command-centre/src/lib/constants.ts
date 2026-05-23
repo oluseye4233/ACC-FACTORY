@@ -5,7 +5,7 @@ export const ENGINES = [
     title: "PROMPT DIAGNOSTIC",
     description: "Diagnose raw ideas into Atomic Prompts",
     explainer:
-      "Scores your raw idea on the 7-pillar JCSE rubric (Specificity, Role, Intent, Domain, Format, Examples, Constraints) and tells you exactly which dimensions to tighten before moving on.",
+      "Scores your raw idea against the 7-pillar JCSE rubric (SYSTEM, ROLE, INSTRUCTION, EXAMPLE, CONSTRAINT, FORMAT, DATA) and tells you exactly which dimensions to tighten before moving on.",
   },
   {
     id: 2,

@@ -53,13 +53,14 @@ ${bugmxtSpc}
 
 === END SPC ===`;
 
-const COMMON_CONTEXT = `Target: the unified git diff below. It contains the most recent change set in the ATANDA Command Centre codebase — a new /account page (profile edit, data export, hard delete), tightened account-deletion flow (Stripe pre-cancel → Clerk delete → local cascade), and a strict-mode rewrite of \`ensureLocalUser\` so a stale token cannot JIT-recreate a shell user after Clerk-side deletion.
+const COMMON_CONTEXT = `Target: the unified git diff below. It contains the two most recent change sets in the ATANDA Command Centre codebase: (1) UX polish on the session-detail page — F1–F8 button glow/pulse animation plus HoverCard explainers on every engine button (FeatureNavItem + index.css keyframes + ENGINES explainer fields + isNext computed flag); and (2) a 4-fix ontological-alignment cleanup — restoring the canonical "=== CARTRIDGE CONTEXT (authoritative · do not contradict) ===" fence in cartridge-context.ts, stripping the (AISE_BUILD) suffix from the senior-engineer badge display name, upgrading the JCSE counter chip to a HoverCard that expands "Junglenomics Composite Score Estimate" with all 7 pillars and tier bands, and replacing the static INGESTED·PWDD badge on session-detail with a HoverCard explainer that defines IPDD vs PWDD per the replit.md ontology.
 
 Context BUGMXT should treat as known:
-- This change set has already passed three rounds of architect review; look for what architect MISSED.
-- Stack: Express 5 + Drizzle + Clerk (Replit-managed) + Stripe + Zod (zod/v4 + drizzle-zod), OpenAPI-first contract via Orval.
+- This change set was self-reviewed only; no architect pass yet. Look for what self-review MISSED.
+- Stack: Express 5 + Drizzle + Clerk (Replit-managed) + Stripe + Zod (zod/v4 + drizzle-zod), OpenAPI-first contract via Orval; React 18 + Vite + Wouter + TanStack Query + shadcn/ui on the web side.
 - App-layer authorisation; no Postgres RLS. Every Drizzle query touching user-owned data MUST filter on req.localUser.id.
-- The HARNESS itself is the PDD blueprint that produces SPCs/PDDs — it is NOT itself an SPC.
+- The HARNESS itself is the PDD blueprint that produces SPCs/PDDs — it is NOT itself an SPC. IPDD = human-authored INPUT to the INGESTION ENGINE; PWDD = HARNESS-certified OUTPUT of an ingested session. Never collapse those terms.
+- HoverCard component lives at artifacts/command-centre/src/components/ui/hover-card.tsx (shadcn wrapper around @radix-ui/react-hover-card). It is the canonical pattern for explainer popovers — title-attribute tooltips are being phased out.
 
 === UNIFIED DIFF ===
 
@@ -209,7 +210,7 @@ async function assemble() {
 
   const header = `# BUGMXT SI — Bug Triage Report
 
-**Target:** ATANDA Command Centre — commit \`ffc9d3e\` (Account management + auth-safety hardening)
+**Target:** ATANDA Command Centre — commits \`778e73d..169519b\` (Engine button glow + HoverCard explainers + ontological-alignment cleanup)
 **Engine:** BUGMXT SI v1.0 (JCSE 46 / Platinum)
 **Model:** claude-sonnet-4-6 (4-phase scan)
 **Scan duration:** ${totalElapsed}s total
@@ -347,7 +348,7 @@ async function assemble() {
   doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(14).text("Bug Triage Report");
   doc.moveDown(0.4);
   doc.fillColor(SOFT_GREY).font("Helvetica-Oblique").fontSize(10)
-    .text("5-layer code integrity scan · ATANDA Command Centre · Account-management commit ffc9d3e");
+    .text("5-layer code integrity scan · ATANDA Command Centre · UX polish + ontology cleanup (778e73d..169519b)");
   doc.moveDown(0.8);
   hr();
 
