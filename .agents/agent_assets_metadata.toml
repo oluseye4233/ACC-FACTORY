@@ -113,4 +113,10 @@ title = "ATANDA Command Centre — PWDD (Investor Edition)"
 id = "77teq5LtdLmaqhT837Wur"
 uri = "file://docs/ATANDA_Command_Centre_PWDD_ATLAS_Investor.pdf"
 type = "pdf"
-title = "ATANDA Command Centre — ATLAS PWDD v2.1 (Investor Edition, corrected)"
+title = "ATANDA Command Centre — ATLAS PWDD (Investor Edition, v2.1)"
+
+[[outputs]]
+id = "ELtnbVDU6dBzwZj6XQ9LO"
+uri = "file://docs/ATANDA_Command_Centre_PWDD_ATLAS_Investor.md"
+type = "text"
+title = "ATLAS PWDD Source Markdown (v2.1)"

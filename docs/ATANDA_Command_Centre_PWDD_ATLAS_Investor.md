@@ -1,16 +1,22 @@
 # ATANDA Command Centre — ATLAS PromptWare Design Document
 
-**Investor Edition · v2.0 · Codebase-of-record snapshot**
+**Investor Edition · v2.1 · Codebase-of-record snapshot**
 
 > Produced by applying the F6 ATLAS Drafter shape (CheatSheet ·
 > ExecSummary · Worksheet · Implementation) to the entire codebase as of
-> the latest merged checkpoint. This document supersedes the v1 PWDD
-> issued at Final Checkpoint 1 and reflects everything shipped since:
-> LLM-agnostic provider selection, per-engine model overrides, the
-> Advanced Cartridge Ingestion premium SKU, the two new Senior badges
-> (AISA_PWDD + AISE_BUILD), shareable badge certificates, admin badge
-> revocation, per-artifact provider/model attribution, and the historical
-> provider backfill.
+> the latest merged checkpoint. This document supersedes the v2.0 PWDD
+> and folds in everything shipped since: the brand refresh on the
+> landing surface (ATANDA logo + full-bleed hero video), three new
+> investor-facing videos and three new whitepapers on the homepage, two
+> new canonical SPC exemplars in the Fork-to-session library
+> (GAMEMXT ULTRA SI — the training & mentorship engagement architect;
+> CODE DJ — the canonical doctrine that powers F8), and a hardened CI
+> belt for the LLM provider matrix (per-provider F1 fixture cache,
+> nightly cross-provider replay against live Anthropic / OpenAI / Gemini,
+> auto-refresh of stale fixtures with diff-detection and an opened
+> review issue, exact `(provider, engine)` pair attribution in chat /
+> issue alerts, OpenAPI-contract PR drift detection, and a Gemini
+> empty-response.text backfill fix).
 
 ---
 
@@ -24,6 +30,7 @@
 | Who buys it | Founders, PMs, and engineering leaders who already use ChatGPT / Claude / Cursor but can't get *consistent, audit-grade* output. |
 | Why it works | We sell the **pipeline**, not the chatbox. Each stage is contract-first, rate-limited, gated by tier, certified at the end, and now **LLM-agnostic** — pick Claude, OpenAI, or Gemini per session or per engine. |
 | What's new since v1 PWDD | Provider dropdown (Claude / OpenAI / Gemini), per-engine model override, Advanced Cartridge Ingestion ($499.99 / project), two new Senior badges, shareable badge certificates (PNG / JPEG / SVG), admin badge revocation with structured audit log, per-artifact provider+model attribution, retroactive backfill. |
+| What's new since v2.0 PWDD | ATANDA brand refresh on the landing surface (logo + full-bleed hero video); three new homepage videos (Intelligence Asset · Risk to Rigor · Harness Engineering); three new homepage whitepapers (Cognitive Mint · Deterministic Vault · Harness Engineering Blueprint); two new canonical SPC exemplars in the Fork-to-session library (GAMEMXT ULTRA SI — gamification-driven training & mentorship layer; CODE DJ — the PromptWare-to-codebase doctrine that powers F8); cached per-provider F1 fixture replay (~15 s test runs vs. ~10 min live); nightly cross-provider replay with auto-refresh + drift-issue automation; exact `(provider, engine)` pair extraction in chat / issue alerts; PR-time OpenAPI contract drift detection; Gemini empty-`response.text` backfill fix. |
 | Revenue shape | Recurring subscription (4 tiers, monthly + yearly) + one-time per-project ingestion credit + one-time **$499.99 Advanced Cartridge** premium SKU + Institution / enterprise tier. |
 | Defensibility | Eight ordered engines, certificate verification surface, persistent skill graph (10 badges), and now a premium on-ramp that consumes a customer's entire knowledge library + existing prompt assets + codebase/database link. |
 | Operational posture | Idempotent Stripe webhook, external-first account deletion, SSRF guard on every operator-supplied URL, strict JIT auth sync, Sentry-instrumented on both API and web, per-call LLM telemetry now including provider. |
@@ -35,6 +42,54 @@
 ## PART 2 — EXECUTIVE SUMMARY
 
 *The 5-minute pitch. Show this to a partner before a meeting.*
+
+### 2.0 What changed since v2.0 (the v2.1 delta)
+
+Four ship-clusters landed since the v2.0 codebase-of-record snapshot.
+None of them touch the contract surface, the billing surface, or the
+HARNESS engines — they harden the perimeter and sharpen the public
+storefront.
+
+1. **Brand surface refresh.** The public landing artifact now leads
+   with the ATANDA wordmark and a full-bleed hero video tuned for the
+   investor walkthrough. The supporting media wall expanded to **five
+   videos** (Beyond the Code Barrier, Intelligence Asset, Risk to
+   Rigor, Harness Engineering, plus the original walkthrough) and
+   **five whitepapers** (PromptWare Doctrine, Cognitive Mint,
+   Deterministic Vault, Harness Engineering Blueprint, Command Centre
+   Field Notes) — each rendered in a four-up `md:grid-cols-2
+   lg:grid-cols-4` grid so the front door now reads as a credible
+   thought-leadership surface, not a marketing splash.
+
+2. **Two new canonical exemplars in the Fork-to-session library.**
+   *GAMEMXT ULTRA SI* (JCSE 49 / PLATINUM) is the gamification-driven
+   training & mentorship engagement architect — a dual-track SPC that
+   blends self-paced skill ladders with mentor-led playlists.
+   *CODE DJ* (JCSE 50 / PLATINUM) is the canonical SPC that **F8
+   itself instantiates** — making the doctrine that powers
+   PromptWare-to-codebase scaffolding inspectable, forkable, and
+   public. Both ship live at `GET /api/exemplars/{id}` and through the
+   exemplar library page with the standard "Fork to session" CTA.
+
+3. **Cached, cross-provider LLM test belt.** The provider-switching
+   suite (now 30 tests = F1 + 9 engines × 3 providers) replays cached
+   JSON fixtures from `artifacts/api-server/test/__fixtures__/llm/<provider>/`
+   in ~15 s with no network. A normalised cache key (UUIDs and ISO
+   timestamps neutralised) keeps per-run id churn from busting the
+   cache. The nightly `nightly-cross-provider.yml` GitHub Action runs
+   `RECORD=1` against live Anthropic / OpenAI / Gemini, byte-diffs the
+   resulting fixtures with `git diff`, uploads the rewritten cache as
+   a workflow artifact, and opens a `fixture-drift` review issue so
+   the team can merge the refreshed cache deliberately. Chat alerts
+   name the exact `(provider, engine)` pair that regressed, not just
+   the provider — so triage starts at the right file.
+
+4. **Operational small-fixes that matter.** A PR-time OpenAPI contract
+   drift check refuses any commit that changes generated hooks /
+   schemas without a matching `openapi.yaml` edit. A Gemini empty-
+   `response.text` backfill in F1 silently re-tries the structured
+   path so an empty top-level string no longer surfaces as a 502 to
+   the operator.
 
 ### 2.1 What changed since v1
 
@@ -493,6 +548,17 @@ investments.*
 | #24 | One-click admin restore button | `RESTORE` button on every revocation row in the admin console; small confirmation dialog with optional note; restored rows dim with a green pill. |
 | #26 | Full revoke history in confirm dialog | Collapsible reverse-chronological timeline of all prior revocations inside the revoke AlertDialog; scroll-contained for long histories. |
 | #28 | Trimmed reason shown in revoke confirm | The confirm dialog now previews the exact reason about to be persisted and emailed (`data-testid=preview-reason`). |
+| #29 | Per-provider F1 fixture cache | `test/__fixtures__/llm/<provider>/*.json`; normalised cache key (UUID + ISO timestamp neutralised) keeps the cache stable across runs; suite drops from ~10 min live to ~15 s replay. |
+| #30 | Provider-switching matrix extended beyond F1 | 30-test matrix (F1 + 9 other engines × 3 providers) replaying from the cache; all green pre-merge via root `pnpm run test`. |
+| #31 | PR-time OpenAPI contract drift check | GitHub Action refuses any PR that changes generated hooks / Zod schemas without a matching `openapi.yaml` edit — eliminates the silent client/server drift class. |
+| #32 | Cross-provider nightly + chat alert wiring | `nightly-cross-provider.yml` runs `RECORD=1` against live Anthropic / OpenAI / Gemini and posts a structured failure summary to the team chat channel. |
+| #34 | Provider name in nightly chat alert | Failure summary now names the exact provider(s) that regressed instead of a generic "nightly failed" line. |
+| #35 | Auto-refresh stale LLM fixtures in nightly CI | Nightly job byte-diffs the rewritten fixtures via `git diff`, uploads them as a workflow artifact, and opens a `fixture-drift` issue so the team can review and merge the refreshed cache. |
+| #36 | Gemini empty-`response.text` fallback in F1 | Re-resolves the structured payload when the SDK returns an empty top-level string; the 3-provider matrix is no longer flaky on transient Gemini empties. |
+| #37 | GAMEMXT ULTRA SI exemplar added to library | New JCSE 49 / PLATINUM SPC — dual-track gamification, training, and mentorship engagement architect — published via `GET /api/exemplars/gamemxt-ultra-si` and forkable from the exemplar library. |
+| #38 | CODE DJ exemplar added to library | New JCSE 50 / PLATINUM SPC — the canonical doctrine F8 itself instantiates — published via `GET /api/exemplars/code-dj`; makes the PromptWare-to-codebase blueprint inspectable and forkable. |
+| #39 | `(provider, engine)` pair in nightly alerts | Alert extractor now emits the exact failing pair (e.g. `gemini · f6vdj`) instead of provider-only granularity, cutting triage time from "which file?" to "this file". |
+| #40 | Landing surface brand refresh | ATANDA wordmark + full-bleed hero video; videos grid expanded to five entries; whitepapers grid expanded to five entries; both rendered in a four-up `lg:grid-cols-4` layout. |
 
 ### 4.2 Verified surface
 
