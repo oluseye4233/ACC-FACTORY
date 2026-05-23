@@ -7,6 +7,7 @@ import { Shield, Target, Cpu, CheckCircle, FileText, BookOpen, ArrowRight, Downl
 import { DEMO_MODE } from "@/lib/demo-mode";
 import video48HourDivergence from "@assets/The_48-Hour_Divergence_1779502673339.mp4";
 import videoForgeFactoryFloor from "@assets/FORGE_Factory_Floor_1779502866103.mp4";
+import videoIntelligenceAsset from "@assets/The_Intelligence_Asset__Beyond_the_Code_Barrier_1779539479111.mp4";
 import paperInstrumentingCognition from "@assets/Instrumenting_Cognition_1779502799785.pdf";
 import paperAtandaCommandCentre from "@assets/ATANDA_Command_Centre_1779502924595.pdf";
 
@@ -22,6 +23,12 @@ const VIDEOS = [
     title: "FORGE Factory Floor",
     blurb:
       "A look at the engine bay: how F1–F8 chain together as one coherent production line.",
+  },
+  {
+    src: videoIntelligenceAsset,
+    title: "The Intelligence Asset — Beyond the Code Barrier",
+    blurb:
+      "Why a SPARTAN-certified PDD is the asset, and the codebase is just one expression of it.",
   },
 ] as const;
 
@@ -147,7 +154,7 @@ export default function Landing() {
                 <BookOpen className="h-3.5 w-3.5" />
                 VIDEOS
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {VIDEOS.map((v, i) => (
                   <div
                     key={v.title}
