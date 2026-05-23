@@ -9,10 +9,12 @@ import video48HourDivergence from "@assets/The_48-Hour_Divergence_1779502673339.
 import videoForgeFactoryFloor from "@assets/FORGE_Factory_Floor_1779502866103.mp4";
 import videoIntelligenceAsset from "@assets/The_Intelligence_Asset__Beyond_the_Code_Barrier_1779539479111.mp4";
 import videoRiskToRigor from "@assets/ATANDA__Risk_to_Rigor_1779543682393.mp4";
+import videoHarnessEngineering from "@assets/Harness_Engineering_1779544662971.mp4";
 import paperInstrumentingCognition from "@assets/Instrumenting_Cognition_1779502799785.pdf";
 import paperAtandaCommandCentre from "@assets/ATANDA_Command_Centre_1779502924595.pdf";
 import paperCognitiveMint from "@assets/The_Cognitive_Mint_1779539510121.pdf";
 import paperDeterministicVault from "@assets/The_Deterministic_Vault_1779543698477.pdf";
+import paperHarnessEngineeringBlueprint from "@assets/Harness_Engineering_Blueprint_1779544662970.pdf";
 
 const VIDEOS = [
   {
@@ -38,6 +40,12 @@ const VIDEOS = [
     title: "ATANDA — Risk to Rigor",
     blurb:
       "How the HARNESS turns ambiguous build risk into auditable, certified engineering rigor.",
+  },
+  {
+    src: videoHarnessEngineering,
+    title: "Harness Engineering",
+    blurb:
+      "Inside the engineering of the FORGE.BONSAI HARNESS — how the engine bay is wired end-to-end.",
   },
 ] as const;
 
@@ -65,6 +73,12 @@ const WHITEPAPERS = [
     title: "The Deterministic Vault",
     blurb:
       "How the HARNESS locks every engine pass into an auditable, reproducible vault of evidence.",
+  },
+  {
+    href: paperHarnessEngineeringBlueprint,
+    title: "Harness Engineering Blueprint",
+    blurb:
+      "The engineering blueprint behind the FORGE.BONSAI HARNESS — engines, contracts, and the production line.",
   },
 ] as const;
 
