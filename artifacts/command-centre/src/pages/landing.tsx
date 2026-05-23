@@ -3,8 +3,42 @@ import { Button } from "@/components/ui/button";
 import { TopNav } from "@/components/layout/TopNav";
 import { Footer } from "@/components/layout/Footer";
 import { ENGINES } from "@/lib/constants";
-import { Shield, Zap, Target, Cpu, CheckCircle } from "lucide-react";
+import { Shield, Target, Cpu, CheckCircle, FileText, BookOpen, ArrowRight, Download } from "lucide-react";
 import { DEMO_MODE } from "@/lib/demo-mode";
+import video48HourDivergence from "@assets/The_48-Hour_Divergence_1779502673339.mp4";
+import videoForgeFactoryFloor from "@assets/FORGE_Factory_Floor_1779502866103.mp4";
+import paperInstrumentingCognition from "@assets/Instrumenting_Cognition_1779502799785.pdf";
+import paperAtandaCommandCentre from "@assets/ATANDA_Command_Centre_1779502924595.pdf";
+
+const VIDEOS = [
+  {
+    src: video48HourDivergence,
+    title: "The 48-Hour Divergence",
+    blurb:
+      "What two days inside the HARNESS looks like — from a fuzzy idea to a SPARTAN-certified MVP PDD.",
+  },
+  {
+    src: videoForgeFactoryFloor,
+    title: "FORGE Factory Floor",
+    blurb:
+      "A look at the engine bay: how F1–F8 chain together as one coherent production line.",
+  },
+] as const;
+
+const WHITEPAPERS = [
+  {
+    href: paperInstrumentingCognition,
+    title: "Instrumenting Cognition",
+    blurb:
+      "The doctrine behind JCSE scoring, telemetry, and why every engine call is instrumented.",
+  },
+  {
+    href: paperAtandaCommandCentre,
+    title: "ATANDA Command Centre",
+    blurb:
+      "Operator portal spec: tiers, on-ramps, badges, and the certified MVP-PDD pipeline.",
+  },
+] as const;
 
 export default function Landing() {
   return (
@@ -40,7 +74,7 @@ export default function Landing() {
                 {DEMO_MODE ? (
                   <>
                     <Button asChild size="lg" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
-                      <Link href="/demo">TAKE THE 7-STAGE TOUR</Link>
+                      <Link href="/demo">TAKE THE 8-STAGE TOUR</Link>
                     </Button>
                     <Button asChild size="lg" variant="outline" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
                       <Link href="/pricing">VIEW PRICING</Link>
@@ -52,7 +86,7 @@ export default function Landing() {
                       <Link href="/sign-up">INITIATE SESSION</Link>
                     </Button>
                     <Button asChild size="lg" variant="outline" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
-                      <Link href="/demo">TAKE THE 7-STAGE TOUR</Link>
+                      <Link href="/demo">TAKE THE 8-STAGE TOUR</Link>
                     </Button>
                   </>
                 )}
@@ -85,6 +119,115 @@ export default function Landing() {
                   <p className="text-sm text-muted-foreground mt-auto">{engine.description}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Videos & Whitepapers */}
+        <section className="py-20 md:py-24 border-b bg-background">
+          <div className="container px-4 md:px-6">
+            <div className="mb-12 md:text-center max-w-3xl mx-auto">
+              <div className="inline-flex items-center gap-2 rounded-full border border-secondary/30 bg-secondary/5 px-3 py-1 text-xs font-mono text-secondary mb-4">
+                <BookOpen className="h-3 w-3" />
+                LIBRARY · DEEP DIVES & DOCTRINE
+              </div>
+              <h2 className="font-display text-3xl md:text-4xl tracking-wide mb-3 text-primary">
+                VIDEOS &amp; WHITEPAPERS
+              </h2>
+              <p className="text-muted-foreground font-serif text-base md:text-lg">
+                Watch the HARNESS in motion, then read the source doctrine behind every
+                engine — from the JCSE diagnostic through SPARTAN compression and the
+                Super Prompt Card schema.
+              </p>
+            </div>
+
+            {/* Videos */}
+            <div className="max-w-5xl mx-auto mb-10">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-primary tracking-wider mb-4">
+                <BookOpen className="h-3.5 w-3.5" />
+                VIDEOS
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {VIDEOS.map((v, i) => (
+                  <div
+                    key={v.title}
+                    className="rounded-lg border bg-card overflow-hidden flex flex-col"
+                    data-testid={`landing-video-${i}`}
+                  >
+                    <video
+                      src={v.src}
+                      controls
+                      preload="metadata"
+                      playsInline
+                      className="w-full aspect-video bg-black"
+                    />
+                    <div className="p-5 flex flex-col gap-2">
+                      <div className="font-display tracking-wider text-base md:text-lg">
+                        {v.title}
+                      </div>
+                      <p className="text-sm font-serif text-foreground/80 leading-snug">
+                        {v.blurb}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 text-right">
+                <Link
+                  href="/demo"
+                  className="text-xs font-mono tracking-wider text-primary hover:underline inline-flex items-center gap-1"
+                  data-testid="landing-videos-cta"
+                >
+                  OR TAKE THE 8-STAGE WALKTHROUGH <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Whitepapers */}
+            <div className="max-w-5xl mx-auto">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-secondary tracking-wider mb-4">
+                <FileText className="h-3.5 w-3.5" />
+                WHITEPAPERS
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {WHITEPAPERS.map((p, i) => (
+                  <a
+                    key={p.title}
+                    href={p.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group rounded-lg border bg-card p-5 md:p-6 flex flex-col gap-3 hover:border-secondary/50 transition-colors"
+                    data-testid={`landing-whitepaper-${i}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-11 w-11 rounded-md bg-secondary/10 border border-secondary/30 flex items-center justify-center shrink-0">
+                        <FileText className="h-5 w-5 text-secondary" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-display tracking-wider text-base md:text-lg">
+                          {p.title}
+                        </div>
+                        <div className="text-[10px] font-mono tracking-wider text-muted-foreground">
+                          PDF · OPENS IN NEW TAB
+                        </div>
+                      </div>
+                      <Download className="ml-auto h-4 w-4 text-muted-foreground group-hover:text-secondary transition-colors" />
+                    </div>
+                    <p className="text-sm font-serif text-foreground/80 leading-snug">
+                      {p.blurb}
+                    </p>
+                  </a>
+                ))}
+              </div>
+              <div className="mt-4 text-right">
+                <Link
+                  href="/exemplars"
+                  className="text-xs font-mono tracking-wider text-secondary hover:underline inline-flex items-center gap-1"
+                  data-testid="landing-whitepapers-cta"
+                >
+                  OR BROWSE EXEMPLARS &amp; SPECS <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
             </div>
           </div>
         </section>

@@ -1,5 +1,5 @@
 // Investor-preview mode. When VITE_DEMO_MODE === "true":
-//   - The landing CTA points to /demo (the 7-stage dummy-data walkthrough)
+//   - The landing CTA points to /demo (the 8-stage dummy-data walkthrough)
 //     instead of /sign-up.
 //   - A persistent yellow banner is rendered above every page making it
 //     unambiguous that the visitor is looking at sample data, not a live

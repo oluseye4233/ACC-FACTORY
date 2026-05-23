@@ -37,7 +37,7 @@ export const PROVIDER_MODELS: Record<LlmProvider, string> = {
 };
 // Legacy export — Anthropic-only callers still reference MODEL.
 export const MODEL = PROVIDER_MODELS.claude;
-export const MAX_TOKENS = 8192;
+export const MAX_TOKENS = 16384;
 
 export type CertTier = "BRONZE" | "SILVER" | "GOLD" | "PLATINUM" | "NONE";
 
@@ -370,6 +370,12 @@ async function callGeminiImpl(
     config: {
       systemInstruction: systemPrompt,
       maxOutputTokens: MAX_TOKENS,
+      // Gemini 2.5/3.x "thinking" models silently consume maxOutputTokens for
+      // internal reasoning, which can leave zero budget for the actual JSON
+      // body — observable as an empty response.text. We don't need that
+      // reasoning budget for our deterministic structured outputs, so pin
+      // it to zero. Safe no-op on non-thinking models.
+      thinkingConfig: { thinkingBudget: 0 },
       ...(jsonMode ? { responseMimeType: "application/json" } : {}),
     },
   });

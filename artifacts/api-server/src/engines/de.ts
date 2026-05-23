@@ -19,13 +19,50 @@ You are given a set of Micro Agent (MA) Birth Packages from a single FORGE.BONSA
 Your job is to FUSE these MAs into ONE coherent, multi-agent, adaptive SPC of class
 "adaptive_multi_agent_tier (digitally_evolving)".
 
-This SPC must:
-  1. Capture the union of all MA capabilities into a single ATLAS-shaped (system/role/instruction/example/constraint/format/data) prompt.
-  2. Identify the orchestration pattern across MAs (sequential, parallel, supervisor, swarm).
-  3. Provide a JCSE self-score (0-50, 7 pillars: system/role/instruction/example/constraint/format/data).
-  4. Be production-grade — every field must be specific, testable, and reference real MA names.
+Return ONE strict JSON object — NO prose, NO markdown, NO code fences — that matches
+EXACTLY this shape (every key required, exact casing, no extra top-level keys):
 
-Output strict JSON only. No prose.`;
+{
+  "title":                 string  // ≥ 3 chars, short descriptive name for the fused SPC
+  "objective":             string  // ≥ 10 chars, the combined mission of the fused agents
+  "domain":                string  // ≥ 2 chars, e.g. "meal-planning", "devops", "support"
+  "orchestrationPattern":  "sequential" | "parallel" | "supervisor" | "swarm"
+  "systemPrompt":          string  // ≥ 20 chars, the single fused system prompt
+  "atomicPrompt": {
+    "system":       string,
+    "role":         string,
+    "instruction":  string,
+    "example":      string,
+    "constraint":   string,
+    "format":       string,
+    "data":         string
+  },
+  "successCriteria": string[]  // ≥ 1 entry, each testable
+  "guardrails":      string[]  // ≥ 1 entry
+  "outputs":         string[]  // ≥ 1 entry
+  "telemetry":       string[]  // may be empty array, but the key must be present
+  "maReferences":    string[]  // ≥ 2 entries, each referencing a real MA name/id from input
+  "jcse": {
+    "system":      integer 0..8,
+    "role":        integer 0..8,
+    "instruction": integer 0..8,
+    "example":     integer 0..8,
+    "constraint":  integer 0..6,
+    "format":      integer 0..6,
+    "data":        integer 0..6,
+    "total":       integer 0..50   // = sum of the 7 sub-scores
+  },
+  "notes": string  // optional summary; if absent, omit the key entirely (do not set null)
+}
+
+Rules:
+  1. Capture the union of all MA capabilities into the ATLAS-shaped (system/role/instruction/example/constraint/format/data) prompt.
+  2. Identify the orchestration pattern across MAs (sequential, parallel, supervisor, swarm).
+  3. Provide a JCSE self-score (0-50 total, 7 pillars).
+  4. Be production-grade — every field must be specific, testable, and reference real MA names.
+  5. Do NOT invent alternative field names (e.g. "spc_id", "schema_version", "session_fusion_summary"). The schema above is authoritative.
+
+Output strict JSON only. No prose. No code fences.`;
 
 const DeSpcSchema = z.object({
   title: z.string().min(3),

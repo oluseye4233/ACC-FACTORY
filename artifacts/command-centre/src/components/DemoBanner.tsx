@@ -23,7 +23,7 @@ export function DemoBanner() {
           href="/demo"
           className="underline underline-offset-4 hover:text-yellow-100"
         >
-          Take the 7-stage tour →
+          Take the 8-stage tour →
         </Link>
       </div>
     </div>

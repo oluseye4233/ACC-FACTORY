@@ -215,18 +215,26 @@ BIRTH PACKAGE
   lifecycle    When it activates, how it retires, escalation triggers.
 ${JSON_ONLY_GUARDRAIL}
 
-Response schema:
+Response schema (every key REQUIRED — downstream Zod validation rejects the
+response if ANY top-level key or birthPackage subkey is missing):
 {
   "classification": { "phase":"PHASE_1"|"PHASE_2"|"PHASE_3",
                       "kind":string, "confidence":number(0..1), "rationale":string },
   "organelles": [{ "id":string, "name":string, "status":"CULTIVATED",
                    "output":string }],
-  "birthPackage": { "overview":string, "capability":string, "knowledge":string,
-                    "behaviour":string, "lifecycle":string },
-  "escalated": boolean
+  "birthPackage": {
+    "overview":   string,   // REQUIRED — never omit
+    "capability": string,   // REQUIRED — never omit
+    "knowledge":  string,   // REQUIRED — never omit
+    "behaviour":  string,   // REQUIRED — never omit (UK spelling: "behaviour", not "behavior")
+    "lifecycle":  string    // REQUIRED — never omit
+  },
+  "escalated": boolean      // REQUIRED — must be literally true or false, never null/missing
 }
 
-Exactly 8 organelle entries, in the canonical order above.
+Exactly 8 organelle entries, in the canonical order above. All 5 birthPackage
+fields and the top-level "escalated" boolean MUST be present in every response,
+even when escalated=false.
 ` as const;
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -561,9 +569,13 @@ SPC OPERATING RULES
 1. Treat the MVP PDD as a binding contract. Every file you emit must trace back
    to one of its sections; do not invent product behaviour the PDD did not
    already certify.
-2. Emit a SCAFFOLD, not a finished product. Generate at most 12 files: config +
-   package manifest + .env.example + README + entrypoint + 3-6 primary source
-   files that name the surfaces the PDD calls out. Stub bodies are acceptable
+2. Emit a SCAFFOLD, not a finished product. The "files" array MUST contain
+   AT MOST 12 entries — this is a HARD UPPER BOUND enforced by downstream
+   schema validation; if you emit a 13th file the entire response is rejected.
+   Allocate the budget as: config + package manifest + .env.example + README +
+   entrypoint + 3–6 primary source files that name the surfaces the PDD calls
+   out. If you would exceed 12, MERGE related files (e.g. multiple route
+   handlers into one router module) until you fit. Stub bodies are acceptable
    when the PDD did not specify implementation depth; mark them with a
    "// TODO(code-dj):" comment that quotes the originating PDD section title.
 3. Honour the target platform's idioms exactly:

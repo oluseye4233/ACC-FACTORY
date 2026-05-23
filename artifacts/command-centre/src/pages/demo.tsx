@@ -11,17 +11,21 @@ import {
   Award,
   CheckCircle2,
   CircleDot,
+  Code2,
   Compass,
   Cpu,
+  Database,
   Diamond,
   FileText,
   Layers,
   Lightbulb,
+  Package,
   Rocket,
   Shield,
   ShieldCheck,
   Sparkles,
   Trophy,
+  Upload,
   Workflow,
 } from "lucide-react";
 import { PillarTriangle } from "@/components/shared/PillarTriangle";
@@ -71,6 +75,7 @@ const PILLAR_SCORES_BY_STAGE: Record<StageId, Partial<Record<PillarCode, number>
   5: { SYSTEM: 7, ROLE: 7, INSTRUCTION: 8, DATA: 6, FORMAT: 7, EXAMPLE: 6, CONSTRAINT: 7 },
   6: { SYSTEM: 7, ROLE: 7, INSTRUCTION: 8, DATA: 6, FORMAT: 7, EXAMPLE: 6, CONSTRAINT: 7 },
   7: { SYSTEM: 7, ROLE: 7, INSTRUCTION: 8, DATA: 6, FORMAT: 7, EXAMPLE: 6, CONSTRAINT: 7 },
+  8: { SYSTEM: 7, ROLE: 7, INSTRUCTION: 8, DATA: 6, FORMAT: 7, EXAMPLE: 6, CONSTRAINT: 7 },
 };
 
 // Which pillars become *newly* earned at each stage (for the per-stage WIN strip).
@@ -82,6 +87,7 @@ const NEW_PILLARS_AT_STAGE: Record<StageId, PillarCode[]> = {
   5: [],
   6: [],
   7: [],
+  8: [],
 };
 
 // Main Quest Badges (ASPE / AISA / AISE) and where they conceptually unlock.
@@ -124,9 +130,10 @@ const NEW_QUEST_AT_STAGE: Record<StageId, QuestBadge["id"][]> = {
   5: ["ASPE"],
   6: [],
   7: ["AISA"],
+  8: [],
 };
 
-type StageId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type StageId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 interface StageContent {
   id: StageId;
@@ -291,46 +298,50 @@ A scheduled Micro Agent that emails a 150-word briefing at 06:00.
 - Tone customisation
 - Multi-user`,
     bridgeToNext:
-      "F4 is the smallest shippable spec. But for paying customers / regulated work you need a full Strategic Product Concept. F5 grows the Micro PDD into a complete SPC.",
+      "F4 is the smallest shippable spec. To certify the agent as a real, transferable artefact you need a Super Prompt Card. F5 grows the Micro PDD into a 15-section SPC through a disciplined 7-step FORGE Q&A.",
   },
   {
     id: 5,
     code: "F5",
     name: "SPC",
-    tagline: "Strategic Product Concept — the full business case.",
+    tagline: "Super Prompt Card — 15 sections, born of 7-step FORGE Q&A.",
     icon: Layers,
     whyItMatters:
-      "The SPC is what investors, partners, and your future self need: market context, positioning, risks, success metrics. It promotes the Micro PDD from \"buildable\" to \"defensible.\"",
-    inputLabel: "MICRO PDD FROM F4",
-    inputBody: "Morning Briefing MA, single-operator MVP scope.",
-    outputLabel: "STRATEGIC PRODUCT CONCEPT (SPC)",
-    outputBody: `# SPC — Morning Briefing MA
+      "A Super Prompt Card (SPC) is the canonical, FORGE-certified specification for the agent. F5 doesn't free-write it — it walks you through a strict 7-step FORGE Q&A and only then synthesises the 15-section card in canonical order (BUGMXT SI is the exemplar). This is the artefact that promotes a Micro PDD into something defensible, transferable, and scoreable on JCSE.",
+    inputLabel: "MICRO PDD FROM F4  +  7-STEP FORGE Q&A",
+    inputBody: `Step 1  Identity & class
+Step 2  Mission & doctrine
+Step 3  Inputs, outputs, guardrails
+Step 4  Workflow & decision logic
+Step 5  Quality / refusal criteria
+Step 6  Evidence & worked examples
+Step 7  Score targets & certification level
 
-## Market
-~85M knowledge workers globally spend 10+ min/day on morning context-gathering.
-Existing tools (Notion, daily.dev) are passive feeds, not synthesised summaries.
+(All 7 answered for: Morning Briefing MA, SI-class operator agent.)`,
+    outputLabel: "SUPER PROMPT CARD (SPC) · 15 SECTIONS · FORGE CERTIFIED",
+    outputBody: `# Super Prompt Card — Morning Briefing MA
+# Class: SI · Cert: FORGE Certified · JCSE: 44 / 50
 
-## Wedge
-Sub-200-word, opinionated FIRST-THING recommendation. Not a feed — a decision.
-
-## Differentiators
-1. Tied directly to calendar (others ignore it)
-2. Operator-owned focus string steers the recommendation
-3. Fail-soft fallback (still ships if data source dies)
-
-## Risks
-- Calendar API quota / OAuth churn
-- Tone drift over weeks (mitigated by short-term memory in F3 CELL)
-- Email deliverability (mitigated by DKIM + SPF setup)
-
-## Metrics
-- North star: % of mornings the recipient opens the email within 30 min
-- Guardrail: # complaints about "irrelevant" focus recommendation < 5%
-
-## Pricing Hypothesis
-$5 / month per operator. Free tier: 14-day trial.`,
+ 1. Card Identity           Morning Briefing MA · SI Class · v0.1.0
+ 2. Mission Statement       Deliver a 150-word morning briefing at 06:00 local
+                            that turns scattered context into one decision.
+ 3. Operating Doctrine      One agent, one trigger, one decision. Fail-soft.
+ 4. Capability Surface      cron · calendar · weather · rss · email
+ 5. Inputs Contract         calendar.events[24h], weather.forecast, rss.top3,
+                            user.focus_string, user.timezone
+ 6. Outputs Contract        Plain-text email body, 4 sections, ≤ 200 words,
+                            FIRST-THING line cites ≥ 1 calendar event.
+ 7. Workflow                fetch → compose → guardrail → send → log
+ 8. Decision Logic          If ≥ 2 sources fail → still send w/ "[unavailable]"
+ 9. Guardrails              200-word cap · no attendee emails in body
+10. Refusal Criteria        Refuse send if compose() returns empty / off-topic
+11. Worked Examples         3 canned briefings (Mon / Wed / Fri archetypes)
+12. Evidence Anchors        AC-1..4 from Micro PDD + 7-day snapshot tests
+13. Failure Modes           OAuth churn · tone drift · deliverability
+14. JCSE Self-Score         S:6 R:7 I:7 D:6 F:7 E:5 C:6  → 44 / 50
+15. Certification Block     FORGE Certified · SI Class · Issued 2026-05-20`,
     bridgeToNext:
-      "The SPC is strategic — but it's still prose. F6 expands it into the 4-part ATLAS PDD: the structured document an engineering team can pick up and execute.",
+      "The SPC is the certified spec — but it's still a card. F6 expands it into the 4-Part ATLAS Project Definition Document: the structured build plan an engineering team can pick up and execute.",
   },
   {
     id: 6,
@@ -339,10 +350,10 @@ $5 / month per operator. Free tier: 14-day trial.`,
     tagline: "4-part executable product spec.",
     icon: Workflow,
     whyItMatters:
-      "ATLAS = Aim / Terrain / Loops / Asks / Surface. It's the canonical hand-off doc — every engineer who picks it up sees the same shape and can act in hours, not days. F6-VDJ also picks the IDE + vibe.",
-    inputLabel: "SPC FROM F5",
-    inputBody: "Morning Briefing MA — wedge, risks, metrics, pricing.",
-    outputLabel: "4-PART ATLAS PDD (+ VDJ recommendation)",
+      "The ATLAS PDD is the 4-Part Project Definition Document — cheat sheet, worksheet, evolution roadmap, and implementation plan. It's the canonical hand-off doc: every engineer who picks it up sees the same shape and can act in hours, not days. F6 inherits its executive summary directly FROM_SPC. F6-VDJ then recommends the IDE and vibe.",
+    inputLabel: "SUPER PROMPT CARD FROM F5",
+    inputBody: "Morning Briefing MA — 15-section FORGE-certified SPC, JCSE 44/50.",
+    outputLabel: "4-PART ATLAS PDD (+ F6-VDJ recommendation)",
     outputBody: `# ATLAS PDD — Morning Briefing MA
 
 ## A — AIM
@@ -405,6 +416,50 @@ VERIFICATION
   URL:   https://atanda.example/verify/MA-MORNINGBRIEF-0001
   Hash:  3b1c…d4e9   (matches issuer signature)
   Issued: 2026-05-20  by: <operator>`,
+    bridgeToNext:
+      "The MVP PDD is the spec. F8 Code DJ (Architect tier) takes that certified spec and scaffolds the actual codebase — a runnable bundle for your chosen platform, with the PDD baked into the manifest.",
+  },
+  {
+    id: 8,
+    code: "F8",
+    name: "CODE DJ",
+    tagline: "Scaffold the codebase from the certified MVP PDD.",
+    icon: Code2,
+    whyItMatters:
+      "F8 turns the SPARTAN-certified MVP PDD into a runnable starter project — up to 12 files plus a manifest — targeted at one of five platforms (Next.js + Vercel, React + Vite static, Express on Replit, Expo mobile, or a pnpm monorepo). It refuses any MVP PDD that isn't SPARTAN-certified, so you can only DJ specs that survived F7. Architect tier only.",
+    inputLabel: "CERTIFIED MVP PDD FROM F7  +  PLATFORM CHOICE",
+    inputBody:
+      "MVP PDD: Morning Briefing MA (SPARTAN-certified, score 47/50)\nPlatform: express-replit",
+    outputLabel: "CODEBASE_BUNDLE (≤ 12 files + manifest)",
+    outputBody: `# CODEBASE_BUNDLE — Morning Briefing MA
+# platform: express-replit
+# source:   MA-MORNINGBRIEF-0001  (SPARTAN ✓)
+
+manifest.json
+package.json
+tsconfig.json
+src/index.ts                      # Express boot + /healthz
+src/cron/morningBriefing.ts       # cron handler @ 06:00
+src/adapters/calendar.ts          # Google Calendar tool wrapper
+src/adapters/weather.ts           # OpenWeather tool wrapper
+src/adapters/rss.ts               # RSS fetch tool wrapper
+src/adapters/email.ts             # Resend tool wrapper
+src/lib/compose.ts                # 150-word briefing composer
+src/lib/guardrails.ts             # word cap + PII redaction
+README.md                         # how to run, env vars, ACs
+.env.example                      # CAL / WEATHER / RSS / RESEND keys
+
+──────────────────────────────────────────────
+MANIFEST EXCERPT
+  sourcePddId:   MA-MORNINGBRIEF-0001
+  sourceCertId:  SPARTAN-2026-05-20-3b1c
+  platform:      express-replit
+  fileCount:     12 / 12  ✓ within cap
+  acceptanceTests:
+    - AC-1 cron-fires-within-5min   → tests/cron.spec.ts
+    - AC-2 word-count-120-200       → tests/compose.spec.ts
+    - AC-3 cites-calendar-event     → tests/compose.spec.ts
+    - AC-4 graceful-source-failure  → tests/adapters.spec.ts`,
     bridgeToNext: undefined,
   },
 ];
@@ -417,6 +472,7 @@ const ICONS: Record<StageId, typeof Lightbulb> = {
   5: Layers,
   6: Workflow,
   7: Shield,
+  8: Code2,
 };
 
 export default function Demo() {
@@ -438,12 +494,13 @@ export default function Demo() {
               GUIDED TOUR · NO ACCOUNT NEEDED
             </div>
             <h1 className="font-display text-3xl sm:text-4xl md:text-6xl tracking-wider mb-4">
-              THE 7-STAGE <span className="text-primary">DEMO SESSION</span>
+              THE 8-STAGE <span className="text-primary">DEMO SESSION</span>
             </h1>
             <p className="text-base md:text-lg text-muted-foreground font-serif max-w-3xl leading-relaxed">
               Watch one raw idea move through the entire FORGE.BONSAI HARNESS — from
-              fuzzy human prompt to SPARTAN-certified MVP PDD — using a real
-              worked example. Read at your own pace. No tokens spent, no session created.
+              fuzzy human prompt to SPARTAN-certified MVP PDD, and on into a runnable
+              codebase via F8 Code DJ — using a real worked example. Read at your own
+              pace. No tokens spent, no session created.
             </p>
             <div className="mt-6 p-4 rounded-lg border bg-card/60 font-mono text-xs md:text-sm">
               <div className="text-muted-foreground mb-1">WORKED EXAMPLE</div>
@@ -453,8 +510,134 @@ export default function Demo() {
                 <span className="text-foreground"> earning </span>
                 <span className="font-bold">7 Context Craft triangles</span>
                 <span className="text-foreground"> + </span>
-                <span className="font-bold">2 Quest crests</span> along the way.
+                <span className="font-bold">2 Quest crests</span> along the way, then DJ'd
+                into a runnable codebase at F8.
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ON-RAMPS — three ways to start a session */}
+        <section className="border-b bg-card/30">
+          <div className="container px-4 md:px-6 py-8 md:py-12 max-w-5xl">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold text-primary tracking-wider mb-3">
+              <Compass className="h-3.5 w-3.5" />
+              ON-RAMPS · THREE WAYS TO START A SESSION
+            </div>
+            <h2 className="font-display text-2xl md:text-3xl tracking-wider mb-2">
+              BRING WHATEVER YOU HAVE
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground font-serif max-w-3xl leading-relaxed mb-6">
+              The 8-stage HARNESS below is the same regardless of how you enter it.
+              What changes is the seed: a raw idea, an existing design doc you upload,
+              or a full project cartridge of docs + prior SPCs + live code/database
+              links. Pick the on-ramp that matches the context you already have.
+            </p>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {/* Manual */}
+              <div
+                className="rounded-lg border bg-background p-5 flex flex-col gap-3"
+                data-testid="demo-onramp-manual"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center">
+                    <Lightbulb className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="font-display tracking-wider text-base">MANUAL</div>
+                  <span className="ml-auto text-[9px] font-mono px-1.5 py-0.5 rounded border border-primary/40 bg-primary/5 text-primary">
+                    ANY TIER
+                  </span>
+                </div>
+                <div className="text-[10px] font-mono font-bold tracking-wider text-muted-foreground">
+                  RAW IDEA → F1 DIAGNOSTIC
+                </div>
+                <p className="text-sm font-serif text-foreground/90 leading-snug">
+                  Type a fuzzy prompt, hit F1, walk the eight stages yourself. This is
+                  the worked example below.
+                </p>
+                <ul className="text-xs font-mono text-muted-foreground space-y-1 mt-auto">
+                  <li>· Origin: <span className="text-foreground">manual</span></li>
+                  <li>· Output: <span className="text-foreground">MVP PDD</span></li>
+                  <li>· Cost: <span className="text-foreground">subscription only</span></li>
+                </ul>
+              </div>
+
+              {/* Ingestion */}
+              <div
+                className="rounded-lg border border-secondary/40 bg-secondary/5 p-5 flex flex-col gap-3"
+                data-testid="demo-onramp-ingestion"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-md bg-secondary/15 border border-secondary/40 flex items-center justify-center">
+                    <Upload className="h-4 w-4 text-secondary" />
+                  </div>
+                  <div className="font-display tracking-wider text-base">INGESTION</div>
+                  <span className="ml-auto text-[9px] font-mono px-1.5 py-0.5 rounded border border-secondary/40 bg-secondary/10 text-secondary">
+                    1 CREDIT / PROJECT
+                  </span>
+                </div>
+                <div className="text-[10px] font-mono font-bold tracking-wider text-muted-foreground">
+                  IPDD UPLOAD → PWDD SESSION
+                </div>
+                <p className="text-sm font-serif text-foreground/90 leading-snug">
+                  Already have a Product Design Document, brief, or spec sheet? Upload
+                  the <span className="font-bold">IPDD</span> (PDF / DOCX / pasted text).
+                  We extract, summarise, and seed F1 with a clean prompt. The session
+                  produces a <span className="font-bold">PWDD</span> instead of a manual MVP PDD.
+                </p>
+                <ul className="text-xs font-mono text-muted-foreground space-y-1 mt-auto">
+                  <li>· Origin: <span className="text-foreground">ingested</span></li>
+                  <li>· Output: <span className="text-foreground">PWDD (PromptWare DD)</span></li>
+                  <li>· Cost: <span className="text-foreground">one-off credit, any tier</span></li>
+                </ul>
+              </div>
+
+              {/* Advanced Cartridge */}
+              <div
+                className="rounded-lg border-2 border-primary/50 bg-gradient-to-br from-primary/10 to-secondary/5 p-5 flex flex-col gap-3"
+                data-testid="demo-onramp-cartridge"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-md bg-primary/15 border border-primary/40 flex items-center justify-center">
+                    <Package className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="font-display tracking-wider text-base">CARTRIDGE</div>
+                  <span className="ml-auto text-[9px] font-mono px-1.5 py-0.5 rounded border border-primary/50 bg-primary/15 text-primary">
+                    $499.99 / PROJECT
+                  </span>
+                </div>
+                <div className="text-[10px] font-mono font-bold tracking-wider text-muted-foreground">
+                  FULL CONTEXT BUNDLE → F1–F7 ALL UNLOCKED
+                </div>
+                <p className="text-sm font-serif text-foreground/90 leading-snug">
+                  Premium on-ramp for projects with multi-document context, prior SPCs,
+                  and live <span className="font-bold">git</span> or{" "}
+                  <span className="font-bold">database</span> link descriptors.
+                  Define scope (hard-validated, ≥ 80 chars), drop in your assets, and
+                  every engine call gets your authoritative cartridge context prepended
+                  automatically.
+                </p>
+                <ul className="text-xs font-mono text-muted-foreground space-y-1 mt-auto">
+                  <li className="flex items-center gap-1.5">
+                    <FileText className="h-3 w-3" /> Multi-doc summaries
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <ShieldCheck className="h-3 w-3" /> Prior SPCs accepted
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <Database className="h-3 w-3" /> Git + DB link descriptors
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-4 text-[11px] font-mono text-muted-foreground">
+              All three on-ramps feed the same F1–F8 pipeline shown below.
+              <span className="text-foreground">
+                {" "}
+                F8 Code DJ remains Architect-tier-only regardless of how the session started.
+              </span>
             </div>
           </div>
         </section>
@@ -546,7 +729,7 @@ export default function Demo() {
         </section>
 
         {/* Stage progress bar */}
-        <section className="border-b bg-card/40 sticky top-14 z-30 backdrop-blur supports-[backdrop-filter]:bg-card/40">
+        <section className="border-b bg-card/40 sticky top-20 z-30 backdrop-blur supports-[backdrop-filter]:bg-card/40">
           <div className="container px-4 md:px-6 max-w-5xl">
             <ol className="flex items-center justify-between gap-1 py-3 overflow-x-auto">
               {STAGES.map((s, i) => {
@@ -606,7 +789,7 @@ export default function Demo() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-mono text-xs text-muted-foreground tracking-wider mb-1">
-                    STAGE {stage.id} OF 7 · {stage.code}
+                    STAGE {stage.id} OF 8 · {stage.code}
                   </div>
                   <CardTitle className="font-display text-2xl md:text-3xl tracking-wider">
                     {stage.name}

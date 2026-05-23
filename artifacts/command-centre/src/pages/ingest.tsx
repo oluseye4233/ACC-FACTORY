@@ -215,7 +215,7 @@ export default function Ingest() {
               {", "}
               <strong className="text-foreground">SDD</strong>, concept note, or spec
               sheet? Drop it in. The engine extracts the intent, normalises it
-              into a seed prompt, then runs it through the 7-stage HARNESS to
+              into a seed prompt, then runs it through the 8-stage HARNESS to
               produce a{" "}
               <strong className="text-primary">PromptWare Design Document (PWDD)</strong>
               {" "}— a HARNESS-certified outcome artefact.

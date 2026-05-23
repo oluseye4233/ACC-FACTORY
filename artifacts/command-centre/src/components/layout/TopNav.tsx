@@ -45,14 +45,22 @@ export function TopNav() {
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="container flex h-14 items-center justify-between gap-2 px-4">
+      <div className="container flex h-20 items-center justify-between gap-2 px-4">
         <div className="flex items-center gap-6 min-w-0">
-          <Link href="/" className="flex items-center gap-2 shrink-0">
+          <Link
+            href="/"
+            className="flex flex-col items-start gap-0.5 shrink-0"
+            aria-label="ATANDA home"
+            data-testid="link-home"
+          >
             <img
               src={`${import.meta.env.BASE_URL}atanda-logo.png`}
               alt="ATANDA"
-              className="h-9 w-auto"
+              className="h-14 md:h-16 w-auto drop-shadow-[0_0_8px_rgba(0,0,0,0.6)]"
             />
+            <span className="font-mono text-[9px] md:text-[10px] tracking-[0.2em] text-muted-foreground uppercase whitespace-nowrap">
+              A Cognitive Engineering Project
+            </span>
           </Link>
           <Show when="signed-in">
             <nav className="hidden lg:flex items-center gap-4 text-sm font-medium text-muted-foreground">
