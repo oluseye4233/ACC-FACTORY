@@ -86,7 +86,16 @@ jobs:
 
       - name: Test (live providers, RECORD=1)
         id: test_live
-        run: pnpm --filter @workspace/api-server run test:live
+        run: |
+          mkdir -p .nightly-out
+          # Run vitest directly so we can attach the JSON reporter alongside
+          # the default reporter. The JSON file lets the downstream
+          # "Detect regressed providers" step name the exact provider(s) that
+          # regressed instead of listing every configured provider.
+          RECORD=1 pnpm --filter @workspace/api-server exec vitest run \
+            --reporter=default \
+            --reporter=json \
+            --outputFile.json=.nightly-out/vitest.json
 
       - name: Detect fixture drift
         id: drift
@@ -150,11 +159,48 @@ jobs:
         if: failure()
         id: regressed
         run: |
-          # Best-effort scan of the test output is unavailable here (we don't tee
-          # the step above), so fall back to checking which provider env vars
-          # were configured for this run. Any of them could be the regressor;
-          # listing the configured set keeps the chat ping actionable without
-          # making us re-parse vitest output.
+          # Preferred path: parse the vitest JSON reporter output and pick out
+          # the providers whose tests actually failed. Every test in the
+          # provider-switching suites is named "<provider>: ...", so a failed
+          # test's `fullName` / `name` starts with `claude:`, `openai:`, or
+          # `gemini:`. Map `claude` -> `anthropic` to match the env-var
+          # provider names used in the fallback / chat message.
+          report=.nightly-out/vitest.json
+          regressed=""
+          parsed=0
+          if [ -f "$report" ] && jq -e . "$report" >/dev/null 2>&1; then
+            regressed="$(
+              jq -r '
+                [ ..
+                  | objects
+                  | select((.status? // empty) == "failed")
+                  | (.fullName? // .name? // empty)
+                ]
+                | map(select(type == "string"))
+                | map(select(test("^(claude|openai|gemini):"; "i")))
+                | map(capture("^(?<p>claude|openai|gemini):"; "i").p)
+                | map(ascii_downcase)
+                | map(if . == "claude" then "anthropic" else . end)
+                | unique
+                | join(",")
+              ' "$report" 2>/dev/null || true
+            )"
+            parsed=1
+          fi
+          if [ -n "$regressed" ]; then
+            echo "providers=$regressed" >> "$GITHUB_OUTPUT"
+            echo "Regressed providers parsed from vitest report: $regressed"
+            exit 0
+          fi
+          # Fallback: if the JSON report is missing, unparseable, or contained
+          # no provider-prefixed failures (e.g. the suite blew up before any
+          # provider test ran), list every provider whose credentials were
+          # configured for this run so the chat ping is still actionable.
+          if [ "$parsed" = "1" ]; then
+            echo "::warning::vitest JSON report parsed but no provider-prefixed failures found — falling back to configured-provider list."
+          else
+            echo "::warning::vitest JSON report missing or unreadable at $report — falling back to configured-provider list."
+          fi
           providers=()
           [ -n "$AI_INTEGRATIONS_ANTHROPIC_API_KEY" ] && providers+=("anthropic")
           [ -n "$AI_INTEGRATIONS_OPENAI_API_KEY" ]    && providers+=("openai")
@@ -180,7 +226,7 @@ jobs:
               ``,
               `Triggered by: ${context.eventName}`,
               `Commit: ${context.sha}`,
-              `Providers exercised: ${providers}`,
+              `Regressed providers: ${providers}`,
             ].join("\n");
             await github.rest.issues.create({
               owner: context.repo.owner,
@@ -206,7 +252,7 @@ jobs:
           text=":rotating_light: Nightly cross-provider engine checks failed
 *Run:* ${RUN_URL}
 *Commit:* ${short_sha}
-*Providers exercised:* ${PROVIDERS}"
+*Regressed providers:* ${PROVIDERS}"
           payload=$(jq -nc --arg text "$text" '{text: $text}')
           # Slack and Discord both accept a `text` field on their incoming
           # webhooks, so the same payload works for either destination.
