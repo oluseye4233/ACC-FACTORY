@@ -206,6 +206,7 @@ function ClerkProviderWithRoutes() {
           <DemoBanner />
           <Switch>
             <Route path="/" component={HomeRedirect} />
+            <Route path="/landing" component={Landing} />
             <Route path="/pricing" component={Pricing} />
             <Route path="/demo" component={Demo} />
             <Route path="/verify" component={Verify} />
