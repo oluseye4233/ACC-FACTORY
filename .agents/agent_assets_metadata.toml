@@ -120,3 +120,9 @@ id = "ELtnbVDU6dBzwZj6XQ9LO"
 uri = "file://docs/ATANDA_Command_Centre_PWDD_ATLAS_Investor.md"
 type = "text"
 title = "ATLAS PWDD Source Markdown (v2.1)"
+
+[[outputs]]
+id = "4xUdLaLH6QJ6E8QM1bLme"
+uri = "file://docs/ATANDA_Command_Centre_Tiers_For_Dummies.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — Tiers, Ingestion & Cartridge for Dummies"
