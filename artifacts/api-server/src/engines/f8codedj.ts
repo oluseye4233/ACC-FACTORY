@@ -10,6 +10,7 @@ import {
   resolveProvider,
   sendProviderTierError,
 } from "./shared";
+import { latestPfpForMvp } from "./pfp";
 
 const PLATFORMS = [
   "nextjs-vercel",
@@ -61,6 +62,8 @@ export async function handleF8CodeDj(
     return;
   }
   const { sessionId, mvpPddArtifactId, platform, notes, provider: bodyProvider } = parsed.data;
+  const acknowledgeDrift =
+    (req.body as { acknowledgeDrift?: boolean })?.acknowledgeDrift === true;
 
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
@@ -89,6 +92,29 @@ export async function handleF8CodeDj(
       detail: "Code DJ refuses to scaffold from an uncertified bundle.",
     });
     return;
+  }
+
+  // BUGMXT Layer 4 drift gate: if a PFP report exists for this MVP PDD and
+  // it found critical drift, refuse to scaffold further until the operator
+  // explicitly acknowledges by retrying with { acknowledgeDrift: true }.
+  if (!acknowledgeDrift) {
+    const pfp = await latestPfpForMvp(sessionId, guard.userId, mvpPddArtifactId);
+    if (pfp && pfp.counts.critical > 0) {
+      res.status(409).json({
+        error: "PFP drift gate: critical findings outstanding",
+        code: "DRIFT_GATE",
+        detail:
+          `Most recent PFP report flagged ${pfp.counts.critical} critical finding(s) ` +
+          `(FCI ${pfp.fci}/100, verdict ${pfp.verdict}). Re-run F8 with ` +
+          `{ "acknowledgeDrift": true } once the drift is reviewed.`,
+        pfp: {
+          verdict: pfp.verdict,
+          fci: pfp.fci,
+          counts: pfp.counts,
+        },
+      });
+      return;
+    }
   }
 
   const userPrompt = [

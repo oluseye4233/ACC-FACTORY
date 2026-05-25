@@ -195,7 +195,7 @@ export const GetSessionResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'MVP_PDD', 'CODEBASE_BUNDLE']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT']),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -356,7 +356,7 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'MVP_PDD', 'CODEBASE_BUNDLE']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT']),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -381,7 +381,7 @@ export const GetArtifactResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'MVP_PDD', 'CODEBASE_BUNDLE']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT']),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -619,6 +619,7 @@ export const HarnessF8Body = zod.object({
   "mvpPddArtifactId": zod.string().uuid(),
   "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment \/ framework target for the Code DJ scaffold.'),
   "notes": zod.string().max(harnessF8BodyNotesMax).optional().describe('Optional operator hints for the Code DJ (preferred libs, naming, etc.).'),
+  "acknowledgeDrift": zod.boolean().optional().describe('Override the PFP drift gate. Required when the most recent PFP report for the same MVP PDD has any critical findings.'),
   "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
@@ -640,6 +641,71 @@ export const HarnessF8Response = zod.object({
   "content": zod.string()
 })),
   "notes": zod.string()
+})
+
+
+/**
+ * @summary Crystallise a 4-Part ATLAS PDD into the typed ATLAS J JSON layer
+ */
+export const HarnessAtlasCrystalliseBody = zod.object({
+  "sessionId": zod.string().uuid(),
+  "atlasPddArtifactId": zod.string().uuid(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+})
+
+export const HarnessAtlasCrystalliseResponse = zod.object({
+  "artifactId": zod.string().uuid(),
+  "schemaVersion": zod.enum(['atlas-pdd-v1']),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "prompts": zod.array(zod.object({
+  "id": zod.string().describe('Stable id of the form P-<PHASE>-<NNN>'),
+  "phase": zod.enum(['RED', 'ORANGE', 'YELLOW', 'GREEN', 'BLUE', 'INDIGO', 'VIOLET', 'WHITE']),
+  "title": zod.string(),
+  "operation": zod.string(),
+  "classification": zod.enum(['A', 'B', 'C']),
+  "dependencies": zod.array(zod.string()),
+  "sourceSection": zod.enum(['cheatSheet', 'execSummary', 'worksheet', 'implementation'])
+})),
+  "stack": zod.array(zod.string()),
+  "routes": zod.array(zod.string()),
+  "deployTarget": zod.string()
+})
+
+
+/**
+ * @summary PDD Fidelity Protocol — cross-reference an MVP PDD against a codebase bundle (BUGMXT Layer 4 drift detection)
+ */
+export const HarnessPfpBody = zod.object({
+  "sessionId": zod.string().uuid(),
+  "mvpPddArtifactId": zod.string().uuid(),
+  "codebaseBundleArtifactId": zod.string().uuid(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+})
+
+export const harnessPfpResponseFciMin = 0;
+export const harnessPfpResponseFciMax = 100;
+
+
+
+export const HarnessPfpResponse = zod.object({
+  "artifactId": zod.string().uuid(),
+  "verdict": zod.enum(['pass', 'pass_with_notes', 'fail']),
+  "fci": zod.number().min(harnessPfpResponseFciMin).max(harnessPfpResponseFciMax),
+  "summary": zod.string(),
+  "findings": zod.array(zod.object({
+  "code": zod.enum(['SPEC_DRIFT', 'PDD_ORPHAN', 'UNAUTHORIZED_EXTENSION', 'CIRCULAR_DEPENDENCY', 'SEMANTIC_DRIFT', 'OVER_SPECIFICATION', 'AMBIGUOUS_OUTPUT']),
+  "severity": zod.enum(['critical', 'high', 'medium', 'low']),
+  "pddRef": zod.string(),
+  "codeRef": zod.string(),
+  "detail": zod.string()
+})),
+  "counts": zod.object({
+  "critical": zod.number(),
+  "high": zod.number(),
+  "medium": zod.number(),
+  "low": zod.number()
+})
 })
 
 
@@ -975,7 +1041,7 @@ export const ListMyPromptsResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "sessionName": zod.string().nullish(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'MVP_PDD', 'CODEBASE_BUNDLE']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT']),
   "certTier": zod.string().nullish(),
   "jcseScore": zod.number().nullish(),
   "spcOrigin": zod.union([zod.literal('artisanal'),zod.literal('digitally_evolved'),zod.literal(null)]).nullish(),
@@ -1205,7 +1271,7 @@ export const HarnessEvolveResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'MVP_PDD', 'CODEBASE_BUNDLE']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT']),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),

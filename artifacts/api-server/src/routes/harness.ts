@@ -13,6 +13,8 @@ import { handleF6Vdj } from "../engines/f6vdj";
 import { handleF7Stream } from "../engines/f7";
 import { handleF8CodeDj } from "../engines/f8codedj";
 import { handleEvolve } from "../engines/de";
+import { handleAtlasCrystallise } from "../engines/atlas-crystallise";
+import { handlePfp } from "../engines/pfp";
 import { hasBadge } from "./badges-gate";
 
 const router: IRouter = Router();
@@ -72,6 +74,20 @@ router.post(
   requireTier("ARCHITECT"),
   rateLimit(8),
   handleF8CodeDj,
+);
+
+router.post(
+  "/harness/atlas-crystallise",
+  requireAuth,
+  requireTier("PRACTITIONER"),
+  handleAtlasCrystallise,
+);
+
+router.post(
+  "/harness/pfp",
+  requireAuth,
+  requireTier("PRACTITIONER"),
+  handlePfp,
 );
 
 router.post(

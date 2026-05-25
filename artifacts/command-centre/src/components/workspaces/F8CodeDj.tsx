@@ -2,11 +2,13 @@ import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessF8,
+  useHarnessPfp,
   getListSessionArtifactsQueryKey,
   ArtifactType,
   CodeDjPlatform,
   type HarnessArtifact,
   type CodebaseBundle,
+  type PfpReport,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,7 +31,7 @@ import {
 } from "@/components/shared/ProviderOverride";
 import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
-import { Cpu, Download, FileCode, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Cpu, Download, FileCode, Radar, ShieldCheck } from "lucide-react";
 
 const PLATFORM_LABELS: Record<CodeDjPlatform, string> = {
   [CodeDjPlatform["nextjs-vercel"]]: "Next.js → Vercel",
@@ -82,8 +84,26 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
   const [upgrade, setUpgrade] = useState(false);
   const [providerOverride, setProviderOverride] =
     useState<OverrideValue>("session");
+  const [pfp, setPfp] = useState<PfpReport | undefined>();
+  const [pfpError, setPfpError] = useState<string | null>(null);
+  const [acknowledgeDrift, setAcknowledgeDrift] = useState(false);
+  const [driftGateBlock, setDriftGateBlock] = useState<{
+    counts: { critical: number; high: number; medium: number; low: number };
+    fci: number;
+    verdict: string;
+  } | null>(null);
 
   const mutation = useHarnessF8();
+  const pfpM = useHarnessPfp({
+    mutation: {
+      onSuccess: (data) => {
+        setPfp(data);
+        setPfpError(null);
+        qc.invalidateQueries({ queryKey: getListSessionArtifactsQueryKey(sessionId) });
+      },
+      onError: (e) => setPfpError(extractApiError(e).message),
+    },
+  });
 
   if (!certifiedMvpSources.length) {
     return (
@@ -104,6 +124,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
       return;
     }
     setError(null);
+    setDriftGateBlock(null);
     setResult(undefined);
     try {
       const out = (await mutation.mutateAsync({
@@ -112,6 +133,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
           mvpPddArtifactId: sourceId,
           platform,
           ...(notes.trim() ? { notes: notes.trim() } : {}),
+          ...(acknowledgeDrift ? { acknowledgeDrift: true } : {}),
           ...overrideToBody(providerOverride),
         },
       })) as CodebaseBundle;
@@ -127,8 +149,53 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
     } catch (err) {
       const x = extractApiError(err);
       if (x.status === 403) setUpgrade(true);
-      else setError(x.message);
+      else {
+        // Surface PFP drift-gate metadata so the operator can review before retrying.
+        // The generated ApiError exposes the response body under `.data`; fall back to
+        // `.payload` for any custom error wrappers.
+        const e = err as {
+          data?: { code?: string; pfp?: typeof driftGateBlock };
+          payload?: { code?: string; pfp?: typeof driftGateBlock };
+        };
+        const body = e?.data ?? e?.payload;
+        if (body?.code === "DRIFT_GATE" && body.pfp) {
+          setDriftGateBlock(body.pfp);
+        }
+        setError(x.message);
+      }
     }
+  };
+
+  const runPfp = async () => {
+    if (!sourceId) {
+      setPfpError("Pick a certified MVP PDD source first");
+      return;
+    }
+    const bundleId = result?.artifactId ?? latestArtifact?.id;
+    if (!bundleId) {
+      setPfpError("Run Code DJ first to produce a codebase bundle");
+      return;
+    }
+    pfpM.mutate({
+      data: {
+        sessionId,
+        mvpPddArtifactId: sourceId,
+        codebaseBundleArtifactId: bundleId,
+        ...overrideToBody(providerOverride),
+      },
+    });
+  };
+
+  const VERDICT_COLOR: Record<string, string> = {
+    pass: "text-emerald-400",
+    pass_with_notes: "text-amber-400",
+    fail: "text-rose-400",
+  };
+  const SEVERITY_COLOR: Record<string, string> = {
+    critical: "bg-rose-500/15 text-rose-400 border-rose-500/30",
+    high: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+    medium: "bg-sky-500/15 text-sky-400 border-sky-500/30",
+    low: "bg-muted/40 text-muted-foreground border-border/40",
   };
 
   const downloadBundle = () => {
@@ -244,6 +311,113 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
             <div className="mt-3">
               <ErrorBanner message={error} />
             </div>
+          )}
+          {driftGateBlock && (
+            <div className="mt-3 p-3 rounded border border-rose-500/30 bg-rose-500/10 font-mono text-xs flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="text-rose-400 font-bold uppercase tracking-wider mb-1">
+                  PFP Drift Gate · {driftGateBlock.verdict} · FCI {driftGateBlock.fci}/100
+                </div>
+                <div className="text-foreground/80">
+                  {driftGateBlock.counts.critical} critical · {driftGateBlock.counts.high} high ·{" "}
+                  {driftGateBlock.counts.medium} medium · {driftGateBlock.counts.low} low.
+                  Review the findings below, then tick "Acknowledge drift" to re-run.
+                </div>
+                <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={acknowledgeDrift}
+                    onChange={(e) => setAcknowledgeDrift(e.target.checked)}
+                    data-testid="f8-ack-drift"
+                    className="accent-rose-400"
+                  />
+                  <span>Acknowledge drift &amp; scaffold anyway</span>
+                </label>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* PFP — BUGMXT Layer 4 drift detection */}
+        <Card className="p-5 bg-card/50">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Radar className="h-4 w-4 text-secondary" />
+              <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
+                PFP · PDD Fidelity Protocol
+              </h4>
+            </div>
+            <Button
+              onClick={runPfp}
+              size="sm"
+              variant="outline"
+              disabled={pfpM.isPending || (!result && !latestArtifact)}
+              className="font-mono text-xs gap-1.5"
+              data-testid="f8-pfp-run"
+            >
+              <Radar className="h-3.5 w-3.5" />
+              {pfpM.isPending ? "SCANNING..." : "RUN DRIFT CHECK"}
+            </Button>
+          </div>
+          {pfpError && <ErrorBanner message={pfpError} />}
+          {pfp ? (
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-4 font-mono text-xs">
+                <div>
+                  <span className="text-muted-foreground">VERDICT </span>
+                  <span className={`font-bold uppercase ${VERDICT_COLOR[pfp.verdict] ?? ""}`}>
+                    {pfp.verdict}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">FCI </span>
+                  <span className="font-bold">{pfp.fci}/100</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {(["critical", "high", "medium", "low"] as const).map((sev) => (
+                    <span
+                      key={sev}
+                      className={`px-1.5 py-0.5 rounded border text-[10px] uppercase ${SEVERITY_COLOR[sev]}`}
+                    >
+                      {sev.charAt(0)} {pfp.counts[sev]}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <p className="font-mono text-xs text-foreground/80">{pfp.summary}</p>
+              {pfp.findings.length > 0 && (
+                <div className="border border-border/40 rounded divide-y divide-border/40 max-h-[260px] overflow-auto">
+                  {pfp.findings.map((f, i) => (
+                    <div key={i} className="p-2.5 font-mono text-[11px] space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={`px-1.5 py-0.5 rounded border text-[9px] uppercase ${SEVERITY_COLOR[f.severity]}`}
+                        >
+                          {f.severity}
+                        </span>
+                        <span className="text-secondary font-bold">{f.code}</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span className="text-foreground/70">{f.pddRef || "—"}</span>
+                        {f.codeRef && (
+                          <>
+                            <span className="text-muted-foreground">→</span>
+                            <span className="text-foreground/70">{f.codeRef}</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="text-foreground/80 leading-relaxed">{f.detail}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="font-mono text-xs text-muted-foreground">
+              {result || latestArtifact
+                ? "Cross-references the certified MVP PDD against the scaffolded codebase bundle. Critical findings hard-block further F8 runs until acknowledged."
+                : "Run Code DJ once to produce a bundle, then drift-check it against the MVP PDD."}
+            </p>
           )}
         </Card>
 

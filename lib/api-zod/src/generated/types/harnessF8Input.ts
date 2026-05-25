@@ -17,5 +17,7 @@ export interface HarnessF8Input {
      * @maxLength 2000
      */
   notes?: string;
+  /** Override the PFP drift gate. Required when the most recent PFP report for the same MVP PDD has any critical findings. */
+  acknowledgeDrift?: boolean;
   provider?: LlmProvider;
 }

@@ -30,6 +30,7 @@ import type {
   AdminRevokeBadgeResult,
   AiseClaimInput,
   AtlasPdd,
+  AtlasPddJson,
   AtomicPrompt,
   BadgeProgress,
   CartridgeCheckoutInput,
@@ -51,6 +52,7 @@ import type {
   FeatureState,
   ForbiddenResponse,
   HarnessArtifact,
+  HarnessAtlasCrystalliseInput,
   HarnessEscalationsStreamParams,
   HarnessEvolveInput,
   HarnessF1Input,
@@ -62,6 +64,7 @@ import type {
   HarnessF6VdjInput,
   HarnessF7Input,
   HarnessF8Input,
+  HarnessPfpInput,
   HarnessSession,
   HealthStatus,
   IngestStartSessionInput,
@@ -74,6 +77,7 @@ import type {
   MyDataExport,
   NotFoundResponse,
   Ok,
+  PfpReport,
   PortalInput,
   PortalSession,
   PricingPayload,
@@ -2121,6 +2125,148 @@ export const useHarnessF8 = <TError = ErrorType<ForbiddenResponse | NotFoundResp
         TContext
       > => {
       return useMutation(getHarnessF8MutationOptions(options));
+    }
+
+export const getHarnessAtlasCrystalliseUrl = () => {
+
+
+
+
+  return `/api/harness/atlas-crystallise`
+}
+
+/**
+ * @summary Crystallise a 4-Part ATLAS PDD into the typed ATLAS J JSON layer
+ */
+export const harnessAtlasCrystallise = async (harnessAtlasCrystalliseInput: HarnessAtlasCrystalliseInput, options?: RequestInit): Promise<AtlasPddJson> => {
+
+  return customFetch<AtlasPddJson>(getHarnessAtlasCrystalliseUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      harnessAtlasCrystalliseInput,)
+  }
+);}
+
+
+
+
+export const getHarnessAtlasCrystalliseMutationOptions = <TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessAtlasCrystallise>>, TError,{data: BodyType<HarnessAtlasCrystalliseInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof harnessAtlasCrystallise>>, TError,{data: BodyType<HarnessAtlasCrystalliseInput>}, TContext> => {
+
+const mutationKey = ['harnessAtlasCrystallise'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof harnessAtlasCrystallise>>, {data: BodyType<HarnessAtlasCrystalliseInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  harnessAtlasCrystallise(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HarnessAtlasCrystalliseMutationResult = NonNullable<Awaited<ReturnType<typeof harnessAtlasCrystallise>>>
+    export type HarnessAtlasCrystalliseMutationBody = BodyType<HarnessAtlasCrystalliseInput>
+    export type HarnessAtlasCrystalliseMutationError = ErrorType<ForbiddenResponse | NotFoundResponse>
+
+    /**
+ * @summary Crystallise a 4-Part ATLAS PDD into the typed ATLAS J JSON layer
+ */
+export const useHarnessAtlasCrystallise = <TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessAtlasCrystallise>>, TError,{data: BodyType<HarnessAtlasCrystalliseInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof harnessAtlasCrystallise>>,
+        TError,
+        {data: BodyType<HarnessAtlasCrystalliseInput>},
+        TContext
+      > => {
+      return useMutation(getHarnessAtlasCrystalliseMutationOptions(options));
+    }
+
+export const getHarnessPfpUrl = () => {
+
+
+
+
+  return `/api/harness/pfp`
+}
+
+/**
+ * @summary PDD Fidelity Protocol — cross-reference an MVP PDD against a codebase bundle (BUGMXT Layer 4 drift detection)
+ */
+export const harnessPfp = async (harnessPfpInput: HarnessPfpInput, options?: RequestInit): Promise<PfpReport> => {
+
+  return customFetch<PfpReport>(getHarnessPfpUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      harnessPfpInput,)
+  }
+);}
+
+
+
+
+export const getHarnessPfpMutationOptions = <TError = ErrorType<ForbiddenResponse | NotFoundResponse | ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessPfp>>, TError,{data: BodyType<HarnessPfpInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof harnessPfp>>, TError,{data: BodyType<HarnessPfpInput>}, TContext> => {
+
+const mutationKey = ['harnessPfp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof harnessPfp>>, {data: BodyType<HarnessPfpInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  harnessPfp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HarnessPfpMutationResult = NonNullable<Awaited<ReturnType<typeof harnessPfp>>>
+    export type HarnessPfpMutationBody = BodyType<HarnessPfpInput>
+    export type HarnessPfpMutationError = ErrorType<ForbiddenResponse | NotFoundResponse | ErrorResponse>
+
+    /**
+ * @summary PDD Fidelity Protocol — cross-reference an MVP PDD against a codebase bundle (BUGMXT Layer 4 drift detection)
+ */
+export const useHarnessPfp = <TError = ErrorType<ForbiddenResponse | NotFoundResponse | ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessPfp>>, TError,{data: BodyType<HarnessPfpInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof harnessPfp>>,
+        TError,
+        {data: BodyType<HarnessPfpInput>},
+        TContext
+      > => {
+      return useMutation(getHarnessPfpMutationOptions(options));
     }
 
 export const getHarnessEscalationsStreamUrl = (params: HarnessEscalationsStreamParams,) => {

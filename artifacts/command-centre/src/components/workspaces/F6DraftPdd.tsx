@@ -3,9 +3,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessF6,
   useHarnessF6Vdj,
+  useHarnessAtlasCrystallise,
   getListSessionArtifactsQueryKey,
   getListFeatureStateQueryKey,
   AtlasPdd,
+  AtlasPddJson,
   VdjRecommendation,
   HarnessArtifact,
   ArtifactType,
@@ -32,7 +34,7 @@ import {
 } from "@/components/shared/ProviderOverride";
 import { extractApiError } from "@/lib/sse";
 import { downloadZip } from "@/lib/zipExport";
-import { Download, Layers } from "lucide-react";
+import { Download, Layers, Sparkles } from "lucide-react";
 
 const PHASES = ["AUDIT", "TRIANGULATE", "LAYOUT", "ASSEMBLE", "STAMP"] as const;
 
@@ -41,6 +43,7 @@ const TABS = [
   { k: "execSummary", label: "Exec Summary" },
   { k: "worksheet", label: "Worksheet" },
   { k: "implementation", label: "Implementation" },
+  { k: "atlasJson", label: "ATLAS J" },
 ] as const;
 
 interface Props {
@@ -80,6 +83,7 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
   const [pdd, setPdd] = useState<AtlasPdd | undefined>();
   const [pddArtifactId, setPddArtifactId] = useState<string | null>(null);
   const [vdj, setVdj] = useState<VdjRecommendation | undefined>();
+  const [atlasJson, setAtlasJson] = useState<AtlasPddJson | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
   const [providerOverride, setProviderOverride] =
@@ -110,6 +114,28 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
       onError: (e) => setError(extractApiError(e).message),
     },
   });
+
+  const crystallise = useHarnessAtlasCrystallise({
+    mutation: {
+      onSuccess: (data) => {
+        setAtlasJson(data);
+        setError(null);
+        qc.invalidateQueries({ queryKey: getListSessionArtifactsQueryKey(sessionId) });
+      },
+      onError: (e) => setError(extractApiError(e).message),
+    },
+  });
+
+  const runCrystallise = () => {
+    const id =
+      pddArtifactId ||
+      pddArtifacts.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0]?.id;
+    if (!id) {
+      setError("Draft a PDD first before crystallising");
+      return;
+    }
+    crystallise.mutate({ data: { sessionId, atlasPddArtifactId: id } });
+  };
 
   const draft = () => {
     setError(null);
@@ -293,7 +319,7 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
             </div>
             {pdd ? (
               <Tabs defaultValue="cheatSheet" className="flex-1 flex flex-col min-h-0">
-                <TabsList className="grid grid-cols-4">
+                <TabsList className="grid grid-cols-5">
                   {TABS.map((t) => (
                     <TabsTrigger
                       key={t.k}
@@ -304,13 +330,57 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
                     </TabsTrigger>
                   ))}
                 </TabsList>
-                {TABS.map((t) => (
+                {TABS.filter((t) => t.k !== "atlasJson").map((t) => (
                   <TabsContent key={t.k} value={t.k} className="flex-1 min-h-0 mt-3">
                     <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-foreground/90 h-full overflow-auto p-3 bg-background/40 rounded border border-border/40">
-                      {pdd[t.k]}
+                      {pdd[t.k as "cheatSheet" | "execSummary" | "worksheet" | "implementation"]}
                     </pre>
                   </TabsContent>
                 ))}
+                <TabsContent value="atlasJson" className="flex-1 min-h-0 mt-3 flex flex-col">
+                  {atlasJson ? (
+                    <div className="flex-1 flex flex-col min-h-0 gap-2">
+                      <div className="flex items-center justify-between font-mono text-[10px] text-muted-foreground">
+                        <span>
+                          {atlasJson.prompts.length} prompts · {atlasJson.stack.length} stack ·{" "}
+                          {atlasJson.routes.length} routes · {atlasJson.schemaVersion}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="font-mono text-[10px] h-6"
+                          onClick={runCrystallise}
+                          disabled={crystallise.isPending}
+                          data-testid="f6-recrystallise"
+                        >
+                          RE-CRYSTALLISE
+                        </Button>
+                      </div>
+                      <pre className="whitespace-pre font-mono text-[11px] leading-relaxed text-foreground/90 flex-1 overflow-auto p-3 bg-background/40 rounded border border-border/40">
+                        {JSON.stringify(atlasJson, null, 2)}
+                      </pre>
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center gap-3 font-mono text-xs text-muted-foreground">
+                      <Sparkles className="h-8 w-8 opacity-30" />
+                      <div>
+                        Crystallise the 4-Part PDD into a typed JSON layer
+                        <br />
+                        (stable prompt ids, stack, routes — feeds F8 + PFP).
+                      </div>
+                      <Button
+                        onClick={runCrystallise}
+                        disabled={crystallise.isPending}
+                        size="sm"
+                        className="font-mono text-xs gap-1.5"
+                        data-testid="f6-crystallise"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {crystallise.isPending ? "CRYSTALLISING..." : "CRYSTALLISE"}
+                      </Button>
+                    </div>
+                  )}
+                </TabsContent>
               </Tabs>
             ) : (
               <div className="flex-1 flex items-center justify-center font-mono text-xs text-muted-foreground">

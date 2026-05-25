@@ -488,6 +488,53 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /harness/atlas-crystallise:
+    post:
+      operationId: harnessAtlasCrystallise
+      tags: [harness]
+      summary: Crystallise a 4-Part ATLAS PDD into the typed ATLAS J JSON layer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessAtlasCrystalliseInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AtlasPddJson" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /harness/pfp:
+    post:
+      operationId: harnessPfp
+      tags: [harness]
+      summary: PDD Fidelity Protocol — cross-reference an MVP PDD against a codebase bundle (BUGMXT Layer 4 drift detection)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessPfpInput" }
+      responses:
+        "200":
+          description: Drift report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PfpReport" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Source MVP PDD is not SPARTAN-certified
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
   /harness/escalations/stream:
     get:
       operationId: harnessEscalationsStream
@@ -1115,8 +1162,10 @@ components:
         - MICRO_PDD
         - SPC
         - ATLAS_PDD
+        - ATLAS_PDD_JSON
         - MVP_PDD
         - CODEBASE_BUNDLE
+        - PFP_REPORT
 
     CodeDjPlatform:
       type: string
@@ -1159,7 +1208,111 @@ components:
           type: string
           description: Optional operator hints for the Code DJ (preferred libs, naming, etc.).
           maxLength: 2000
+        acknowledgeDrift:
+          type: boolean
+          description: Override the PFP drift gate. Required when the most recent PFP report for the same MVP PDD has any critical findings.
         provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    HarnessAtlasCrystalliseInput:
+      type: object
+      required: [sessionId, atlasPddArtifactId]
+      properties:
+        sessionId:           { type: string, format: uuid }
+        atlasPddArtifactId:  { type: string, format: uuid }
+        provider:            { $ref: "#/components/schemas/LlmProvider" }
+
+    AtlasPddJsonPhase:
+      type: string
+      enum: [RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET, WHITE]
+
+    AtlasPddJsonPrompt:
+      type: object
+      required: [id, phase, title, operation, classification, dependencies, sourceSection]
+      properties:
+        id:             { type: string, description: "Stable id of the form P-<PHASE>-<NNN>" }
+        phase:          { $ref: "#/components/schemas/AtlasPddJsonPhase" }
+        title:          { type: string }
+        operation:      { type: string }
+        classification: { type: string, enum: [A, B, C] }
+        dependencies:
+          type: array
+          items: { type: string }
+        sourceSection:
+          type: string
+          enum: [cheatSheet, execSummary, worksheet, implementation]
+
+    AtlasPddJson:
+      type: object
+      required: [artifactId, schemaVersion, title, summary, prompts, stack, routes, deployTarget]
+      properties:
+        artifactId:    { type: string, format: uuid }
+        schemaVersion: { type: string, enum: ["atlas-pdd-v1"] }
+        title:         { type: string }
+        summary:       { type: string }
+        prompts:
+          type: array
+          items: { $ref: "#/components/schemas/AtlasPddJsonPrompt" }
+        stack:
+          type: array
+          items: { type: string }
+        routes:
+          type: array
+          items: { type: string }
+        deployTarget:  { type: string }
+
+    HarnessPfpInput:
+      type: object
+      required: [sessionId, mvpPddArtifactId, codebaseBundleArtifactId]
+      properties:
+        sessionId:                { type: string, format: uuid }
+        mvpPddArtifactId:         { type: string, format: uuid }
+        codebaseBundleArtifactId: { type: string, format: uuid }
+        provider:                 { $ref: "#/components/schemas/LlmProvider" }
+
+    PfpFindingCode:
+      type: string
+      enum:
+        - SPEC_DRIFT
+        - PDD_ORPHAN
+        - UNAUTHORIZED_EXTENSION
+        - CIRCULAR_DEPENDENCY
+        - SEMANTIC_DRIFT
+        - OVER_SPECIFICATION
+        - AMBIGUOUS_OUTPUT
+
+    PfpFindingSeverity:
+      type: string
+      enum: [critical, high, medium, low]
+
+    PfpFinding:
+      type: object
+      required: [code, severity, pddRef, codeRef, detail]
+      properties:
+        code:     { $ref: "#/components/schemas/PfpFindingCode" }
+        severity: { $ref: "#/components/schemas/PfpFindingSeverity" }
+        pddRef:   { type: string }
+        codeRef:  { type: string }
+        detail:   { type: string }
+
+    PfpReport:
+      type: object
+      required: [artifactId, verdict, fci, summary, findings, counts]
+      properties:
+        artifactId: { type: string, format: uuid }
+        verdict:    { type: string, enum: [pass, pass_with_notes, fail] }
+        fci:        { type: integer, minimum: 0, maximum: 100 }
+        summary:    { type: string }
+        findings:
+          type: array
+          items: { $ref: "#/components/schemas/PfpFinding" }
+        counts:
+          type: object
+          required: [critical, high, medium, low]
+          properties:
+            critical: { type: integer }
+            high:     { type: integer }
+            medium:   { type: integer }
+            low:      { type: integer }
 
     CodebaseBundle:
       type: object

@@ -86,8 +86,10 @@ export const ArtifactType = {
   MICRO_PDD: 'MICRO_PDD',
   SPC: 'SPC',
   ATLAS_PDD: 'ATLAS_PDD',
+  ATLAS_PDD_JSON: 'ATLAS_PDD_JSON',
   MVP_PDD: 'MVP_PDD',
   CODEBASE_BUNDLE: 'CODEBASE_BUNDLE',
+  PFP_REPORT: 'PFP_REPORT',
 } as const;
 
 /**
@@ -146,7 +148,144 @@ export interface HarnessF8Input {
      * @maxLength 2000
      */
   notes?: string;
+  /** Override the PFP drift gate. Required when the most recent PFP report for the same MVP PDD has any critical findings. */
+  acknowledgeDrift?: boolean;
   provider?: LlmProvider;
+}
+
+export interface HarnessAtlasCrystalliseInput {
+  sessionId: string;
+  atlasPddArtifactId: string;
+  provider?: LlmProvider;
+}
+
+export type AtlasPddJsonPhase = typeof AtlasPddJsonPhase[keyof typeof AtlasPddJsonPhase];
+
+
+export const AtlasPddJsonPhase = {
+  RED: 'RED',
+  ORANGE: 'ORANGE',
+  YELLOW: 'YELLOW',
+  GREEN: 'GREEN',
+  BLUE: 'BLUE',
+  INDIGO: 'INDIGO',
+  VIOLET: 'VIOLET',
+  WHITE: 'WHITE',
+} as const;
+
+export type AtlasPddJsonPromptClassification = typeof AtlasPddJsonPromptClassification[keyof typeof AtlasPddJsonPromptClassification];
+
+
+export const AtlasPddJsonPromptClassification = {
+  A: 'A',
+  B: 'B',
+  C: 'C',
+} as const;
+
+export type AtlasPddJsonPromptSourceSection = typeof AtlasPddJsonPromptSourceSection[keyof typeof AtlasPddJsonPromptSourceSection];
+
+
+export const AtlasPddJsonPromptSourceSection = {
+  cheatSheet: 'cheatSheet',
+  execSummary: 'execSummary',
+  worksheet: 'worksheet',
+  implementation: 'implementation',
+} as const;
+
+export interface AtlasPddJsonPrompt {
+  /** Stable id of the form P-<PHASE>-<NNN> */
+  id: string;
+  phase: AtlasPddJsonPhase;
+  title: string;
+  operation: string;
+  classification: AtlasPddJsonPromptClassification;
+  dependencies: string[];
+  sourceSection: AtlasPddJsonPromptSourceSection;
+}
+
+export type AtlasPddJsonSchemaVersion = typeof AtlasPddJsonSchemaVersion[keyof typeof AtlasPddJsonSchemaVersion];
+
+
+export const AtlasPddJsonSchemaVersion = {
+  'atlas-pdd-v1': 'atlas-pdd-v1',
+} as const;
+
+export interface AtlasPddJson {
+  artifactId: string;
+  schemaVersion: AtlasPddJsonSchemaVersion;
+  title: string;
+  summary: string;
+  prompts: AtlasPddJsonPrompt[];
+  stack: string[];
+  routes: string[];
+  deployTarget: string;
+}
+
+export interface HarnessPfpInput {
+  sessionId: string;
+  mvpPddArtifactId: string;
+  codebaseBundleArtifactId: string;
+  provider?: LlmProvider;
+}
+
+export type PfpFindingCode = typeof PfpFindingCode[keyof typeof PfpFindingCode];
+
+
+export const PfpFindingCode = {
+  SPEC_DRIFT: 'SPEC_DRIFT',
+  PDD_ORPHAN: 'PDD_ORPHAN',
+  UNAUTHORIZED_EXTENSION: 'UNAUTHORIZED_EXTENSION',
+  CIRCULAR_DEPENDENCY: 'CIRCULAR_DEPENDENCY',
+  SEMANTIC_DRIFT: 'SEMANTIC_DRIFT',
+  OVER_SPECIFICATION: 'OVER_SPECIFICATION',
+  AMBIGUOUS_OUTPUT: 'AMBIGUOUS_OUTPUT',
+} as const;
+
+export type PfpFindingSeverity = typeof PfpFindingSeverity[keyof typeof PfpFindingSeverity];
+
+
+export const PfpFindingSeverity = {
+  critical: 'critical',
+  high: 'high',
+  medium: 'medium',
+  low: 'low',
+} as const;
+
+export interface PfpFinding {
+  code: PfpFindingCode;
+  severity: PfpFindingSeverity;
+  pddRef: string;
+  codeRef: string;
+  detail: string;
+}
+
+export type PfpReportVerdict = typeof PfpReportVerdict[keyof typeof PfpReportVerdict];
+
+
+export const PfpReportVerdict = {
+  pass: 'pass',
+  pass_with_notes: 'pass_with_notes',
+  fail: 'fail',
+} as const;
+
+export type PfpReportCounts = {
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+};
+
+export interface PfpReport {
+  artifactId: string;
+  verdict: PfpReportVerdict;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  fci: number;
+  summary: string;
+  findings: PfpFinding[];
+  counts: PfpReportCounts;
 }
 
 export interface CodebaseBundle {
