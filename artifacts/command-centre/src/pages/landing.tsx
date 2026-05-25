@@ -103,13 +103,13 @@ export default function Landing() {
             aria-hidden="true"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/70 to-background/95 -z-10" />
-          <div className="container px-4 md:px-6 py-12 sm:py-16 md:py-24">
-            <p className="text-center font-display tracking-[0.14em] sm:tracking-[0.18em] text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground/95 leading-[1.15] sm:leading-tight max-w-5xl mx-auto">
+          <div className="container px-4 md:px-6 py-4 sm:py-5 md:py-6">
+            <p className="text-center font-display tracking-[0.12em] sm:tracking-[0.16em] text-base sm:text-xl md:text-2xl lg:text-3xl text-foreground/95 leading-snug max-w-5xl mx-auto">
               WE DON&apos;T BUILD AI AGENTS.{" "}
               <span className="bg-gradient-to-r from-primary via-fuchsia-400 to-primary bg-clip-text text-transparent bg-[length:200%_100%] animate-[shimmer_8s_linear_infinite]">
                 WE ENGINEER THE DNA THAT GOVERNS THEM
               </span>{" "}
-              <span className="block sm:inline mt-3 sm:mt-0 text-muted-foreground/90 text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
+              <span className="text-muted-foreground/90 text-sm sm:text-base md:text-lg lg:text-xl">
                 — POWERED BY YOUR COGNITION, OWNED BY YOU.
               </span>
             </p>
