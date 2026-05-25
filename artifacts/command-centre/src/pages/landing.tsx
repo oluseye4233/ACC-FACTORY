@@ -87,6 +87,24 @@ export default function Landing() {
     <div className="min-h-screen flex flex-col">
       <TopNav />
       <main className="flex-1">
+        {/* Declarative Banner */}
+        <section
+          aria-label="Brand declaration"
+          className="relative border-y border-primary/30 bg-gradient-to-r from-primary/15 via-fuchsia-500/15 to-primary/15 bg-[length:200%_100%] animate-[shimmer_8s_linear_infinite]"
+          data-testid="banner-declaration"
+        >
+          <div className="container px-4 md:px-6 py-3 md:py-4">
+            <p className="text-center font-display tracking-[0.18em] text-[11px] sm:text-sm md:text-base lg:text-lg text-foreground/95 leading-snug">
+              WE DON&apos;T BUILD AI AGENTS.
+              <span className="hidden sm:inline"> </span>
+              <span className="text-primary">WE ENGINEER THE DNA THAT GOVERNS THEM</span>
+              <span className="hidden sm:inline"> — </span>
+              <span className="sm:hidden"> — </span>
+              POWERED BY YOUR COGNITION, OWNED BY YOU.
+            </p>
+          </div>
+        </section>
+
         {/* Hero Section */}
         <section className="relative overflow-hidden py-16 sm:py-20 md:py-32 lg:py-40">
           <video
