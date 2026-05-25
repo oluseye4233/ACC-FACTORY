@@ -87,20 +87,31 @@ export default function Landing() {
     <div className="min-h-screen flex flex-col">
       <TopNav />
       <main className="flex-1">
-        {/* Declarative Banner */}
+        {/* Declarative Banner — blended over hero video backdrop */}
         <section
           aria-label="Brand declaration"
-          className="relative border-y border-primary/30 bg-gradient-to-r from-primary/15 via-fuchsia-500/15 to-primary/15 bg-[length:200%_100%] animate-[shimmer_8s_linear_infinite]"
+          className="relative overflow-hidden"
           data-testid="banner-declaration"
         >
-          <div className="container px-4 md:px-6 py-3 md:py-4">
-            <p className="text-center font-display tracking-[0.18em] text-[11px] sm:text-sm md:text-base lg:text-lg text-foreground/95 leading-snug">
-              WE DON&apos;T BUILD AI AGENTS.
-              <span className="hidden sm:inline"> </span>
-              <span className="text-primary">WE ENGINEER THE DNA THAT GOVERNS THEM</span>
-              <span className="hidden sm:inline"> — </span>
-              <span className="sm:hidden"> — </span>
-              POWERED BY YOUR COGNITION, OWNED BY YOU.
+          <video
+            className="absolute inset-0 w-full h-full object-cover -z-20"
+            src={`${import.meta.env.BASE_URL}atanda-hero.mp4`}
+            autoPlay
+            loop
+            muted
+            playsInline
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/70 to-background/95 -z-10" />
+          <div className="container px-4 md:px-6 py-12 sm:py-16 md:py-24">
+            <p className="text-center font-display tracking-[0.14em] sm:tracking-[0.18em] text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground/95 leading-[1.15] sm:leading-tight max-w-5xl mx-auto">
+              WE DON&apos;T BUILD AI AGENTS.{" "}
+              <span className="bg-gradient-to-r from-primary via-fuchsia-400 to-primary bg-clip-text text-transparent bg-[length:200%_100%] animate-[shimmer_8s_linear_infinite]">
+                WE ENGINEER THE DNA THAT GOVERNS THEM
+              </span>{" "}
+              <span className="block sm:inline mt-3 sm:mt-0 text-muted-foreground/90 text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
+                — POWERED BY YOUR COGNITION, OWNED BY YOU.
+              </span>
             </p>
           </div>
         </section>
