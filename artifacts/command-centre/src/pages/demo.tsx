@@ -101,21 +101,21 @@ type QuestBadge = {
 const QUEST_BADGES: QuestBadge[] = [
   {
     id: "ASPE",
-    name: "ADAPTIVE SPC PRACTITIONER",
+    name: "ATOMIC SUPER PROMPT ENGINEER",
     icon: ShieldCheck,
     blurb: "Earned after shipping 3 SPCs and 4 MA Birth Packages — unlocks DE-SPC auto-evolution.",
     unlocksAtStage: 5,
   },
   {
     id: "AISA",
-    name: "AI SOLUTION ARCHITECT",
+    name: "ATOMIC INTELLIGENT SYSTEMS ARCHITECT",
     icon: Award,
     blurb: "Earned after a complete ATLAS → Micro → MVP PDD lifecycle.",
     unlocksAtStage: 7,
   },
   {
     id: "AISE",
-    name: "AI SOLUTION ENGINEER",
+    name: "ATOMIC INTELLIGENT SYSTEMS ENGINEER",
     icon: Trophy,
     blurb: "Earned by submitting a verified URL of a working SPC-DNA agent (GPT, Copilot, native app).",
     unlocksAtStage: null,

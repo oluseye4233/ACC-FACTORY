@@ -53,22 +53,22 @@ import {
 const BADGE_META: Record<string, { name: string; fullName: string; description: string; reqText: string; icon: typeof Trophy }> = {
   ASPE: {
     name: "ASPE",
-    fullName: "ADAPTIVE SPC PRACTITIONER",
-    description: "Adaptive SPC Practitioner — unlocks DE-SPC auto-evolution.",
+    fullName: "ATOMIC SUPER PROMPT ENGINEER",
+    description: "Atomic Super Prompt Engineer — unlocks DE-SPC auto-evolution.",
     reqText: "Create at least 3 SPCs AND at least 4 Micro Agent (MA) Birth Packages.",
     icon: ShieldCheck,
   },
   AISA: {
     name: "AISA",
-    fullName: "AI SOLUTION ARCHITECT",
-    description: "AI Solution Architect — full ATLAS PDD lifecycle completion.",
+    fullName: "ATOMIC INTELLIGENT SYSTEMS ARCHITECT",
+    description: "Atomic Intelligent Systems Architect — full ATLAS PDD lifecycle completion.",
     reqText: "Create at least 1 ATLAS PDD, 1 Micro PDD, and 1 MVP PDD.",
     icon: Award,
   },
   AISE: {
     name: "AISE",
-    fullName: "AI SOLUTION ENGINEER",
-    description: "AI Solution Engineer — shipped AI agents built with SPC DNA.",
+    fullName: "ATOMIC INTELLIGENT SYSTEMS ENGINEER",
+    description: "Atomic Intelligent Systems Engineer — shipped AI agents built with SPC DNA.",
     reqText: "Submit a verified URL to a working GPT, CoPilot, native app, or custom SPC-DNA agent.",
     icon: Trophy,
   },
@@ -434,10 +434,10 @@ function SeniorBadgesSection({
               />
               <div className="flex-1 min-w-0">
                 <div className="font-mono text-[10px] tracking-widest text-yellow-400/80">
-                  AISA · PWDD
+                  AAISA · PWDD
                 </div>
                 <div className="font-display tracking-wide text-lg leading-tight">
-                  Advanced Intelligence Systems Architect
+                  Advanced Atomic Intelligent Systems Architect
                 </div>
               </div>
               <span
@@ -480,7 +480,7 @@ function SeniorBadgesSection({
                   onPick={(format) =>
                     void onDownload(
                       "AISA_PWDD",
-                      "Advanced Intelligence Systems Architect",
+                      "Advanced Atomic Intelligent Systems Architect",
                       "Earned for shipping 3 SPARTAN-certified PWDD-stage projects.",
                       `${pwdds} of ${pwddTarget} PWDD-stage projects certified`,
                       architect?.unlockedAt ?? null,
@@ -505,10 +505,10 @@ function SeniorBadgesSection({
               />
               <div className="flex-1 min-w-0">
                 <div className="font-mono text-[10px] tracking-widest text-yellow-400/80">
-                  AISE · BUILD
+                  AAISE · BUILD
                 </div>
                 <div className="font-display tracking-wide text-lg leading-tight">
-                  Advanced Intelligent Systems Engineer
+                  Advanced Atomic Intelligent Systems Engineer
                 </div>
               </div>
               <span
@@ -577,7 +577,7 @@ function SeniorBadgesSection({
                   onPick={(format) =>
                     void onDownload(
                       "AISE_BUILD",
-                      "Advanced Intelligent Systems Engineer",
+                      "Advanced Atomic Intelligent Systems Engineer",
                       "Awarded for shipping a verified live system built from a PWDD.",
                       "Verified live build",
                       engineerEvidence.verifiedAt ?? null,
@@ -782,7 +782,7 @@ function EngineerClaimDialog({ onClaimed }: { onClaimed: () => void }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="font-display tracking-wider">
-            Advanced Intelligent Systems Engineer
+            Advanced Atomic Intelligent Systems Engineer
           </DialogTitle>
           <DialogDescription className="font-serif text-sm">
             Submit a live HTTPS URL for the AI agent or application you

@@ -878,7 +878,7 @@ paths:
     post:
       operationId: claimEngineerBadge
       tags: [badges]
-      summary: Submit a live build URL for the Advanced Intelligent Systems Engineer badge (SSRF-verified)
+      summary: Submit a live build URL for the Advanced Atomic Intelligent Systems Engineer badge (SSRF-verified)
       requestBody:
         required: true
         content:

@@ -3767,7 +3767,7 @@ export const getClaimEngineerBadgeUrl = () => {
 }
 
 /**
- * @summary Submit a live build URL for the Advanced Intelligent Systems Engineer badge (SSRF-verified)
+ * @summary Submit a live build URL for the Advanced Atomic Intelligent Systems Engineer badge (SSRF-verified)
  */
 export const claimEngineerBadge = async (engineerClaimInput: EngineerClaimInput, options?: RequestInit): Promise<BadgeProgress[]> => {
 
@@ -3816,7 +3816,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ClaimEngineerBadgeMutationError = ErrorType<ErrorResponse>
 
     /**
- * @summary Submit a live build URL for the Advanced Intelligent Systems Engineer badge (SSRF-verified)
+ * @summary Submit a live build URL for the Advanced Atomic Intelligent Systems Engineer badge (SSRF-verified)
  */
 export const useClaimEngineerBadge = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimEngineerBadge>>, TError,{data: BodyType<EngineerClaimInput>}, TContext>, request?: SecondParameter<typeof customFetch>}

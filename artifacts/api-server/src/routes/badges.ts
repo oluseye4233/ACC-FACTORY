@@ -18,8 +18,8 @@ import {
 } from "../lib/badges";
 
 const BADGE_DISPLAY_NAMES: Record<"AISE" | "AISE_BUILD", string> = {
-  AISE: "AI Solution Engineer (AISE)",
-  AISE_BUILD: "Advanced Intelligent Systems Engineer",
+  AISE: "Atomic Intelligent Systems Engineer (AISE)",
+  AISE_BUILD: "Advanced Atomic Intelligent Systems Engineer",
 };
 
 /** Fields to clear on the badge row when a user successfully re-claims after a revoke. */

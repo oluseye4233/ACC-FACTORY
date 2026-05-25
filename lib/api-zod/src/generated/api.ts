@@ -1044,7 +1044,7 @@ export const ClaimAiseBadgeResponse = zod.array(ClaimAiseBadgeResponseItem)
 
 
 /**
- * @summary Submit a live build URL for the Advanced Intelligent Systems Engineer badge (SSRF-verified)
+ * @summary Submit a live build URL for the Advanced Atomic Intelligent Systems Engineer badge (SSRF-verified)
  */
 export const claimEngineerBadgeBodyEvidenceNoteMax = 500;
 
