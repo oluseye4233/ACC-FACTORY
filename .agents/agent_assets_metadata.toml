@@ -126,3 +126,9 @@ id = "4xUdLaLH6QJ6E8QM1bLme"
 uri = "file://docs/ATANDA_Command_Centre_Tiers_For_Dummies.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — Tiers, Ingestion & Cartridge for Dummies"
+
+[[outputs]]
+id = "_fDD78s8cEoKuMihXNW_q"
+uri = "file://docs/ATANDA_Command_Centre_PDD_Current_State.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — Current-State PDD v3.0 (with Comparative Analysis)"
