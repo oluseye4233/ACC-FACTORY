@@ -21,6 +21,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
 import Landing from "@/pages/landing";
+import DemosIndex from "@/pages/demos-index";
+import DemoIngest from "@/pages/demo-ingest";
+import DemoCartridge from "@/pages/demo-cartridge";
 import Pricing from "@/pages/pricing";
 import Verify from "@/pages/verify";
 import Command from "@/pages/command";
@@ -209,6 +212,9 @@ function ClerkProviderWithRoutes() {
             <Route path="/landing" component={Landing} />
             <Route path="/pricing" component={Pricing} />
             <Route path="/demo" component={Demo} />
+            <Route path="/demos" component={DemosIndex} />
+            <Route path="/demos/ingest" component={DemoIngest} />
+            <Route path="/demos/cartridge" component={DemoCartridge} />
             <Route path="/verify" component={Verify} />
             <Route path="/sign-in/*?" component={SignInPage} />
             <Route path="/sign-up/*?" component={SignUpPage} />

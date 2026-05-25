@@ -237,4 +237,9 @@
   .animate-feature-ring {
     animation: feature-ring 2.2s ease-out infinite;
   }
+
+  @keyframes shimmer {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
 }

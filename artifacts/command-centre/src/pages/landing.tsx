@@ -115,8 +115,8 @@ export default function Landing() {
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 w-full sm:w-auto">
                 {DEMO_MODE ? (
                   <>
-                    <Button asChild size="lg" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
-                      <Link href="/demo">TAKE THE 8-STAGE TOUR</Link>
+                    <Button asChild size="lg" className="relative h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto shadow-[0_0_24px_rgba(168,85,247,0.55)] hover:shadow-[0_0_40px_rgba(168,85,247,0.85)] ring-2 ring-primary/60 animate-pulse">
+                      <Link href="/demos">▶ EXPLORE DEMOS</Link>
                     </Button>
                     <Button asChild size="lg" variant="outline" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
                       <Link href="/pricing">VIEW PRICING</Link>
@@ -127,8 +127,8 @@ export default function Landing() {
                     <Button asChild size="lg" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
                       <Link href="/sign-up">INITIATE SESSION</Link>
                     </Button>
-                    <Button asChild size="lg" variant="outline" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
-                      <Link href="/demo">TAKE THE 8-STAGE TOUR</Link>
+                    <Button asChild size="lg" className="relative h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto bg-gradient-to-r from-primary via-fuchsia-500 to-primary bg-[length:200%_100%] animate-[shimmer_3s_linear_infinite] shadow-[0_0_24px_rgba(168,85,247,0.55)] hover:shadow-[0_0_40px_rgba(168,85,247,0.9)] ring-2 ring-primary/60">
+                      <Link href="/demos">▶ EXPLORE DEMOS</Link>
                     </Button>
                   </>
                 )}
