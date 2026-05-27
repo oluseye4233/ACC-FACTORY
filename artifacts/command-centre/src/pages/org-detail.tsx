@@ -109,6 +109,14 @@ export default function OrgDetail() {
 
   const org = orgQ.data;
   const isAdmin = org.role === "owner" || org.role === "admin";
+  // Resolve the caller's local user id so we can render a "Leave" button on
+  // their own row. The buggy `m.userId === org.id` condition this replaces
+  // compared a user id to an org id, so non-admins could never self-remove.
+  const meQ = useQuery({
+    queryKey: ["/api/me/min"],
+    queryFn: () => api.get<{ id: string }>("/api/me"),
+  });
+  const myUserId = meQ.data?.id ?? null;
   const isOwner = org.role === "owner";
   const isActive = org.status === "active" || org.status === "trialing";
 
@@ -212,7 +220,7 @@ export default function OrgDetail() {
                     ) : (
                       <span className="text-xs font-mono uppercase">{m.role}</span>
                     )}
-                    {(isAdmin || m.userId === org.id) && (
+                    {(isAdmin || (myUserId !== null && m.userId === myUserId)) && (
                       <Button
                         variant="ghost"
                         size="sm"

@@ -4,6 +4,7 @@ import { sql } from "drizzle-orm";
 import {
   db,
   harnessEngineRunsTable,
+  harnessSessionsTable,
   stripeWebhookEventsTable,
   usersTable,
   organizationsTable,
@@ -66,6 +67,7 @@ interface ActivityRow {
 async function loadActivity(
   userIds: string[],
   filter: Filter,
+  orgScope?: { orgId: string; stripeCustomerId: string | null },
 ): Promise<{ rows: ActivityRow[]; total: number }> {
   if (userIds.length === 0) return { rows: [], total: 0 };
 
@@ -76,12 +78,35 @@ async function loadActivity(
   if (filter.engineId && filter.engineId.length > 0)
     conditions.push(sql`r.engine_id = ANY(${filter.engineId}::int[])`);
   if (filter.sessionId) conditions.push(sql`r.session_id = ${filter.sessionId}`);
+  // Org scoping: only count engine runs whose session is pinned to this org
+  // AND marked org-visible. This prevents an admin of org A from seeing a
+  // shared member's personal runs or runs scoped to org B.
+  if (orgScope) {
+    conditions.push(
+      sql`r.session_id IS NOT NULL AND r.session_id IN (
+        SELECT id FROM ${harnessSessionsTable}
+        WHERE org_id = ${orgScope.orgId} AND org_visible = true
+      )`,
+    );
+  }
   const engineWhere = conditions.length
     ? sql`WHERE ${sql.join(conditions, sql` AND `)}`
     : sql``;
 
   const billingConditions: ReturnType<typeof sql>[] = [];
-  billingConditions.push(sql`s.user_id = ANY(${userIds}::uuid[])`);
+  // Org scoping: only the org's own Stripe customer's billing events are
+  // surfaced on the org tab — never a member's personal billing.
+  if (orgScope) {
+    if (!orgScope.stripeCustomerId) {
+      // Org has no Stripe customer yet → no billing rows are addressable.
+      // Force a contradictory clause so the billing CTE returns zero rows.
+      billingConditions.push(sql`e.customer_id IS NULL AND e.customer_id IS NOT NULL`);
+    } else {
+      billingConditions.push(sql`e.customer_id = ${orgScope.stripeCustomerId}`);
+    }
+  } else {
+    billingConditions.push(sql`s.user_id = ANY(${userIds}::uuid[])`);
+  }
   if (filter.from) billingConditions.push(sql`e.received_at >= ${filter.from}`);
   if (filter.to) billingConditions.push(sql`e.received_at <= ${filter.to}`);
   // Status filter applies to billing rows by matching on event type
@@ -278,7 +303,18 @@ router.get("/orgs/:id/activity", requireAuth, async (req, res): Promise<void> =>
     const allowed = new Set(memberIds);
     memberIds = parsed.data.userIds.filter((id) => allowed.has(id));
   }
-  const { rows, total } = await loadActivity(memberIds, parsed.data);
+  // Look up the org's Stripe customer id so we can scope billing rows to the
+  // team subscription, not member personal customers.
+  const orgRow = await db
+    .select({ stripeCustomerId: organizationsTable.stripeCustomerId })
+    .from(organizationsTable)
+    .where(sql`${organizationsTable.id} = ${orgId}`)
+    .limit(1);
+  const orgScope = {
+    orgId,
+    stripeCustomerId: orgRow[0]?.stripeCustomerId ?? null,
+  };
+  const { rows, total } = await loadActivity(memberIds, parsed.data, orgScope);
   if (parsed.data.format === "csv") {
     res.setHeader("Content-Type", "text/csv");
     res.setHeader(
