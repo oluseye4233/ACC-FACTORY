@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Check, ShieldCheck, Lock, FileUp } from "lucide-react";
+import { Check, ShieldCheck, Lock, FileUp, Users } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { BILLING_ENABLED, ACCESS_REQUEST_EMAIL } from "@/lib/billing-flag";
@@ -316,6 +316,64 @@ export default function Pricing() {
                 ))}
               </div>
             )}
+          </div>
+        </section>
+
+        {/* Team / seat-based subscription */}
+        <section className="pb-10">
+          <div className="container px-4 md:px-6 max-w-5xl">
+            <div className="rounded-lg border bg-card overflow-hidden">
+              <div className="grid md:grid-cols-[1fr_auto] gap-6 p-6 md:p-8 items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-primary mb-3">
+                    <Users className="h-3 w-3" />
+                    TEAMS · PER-SEAT BILLING · ELEVATES MEMBERS TO INSTITUTION
+                  </div>
+                  <h3 className="font-display text-2xl md:text-3xl tracking-wider mb-2">
+                    TEAM SUBSCRIPTION <span className="text-primary">— PER SEAT</span>
+                  </h3>
+                  <p className="font-serif text-muted-foreground leading-relaxed mb-4 max-w-2xl">
+                    Buy seats for your organisation and every active member is automatically
+                    elevated to the <strong>INSTITUTION</strong> tier — unlimited engine runs,
+                    shared session visibility, and a per-org Activity audit log for owners and
+                    admins. Manage seats and billing from the Stripe customer portal at any time.
+                  </p>
+                  <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-muted-foreground mb-2">
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Per-seat monthly or yearly billing</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Active members → INSTITUTION tier</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Per-org Activity audit log + CSV export</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Share sessions across the team</li>
+                  </ul>
+                </div>
+                <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
+                  <Button
+                    onClick={() => {
+                      if (!BILLING_ENABLED) {
+                        window.location.href = `mailto:${ACCESS_REQUEST_EMAIL}?subject=${encodeURIComponent(
+                          "Early access — Team subscription",
+                        )}&body=${encodeURIComponent(
+                          "Hello,\n\nWe'd like early access to the ATANDA Command Centre Team subscription.\n\nOrganisation:\nApprox. seat count:\nUse case:\n\nThank you.",
+                        )}`;
+                        return;
+                      }
+                      if (!isSignedIn) {
+                        setLocation("/sign-in");
+                        return;
+                      }
+                      setLocation("/orgs");
+                    }}
+                    variant="default"
+                    className="font-display tracking-wider"
+                    data-testid="button-team-checkout"
+                  >
+                    {BILLING_ENABLED ? "MANAGE TEAMS" : "REQUEST ACCESS"}
+                  </Button>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                    Create or pick an org to checkout
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

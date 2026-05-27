@@ -50,7 +50,16 @@ async function applyTeamSeatSubscription(
   if (!sub) return false;
   const item = sub.items.data[0];
   const priceId = item?.price.id ?? "";
-  if (!teamSeatPrices.has(priceId)) return false;
+  if (!teamSeatPrices.has(priceId)) {
+    if (priceId) {
+      req.log.warn(
+        { priceId, customerId, subId: sub.id },
+        "team-seat webhook references unknown price id",
+      );
+      throw new UnknownPriceError(priceId);
+    }
+    return false;
+  }
   const quantity = item?.quantity ?? 0;
   const periodEnd = item?.current_period_end ?? null;
   const updated = await tx
@@ -161,6 +170,19 @@ router.post(
     const priceMap = PRICE_TO_TIER();
     const teamSeatPrices = TEAM_SEAT_PRICE_IDS();
 
+    // Extract the customer id off any event payload that carries one, so the
+    // idempotency row doubles as a per-customer audit pointer (used by the
+    // activity feed to scope billing events to a user/org without exposing
+    // unrelated webhook traffic).
+    const eventCustomerId = ((): string | null => {
+      const obj = event.data?.object as { customer?: string | { id?: string } } | undefined;
+      if (!obj) return null;
+      const c = obj.customer;
+      if (typeof c === "string") return c;
+      if (c && typeof c === "object" && typeof c.id === "string") return c.id;
+      return null;
+    })();
+
     // Single transaction: insert idempotency row + run handler. Concurrent duplicate
     // deliveries serialize on the PK; the loser sees onConflictDoNothing return
     // empty AFTER the winner commits, and returns replay. If the handler throws,
@@ -169,7 +191,7 @@ router.post(
       const replay = await db.transaction(async (tx) => {
         const inserted = await tx
           .insert(stripeWebhookEventsTable)
-          .values({ eventId: event.id, type: event.type })
+          .values({ eventId: event.id, type: event.type, customerId: eventCustomerId })
           .onConflictDoNothing({ target: stripeWebhookEventsTable.eventId })
           .returning({ eventId: stripeWebhookEventsTable.eventId });
 

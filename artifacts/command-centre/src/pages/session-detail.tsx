@@ -34,6 +34,7 @@ import { F6DraftPdd } from "@/components/workspaces/F6DraftPdd";
 import { F7ConvertMvp } from "@/components/workspaces/F7ConvertMvp";
 import { F8CodeDj } from "@/components/workspaces/F8CodeDj";
 import { ProviderSelector } from "@/components/shared/ProviderSelector";
+import { SessionOrgVisibility } from "@/components/shared/SessionOrgVisibility";
 
 export default function SessionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -173,6 +174,13 @@ export default function SessionDetail() {
             <ProviderSelector
               sessionId={session.id}
               value={session.preferredModelProvider}
+            />
+          )}
+          {session && (
+            <SessionOrgVisibility
+              sessionId={session.id}
+              initialOrgId={(session as unknown as { orgId?: string | null }).orgId ?? null}
+              initialOrgVisible={(session as unknown as { orgVisible?: boolean }).orgVisible}
             />
           )}
           {/* Mobile-only: open Harness Sequence */}

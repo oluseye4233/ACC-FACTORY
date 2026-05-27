@@ -121,8 +121,7 @@ async function loadActivity(
         e.event_id AS event_id
       FROM ${stripeWebhookEventsTable} e
       JOIN command_centre_subscribers s
-        ON s.stripe_customer_id IS NOT NULL
-       AND e.event_id LIKE 'evt_%'
+        ON s.stripe_customer_id = e.customer_id
       JOIN ${usersTable} u ON u.id = s.user_id
       ${billingWhere}
     ),
