@@ -145,27 +145,52 @@ async function loadActivity(
       ${engineWhere}
     ),
     billing_rows AS (
-      SELECT
-        'billing'::text AS source,
-        e.received_at AS ts,
-        s.user_id,
-        u.email AS user_email,
-        NULL::int AS engine_id,
-        NULL::uuid AS session_id,
-        e.type AS status,
-        NULL::text AS provider,
-        NULL::text AS model_id,
-        NULL::int AS input_tokens,
-        NULL::int AS output_tokens,
-        NULL::text AS cost_usd,
-        NULL::int AS duration_ms,
-        e.type AS event_type,
-        e.event_id AS event_id
-      FROM ${stripeWebhookEventsTable} e
-      JOIN command_centre_subscribers s
-        ON s.stripe_customer_id = e.customer_id
-      JOIN ${usersTable} u ON u.id = s.user_id
-      ${billingWhere}
+      ${
+        orgScope
+          ? sql`
+        SELECT
+          'billing'::text AS source,
+          e.received_at AS ts,
+          NULL::uuid AS user_id,
+          NULL::text AS user_email,
+          NULL::int AS engine_id,
+          NULL::uuid AS session_id,
+          e.type AS status,
+          NULL::text AS provider,
+          NULL::text AS model_id,
+          NULL::int AS input_tokens,
+          NULL::int AS output_tokens,
+          NULL::text AS cost_usd,
+          NULL::int AS duration_ms,
+          e.type AS event_type,
+          e.event_id AS event_id
+        FROM ${stripeWebhookEventsTable} e
+        ${billingWhere}
+      `
+          : sql`
+        SELECT
+          'billing'::text AS source,
+          e.received_at AS ts,
+          s.user_id,
+          u.email AS user_email,
+          NULL::int AS engine_id,
+          NULL::uuid AS session_id,
+          e.type AS status,
+          NULL::text AS provider,
+          NULL::text AS model_id,
+          NULL::int AS input_tokens,
+          NULL::int AS output_tokens,
+          NULL::text AS cost_usd,
+          NULL::int AS duration_ms,
+          e.type AS event_type,
+          e.event_id AS event_id
+        FROM ${stripeWebhookEventsTable} e
+        JOIN command_centre_subscribers s
+          ON s.stripe_customer_id = e.customer_id
+        JOIN ${usersTable} u ON u.id = s.user_id
+        ${billingWhere}
+      `
+      }
     ),
     all_rows AS (
       ${sourceFilter === "billing" ? sql`SELECT * FROM billing_rows` : sql``}

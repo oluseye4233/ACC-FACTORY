@@ -162,26 +162,34 @@ router.post("/me/delete", requireAuth, async (req, res): Promise<void> => {
   // 409 for sole-owner, stranding the user unable to sign back in to fix the org.
 
   // 0) Preflight: if the user is the SOLE owner of any organization, refuse to delete —
-  //    organizations.createdByUserId is `onDelete: restrict` and the cascade would
-  //    otherwise fail at DB level after we have already destroyed Stripe/Clerk state.
+  //    organizations.createdByUserId is `onDelete: restrict` and (more importantly)
+  //    deleting a sole owner would leave the org ownerless. Check every org where
+  //    the user currently holds the `owner` role, not just orgs they created.
   try {
     const { db: orgsDb } = await import("@workspace/db");
     const { organizationsTable, organizationMembersTable } = await import("@workspace/db");
-    const { eq: eq2, sql: sql2 } = await import("drizzle-orm");
-    const created = await orgsDb
-      .select({ id: organizationsTable.id, name: organizationsTable.name })
-      .from(organizationsTable)
-      .where(eq2(organizationsTable.createdByUserId, u.id));
-    const blockers: Array<{ id: string; name: string }> = [];
-    for (const o of created) {
-      const r = await orgsDb.execute(
-        sql2`SELECT COUNT(*)::int AS n FROM ${organizationMembersTable} WHERE organization_id = ${o.id} AND role = 'owner'`,
-      );
-      const n = Number(
-        ((r as unknown as { rows: Array<{ n: number }> }).rows[0]?.n ?? 0) as number,
-      );
-      if (n <= 1) blockers.push(o);
-    }
+    const { sql: sql2 } = await import("drizzle-orm");
+    const r = await orgsDb.execute(
+      sql2`
+        SELECT
+          o.id AS id,
+          o.name AS name,
+          (
+            SELECT COUNT(*)::int FROM ${organizationMembersTable} om2
+            WHERE om2.organization_id = o.id AND om2.role = 'owner'
+          ) AS owner_count
+        FROM ${organizationMembersTable} om
+        JOIN ${organizationsTable} o ON o.id = om.organization_id
+        WHERE om.user_id = ${u.id} AND om.role = 'owner'
+      `,
+    );
+    const rows =
+      (r as unknown as {
+        rows: Array<{ id: string; name: string; owner_count: number | string }>;
+      }).rows ?? [];
+    const blockers = rows
+      .filter((row) => Number(row.owner_count ?? 0) <= 1)
+      .map((row) => ({ id: row.id, name: row.name }));
     if (blockers.length > 0) {
       res.status(409).json({
         error:
