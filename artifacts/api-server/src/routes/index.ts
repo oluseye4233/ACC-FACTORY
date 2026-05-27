@@ -16,6 +16,7 @@ import ingestRouter from "./ingest";
 import cartridgeRouter from "./cartridge";
 import orgsRouter from "./orgs";
 import activityRouter from "./activity";
+import notificationsRouter from "./notifications";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(ingestRouter);
 router.use(cartridgeRouter);
 router.use(orgsRouter);
 router.use(activityRouter);
+router.use(notificationsRouter);
 
 export default router;

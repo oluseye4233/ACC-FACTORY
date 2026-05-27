@@ -190,6 +190,164 @@ export function sendOrgInvite(args: {
   return send({ to: args.to, subject: `INVITE · ${args.orgName} on ATANDA`, html: wrap("ORGANIZATION INVITE", body), text });
 }
 
+export interface DigestRow {
+  label: string;
+  count: number;
+  costUsd: number;
+}
+
+export function sendOrgActivityDigest(args: {
+  to: string;
+  orgName: string;
+  periodStart: Date;
+  periodEnd: Date;
+  totalRuns: number;
+  totalCostUsd: number;
+  byEngine: DigestRow[];
+  byMember: DigestRow[];
+  billingEvents: Array<{ ts: Date; type: string }>;
+  activityUrl: string;
+  unsubscribeUrl: string;
+}): Promise<EmailResult> {
+  const fmt = (d: Date): string => d.toISOString().slice(0, 10);
+  const fmtUsd = (n: number): string => `$${n.toFixed(2)}`;
+  const rowsHtml = (rows: DigestRow[]): string =>
+    rows.length === 0
+      ? `<p style="color:#888;font-style:italic;">No activity.</p>`
+      : `<table style="width:100%;border-collapse:collapse;font-family:monospace;font-size:12px;">
+          ${rows
+            .map(
+              (r) => `<tr>
+                <td style="padding:4px 8px;border-bottom:1px solid #262626;">${r.label}</td>
+                <td style="padding:4px 8px;border-bottom:1px solid #262626;text-align:right;">${r.count}</td>
+                <td style="padding:4px 8px;border-bottom:1px solid #262626;text-align:right;">${fmtUsd(r.costUsd)}</td>
+              </tr>`,
+            )
+            .join("")}
+        </table>`;
+  const rowsText = (rows: DigestRow[]): string =>
+    rows.length === 0
+      ? "  (none)"
+      : rows.map((r) => `  ${r.label.padEnd(28)} ${String(r.count).padStart(4)}  ${fmtUsd(r.costUsd)}`).join("\n");
+  const billingHtml =
+    args.billingEvents.length === 0
+      ? `<p style="color:#888;font-style:italic;">No billing events.</p>`
+      : `<ul style="font-family:monospace;font-size:12px;">${args.billingEvents
+          .map((e) => `<li>${fmt(e.ts)} · ${e.type}</li>`)
+          .join("")}</ul>`;
+  const billingText =
+    args.billingEvents.length === 0
+      ? "  (none)"
+      : args.billingEvents.map((e) => `  ${fmt(e.ts)} · ${e.type}`).join("\n");
+  const body = `<p>Weekly activity digest for <strong>${args.orgName}</strong>
+    (${fmt(args.periodStart)} → ${fmt(args.periodEnd)}).</p>
+    <p style="font-family:monospace;">
+      Total engine runs: <strong>${args.totalRuns}</strong><br/>
+      Total spend: <strong>${fmtUsd(args.totalCostUsd)}</strong>
+    </p>
+    <h2 style="font-size:13px;letter-spacing:0.1em;color:#1A6B3A;margin-top:24px;">BY ENGINE</h2>
+    ${rowsHtml(args.byEngine)}
+    <h2 style="font-size:13px;letter-spacing:0.1em;color:#1A6B3A;margin-top:24px;">BY MEMBER</h2>
+    ${rowsHtml(args.byMember)}
+    <h2 style="font-size:13px;letter-spacing:0.1em;color:#1A6B3A;margin-top:24px;">BILLING</h2>
+    ${billingHtml}
+    <p style="margin-top:32px;"><a href="${args.activityUrl}" style="color:#1A6B3A;">Open full activity log →</a></p>
+    <p style="margin-top:24px;font-size:11px;color:#888;">
+      You're receiving this because you are an owner/admin of ${args.orgName}.
+      <a href="${args.unsubscribeUrl}" style="color:#888;">Unsubscribe</a>.
+    </p>`;
+  const text = `Weekly activity digest · ${args.orgName} · ${fmt(args.periodStart)} → ${fmt(args.periodEnd)}
+Total runs: ${args.totalRuns}    Total spend: ${fmtUsd(args.totalCostUsd)}
+
+By engine:
+${rowsText(args.byEngine)}
+
+By member:
+${rowsText(args.byMember)}
+
+Billing:
+${billingText}
+
+Full activity: ${args.activityUrl}
+Unsubscribe: ${args.unsubscribeUrl}`;
+  return send({
+    to: args.to,
+    subject: `WEEKLY DIGEST · ${args.orgName}`,
+    html: wrap("WEEKLY ACTIVITY DIGEST", body),
+    text,
+  });
+}
+
+export function sendBillingFailureAlert(args: {
+  to: string;
+  orgName: string | null;
+  eventType: string;
+  occurredAt: Date;
+  billingUrl: string;
+  unsubscribeUrl: string;
+}): Promise<EmailResult> {
+  const scope = args.orgName ? `team subscription for <strong>${args.orgName}</strong>` : `your subscription`;
+  const scopeText = args.orgName ? `team subscription for ${args.orgName}` : "your subscription";
+  const body = `<p>A billing event on ${scope} needs your attention:
+    <strong>${args.eventType}</strong> at ${args.occurredAt.toISOString()}.</p>
+    <p>Update billing details to avoid service interruption.</p>
+    <p><a href="${args.billingUrl}" style="display:inline-block;padding:12px 24px;background:#7a1a1a;color:#fff;border-radius:4px;text-decoration:none;letter-spacing:0.1em;font-family:monospace;">OPEN BILLING</a></p>
+    <p style="margin-top:24px;font-size:11px;color:#888;">
+      <a href="${args.unsubscribeUrl}" style="color:#888;">Unsubscribe from these alerts</a>.
+    </p>`;
+  const text = `Billing event on ${scopeText}: ${args.eventType} at ${args.occurredAt.toISOString()}.
+Open billing: ${args.billingUrl}
+Unsubscribe: ${args.unsubscribeUrl}`;
+  return send({
+    to: args.to,
+    subject: `BILLING ALERT · ${args.eventType}`,
+    html: wrap("BILLING ALERT", body),
+    text,
+  });
+}
+
+export function sendHighCostRunAlert(args: {
+  to: string;
+  orgName: string | null;
+  actorEmail: string | null;
+  engineId: number;
+  sessionId: string;
+  costUsd: number;
+  thresholdUsd: number;
+  occurredAt: Date;
+  activityUrl: string;
+  unsubscribeUrl: string;
+}): Promise<EmailResult> {
+  const scope = args.orgName ? ` on <strong>${args.orgName}</strong>` : "";
+  const scopeText = args.orgName ? ` on ${args.orgName}` : "";
+  const actor = args.actorEmail ?? "a member";
+  const body = `<p>A high-cost engine run${scope} crossed your alert threshold.</p>
+    <p style="font-family:monospace;background:#0d0d0d;padding:12px;border:1px solid #262626;">
+      Engine: F${args.engineId}<br/>
+      Run by: ${actor}<br/>
+      Cost: $${args.costUsd.toFixed(4)} (threshold: $${args.thresholdUsd.toFixed(2)})<br/>
+      Session: ${args.sessionId}<br/>
+      When: ${args.occurredAt.toISOString()}
+    </p>
+    <p><a href="${args.activityUrl}" style="color:#1A6B3A;">Open activity log →</a></p>
+    <p style="margin-top:24px;font-size:11px;color:#888;">
+      <a href="${args.unsubscribeUrl}" style="color:#888;">Unsubscribe from these alerts</a>.
+    </p>`;
+  const text = `High-cost engine run${scopeText}.
+Engine: F${args.engineId}  by ${actor}
+Cost: $${args.costUsd.toFixed(4)} (threshold: $${args.thresholdUsd.toFixed(2)})
+Session: ${args.sessionId}
+When: ${args.occurredAt.toISOString()}
+Activity: ${args.activityUrl}
+Unsubscribe: ${args.unsubscribeUrl}`;
+  return send({
+    to: args.to,
+    subject: `HIGH-COST RUN · F${args.engineId} · $${args.costUsd.toFixed(2)}`,
+    html: wrap("HIGH-COST RUN ALERT", body),
+    text,
+  });
+}
+
 export function sendAccountDeleted(args: {
   to: string;
 }): Promise<EmailResult> {

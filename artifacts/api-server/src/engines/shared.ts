@@ -28,6 +28,7 @@ import {
 import type { Request, Response } from "express";
 import { computeCostUsd } from "../lib/pricing";
 import { logger } from "../lib/logger";
+import { maybeDispatchHighCostAlerts } from "../lib/notification-dispatch";
 
 // Provider-specific default models.
 export const PROVIDER_MODELS: Record<LlmProvider, string> = {
@@ -205,6 +206,16 @@ async function recordRun(
       outputTokens,
       costUsd: cost.toFixed(6),
       durationMs,
+    });
+    // Fire-and-forget: notify org owners/admins subscribed to high-cost
+    // alerts. Crashes are swallowed inside the dispatcher so telemetry stays
+    // best-effort.
+    void maybeDispatchHighCostAlerts({
+      sessionId: ctx.sessionId,
+      userId: ctx.userId,
+      engineId: ctx.engineId,
+      costUsd: cost,
+      occurredAt: new Date(),
     });
   } catch (err) {
     logger.warn({ err }, "Failed to record harness_engine_runs row");

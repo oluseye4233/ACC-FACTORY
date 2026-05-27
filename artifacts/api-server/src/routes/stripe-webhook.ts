@@ -17,6 +17,7 @@ import {
   sendPaymentFailed,
 } from "@workspace/email";
 import { getStripeWebhookSecret, getUncachableStripeClient } from "../lib/stripe";
+import { dispatchBillingFailureForCustomer } from "../lib/notification-dispatch";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -391,6 +392,13 @@ router.post(
             if (rec) {
               await sendPaymentFailed({ to: rec.email, tier: rec.tier });
             }
+            // Org owners/admins subscribed to billing alerts also get notified.
+            // Fire-and-forget — never blocks the webhook ack.
+            void dispatchBillingFailureForCustomer({
+              stripeCustomerId: customerId,
+              eventType: event.type,
+              occurredAt: new Date(),
+            });
             break;
           }
           default:
