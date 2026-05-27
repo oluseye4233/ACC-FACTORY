@@ -14,6 +14,8 @@ import exportsRouter from "./exports";
 import badgesRouter from "./badges";
 import ingestRouter from "./ingest";
 import cartridgeRouter from "./cartridge";
+import orgsRouter from "./orgs";
+import activityRouter from "./activity";
 
 const router: IRouter = Router();
 
@@ -32,5 +34,7 @@ router.use(exemplarsRouter);
 router.use(harnessRouter);
 router.use(ingestRouter);
 router.use(cartridgeRouter);
+router.use(orgsRouter);
+router.use(activityRouter);
 
 export default router;

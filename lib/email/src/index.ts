@@ -175,6 +175,21 @@ export function sendWelcome(args: {
   return send({ to: args.to, subject: `WELCOME · ATANDA COMMAND CENTRE`, html: wrap("WELCOME, OPERATOR", body), text });
 }
 
+export function sendOrgInvite(args: {
+  to: string;
+  orgName: string;
+  acceptUrl: string;
+  inviterEmail: string | null;
+}): Promise<EmailResult> {
+  const from = args.inviterEmail ? ` (invited by ${args.inviterEmail})` : "";
+  const body = `<p>You've been invited to join <strong>${args.orgName}</strong> on ATANDA Command Centre${from}.</p>
+    <p>Click below to accept. The invite expires in 14 days.</p>
+    <p><a href="${args.acceptUrl}" style="display:inline-block;padding:12px 24px;background:#1A6B3A;color:#fff;border-radius:4px;text-decoration:none;letter-spacing:0.1em;font-family:monospace;">ACCEPT INVITE</a></p>
+    <p style="font-size:11px;color:#888;">Or paste this URL into your browser:<br/>${args.acceptUrl}</p>`;
+  const text = `You've been invited to join ${args.orgName} on ATANDA Command Centre${from}. Accept: ${args.acceptUrl}`;
+  return send({ to: args.to, subject: `INVITE · ${args.orgName} on ATANDA`, html: wrap("ORGANIZATION INVITE", body), text });
+}
+
 export function sendAccountDeleted(args: {
   to: string;
 }): Promise<EmailResult> {

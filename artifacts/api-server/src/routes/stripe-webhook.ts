@@ -7,6 +7,7 @@ import {
   ingestionCreditsTable,
   cartridgeCreditsTable,
   stripeWebhookEventsTable,
+  organizationsTable,
   usersTable,
   type SubscriberTier,
 } from "@workspace/db";
@@ -27,6 +28,51 @@ const PRICE_TO_TIER: () => Record<string, SubscriberTier> = () => ({
   [process.env.STRIPE_PRICE_ARCHITECT_MONTHLY ?? ""]: "ARCHITECT",
   [process.env.STRIPE_PRICE_ARCHITECT_YEARLY ?? ""]: "ARCHITECT",
 });
+
+const TEAM_SEAT_PRICE_IDS = (): Set<string> => {
+  const out = new Set<string>();
+  for (const k of [
+    process.env.STRIPE_PRICE_TEAM_SEAT_MONTHLY,
+    process.env.STRIPE_PRICE_TEAM_SEAT_YEARLY,
+  ]) {
+    if (k) out.add(k);
+  }
+  return out;
+};
+
+async function applyTeamSeatSubscription(
+  req: express.Request,
+  tx: Tx,
+  customerId: string,
+  sub: Stripe.Subscription | null,
+  teamSeatPrices: Set<string>,
+): Promise<boolean> {
+  if (!sub) return false;
+  const item = sub.items.data[0];
+  const priceId = item?.price.id ?? "";
+  if (!teamSeatPrices.has(priceId)) return false;
+  const quantity = item?.quantity ?? 0;
+  const periodEnd = item?.current_period_end ?? null;
+  const updated = await tx
+    .update(organizationsTable)
+    .set({
+      status: sub.status,
+      stripeSubscriptionId: sub.id,
+      stripePriceId: priceId,
+      seatsPurchased: quantity,
+      cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
+      currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
+    })
+    .where(eq(organizationsTable.stripeCustomerId, customerId))
+    .returning({ id: organizationsTable.id });
+  if (updated.length === 0) {
+    req.log.warn(
+      { customerId, subId: sub.id },
+      "team-seat subscription event for unknown org customer",
+    );
+  }
+  return true;
+}
 
 async function emailForCustomer(
   tx: Tx,
@@ -113,6 +159,7 @@ router.post(
     }
 
     const priceMap = PRICE_TO_TIER();
+    const teamSeatPrices = TEAM_SEAT_PRICE_IDS();
 
     // Single transaction: insert idempotency row + run handler. Concurrent duplicate
     // deliveries serialize on the PK; the loser sees onConflictDoNothing return
@@ -219,6 +266,17 @@ router.post(
                 ? session.subscription
                 : session.subscription?.id;
             const subscription = subId ? await stripe.subscriptions.retrieve(subId) : null;
+            // Team-seat subscription: route to the org row instead of the personal subscriber.
+            if (session.metadata?.kind === "team_subscription") {
+              await applyTeamSeatSubscription(
+                req,
+                tx,
+                customerId,
+                subscription,
+                teamSeatPrices,
+              );
+              break;
+            }
             await applySubscription(req, tx, customerId, subscription, priceMap);
             break;
           }
@@ -226,6 +284,12 @@ router.post(
           case "customer.subscription.updated": {
             const sub = event.data.object as Stripe.Subscription;
             const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+            const item = sub.items.data[0];
+            const priceId = item?.price.id ?? "";
+            if (teamSeatPrices.has(priceId)) {
+              await applyTeamSeatSubscription(req, tx, customerId, sub, teamSeatPrices);
+              break;
+            }
             await applySubscription(req, tx, customerId, sub, priceMap);
             break;
           }
@@ -233,9 +297,24 @@ router.post(
             const sub = event.data.object as Stripe.Subscription;
             const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
             const item = sub.items.data[0];
+            const priceId = item?.price.id ?? "";
             const periodEnd = item?.current_period_end
               ? new Date(item.current_period_end * 1000)
               : null;
+            if (teamSeatPrices.has(priceId)) {
+              await tx
+                .update(organizationsTable)
+                .set({
+                  status: "canceled",
+                  stripeSubscriptionId: null,
+                  stripePriceId: null,
+                  seatsPurchased: 0,
+                  cancelAtPeriodEnd: false,
+                  currentPeriodEnd: null,
+                })
+                .where(eq(organizationsTable.stripeCustomerId, customerId));
+              break;
+            }
             const before = await emailForCustomer(tx, customerId);
             await tx
               .update(commandCentreSubscribersTable)

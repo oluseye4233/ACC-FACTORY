@@ -1,9 +1,10 @@
-import { index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
 import { ingestionDocumentsTable } from "./ingestion-documents";
 import { cartridgePackagesTable } from "./cartridge";
+import { organizationsTable } from "./organizations";
 
 export const SESSION_ORIGINS = ["manual", "ingested", "cartridge"] as const;
 export type SessionOrigin = (typeof SESSION_ORIGINS)[number];
@@ -29,6 +30,10 @@ export const harnessSessionsTable = pgTable("harness_sessions", {
   cartridgeId: uuid("cartridge_id").references(() => cartridgePackagesTable.id, {
     onDelete: "set null",
   }),
+  orgId: uuid("org_id").references(() => organizationsTable.id, {
+    onDelete: "set null",
+  }),
+  orgVisible: boolean("org_visible").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
@@ -37,6 +42,7 @@ export const harnessSessionsTable = pgTable("harness_sessions", {
 }, (t) => ({
   ingestionIdx: index("harness_sessions_ingestion_id_idx").on(t.ingestionId),
   cartridgeIdx: index("harness_sessions_cartridge_id_idx").on(t.cartridgeId),
+  orgIdx: index("harness_sessions_org_id_idx").on(t.orgId),
 }));
 
 export const insertHarnessSessionSchema = createInsertSchema(harnessSessionsTable).omit({

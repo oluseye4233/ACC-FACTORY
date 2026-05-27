@@ -39,6 +39,10 @@ import Demo from "@/pages/demo";
 import Ingest from "@/pages/ingest";
 import Cartridge from "@/pages/cartridge";
 import AdminBadges from "@/pages/admin-badges";
+import Orgs from "@/pages/orgs";
+import OrgDetail from "@/pages/org-detail";
+import AcceptInvite from "@/pages/accept-invite";
+import Activity from "@/pages/activity";
 import { DEMO_MODE } from "@/lib/demo-mode";
 import { DemoBanner } from "@/components/DemoBanner";
 
@@ -231,6 +235,10 @@ function ClerkProviderWithRoutes() {
             <Route path="/quests" component={() => <ProtectedRoute component={Quests} />} />
             <Route path="/account" component={() => <ProtectedRoute component={Account} />} />
             <Route path="/admin/badges" component={() => <ProtectedRoute component={AdminBadges} />} />
+            <Route path="/orgs" component={() => <ProtectedRoute component={Orgs} />} />
+            <Route path="/orgs/:id" component={() => <ProtectedRoute component={OrgDetail} />} />
+            <Route path="/accept-invite/:token" component={AcceptInvite} />
+            <Route path="/me/activity" component={() => <ProtectedRoute component={Activity} />} />
             <Route path="/exemplars" component={Exemplars} />
             <Route path="/exemplars/:id" component={Exemplars} />
 

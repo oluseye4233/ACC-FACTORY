@@ -44,7 +44,10 @@ export function requireTier(minTier: SubscriberTier) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    if (TIER_RANK[sub.tier] >= TIER_RANK[minTier]) {
+    // Use effective tier (personal max'd against any active team-seat org sub),
+    // falling back to personal tier if the elevation pass did not run.
+    const tier = req.effectiveTier ?? sub.tier;
+    if (TIER_RANK[tier] >= TIER_RANK[minTier]) {
       next();
       return;
     }
@@ -86,9 +89,10 @@ export function rateLimit(featureId: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const limit = RATE_LIMITS[sub.tier][featureId] ?? 0;
+    const tier = req.effectiveTier ?? sub.tier;
+    const limit = RATE_LIMITS[tier][featureId] ?? 0;
     if (limit === 0) {
-      res.status(403).json({ error: `Feature F${featureId} not available on ${sub.tier}` });
+      res.status(403).json({ error: `Feature F${featureId} not available on ${tier}` });
       return;
     }
     // Single atomic statement: increment iff under limit. Unlimited (-1) always increments.

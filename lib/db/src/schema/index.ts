@@ -13,3 +13,4 @@ export * from "./harness-engine-runs";
 export * from "./command-centre-badges";
 export * from "./cartridge";
 export * from "./badge-revocations";
+export * from "./organizations";

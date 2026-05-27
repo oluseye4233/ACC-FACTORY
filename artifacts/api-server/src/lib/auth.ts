@@ -6,8 +6,10 @@ import {
   usersTable,
   commandCentreSubscribersTable,
   type Subscriber,
+  type SubscriberTier,
   type User,
 } from "@workspace/db";
+import { effectiveTier, loadMembershipsForUser, type MembershipRow } from "./orgs";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -16,6 +18,10 @@ declare global {
       clerkUserId?: string;
       localUser?: User;
       subscriber?: Subscriber;
+      /** Personal tier maxed against any active org team-seat sub. */
+      effectiveTier?: SubscriberTier;
+      /** Memberships at request-time; loaded once by `requireAuth` for downstream reuse. */
+      memberships?: MembershipRow[];
     }
   }
 }
@@ -54,6 +60,18 @@ export async function requireAuth(
 
   const sub = await ensureSubscriber(local.id);
   req.subscriber = sub;
+
+  // Org tier elevation — best-effort. On lookup failure, fall back to the
+  // personal tier so a transient DB blip cannot lock the whole portal out.
+  try {
+    const memberships = await loadMembershipsForUser(local.id);
+    req.memberships = memberships;
+    req.effectiveTier = effectiveTier(sub.tier, memberships);
+  } catch (err) {
+    req.log.warn({ err, userId: local.id }, "loadMembershipsForUser failed; using personal tier");
+    req.memberships = [];
+    req.effectiveTier = sub.tier;
+  }
   next();
 }
 
