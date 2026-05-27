@@ -16,7 +16,17 @@ const router: IRouter = Router();
 const FilterSchema = z.object({
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
-  engineId: z.coerce.number().int().min(1).max(32).optional(),
+  engineId: z
+    .string()
+    .optional()
+    .transform((s) =>
+      s
+        ? s
+            .split(",")
+            .map((x) => Number.parseInt(x.trim(), 10))
+            .filter((n) => Number.isInteger(n) && n >= 1 && n <= 32)
+        : undefined,
+    ),
   sessionId: z.string().uuid().optional(),
   source: z.enum(["engine", "billing"]).optional(),
   status: z.string().optional(),
@@ -63,7 +73,8 @@ async function loadActivity(
   conditions.push(sql`r.user_id = ANY(${userIds}::uuid[])`);
   if (filter.from) conditions.push(sql`r.created_at >= ${filter.from}`);
   if (filter.to) conditions.push(sql`r.created_at <= ${filter.to}`);
-  if (filter.engineId) conditions.push(sql`r.engine_id = ${filter.engineId}`);
+  if (filter.engineId && filter.engineId.length > 0)
+    conditions.push(sql`r.engine_id = ANY(${filter.engineId}::int[])`);
   if (filter.sessionId) conditions.push(sql`r.session_id = ${filter.sessionId}`);
   const engineWhere = conditions.length
     ? sql`WHERE ${sql.join(conditions, sql` AND `)}`
@@ -73,11 +84,17 @@ async function loadActivity(
   billingConditions.push(sql`s.user_id = ANY(${userIds}::uuid[])`);
   if (filter.from) billingConditions.push(sql`e.received_at >= ${filter.from}`);
   if (filter.to) billingConditions.push(sql`e.received_at <= ${filter.to}`);
+  // Status filter applies to billing rows by matching on event type
+  // (e.g. invoice.paid, customer.subscription.deleted). Engine rows
+  // are always 'ok' so a status filter implicitly hides them.
+  if (filter.status) billingConditions.push(sql`e.type = ${filter.status}`);
   const billingWhere = billingConditions.length
     ? sql`WHERE ${sql.join(billingConditions, sql` AND `)}`
     : sql``;
 
-  const sourceFilter = filter.source;
+  // A status filter only makes sense for billing rows — silently drop
+  // engine rows so the response is internally consistent.
+  const sourceFilter = filter.status ? "billing" : filter.source;
 
   // CTE: engine_runs + billing_events → UNION ALL → order + paginate.
   const query = sql`

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, or } from "drizzle-orm";
 import {
   db,
   harnessSessionsTable,
@@ -8,6 +8,7 @@ import {
   harnessFeatureStateTable,
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
+import { loadMembershipsForUser } from "../lib/orgs";
 import { CreateSessionBody, UpdateSessionBody } from "@workspace/api-zod";
 import type { Response } from "express";
 
@@ -39,10 +40,22 @@ export function serializeSession(s: typeof harnessSessionsTable.$inferSelect) {
     origin: s.origin,
     ingestionId: s.ingestionId,
     cartridgeId: s.cartridgeId,
+    orgId: s.orgId,
+    orgVisible: s.orgVisible,
+    userId: s.userId,
     preferredModelProvider: s.preferredModelProvider,
     createdAt: s.createdAt.toISOString(),
     updatedAt: s.updatedAt.toISOString(),
   };
+}
+
+async function memberOrgIds(userId: string): Promise<string[]> {
+  try {
+    const m = await loadMembershipsForUser(userId);
+    return m.map((x) => x.organizationId);
+  } catch {
+    return [];
+  }
 }
 
 function serializeFeatureState(f: typeof harnessFeatureStateTable.$inferSelect) {
@@ -126,10 +139,22 @@ async function loadArtifactRunMap(
 }
 
 router.get("/sessions", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.localUser!.id;
+  const orgIds = await memberOrgIds(userId);
+  // Owner can always see their sessions; org members get read-only access to
+  // any session pinned to one of their orgs AND marked org-visible.
+  const ownerClause = eq(harnessSessionsTable.userId, userId);
+  const orgClause =
+    orgIds.length > 0
+      ? and(
+          eq(harnessSessionsTable.orgVisible, true),
+          inArray(harnessSessionsTable.orgId, orgIds),
+        )
+      : undefined;
   const rows = await db
     .select()
     .from(harnessSessionsTable)
-    .where(eq(harnessSessionsTable.userId, req.localUser!.id))
+    .where(orgClause ? or(ownerClause, orgClause) : ownerClause)
     .orderBy(desc(harnessSessionsTable.updatedAt));
   res.json(rows.map(serializeSession));
 });
@@ -180,9 +205,32 @@ async function ownedSession(
   return rows[0];
 }
 
+/**
+ * Readable session: owner OR an org member of the session's `orgId` when the
+ * session is `orgVisible=true`. Used for read-only routes (GET detail,
+ * artifacts, feature-state). Mutating routes still use `ownedSession`.
+ */
+async function readableSession(
+  sessionId: string,
+  userId: string,
+): Promise<typeof harnessSessionsTable.$inferSelect | undefined> {
+  const rows = await db
+    .select()
+    .from(harnessSessionsTable)
+    .where(eq(harnessSessionsTable.id, sessionId))
+    .limit(1);
+  const s = rows[0];
+  if (!s) return undefined;
+  if (s.userId === userId) return s;
+  if (!s.orgVisible || !s.orgId) return undefined;
+  const orgIds = await memberOrgIds(userId);
+  if (!orgIds.includes(s.orgId)) return undefined;
+  return s;
+}
+
 router.get("/sessions/:id", requireAuth, async (req, res): Promise<void> => {
   const id = String(req.params.id);
-  const session = await ownedSession(id, req.localUser!.id);
+  const session = await readableSession(id, req.localUser!.id);
   if (!session) {
     res.status(404).json({ error: "Session not found" });
     return;
@@ -248,7 +296,7 @@ router.delete("/sessions/:id", requireAuth, async (req, res): Promise<void> => {
 
 router.get("/sessions/:id/feature-state", requireAuth, async (req, res): Promise<void> => {
   const id = String(req.params.id);
-  const session = await ownedSession(id, req.localUser!.id);
+  const session = await readableSession(id, req.localUser!.id);
   if (!session) {
     res.status(404).json({ error: "Session not found" });
     return;
@@ -263,7 +311,7 @@ router.get("/sessions/:id/feature-state", requireAuth, async (req, res): Promise
 
 router.get("/sessions/:id/artifacts", requireAuth, async (req, res): Promise<void> => {
   const id = String(req.params.id);
-  const session = await ownedSession(id, req.localUser!.id);
+  const session = await readableSession(id, req.localUser!.id);
   if (!session) {
     res.status(404).json({ error: "Session not found" });
     return;

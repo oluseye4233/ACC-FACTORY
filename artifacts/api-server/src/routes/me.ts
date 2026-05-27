@@ -198,10 +198,47 @@ router.post("/me/delete", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  // 3) Hard-delete local user — cascades to subscriber, sessions, artifacts, badges, engine runs.
+  // 3) If the user is the SOLE owner of any organization, refuse to delete —
+  //    organizations.createdByUserId is `onDelete: restrict` and the cascade
+  //    would otherwise fail at DB level with a confusing 500. Owner must
+  //    either promote a co-owner or delete/transfer the org first.
+  try {
+    const { db: orgsDb } = await import("@workspace/db");
+    const { organizationsTable, organizationMembersTable } = await import("@workspace/db");
+    const { eq: eq2, sql: sql2 } = await import("drizzle-orm");
+    const created = await orgsDb
+      .select({ id: organizationsTable.id, name: organizationsTable.name })
+      .from(organizationsTable)
+      .where(eq2(organizationsTable.createdByUserId, u.id));
+    const blockers: Array<{ id: string; name: string }> = [];
+    for (const o of created) {
+      const r = await orgsDb.execute(
+        sql2`SELECT COUNT(*)::int AS n FROM ${organizationMembersTable} WHERE organization_id = ${o.id} AND role = 'owner'`,
+      );
+      const n = Number(
+        ((r as unknown as { rows: Array<{ n: number }> }).rows[0]?.n ?? 0) as number,
+      );
+      if (n <= 1) blockers.push(o);
+    }
+    if (blockers.length > 0) {
+      res.status(409).json({
+        error:
+          "You are the sole owner of one or more organizations. Promote a co-owner or delete the organization first, then retry account deletion.",
+        code: "ORG_SOLE_OWNER",
+        organizations: blockers,
+      });
+      return;
+    }
+  } catch (err) {
+    req.log.error({ err }, "sole-owner check failed during account delete");
+    res.status(500).json({ error: "Could not verify organization ownership; please retry." });
+    return;
+  }
+
+  // 4) Hard-delete local user — cascades to subscriber, sessions, artifacts, badges, engine runs.
   await db.delete(usersTable).where(eq(usersTable.id, u.id));
 
-  // 4) Send goodbye email — best-effort.
+  // 5) Send goodbye email — best-effort.
   if (email) {
     try {
       const { sendAccountDeleted } = await import("@workspace/email");
