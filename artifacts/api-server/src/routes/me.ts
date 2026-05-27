@@ -169,27 +169,59 @@ router.post("/me/delete", requireAuth, async (req, res): Promise<void> => {
     const { db: orgsDb } = await import("@workspace/db");
     const { organizationsTable, organizationMembersTable } = await import("@workspace/db");
     const { sql: sql2 } = await import("drizzle-orm");
+    // Union: orgs where the user is currently `owner` (sole-owner check) +
+    // orgs where the user is `created_by_user_id` (FK is `onDelete: restrict`,
+    // so the local DELETE would otherwise fail AFTER we've already destroyed
+    // Stripe + Clerk state, stranding the user). For created-but-not-owned
+    // orgs, the only safe remediation is to delete the org first — so they
+    // are always blockers, regardless of owner count.
     const r = await orgsDb.execute(
       sql2`
-        SELECT
-          o.id AS id,
-          o.name AS name,
-          (
-            SELECT COUNT(*)::int FROM ${organizationMembersTable} om2
-            WHERE om2.organization_id = o.id AND om2.role = 'owner'
-          ) AS owner_count
-        FROM ${organizationMembersTable} om
-        JOIN ${organizationsTable} o ON o.id = om.organization_id
-        WHERE om.user_id = ${u.id} AND om.role = 'owner'
+        WITH owned AS (
+          SELECT
+            o.id,
+            o.name,
+            'owner'::text AS reason,
+            (
+              SELECT COUNT(*)::int FROM ${organizationMembersTable} om2
+              WHERE om2.organization_id = o.id AND om2.role = 'owner'
+            ) AS owner_count
+          FROM ${organizationMembersTable} om
+          JOIN ${organizationsTable} o ON o.id = om.organization_id
+          WHERE om.user_id = ${u.id} AND om.role = 'owner'
+        ),
+        created AS (
+          SELECT
+            o.id,
+            o.name,
+            'creator'::text AS reason,
+            0 AS owner_count
+          FROM ${organizationsTable} o
+          WHERE o.created_by_user_id = ${u.id}
+        )
+        SELECT id, name, reason, owner_count FROM owned
+        UNION
+        SELECT id, name, reason, owner_count FROM created
       `,
     );
     const rows =
       (r as unknown as {
-        rows: Array<{ id: string; name: string; owner_count: number | string }>;
+        rows: Array<{
+          id: string;
+          name: string;
+          reason: string;
+          owner_count: number | string;
+        }>;
       }).rows ?? [];
-    const blockers = rows
-      .filter((row) => Number(row.owner_count ?? 0) <= 1)
-      .map((row) => ({ id: row.id, name: row.name }));
+    const blockerMap = new Map<string, { id: string; name: string }>();
+    for (const row of rows) {
+      // Creator rows always block (FK is restrict). Owner rows only block when
+      // they're the SOLE owner.
+      if (row.reason === "creator" || Number(row.owner_count ?? 0) <= 1) {
+        blockerMap.set(row.id, { id: row.id, name: row.name });
+      }
+    }
+    const blockers = Array.from(blockerMap.values());
     if (blockers.length > 0) {
       res.status(409).json({
         error:
