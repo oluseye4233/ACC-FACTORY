@@ -23,7 +23,13 @@ export default function AcceptInvite() {
       setAccepted(res.organizationId);
       setTimeout(() => setLocation(`/orgs/${res.organizationId}`), 800);
     } catch (err) {
-      setError((err as Error).message);
+      const e = err as Error & { body?: { code?: string } };
+      const isSeatLimit = e.body?.code === "SEAT_LIMIT";
+      setError(
+        isSeatLimit
+          ? `${e.message} The org owner needs to add a seat before you can join.`
+          : e.message,
+      );
     } finally {
       setPending(false);
     }

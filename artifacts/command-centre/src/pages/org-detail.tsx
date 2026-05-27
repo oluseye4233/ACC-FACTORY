@@ -43,6 +43,7 @@ export default function OrgDetail() {
   const [inviteRole, setInviteRole] = useState<OrgRole>("member");
   const [seats, setSeats] = useState(1);
   const [interval, setInterval] = useState<"month" | "year">("month");
+  const [newSeatCount, setNewSeatCount] = useState<number | "">("");
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["/api/orgs", orgId, "members"] });
@@ -95,6 +96,18 @@ export default function OrgDetail() {
     },
     onError: (err: Error) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
   });
+  const updateSeats = useMutation({
+    mutationFn: (newSeats: number) =>
+      api.post<{ ok: true; seatsPurchased: number }>(`/api/orgs/${orgId}/billing/seats`, {
+        seats: newSeats,
+      }),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orgs", orgId] });
+      setNewSeatCount("");
+      toast({ title: "Seat count updated", description: `Now billed for ${res.seatsPurchased} seats.` });
+    },
+    onError: (err: Error) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
+  });
 
   if (orgQ.isLoading || !orgQ.data) {
     return (
@@ -119,6 +132,18 @@ export default function OrgDetail() {
   const myUserId = meQ.data?.id ?? null;
   const isOwner = org.role === "owner";
   const isActive = org.status === "active" || org.status === "trialing";
+  const membersCount = org.membersCount ?? membersQ.data?.length ?? 0;
+  const pendingInviteCount =
+    org.pendingInviteCount ??
+    invitesQ.data?.filter(
+      (iv) =>
+        !iv.acceptedAt && !iv.revokedAt && new Date(iv.expiresAt).getTime() > Date.now(),
+    ).length ??
+    0;
+  const seatsUsed = membersCount + pendingInviteCount;
+  const seatCapActive = isActive && org.seatsPurchased > 0;
+  const atCapacity = seatCapActive && seatsUsed >= org.seatsPurchased;
+  const overCapacity = seatCapActive && seatsUsed > org.seatsPurchased;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -134,20 +159,108 @@ export default function OrgDetail() {
             <strong className={isActive ? "text-primary" : ""}>{org.status}</strong>
             {org.seatsPurchased ? ` · ${org.seatsPurchased} seats` : ""}
           </p>
+          {seatCapActive && (
+            <div
+              className={`mt-3 border rounded p-3 text-sm font-mono ${
+                overCapacity
+                  ? "border-destructive/40 bg-destructive/5 text-destructive"
+                  : atCapacity
+                  ? "border-yellow-500/40 bg-yellow-500/5 text-yellow-700 dark:text-yellow-400"
+                  : "border-border bg-muted/30 text-muted-foreground"
+              }`}
+              data-testid="seat-usage"
+            >
+              <div className="flex items-baseline justify-between gap-3">
+                <span>
+                  <strong>{seatsUsed}</strong> / {org.seatsPurchased} seats used{" "}
+                  <span className="opacity-70">
+                    ({membersCount} member{membersCount === 1 ? "" : "s"}
+                    {pendingInviteCount > 0 ? ` + ${pendingInviteCount} pending invite${pendingInviteCount === 1 ? "" : "s"}` : ""})
+                  </span>
+                </span>
+                {isOwner && (atCapacity || overCapacity) && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const target = Math.max(seatsUsed + 1, org.seatsPurchased + 1);
+                      setNewSeatCount(target);
+                      document
+                        .getElementById("change-seats")
+                        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }}
+                  >
+                    BUY MORE SEATS
+                  </Button>
+                )}
+              </div>
+              {overCapacity && (
+                <p className="mt-2">
+                  You are over your seat limit. Add seats below or remove members to come back into compliance.
+                </p>
+              )}
+              {atCapacity && !overCapacity && (
+                <p className="mt-2">
+                  Seat limit reached — new invites will be refused until you add more seats.
+                </p>
+              )}
+            </div>
+          )}
         </header>
 
         {isOwner && (
           <section className="border border-border rounded-lg p-6 bg-card">
             <h2 className="font-display text-lg tracking-wider mb-4">TEAM SEAT SUBSCRIPTION</h2>
             {isActive ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <p className="text-sm font-mono text-muted-foreground">
                   Active subscription · {org.seatsPurchased} seats. Every member is elevated to{" "}
                   <strong className="text-primary">INSTITUTION</strong> tier.
                 </p>
-                <Button onClick={() => portal.mutate()} disabled={portal.isPending}>
-                  OPEN BILLING PORTAL
-                </Button>
+                <div id="change-seats" className="space-y-2">
+                  <label className="text-xs font-mono uppercase text-muted-foreground">
+                    Change seat count (prorated)
+                  </label>
+                  <div className="flex flex-col md:flex-row gap-3 items-start md:items-end">
+                    <div className="w-32">
+                      <Input
+                        type="number"
+                        min={Math.max(membersCount, 1)}
+                        max={500}
+                        value={newSeatCount}
+                        placeholder={String(org.seatsPurchased)}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setNewSeatCount(v === "" ? "" : Math.max(1, Number(v) || 1));
+                        }}
+                      />
+                    </div>
+                    <Button
+                      onClick={() => {
+                        if (typeof newSeatCount === "number" && newSeatCount > 0) {
+                          updateSeats.mutate(newSeatCount);
+                        }
+                      }}
+                      disabled={
+                        updateSeats.isPending ||
+                        typeof newSeatCount !== "number" ||
+                        newSeatCount === org.seatsPurchased
+                      }
+                    >
+                      {updateSeats.isPending ? "UPDATING…" : "UPDATE SEATS"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => portal.mutate()}
+                      disabled={portal.isPending}
+                    >
+                      OPEN BILLING PORTAL
+                    </Button>
+                  </div>
+                  <p className="text-xs font-mono text-muted-foreground">
+                    Minimum is current member count ({Math.max(membersCount, 1)}). Reductions are prorated against the current billing period.
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
@@ -270,10 +383,15 @@ export default function OrgDetail() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" disabled={createInvite.isPending}>
-                {createInvite.isPending ? "SENDING…" : "INVITE"}
+              <Button type="submit" disabled={createInvite.isPending || atCapacity}>
+                {createInvite.isPending ? "SENDING…" : atCapacity ? "SEAT LIMIT REACHED" : "INVITE"}
               </Button>
             </form>
+            {atCapacity && (
+              <p className="text-xs font-mono text-muted-foreground -mt-3 mb-4">
+                Invites are blocked while members + pending invites are at or above the seat cap. {isOwner ? "Use the section above to buy more seats." : "Ask an owner to buy more seats."}
+              </p>
+            )}
 
             {invitesQ.data && invitesQ.data.length > 0 && (
               <ul className="divide-y divide-border">

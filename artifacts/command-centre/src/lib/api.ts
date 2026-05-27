@@ -54,6 +54,8 @@ export type OrgRow = {
   createdAt: string;
   updatedAt: string;
   role: "owner" | "admin" | "member";
+  membersCount?: number;
+  pendingInviteCount?: number;
 };
 
 export type OrgMember = {

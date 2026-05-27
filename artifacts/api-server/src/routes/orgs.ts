@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import crypto from "node:crypto";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import {
   db,
@@ -47,6 +47,53 @@ const CheckoutBody = z.object({
 const PortalBody = z.object({
   returnUrl: z.string().optional(),
 });
+
+const UpdateSeatsBody = z.object({
+  seats: z.number().int().min(1).max(500),
+  prorationBehavior: z.enum(["create_prorations", "none", "always_invoice"]).default("create_prorations"),
+});
+
+/**
+ * Returns the current member count and the count of "live" invites
+ * (not accepted, not revoked, not expired) for an org. Used to enforce
+ * the per-org seat cap on invite creation/acceptance and to surface
+ * usage in the org detail page.
+ */
+async function loadSeatUsage(
+  orgId: string,
+): Promise<{ membersCount: number; pendingInviteCount: number }> {
+  const [m] = await db
+    .select({ n: sql<string>`COUNT(*)` })
+    .from(organizationMembersTable)
+    .where(eq(organizationMembersTable.organizationId, orgId));
+  const [p] = await db
+    .select({ n: sql<string>`COUNT(*)` })
+    .from(organizationInvitesTable)
+    .where(
+      and(
+        eq(organizationInvitesTable.organizationId, orgId),
+        isNull(organizationInvitesTable.acceptedAt),
+        isNull(organizationInvitesTable.revokedAt),
+        gt(organizationInvitesTable.expiresAt, new Date()),
+      ),
+    );
+  return {
+    membersCount: Number(m?.n ?? 0),
+    pendingInviteCount: Number(p?.n ?? 0),
+  };
+}
+
+/**
+ * Seat-cap enforcement is only meaningful when the org has an active
+ * team-seat subscription. Otherwise the org has no purchased seats and
+ * the cap doesn't apply.
+ */
+function seatCapActive(org: typeof organizationsTable.$inferSelect): boolean {
+  return (
+    (org.status === "active" || org.status === "trialing") &&
+    (org.seatsPurchased ?? 0) > 0
+  );
+}
 
 function serializeOrg(o: typeof organizationsTable.$inferSelect) {
   return {
@@ -147,7 +194,8 @@ router.get("/orgs/:id", requireAuth, async (req, res): Promise<void> => {
     res.status(404).json({ error: "Organization not found" });
     return;
   }
-  res.json({ ...serializeOrg(org), role });
+  const usage = await loadSeatUsage(id);
+  res.json({ ...serializeOrg(org), role, ...usage });
 });
 
 router.patch("/orgs/:id", requireAuth, async (req, res): Promise<void> => {
@@ -329,6 +377,29 @@ router.post("/orgs/:id/invites", requireAuth, async (req, res): Promise<void> =>
     res.status(403).json({ error: "Only owners can invite new owners" });
     return;
   }
+  const [orgRow] = await db
+    .select()
+    .from(organizationsTable)
+    .where(eq(organizationsTable.id, id))
+    .limit(1);
+  if (!orgRow) {
+    res.status(404).json({ error: "Organization not found" });
+    return;
+  }
+  if (seatCapActive(orgRow)) {
+    const usage = await loadSeatUsage(id);
+    const used = usage.membersCount + usage.pendingInviteCount;
+    if (used >= orgRow.seatsPurchased) {
+      res.status(409).json({
+        error: `Seat limit reached: ${used} / ${orgRow.seatsPurchased} seats used (members + pending invites). Buy more seats to invite again.`,
+        code: "SEAT_LIMIT",
+        seatsPurchased: orgRow.seatsPurchased,
+        membersCount: usage.membersCount,
+        pendingInviteCount: usage.pendingInviteCount,
+      });
+      return;
+    }
+  }
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
   const [created] = await db
@@ -419,6 +490,29 @@ router.post("/invites/:token/accept", requireAuth, async (req, res): Promise<voi
       error: `This invite was sent to ${invite.email}. Sign in with that email to accept.`,
     });
     return;
+  }
+  // Enforce the seat cap at acceptance time too — a 5-seat org with 5 live
+  // invites still must refuse a 6th body walking in the door. Existing members
+  // re-accepting their own invite (idempotent) are allowed to pass through.
+  const [orgRow] = await db
+    .select()
+    .from(organizationsTable)
+    .where(eq(organizationsTable.id, invite.organizationId))
+    .limit(1);
+  if (orgRow && seatCapActive(orgRow)) {
+    const alreadyMember = await memberRole(req.localUser!.id, invite.organizationId);
+    if (!alreadyMember) {
+      const usage = await loadSeatUsage(invite.organizationId);
+      if (usage.membersCount >= orgRow.seatsPurchased) {
+        res.status(409).json({
+          error: `This organization is at its seat limit (${usage.membersCount} / ${orgRow.seatsPurchased}). Ask an owner to buy more seats.`,
+          code: "SEAT_LIMIT",
+          seatsPurchased: orgRow.seatsPurchased,
+          membersCount: usage.membersCount,
+        });
+        return;
+      }
+    }
   }
   await db.transaction(async (tx) => {
     await tx
@@ -535,6 +629,74 @@ router.post("/orgs/:id/billing/portal", requireAuth, async (req, res): Promise<v
     return_url: parsed.data.returnUrl ?? `${origin}/orgs/${org.id}`,
   });
   res.json({ url: portal.url });
+});
+
+router.post("/orgs/:id/billing/seats", requireAuth, async (req, res): Promise<void> => {
+  const id = String(req.params.id);
+  const role = await requireMembership(res, req.localUser!.id, id, "owner");
+  if (!role) return;
+  const parsed = UpdateSeatsBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const [org] = await db.select().from(organizationsTable).where(eq(organizationsTable.id, id)).limit(1);
+  if (!org) {
+    res.status(404).json({ error: "Organization not found" });
+    return;
+  }
+  if (!org.stripeSubscriptionId) {
+    res.status(400).json({
+      error: "No active team subscription — start one via the CHECKOUT button first.",
+      code: "NO_SUBSCRIPTION",
+    });
+    return;
+  }
+  // Refuse to shrink below current occupancy — otherwise Stripe would happily
+  // bill the smaller quantity while the org still has 7 active members.
+  const usage = await loadSeatUsage(id);
+  const floor = Math.max(usage.membersCount, 1);
+  if (parsed.data.seats < floor) {
+    res.status(409).json({
+      error: `Cannot reduce seats to ${parsed.data.seats}: org has ${usage.membersCount} active member(s). Remove members first or pick at least ${floor}.`,
+      code: "SEATS_BELOW_OCCUPANCY",
+      membersCount: usage.membersCount,
+      minSeats: floor,
+    });
+    return;
+  }
+  let stripe;
+  try {
+    stripe = await getUncachableStripeClient();
+  } catch (err) {
+    req.log.error({ err }, "Stripe client unavailable");
+    res.status(503).json({ error: "Billing not configured" });
+    return;
+  }
+  try {
+    const sub = await stripe.subscriptions.retrieve(org.stripeSubscriptionId);
+    const item = sub.items.data[0];
+    if (!item) {
+      res.status(500).json({ error: "Subscription has no line items" });
+      return;
+    }
+    await stripe.subscriptions.update(org.stripeSubscriptionId, {
+      items: [{ id: item.id, quantity: parsed.data.seats }],
+      proration_behavior: parsed.data.prorationBehavior,
+    });
+  } catch (err) {
+    req.log.error({ err, orgId: id }, "Stripe seat-quantity update failed");
+    res.status(502).json({ error: "Stripe rejected the seat update", detail: (err as Error).message });
+    return;
+  }
+  // The Stripe webhook (customer.subscription.updated) is the source of truth
+  // for seatsPurchased, but write it eagerly here too so the UI reflects the
+  // change immediately instead of waiting for the webhook round-trip.
+  await db
+    .update(organizationsTable)
+    .set({ seatsPurchased: parsed.data.seats })
+    .where(eq(organizationsTable.id, id));
+  res.json({ ok: true, seatsPurchased: parsed.data.seats });
 });
 
 const OrgVisibilityBody = z.object({
