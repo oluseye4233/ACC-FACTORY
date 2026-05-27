@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 import { useParams, Link } from "wouter";
 import { TopNav } from "@/components/layout/TopNav";
 import { 
@@ -50,6 +51,24 @@ export default function SessionDetail() {
   const [activeEngineId, setActiveEngineId] = useState<number>(1);
   const [sequenceOpen, setSequenceOpen] = useState(false);
   const [trayOpen, setTrayOpen] = useState(false);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get<{ id: string }>("/api/me")
+      .then((m) => {
+        if (!cancelled) setMyUserId(m?.id ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const sessionAuthorId = (sessionData?.session as unknown as { userId?: string } | undefined)
+    ?.userId ?? null;
+  const isSessionOwner = Boolean(myUserId && sessionAuthorId && myUserId === sessionAuthorId);
 
   if (isError) {
     return (
@@ -181,7 +200,17 @@ export default function SessionDetail() {
               sessionId={session.id}
               initialOrgId={(session as unknown as { orgId?: string | null }).orgId ?? null}
               initialOrgVisible={(session as unknown as { orgVisible?: boolean }).orgVisible}
+              readOnly={!isSessionOwner}
             />
+          )}
+          {session && !isSessionOwner && sessionAuthorId && (
+            <span
+              className="hidden md:inline-flex items-center text-[10px] font-mono uppercase tracking-wider text-muted-foreground border border-dashed rounded px-2 py-1"
+              title={`Shared by author ${sessionAuthorId}`}
+              data-testid="badge-session-author"
+            >
+              shared · author {sessionAuthorId.slice(0, 8)}
+            </span>
           )}
           {/* Mobile-only: open Harness Sequence */}
           <Sheet open={sequenceOpen} onOpenChange={setSequenceOpen}>

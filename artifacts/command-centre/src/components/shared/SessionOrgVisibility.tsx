@@ -7,9 +7,14 @@ interface Props {
   sessionId: string;
   initialOrgId: string | null | undefined;
   initialOrgVisible: boolean | undefined;
+  /**
+   * When true (non-owner viewing a shared session), render a static
+   * read-only badge instead of the editable select + checkbox.
+   */
+  readOnly?: boolean;
 }
 
-export function SessionOrgVisibility({ sessionId, initialOrgId, initialOrgVisible }: Props) {
+export function SessionOrgVisibility({ sessionId, initialOrgId, initialOrgVisible, readOnly }: Props) {
   const [orgs, setOrgs] = useState<OrgRow[] | null>(null);
   const [orgId, setOrgId] = useState<string | "">(initialOrgId ?? "");
   const [visible, setVisible] = useState<boolean>(Boolean(initialOrgVisible));
@@ -17,6 +22,7 @@ export function SessionOrgVisibility({ sessionId, initialOrgId, initialOrgVisibl
   const { toast } = useToast();
 
   useEffect(() => {
+    if (readOnly) return;
     let cancelled = false;
     api
       .get<OrgRow[]>("/api/orgs")
@@ -29,7 +35,21 @@ export function SessionOrgVisibility({ sessionId, initialOrgId, initialOrgVisibl
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [readOnly]);
+
+  if (readOnly) {
+    if (!initialOrgId || !initialOrgVisible) return null;
+    return (
+      <div
+        className="hidden md:inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-primary border border-primary/30 bg-primary/5 rounded px-2 py-1"
+        data-testid="badge-session-org-visible"
+        title="Shared with your team"
+      >
+        <Users className="h-3 w-3" />
+        <span>Team visible</span>
+      </div>
+    );
+  }
 
   if (orgs === null) return null;
   if (orgs.length === 0) return null;
