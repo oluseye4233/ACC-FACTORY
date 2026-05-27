@@ -8,6 +8,7 @@ import {
   useDeleteMyAccount,
 } from "@workspace/api-client-react";
 import { TierBadge } from "@/components/shared/TierBadge";
+import { NotificationPreferences } from "@/components/shared/NotificationPreferences";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -221,6 +222,19 @@ export default function Account() {
                     <span className="font-mono text-sm text-primary">ADMIN</span>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Notifications */}
+            <Card data-testid="card-notifications">
+              <CardHeader>
+                <CardTitle className="font-display tracking-wider">NOTIFICATIONS</CardTitle>
+                <CardDescription className="font-mono">
+                  Control the weekly digest and billing alerts for your personal account.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <NotificationPreferences orgId={null} scopeLabel="Personal account" />
               </CardContent>
             </Card>
 

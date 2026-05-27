@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { api, type OrgInvite, type OrgMember, type OrgRow } from "@/lib/api";
+import { NotificationPreferences } from "@/components/shared/NotificationPreferences";
 
 type OrgRole = "owner" | "admin" | "member";
 
@@ -424,6 +425,17 @@ export default function OrgDetail() {
                 })}
               </ul>
             )}
+          </section>
+        )}
+
+        {isAdmin && (
+          <section className="border border-border rounded-lg p-6 bg-card">
+            <h2 className="font-display text-lg tracking-wider mb-4">NOTIFICATIONS</h2>
+            <p className="text-sm font-mono text-muted-foreground mb-4">
+              Your personal notification preferences for activity in <strong>{org.name}</strong>.
+              Each owner/admin manages their own toggles.
+            </p>
+            <NotificationPreferences orgId={org.id} scopeLabel={org.name} />
           </section>
         )}
 
