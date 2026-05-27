@@ -165,7 +165,7 @@ router.post("/sessions", requireAuth, async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const tier = req.subscriber?.tier ?? "EXPLORER";
+  const tier = req.effectiveTier ?? req.subscriber?.tier ?? "EXPLORER";
   if (rejectProviderIfExplorer(res, parsed.data.preferredModelProvider, tier)) return;
   const [created] = await db
     .insert(harnessSessionsTable)
@@ -271,7 +271,7 @@ router.patch("/sessions/:id", requireAuth, async (req, res): Promise<void> => {
   if (parsed.data.sessionName !== undefined) updates.sessionName = parsed.data.sessionName;
   if (parsed.data.status !== undefined) updates.status = parsed.data.status;
   if (parsed.data.preferredModelProvider !== undefined) {
-    const tier = req.subscriber?.tier ?? "EXPLORER";
+    const tier = req.effectiveTier ?? req.subscriber?.tier ?? "EXPLORER";
     if (rejectProviderIfExplorer(res, parsed.data.preferredModelProvider, tier)) return;
     updates.preferredModelProvider = parsed.data.preferredModelProvider;
   }

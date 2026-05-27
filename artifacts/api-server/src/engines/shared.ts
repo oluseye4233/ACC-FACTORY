@@ -251,7 +251,13 @@ export function resolveProvider(
   const requested: LlmProvider = isLlmProvider(bodyProvider)
     ? bodyProvider
     : sessionPreferred;
-  const tier = req.subscriber?.tier ?? "EXPLORER";
+  // Use effective tier (personal MAX active-org team membership) so a personal
+  // Explorer who belongs to an active team org is treated as Institution for
+  // provider-capability gating, matching the Stage 2 elevation rule.
+  const tier =
+    (req as Request & { effectiveTier?: string }).effectiveTier ??
+    req.subscriber?.tier ??
+    "EXPLORER";
   if (requested !== "claude" && tier === "EXPLORER") {
     throw new ProviderRequiresTierError(requested);
   }
