@@ -21,6 +21,7 @@ import {
 } from "@/components/shared/ProviderOverride";
 import { extractApiError } from "@/lib/sse";
 import { Download, Send } from "lucide-react";
+import { PublishToSphinxButton } from "@/components/shared/PublishToSphinxButton";
 import { downloadZip } from "@/lib/zipExport";
 
 const FORGE_STEPS = [
@@ -295,15 +296,32 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
                 )}
               </div>
               {spc && (
-                <Button
-                  onClick={exportSpc}
-                  size="sm"
-                  variant="outline"
-                  className="font-mono text-xs"
-                  data-testid="f5-export"
-                >
-                  <Download className="h-3 w-3 mr-1" /> EXPORT
-                </Button>
+                <div className="flex items-center gap-2">
+                  {latestArtifact?.id && (
+                    <PublishToSphinxButton
+                      artifactId={latestArtifact.id}
+                      artifactType="SPC"
+                      existing={
+                        (latestArtifact.artifactContent as {
+                          sphinxListing?: {
+                            listingId: string | null;
+                            listingUrl: string | null;
+                            publishedAt: string;
+                          };
+                        })?.sphinxListing ?? null
+                      }
+                    />
+                  )}
+                  <Button
+                    onClick={exportSpc}
+                    size="sm"
+                    variant="outline"
+                    className="font-mono text-xs"
+                    data-testid="f5-export"
+                  >
+                    <Download className="h-3 w-3 mr-1" /> EXPORT
+                  </Button>
+                </div>
               )}
             </div>
             {spc ? (

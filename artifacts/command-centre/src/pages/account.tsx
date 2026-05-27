@@ -9,6 +9,7 @@ import {
 } from "@workspace/api-client-react";
 import { TierBadge } from "@/components/shared/TierBadge";
 import { NotificationPreferences } from "@/components/shared/NotificationPreferences";
+import { SphinxConnect } from "@/components/shared/SphinxConnect";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -235,6 +236,25 @@ export default function Account() {
               </CardHeader>
               <CardContent>
                 <NotificationPreferences orgId={null} scopeLabel="Personal account" />
+              </CardContent>
+            </Card>
+
+            {/* Connected services */}
+            <Card data-testid="card-connected-services">
+              <CardHeader>
+                <CardTitle className="font-display tracking-wider">CONNECTED SERVICES</CardTitle>
+                <CardDescription className="font-mono">
+                  Link external platforms so you can publish HARNESS outputs to them
+                  directly from a session.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h3 className="font-mono text-xs font-bold uppercase tracking-wider mb-2">
+                    Ark.Onecraft Sphinx Marketplace
+                  </h3>
+                  <SphinxConnect />
+                </div>
               </CardContent>
             </Card>
 
