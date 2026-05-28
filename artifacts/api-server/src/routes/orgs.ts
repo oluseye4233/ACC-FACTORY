@@ -40,6 +40,7 @@ const CreateInviteBody = z.object({
 const CheckoutBody = z.object({
   interval: z.enum(["month", "year"]),
   seats: z.number().int().min(1).max(500),
+  plan: z.enum(["team", "team_lite"]).default("team"),
   successUrl: z.string().optional(),
   cancelUrl: z.string().optional(),
 });
@@ -542,14 +543,22 @@ router.post("/orgs/:id/billing/checkout", requireAuth, async (req, res): Promise
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const priceId =
-    parsed.data.interval === "year"
-      ? process.env.STRIPE_PRICE_TEAM_SEAT_YEARLY
-      : process.env.STRIPE_PRICE_TEAM_SEAT_MONTHLY;
+  // Pick the correct per-seat Stripe price for the requested plan + interval.
+  // 'team'      → INSTITUTION-equivalent elevation, unlimited F8.
+  // 'team_lite' → ARCHITECT-equivalent elevation, F8 capped at 2/day.
+  const priceEnvKey =
+    parsed.data.plan === "team_lite"
+      ? parsed.data.interval === "year"
+        ? "STRIPE_PRICE_TEAM_LITE_SEAT_YEARLY"
+        : "STRIPE_PRICE_TEAM_LITE_SEAT_MONTHLY"
+      : parsed.data.interval === "year"
+        ? "STRIPE_PRICE_TEAM_SEAT_YEARLY"
+        : "STRIPE_PRICE_TEAM_SEAT_MONTHLY";
+  const priceId = process.env[priceEnvKey];
   if (!priceId) {
-    res
-      .status(503)
-      .json({ error: `Team seat Stripe price not configured for ${parsed.data.interval}` });
+    res.status(503).json({
+      error: `${parsed.data.plan === "team_lite" ? "Team Lite" : "Team"} seat Stripe price not configured for ${parsed.data.interval} (${priceEnvKey} missing)`,
+    });
     return;
   }
   let stripe;
@@ -589,9 +598,14 @@ router.post("/orgs/:id/billing/checkout", requireAuth, async (req, res): Promise
     line_items: [{ price: priceId, quantity: parsed.data.seats }],
     success_url: parsed.data.successUrl ?? `${origin}/orgs/${org.id}?status=success`,
     cancel_url: parsed.data.cancelUrl ?? `${origin}/orgs/${org.id}?status=cancel`,
-    metadata: { kind: "team_subscription", orgId: org.id, seats: String(parsed.data.seats) },
+    metadata: {
+      kind: "team_subscription",
+      orgId: org.id,
+      seats: String(parsed.data.seats),
+      plan: parsed.data.plan,
+    },
     subscription_data: {
-      metadata: { kind: "team_subscription", orgId: org.id },
+      metadata: { kind: "team_subscription", orgId: org.id, plan: parsed.data.plan },
     },
   });
   res.json({ url: session.url ?? "" });

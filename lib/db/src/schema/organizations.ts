@@ -19,6 +19,14 @@ export type OrgMemberRole = (typeof ORG_MEMBER_ROLES)[number];
 
 export const ORG_SUBSCRIPTION_TIER = "INSTITUTION" as const;
 
+/**
+ * An org's seat-based subscription plan. `team` elevates active members to
+ * INSTITUTION (unlimited everything including F8); `team_lite` elevates them to
+ * ARCHITECT (unlimited F1–F7, F8 capped at 2/day per the ARCHITECT rate limit).
+ */
+export const ORG_PLANS = ["team", "team_lite"] as const;
+export type OrgPlan = (typeof ORG_PLANS)[number];
+
 export const organizationsTable = pgTable(
   "organizations",
   {
@@ -34,6 +42,7 @@ export const organizationsTable = pgTable(
     stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
     stripePriceId: varchar("stripe_price_id", { length: 255 }),
     seatsPurchased: integer("seats_purchased").notNull().default(0),
+    plan: text("plan").notNull().default("team").$type<OrgPlan>(),
     status: text("status").notNull().default("inactive"),
     currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
     cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),

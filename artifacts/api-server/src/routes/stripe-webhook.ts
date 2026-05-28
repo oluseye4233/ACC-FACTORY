@@ -30,13 +30,26 @@ const PRICE_TO_TIER: () => Record<string, SubscriberTier> = () => ({
   [process.env.STRIPE_PRICE_ARCHITECT_YEARLY ?? ""]: "ARCHITECT",
 });
 
-const TEAM_SEAT_PRICE_IDS = (): Set<string> => {
-  const out = new Set<string>();
+/**
+ * Maps each known team-seat Stripe price id to the org plan it confers.
+ *
+ * IMPORTANT: adding a new team-seat price env without registering it here
+ * will silently route the event into the personal-tier handler. Add it to
+ * BOTH this map AND the env docs in replit.md.
+ */
+const TEAM_SEAT_PRICE_IDS = (): Map<string, "team" | "team_lite"> => {
+  const out = new Map<string, "team" | "team_lite">();
   for (const k of [
     process.env.STRIPE_PRICE_TEAM_SEAT_MONTHLY,
     process.env.STRIPE_PRICE_TEAM_SEAT_YEARLY,
   ]) {
-    if (k) out.add(k);
+    if (k) out.set(k, "team");
+  }
+  for (const k of [
+    process.env.STRIPE_PRICE_TEAM_LITE_SEAT_MONTHLY,
+    process.env.STRIPE_PRICE_TEAM_LITE_SEAT_YEARLY,
+  ]) {
+    if (k) out.set(k, "team_lite");
   }
   return out;
 };
@@ -46,12 +59,13 @@ async function applyTeamSeatSubscription(
   tx: Tx,
   customerId: string,
   sub: Stripe.Subscription | null,
-  teamSeatPrices: Set<string>,
+  teamSeatPrices: Map<string, "team" | "team_lite">,
 ): Promise<boolean> {
   if (!sub) return false;
   const item = sub.items.data[0];
   const priceId = item?.price.id ?? "";
-  if (!teamSeatPrices.has(priceId)) {
+  const plan = teamSeatPrices.get(priceId);
+  if (!plan) {
     if (priceId) {
       req.log.warn(
         { priceId, customerId, subId: sub.id },
@@ -70,6 +84,7 @@ async function applyTeamSeatSubscription(
       stripeSubscriptionId: sub.id,
       stripePriceId: priceId,
       seatsPurchased: quantity,
+      plan,
       cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
       currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
     })

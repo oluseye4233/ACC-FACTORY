@@ -44,6 +44,11 @@ export default function OrgDetail() {
   const [inviteRole, setInviteRole] = useState<OrgRole>("member");
   const [seats, setSeats] = useState(1);
   const [interval, setInterval] = useState<"month" | "year">("month");
+  const [plan, setPlan] = useState<"team" | "team_lite">(() => {
+    if (typeof window === "undefined") return "team";
+    const p = new URLSearchParams(window.location.search).get("plan");
+    return p === "team_lite" ? "team_lite" : "team";
+  });
   const [newSeatCount, setNewSeatCount] = useState<number | "">("");
 
   const invalidate = () => {
@@ -83,7 +88,7 @@ export default function OrgDetail() {
     onError: (err: Error) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
   });
   const checkout = useMutation({
-    mutationFn: (input: { seats: number; interval: "month" | "year" }) =>
+    mutationFn: (input: { seats: number; interval: "month" | "year"; plan: "team" | "team_lite" }) =>
       api.post<{ url: string }>(`/api/orgs/${orgId}/billing/checkout`, input),
     onSuccess: (res) => {
       if (res.url) window.location.href = res.url;
@@ -266,9 +271,23 @@ export default function OrgDetail() {
             ) : (
               <div className="space-y-3">
                 <p className="text-sm font-mono text-muted-foreground">
-                  Start a team-seat subscription. Each seat elevates one member to INSTITUTION.
+                  Start a team-seat subscription. <strong>TEAM</strong> elevates each seat to
+                  INSTITUTION (unlimited everything, incl. F8). <strong>TEAM LITE</strong> elevates
+                  each seat to ARCHITECT (unlimited F1–F7, 2 F8/day per member).
                 </p>
-                <div className="flex flex-col md:flex-row gap-3 items-end">
+                <div className="flex flex-col md:flex-row gap-3 items-end flex-wrap">
+                  <div className="w-44">
+                    <label className="text-xs font-mono uppercase text-muted-foreground">Plan</label>
+                    <Select value={plan} onValueChange={(v) => setPlan(v as "team" | "team_lite")}>
+                      <SelectTrigger data-testid="select-plan">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="team_lite">Team Lite (ARCHITECT)</SelectItem>
+                        <SelectItem value="team">Team (INSTITUTION)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="w-32">
                     <label className="text-xs font-mono uppercase text-muted-foreground">Seats</label>
                     <Input
@@ -291,7 +310,7 @@ export default function OrgDetail() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button onClick={() => checkout.mutate({ seats, interval })} disabled={checkout.isPending}>
+                  <Button onClick={() => checkout.mutate({ seats, interval, plan })} disabled={checkout.isPending}>
                     {checkout.isPending ? "REDIRECTING…" : "CHECKOUT"}
                   </Button>
                 </div>

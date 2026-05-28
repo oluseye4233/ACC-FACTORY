@@ -319,59 +319,98 @@ export default function Pricing() {
           </div>
         </section>
 
-        {/* Team / seat-based subscription */}
+        {/* Team / seat-based subscriptions — two flavours side by side */}
         <section className="pb-10">
           <div className="container px-4 md:px-6 max-w-5xl">
-            <div className="rounded-lg border bg-card overflow-hidden">
-              <div className="grid md:grid-cols-[1fr_auto] gap-6 p-6 md:p-8 items-center">
-                <div>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-primary mb-3">
-                    <Users className="h-3 w-3" />
-                    TEAMS · PER-SEAT BILLING · ELEVATES MEMBERS TO INSTITUTION
-                  </div>
-                  <h3 className="font-display text-2xl md:text-3xl tracking-wider mb-2">
-                    TEAM SUBSCRIPTION <span className="text-primary">— PER SEAT</span>
-                  </h3>
-                  <p className="font-serif text-muted-foreground leading-relaxed mb-4 max-w-2xl">
-                    Buy seats for your organisation and every active member is automatically
-                    elevated to the <strong>INSTITUTION</strong> tier — unlimited engine runs,
-                    shared session visibility, and a per-org Activity audit log for owners and
-                    admins. Manage seats and billing from the Stripe customer portal at any time.
-                  </p>
-                  <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-muted-foreground mb-2">
-                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Per-seat monthly or yearly billing</li>
-                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Active members → INSTITUTION tier</li>
-                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Per-org Activity audit log + CSV export</li>
-                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Share sessions across the team</li>
-                  </ul>
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* TEAM LITE */}
+              <div className="rounded-lg border bg-card overflow-hidden p-6 md:p-7 flex flex-col">
+                <div className="inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-secondary mb-3 self-start">
+                  <Users className="h-3 w-3" />
+                  TEAM LITE · ELEVATES TO ARCHITECT
                 </div>
-                <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
-                  <Button
-                    onClick={() => {
-                      if (!BILLING_ENABLED) {
-                        window.location.href = `mailto:${ACCESS_REQUEST_EMAIL}?subject=${encodeURIComponent(
-                          "Early access — Team subscription",
-                        )}&body=${encodeURIComponent(
-                          "Hello,\n\nWe'd like early access to the ATANDA Command Centre Team subscription.\n\nOrganisation:\nApprox. seat count:\nUse case:\n\nThank you.",
-                        )}`;
-                        return;
-                      }
-                      if (!isSignedIn) {
-                        setLocation("/sign-in");
-                        return;
-                      }
-                      setLocation("/orgs");
-                    }}
-                    variant="default"
-                    className="font-display tracking-wider"
-                    data-testid="button-team-checkout"
-                  >
-                    {BILLING_ENABLED ? "MANAGE TEAMS" : "REQUEST ACCESS"}
-                  </Button>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                    Create or pick an org to checkout
-                  </span>
+                <h3 className="font-display text-xl md:text-2xl tracking-wider mb-1">
+                  TEAM LITE <span className="text-secondary">— PER SEAT</span>
+                </h3>
+                <p className="font-mono text-xs text-muted-foreground mb-3">
+                  From <span className="text-foreground font-bold">$99/seat/month</span>
+                </p>
+                <p className="font-serif text-sm text-muted-foreground leading-relaxed mb-4">
+                  Each active member is elevated to the <strong>ARCHITECT</strong> tier —
+                  unlimited F1–F7 and 2 F8 Code DJ runs per day. Best for small teams who
+                  want collaboration without uncapped F8 scaffolding.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground mb-5 flex-1">
+                  <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary shrink-0 mt-0.5" /> Active members → ARCHITECT tier</li>
+                  <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary shrink-0 mt-0.5" /> Unlimited F1–F7, 2 F8/day per member</li>
+                  <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary shrink-0 mt-0.5" /> Per-org Activity audit log + CSV export</li>
+                  <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary shrink-0 mt-0.5" /> Share sessions across the team</li>
+                </ul>
+                <Button
+                  onClick={() => {
+                    if (!BILLING_ENABLED) {
+                      window.location.href = `mailto:${ACCESS_REQUEST_EMAIL}?subject=${encodeURIComponent(
+                        "Early access — Team Lite subscription",
+                      )}`;
+                      return;
+                    }
+                    if (!isSignedIn) {
+                      setLocation("/sign-in");
+                      return;
+                    }
+                    setLocation("/orgs?plan=team_lite");
+                  }}
+                  variant="outline"
+                  className="font-display tracking-wider w-full"
+                  data-testid="button-team-lite-checkout"
+                >
+                  {BILLING_ENABLED ? "PICK A TEAM" : "REQUEST ACCESS"}
+                </Button>
+              </div>
+
+              {/* TEAM */}
+              <div className="rounded-lg border-2 border-primary/60 bg-card overflow-hidden p-6 md:p-7 flex flex-col">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-primary mb-3 self-start">
+                  <Users className="h-3 w-3" />
+                  TEAM · ELEVATES TO INSTITUTION
                 </div>
+                <h3 className="font-display text-xl md:text-2xl tracking-wider mb-1">
+                  TEAM <span className="text-primary">— PER SEAT</span>
+                </h3>
+                <p className="font-mono text-xs text-muted-foreground mb-3">
+                  From <span className="text-foreground font-bold">$149/seat/month</span>
+                </p>
+                <p className="font-serif text-sm text-muted-foreground leading-relaxed mb-4">
+                  Each active member is elevated to the <strong>INSTITUTION</strong> tier —
+                  unlimited engine runs across every engine, including F8 Code DJ. Best for
+                  teams shipping codebases at volume.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground mb-5 flex-1">
+                  <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Active members → INSTITUTION tier</li>
+                  <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Unlimited everything, including F8 Code DJ</li>
+                  <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Per-org Activity audit log + CSV export</li>
+                  <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Share sessions across the team</li>
+                </ul>
+                <Button
+                  onClick={() => {
+                    if (!BILLING_ENABLED) {
+                      window.location.href = `mailto:${ACCESS_REQUEST_EMAIL}?subject=${encodeURIComponent(
+                        "Early access — Team subscription",
+                      )}`;
+                      return;
+                    }
+                    if (!isSignedIn) {
+                      setLocation("/sign-in");
+                      return;
+                    }
+                    setLocation("/orgs?plan=team");
+                  }}
+                  variant="default"
+                  className="font-display tracking-wider w-full"
+                  data-testid="button-team-checkout"
+                >
+                  {BILLING_ENABLED ? "PICK A TEAM" : "REQUEST ACCESS"}
+                </Button>
               </div>
             </div>
           </div>

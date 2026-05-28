@@ -4,6 +4,7 @@ import {
   organizationMembersTable,
   organizationsTable,
   type OrgMemberRole,
+  type OrgPlan,
   type Organization,
   type SubscriberTier,
 } from "@workspace/db";
@@ -22,6 +23,7 @@ export interface MembershipRow {
   role: OrgMemberRole;
   orgStatus: string;
   seatsPurchased: number;
+  plan: OrgPlan;
 }
 
 /**
@@ -37,6 +39,7 @@ export async function loadMembershipsForUser(userId: string): Promise<Membership
       role: organizationMembersTable.role,
       orgStatus: organizationsTable.status,
       seatsPurchased: organizationsTable.seatsPurchased,
+      plan: organizationsTable.plan,
     })
     .from(organizationMembersTable)
     .innerJoin(
@@ -49,20 +52,32 @@ export async function loadMembershipsForUser(userId: string): Promise<Membership
 }
 
 /**
- * Effective tier = max(personalTier, INSTITUTION-if-in-any-active-team-org).
- * An "active" team org is one with sub status in {active, trialing}.
+ * Effective tier = max(personalTier, best-of(active org elevations)).
+ *
+ * Each active org membership confers a tier based on the org's plan:
+ *   - plan = 'team'      → INSTITUTION (unlimited everything, incl. F8)
+ *   - plan = 'team_lite' → ARCHITECT   (unlimited F1–F7, F8 capped at 2/day)
+ *
+ * "Active" means org sub status in {active, trialing}. The user always
+ * benefits from the highest-ranked tier across their personal tier + every
+ * active membership.
  */
 export function effectiveTier(
   personalTier: SubscriberTier,
   memberships: MembershipRow[],
 ): SubscriberTier {
-  const orgElevation = memberships.some(
-    (m) => m.orgStatus === "active" || m.orgStatus === "trialing",
-  );
-  if (!orgElevation) return personalTier;
-  return TIER_RANK[personalTier] >= TIER_RANK["INSTITUTION"]
-    ? personalTier
-    : "INSTITUTION";
+  let best: SubscriberTier = personalTier;
+  for (const m of memberships) {
+    if (m.orgStatus !== "active" && m.orgStatus !== "trialing") continue;
+    // Whitelist plan → conferred tier. Unknown plan values confer NO elevation
+    // (fail-closed) so an out-of-band bad write to organizations.plan can never
+    // silently over-elevate a member to INSTITUTION.
+    let conferred: SubscriberTier | null = null;
+    if (m.plan === "team") conferred = "INSTITUTION";
+    else if (m.plan === "team_lite") conferred = "ARCHITECT";
+    if (conferred && TIER_RANK[conferred] > TIER_RANK[best]) best = conferred;
+  }
+  return best;
 }
 
 /**
