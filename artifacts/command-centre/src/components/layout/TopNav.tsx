@@ -22,6 +22,7 @@ const SIGNED_IN_LINKS: Array<{ href: string; label: string }> = [
   { href: "/quests", label: "Quests" },
   { href: "/orgs", label: "Teams" },
   { href: "/me/activity", label: "Activity" },
+  { href: "/me/costs", label: "Costs" },
   { href: "/demo", label: "Demo" },
   { href: "/pricing", label: "Pricing" },
   { href: "/billing", label: "Billing" },

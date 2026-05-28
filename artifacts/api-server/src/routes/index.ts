@@ -16,6 +16,7 @@ import ingestRouter from "./ingest";
 import cartridgeRouter from "./cartridge";
 import orgsRouter from "./orgs";
 import activityRouter from "./activity";
+import costRouter from "./cost";
 import notificationsRouter from "./notifications";
 import integrationsRouter from "./integrations";
 
@@ -38,6 +39,7 @@ router.use(ingestRouter);
 router.use(cartridgeRouter);
 router.use(orgsRouter);
 router.use(activityRouter);
+router.use(costRouter);
 router.use(notificationsRouter);
 router.use(integrationsRouter);
 

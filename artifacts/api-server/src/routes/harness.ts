@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db, harnessSessionsTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { rateLimit, requireTier } from "../lib/tier";
+import { requireCostBudget } from "../lib/cost-budget";
 import { handleF1 } from "../engines/f1";
 import { handleF2 } from "../engines/f2";
 import { handleF3Stream } from "../engines/f3";
@@ -36,15 +37,21 @@ async function requireAspeBadge(
   res.status(403).json({ error: "ASPE badge required", detail: "Unlock ASPE (≥3 SPCs + ≥4 MAs) to evolve." });
 }
 
-router.post("/harness/f1", requireAuth, rateLimit(1), handleF1);
-router.post("/harness/f2", requireAuth, rateLimit(2), handleF2);
-router.post("/harness/f3", requireAuth, rateLimit(3), handleF3Stream);
-router.post("/harness/f4", requireAuth, rateLimit(4), handleF4);
+// Note: `requireCostBudget` is mounted AFTER `rateLimit` so the rate-limit
+// ledger does not tick for a request that we're about to refuse, and BEFORE
+// the engine handler so a cap-hit user never burns LLM tokens. It applies to
+// every engine route — there is no tier exemption (INSTITUTION has a $2000
+// monthly default which is effectively unlimited for normal use).
+router.post("/harness/f1", requireAuth, rateLimit(1), requireCostBudget, handleF1);
+router.post("/harness/f2", requireAuth, rateLimit(2), requireCostBudget, handleF2);
+router.post("/harness/f3", requireAuth, rateLimit(3), requireCostBudget, handleF3Stream);
+router.post("/harness/f4", requireAuth, rateLimit(4), requireCostBudget, handleF4);
 router.post(
   "/harness/f5",
   requireAuth,
   requireTier("PRACTITIONER"),
   rateLimit(5),
+  requireCostBudget,
   handleF5,
 );
 router.post(
@@ -52,12 +59,14 @@ router.post(
   requireAuth,
   requireTier("PRACTITIONER"),
   rateLimit(6),
+  requireCostBudget,
   handleF6,
 );
 router.post(
   "/harness/f6-vdj",
   requireAuth,
   requireTier("PRACTITIONER"),
+  requireCostBudget,
   handleF6Vdj,
 );
 router.post(
@@ -65,6 +74,7 @@ router.post(
   requireAuth,
   requireTier("PRACTITIONER"),
   rateLimit(7),
+  requireCostBudget,
   handleF7Stream,
 );
 
@@ -73,6 +83,7 @@ router.post(
   requireAuth,
   requireTier("ARCHITECT"),
   rateLimit(8),
+  requireCostBudget,
   handleF8CodeDj,
 );
 
@@ -80,6 +91,7 @@ router.post(
   "/harness/atlas-crystallise",
   requireAuth,
   requireTier("PRACTITIONER"),
+  requireCostBudget,
   handleAtlasCrystallise,
 );
 
@@ -87,6 +99,7 @@ router.post(
   "/harness/pfp",
   requireAuth,
   requireTier("PRACTITIONER"),
+  requireCostBudget,
   handlePfp,
 );
 
@@ -95,6 +108,7 @@ router.post(
   requireAuth,
   requireTier("PRACTITIONER"),
   requireAspeBadge,
+  requireCostBudget,
   handleEvolve,
 );
 

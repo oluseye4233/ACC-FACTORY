@@ -114,4 +114,26 @@ export function rateLimit(featureId: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) {
   };
 }
 
-export { TIER_RANK, RATE_LIMITS };
+// ─── Monthly LLM cost caps (USD) ──────────────────────────────────────────
+//
+// Per-tier ceiling on summed `harness_engine_runs.cost_usd` for the current
+// calendar month (UTC). The cap is a runaway-spend guard, not the expected
+// usage — defaults are sized at roughly 5–10× the LLM cost of a power user
+// fully exercising their daily rate-limits for a month, so a normal user
+// will never see the gate but a stuck-loop or compromised account will.
+//
+// An individual subscriber row can override its own cap via
+// `subscribers.monthly_cost_cap_usd_override` (admin-set; see
+// `/api/admin/subscribers/:userId/cost-cap`). NULL override → tier default.
+//
+// Reading `tier` here is the EFFECTIVE tier (personal max'd against any
+// active team-seat org sub), matching how `requireTier` and `rateLimit`
+// resolve tier.
+const MONTHLY_COST_CAP_USD: Record<SubscriberTier, number> = {
+  EXPLORER: 2,
+  PRACTITIONER: 50,
+  ARCHITECT: 250,
+  INSTITUTION: 2000,
+};
+
+export { TIER_RANK, RATE_LIMITS, MONTHLY_COST_CAP_USD };

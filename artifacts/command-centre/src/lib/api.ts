@@ -94,6 +94,33 @@ export type ActivityRow = {
   eventId: string | null;
 };
 
+export type CostSummary = {
+  tier: "EXPLORER" | "PRACTITIONER" | "ARCHITECT" | "INSTITUTION";
+  effectiveTier: "EXPLORER" | "PRACTITIONER" | "ARCHITECT" | "INSTITUTION";
+  monthToDate: {
+    usedUsd: number;
+    capUsd: number;
+    percentUsed: number;
+    overCap: boolean;
+    tierDefaultUsd: number;
+    overrideUsd: number | null;
+  };
+  dailyBreakdown: Array<{ date: string; costUsd: number; runs: number }>;
+  byEngine: Array<{ engineId: number; costUsd: number; runs: number }>;
+  recentRuns: Array<{
+    id: string;
+    ts: string;
+    engineId: number;
+    sessionId: string;
+    provider: string;
+    modelId: string;
+    inputTokens: number;
+    outputTokens: number;
+    costUsd: number;
+    durationMs: number;
+  }>;
+};
+
 export type ActivityResponse = {
   rows: ActivityRow[];
   total: number;

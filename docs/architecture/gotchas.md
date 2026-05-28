@@ -24,6 +24,13 @@ Non-obvious traps. The top-5 most-frequently-relevant ones stay inline in `repli
 - **Quest badges are computed live**, not stored. `lib/badges.ts#computeBadgeProgress` re-counts SPCs / MAs / PDDs on every `/me/badges` call. Only AISE persists a row (after URL verification) in `command_centre_badges`.
 - **AISE URL verifier blocks private IPs.** `lib/badges.ts#headOk` resolves the hostname and refuses RFC1918 / loopback / link-local / metadata (169.254.169.254) / CGNAT / multicast addresses, and rejects anything that is not `https:`. Do not relax this without a deliberate SSRF review.
 
+## Cost cap
+
+- **Cost cap is fail-open on lookup failure.** `requireCostBudget` swallows DB errors from the monthly-SUM query and lets the request through (logged as warn) so a transient DB blip cannot lock the whole portal out. This is deliberate — flipping it to fail-closed must be a conscious decision, and the rate-limit gates still apply in the meantime.
+- **Cost cap window is UTC calendar month.** A user in UTC-8 hitting their cap at 6pm local on the 31st will see the cap reset at 4pm local on the 1st, not at local midnight. Don't try to "fix" this by switching to user-local time without also moving the daily-rate-limit reset clock — they should stay aligned.
+- **Adding a new engine route?** Mount `requireCostBudget` AFTER `rateLimit` and BEFORE the handler. Forgetting it leaves a hole in the runaway-spend guard; no test will catch it.
+- **Override is a string in the DB, a number on the wire.** `subscribers.monthly_cost_cap_usd_override` is `numeric(12,2)` so Drizzle reads it back as a string. `effectiveCostCapUsd` coerces with `Number(...)` and rejects negatives / non-finite values, falling back to the tier default — passing a non-numeric override won't crash anything, it'll just look like no override at all.
+
 ## Build / runtime
 
 - **PDFKit needs `@swc/helpers`.** `pdfkit`'s embedded `fontkit` does `require("@swc/helpers/cjs/_define_property.cjs")` from the bundled output, so `@swc/helpers` must be present as a real `dependency` of `@workspace/api-server` — esbuild does not pull it in transitively.

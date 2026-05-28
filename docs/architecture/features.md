@@ -94,6 +94,22 @@ Ingestion is billed **per project, not by subscription tier**. Gating is **NOT**
 
 `POST /api/ingest` atomically claims one available credit at the start of the request via `UPDATE ... WHERE id = (SELECT ... FOR UPDATE SKIP LOCKED)` (in `lib/ingestion-credits.ts#claimIngestionCredit`); on any error path the credit is released back to `available` so a fluke doesn't burn the purchase; on success it's linked to the resulting `ingestion_documents.id`. `start-session` is **not** charged again — the credit pays for the full document → PWDD session. `GET /api/ingestion-credits` returns `{available, consumed, total}`.
 
+## Per-user LLM cost dashboard + monthly cap
+
+Runaway-spend guard sitting in front of every HARNESS engine. Two pieces — a passive dashboard at `/me/costs` and an active middleware (`requireCostBudget`) on every engine route.
+
+**Cap source of truth.** `MONTHLY_COST_CAP_USD` in `artifacts/api-server/src/lib/tier.ts` defines tier defaults (EXPLORER $2, PRACTITIONER $50, ARCHITECT $250, INSTITUTION $2000). Each row in `command_centre_subscribers` has a nullable `monthly_cost_cap_usd_override numeric(12,2)` column; non-null wins. `effectiveCostCapUsd(sub, effectiveTier)` in `lib/cost-budget.ts` resolves the pair. Tier read is always the **effective** tier (personal max'd against active team-seat orgs) so a Team Lite seat-holder uses the ARCHITECT cap even when their personal subscriber row says EXPLORER.
+
+**Live SUM, no cached counter.** `currentMonthCostForUser(userId)` runs `SUM(cost_usd) FROM harness_engine_runs WHERE user_id = $1 AND created_at >= date_trunc('month', now() at time zone 'utc')`. Backed by the `harness_engine_runs_user_created_idx` composite index — adds ~3–5 ms per engine call, no drift risk vs. a cached counter, and no monthly-reset cron job to maintain. The cap window is the calendar month UTC; reset is implicit (the SUM filter rolls forward).
+
+**Middleware placement.** `requireCostBudget` is mounted AFTER `rateLimit` on every harness route (F1–F8 + ATLAS J + PFP + DE-SPC `evolve`) so the rate-limit ledger does not tick for a request we're about to refuse. Refuses with HTTP 402 `{code:'COST_CAP_EXCEEDED', usedUsd, capUsd, tierDefaultUsd, overrideUsd, detail}`. **DB blip fallback is fail-open** — if the SUM query throws, the request is allowed through (logged as warn) so a transient DB issue doesn't lock every paying user out; the personal rate-limit gates still apply.
+
+**Endpoints.** `GET /api/me/cost-summary` returns the caller's `{tier, effectiveTier, monthToDate:{usedUsd,capUsd,percentUsed,overCap,tierDefaultUsd,overrideUsd}, dailyBreakdown:[{date,costUsd,runs}*30], byEngine:[{engineId,costUsd,runs}], recentRuns:[{...}*20]}`. `PATCH /api/admin/subscribers/:userId/cost-cap` (admin-only) sets or clears the override with body `{monthlyCostCapUsdOverride: number|null}` — `null` returns the user to the tier default. Both routes are out-of-spec (precedent: orgs/activity/cartridge).
+
+**Frontend.** `/me/costs` (signed-in nav link "Costs") shows the cap meter (green → amber at 80% → red at 100%), a 30-day daily-cost bar chart, a per-engine month-to-date table, and the most recent 20 runs with session deep-links. Auto-refreshes every 60s.
+
+**Out of scope (V1).** No 80%-threshold cross email — relies on the existing per-run `highCostThresholdUsd` notification path for spike alerts and on the dashboard for trend awareness. Add `notification-dispatch.ts#maybeDispatchCostCapWarning` if monthly threshold-cross alerts become needed.
+
 ## Senior badges + Context Craft mini-quests
 
 **Senior badges (Advanced Systems).** Two reputational top-end badges sit above the ASPE/AISA/AISE trio on `/quests`. Stored ids are deliberately disambiguated from the legacy trio:

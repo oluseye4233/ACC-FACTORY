@@ -1,4 +1,4 @@
-import { boolean, integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, numeric, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -29,6 +29,15 @@ export const commandCentreSubscribersTable = pgTable("command_centre_subscribers
   f7Today: integer("f7_today").notNull().default(0),
   f8Today: integer("f8_today").notNull().default(0),
   limitsResetAt: timestamp("limits_reset_at", { withTimezone: true }).notNull().defaultNow(),
+
+  // Per-subscriber monthly LLM cost cap override (USD). NULL = use the tier
+  // default from MONTHLY_COST_CAP_USD in lib/tier.ts. Admins can set this to
+  // raise (or temporarily lower) a specific account's runaway-spend ceiling
+  // without changing the tier defaults for everyone else.
+  monthlyCostCapUsdOverride: numeric("monthly_cost_cap_usd_override", {
+    precision: 12,
+    scale: 2,
+  }),
 
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })

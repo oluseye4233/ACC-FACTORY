@@ -78,6 +78,7 @@ The complete list is in [`docs/architecture/gotchas.md`](docs/architecture/gotch
 3. **Stripe webhook is idempotent.** Event ids land in `stripe_webhook_events` (PK on `event_id`); replays return `{ok:true, replay:true}`. If a handler throws, the idempotency row rolls back so Stripe can legitimately retry.
 4. **OpenAPI / generated Zod is operationId-shaped.** Use `CreateSessionBody.safeParse(req.body)`, not `SessionInput`. Never name a component `<OperationIdPascal>Body` or use inline request bodies (TS2308).
 5. **PFP `counts` and `verdict` are recomputed server-side** from `findings` before persisting — the model's self-reported numbers are ignored, otherwise contradictory output silently bypasses the F8 drift gate.
+6. **Every engine route mounts `requireCostBudget` AFTER `rateLimit`.** Monthly LLM cost cap (live SUM over `harness_engine_runs.cost_usd` for the current UTC month) returns `402 COST_CAP_EXCEEDED` when hit. Tier defaults in `MONTHLY_COST_CAP_USD` (`lib/tier.ts`), per-subscriber override on `subscribers.monthly_cost_cap_usd_override` (admin sets via `PATCH /api/admin/subscribers/:userId/cost-cap`). Adding a new engine route without this middleware leaves a hole in the runaway-spend guard.
 
 ## Pointers
 

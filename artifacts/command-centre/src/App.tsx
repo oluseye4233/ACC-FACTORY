@@ -43,6 +43,7 @@ import Orgs from "@/pages/orgs";
 import OrgDetail from "@/pages/org-detail";
 import AcceptInvite from "@/pages/accept-invite";
 import Activity from "@/pages/activity";
+import MeCosts from "@/pages/me-costs";
 import { DEMO_MODE } from "@/lib/demo-mode";
 import { DemoBanner } from "@/components/DemoBanner";
 
@@ -239,6 +240,7 @@ function ClerkProviderWithRoutes() {
             <Route path="/orgs/:id" component={() => <ProtectedRoute component={OrgDetail} />} />
             <Route path="/accept-invite/:token" component={AcceptInvite} />
             <Route path="/me/activity" component={() => <ProtectedRoute component={Activity} />} />
+            <Route path="/me/costs" component={() => <ProtectedRoute component={MeCosts} />} />
             <Route path="/exemplars" component={Exemplars} />
             <Route path="/exemplars/:id" component={Exemplars} />
 
