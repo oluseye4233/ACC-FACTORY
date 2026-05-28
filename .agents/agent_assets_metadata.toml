@@ -150,3 +150,9 @@ id = "1wchqsAzRkdGodhatueGH"
 uri = "file://docs/architecture/llm-cost-guardrail.md"
 type = "text"
 title = "LLM Usage Guardrail Policy"
+
+[[outputs]]
+id = "bM5cm-fjSjxW9vaUISQW_"
+uri = "file://exports/atanda_cc_safe_transformation_guide.pdf"
+type = "pdf"
+title = "AI Transformation with the ATANDA Command Centre — SAFe Practitioner's Guide"
