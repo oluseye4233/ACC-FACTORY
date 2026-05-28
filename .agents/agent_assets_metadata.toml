@@ -144,3 +144,9 @@ id = "IdAdokvNy9Q81mEFiKhfs"
 uri = "file://docs/ATANDA_Command_Centre_MVP_PDD_SPARTAN.md"
 type = "text"
 title = "ATANDA Command Centre — SPARTAN MVP PDD (Markdown)"
+
+[[outputs]]
+id = "1wchqsAzRkdGodhatueGH"
+uri = "file://docs/architecture/llm-cost-guardrail.md"
+type = "text"
+title = "LLM Usage Guardrail Policy"
