@@ -1,8 +1,8 @@
 import { describe, test, expect } from "vitest";
 import { effectiveTier, type MembershipRow } from "../src/lib/orgs";
-import type { SubscriberTier } from "@workspace/db";
+import type { OrgPlan, SubscriberTier } from "@workspace/db";
 
-function membership(status: string): MembershipRow {
+function membership(status: string, plan: OrgPlan = "team"): MembershipRow {
   return {
     organizationId: "00000000-0000-0000-0000-000000000000",
     organizationName: "Acme",
@@ -10,6 +10,7 @@ function membership(status: string): MembershipRow {
     role: "member",
     orgStatus: status,
     seatsPurchased: 5,
+    plan,
   };
 }
 
@@ -48,5 +49,28 @@ describe("effectiveTier matrix", () => {
         membership("inactive"),
       ]),
     ).toBe("INSTITUTION");
+  });
+
+  test("team_lite plan elevates to ARCHITECT, not INSTITUTION", () => {
+    expect(effectiveTier("EXPLORER", [membership("active", "team_lite")])).toBe("ARCHITECT");
+    expect(effectiveTier("PRACTITIONER", [membership("trialing", "team_lite")])).toBe("ARCHITECT");
+    // Personal ARCHITECT stays ARCHITECT (no demotion, no elevation).
+    expect(effectiveTier("ARCHITECT", [membership("active", "team_lite")])).toBe("ARCHITECT");
+    // Personal INSTITUTION outranks a team_lite membership.
+    expect(effectiveTier("INSTITUTION", [membership("active", "team_lite")])).toBe("INSTITUTION");
+  });
+
+  test("max-rank across mixed plans: team beats team_lite", () => {
+    expect(
+      effectiveTier("EXPLORER", [
+        membership("active", "team_lite"),
+        membership("active", "team"),
+      ]),
+    ).toBe("INSTITUTION");
+  });
+
+  test("unknown plan value confers no elevation (fail-closed)", () => {
+    const bad = { ...membership("active"), plan: "bogus" as OrgPlan };
+    expect(effectiveTier("EXPLORER", [bad])).toBe("EXPLORER");
   });
 });
