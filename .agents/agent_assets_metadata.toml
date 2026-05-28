@@ -162,3 +162,9 @@ id = "m3_nE5VX1TnkIQPdHPOQe"
 uri = "file://exports/atanda_cc_safe_transformation_guide_v1_1.pdf"
 type = "pdf"
 title = "ATANDA CC — AI Transformation Guide v1.1 (code-audited)"
+
+[[outputs]]
+id = "L9W7Mwz8x0VsVanx3ghQx"
+uri = "file://exports/atanda_cc_business_cases_and_onboarding.pdf"
+type = "pdf"
+title = "ATANDA CC — Business Cases Catalogue + Context Craft Onboarding Design"
