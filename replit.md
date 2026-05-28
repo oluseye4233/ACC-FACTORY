@@ -9,6 +9,7 @@ Deep notes live under `docs/architecture/`:
 - [`features.md`](docs/architecture/features.md) — HARNESS engines, ATLAS J, PFP, Orgs & team-seat subs, Notifications, Sphinx Marketplace, Activity log, Cartridge, Ingestion, Senior badges + Context Craft.
 - [`decisions.md`](docs/architecture/decisions.md) — contract-first, auth model, webhook mounting, tier gating, drift exceptions.
 - [`gotchas.md`](docs/architecture/gotchas.md) — non-obvious traps that aren't in the top-5 below.
+- [`llm-cost-guardrail.md`](docs/architecture/llm-cost-guardrail.md) — operating constraints every new LLM-touching surface must respect (runaway-spend ceiling today, 10% Rule as the next target).
 
 ## Run & Operate
 
