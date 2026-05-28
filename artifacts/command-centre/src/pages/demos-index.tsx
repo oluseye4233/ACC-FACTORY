@@ -142,7 +142,48 @@ export default function DemosIndex() {
           })}
         </div>
 
-        <div className="text-center mt-12 space-y-3">
+        <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-left">
+          <div className="rounded-lg border bg-card/40 p-4">
+            <div className="font-mono text-[10px] tracking-widest text-primary mb-1">
+              SIDE ENGINES
+            </div>
+            <p className="font-serif text-xs text-foreground/80 leading-snug">
+              ATLAS J crystallises the F6 ATLAS PDD into typed JSON; PFP scores
+              an F8 codebase bundle against its MVP PDD and hard-gates F8 on
+              critical drift.
+            </p>
+          </div>
+          <div className="rounded-lg border bg-card/40 p-4">
+            <div className="font-mono text-[10px] tracking-widest text-primary mb-1">
+              SPHINX MARKETPLACE
+            </div>
+            <p className="font-serif text-xs text-foreground/80 leading-snug">
+              One-click publish from any F5 SPC to your Ark.Onecraft Sphinx
+              Marketplace via a per-user bearer key.
+            </p>
+          </div>
+          <div className="rounded-lg border bg-card/40 p-4">
+            <div className="font-mono text-[10px] tracking-widest text-primary mb-1">
+              TEAMS · TEAM LITE / TEAM
+            </div>
+            <p className="font-serif text-xs text-foreground/80 leading-snug">
+              Per-seat org subs. TEAM LITE ($99 → Architect, 2 F8/day) and TEAM
+              ($149 → Institution, unlimited F8). Sessions can be flagged
+              org-visible on a per-row basis.
+            </p>
+          </div>
+          <div className="rounded-lg border bg-card/40 p-4">
+            <div className="font-mono text-[10px] tracking-widest text-primary mb-1">
+              ACTIVITY · AUDIT LOG
+            </div>
+            <p className="font-serif text-xs text-foreground/80 leading-snug">
+              Per-user and per-org activity feeds with date / engine / session
+              filters and CSV export — billing + every engine call in one view.
+            </p>
+          </div>
+        </div>
+
+        <div className="text-center mt-10 space-y-3">
           <p className="font-mono text-xs text-muted-foreground">
             Ready to run a real session?
           </p>

@@ -127,8 +127,9 @@ F7   Compresses to a SPARTAN-certified MVP PDD / PWDD`,
   Verify URL: https://atanda.app/verify/9c4a-…
   Stored as:  harness_artifacts (artifact_type='MVP_PDD')
   Counts toward:
-    AAISA  ·  Advanced Atomic Intelligent Systems Architect
-    (auto-awarded at 3 PWDD-stage projects)`,
+    AISA_PWDD  ·  Advanced Intelligence Systems Architect
+    (auto-awarded at 3 PWDD-stage projects — manual,
+     ingested, or cartridge sessions all count)`,
     icon: CheckCircle2,
   },
 ];

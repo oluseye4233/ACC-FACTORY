@@ -90,13 +90,14 @@ const NEW_PILLARS_AT_STAGE: Record<StageId, PillarCode[]> = {
   8: [],
 };
 
-// Main Quest Badges (ASPE / AISA / AISE) and where they conceptually unlock.
+// Main Quest Badges (ASPE / AISA / AISE) plus the two Senior Advanced Systems
+// crests (AISA_PWDD / AISE_BUILD) that sit above the trio on /quests.
 type QuestBadge = {
-  id: "ASPE" | "AISA" | "AISE";
+  id: "ASPE" | "AISA" | "AISE" | "AISA_PWDD" | "AISE_BUILD";
   name: string;
   icon: typeof Trophy;
   blurb: string;
-  unlocksAtStage: StageId | null; // null = post-publish
+  unlocksAtStage: StageId | null; // null = post-publish or reputational
 };
 const QUEST_BADGES: QuestBadge[] = [
   {
@@ -118,6 +119,20 @@ const QUEST_BADGES: QuestBadge[] = [
     name: "ATOMIC INTELLIGENT SYSTEMS ENGINEER",
     icon: Trophy,
     blurb: "Earned by submitting a verified URL of a working SPC-DNA agent (GPT, Copilot, native app).",
+    unlocksAtStage: null,
+  },
+  {
+    id: "AISA_PWDD",
+    name: "ADVANCED INTELLIGENCE SYSTEMS ARCHITECT",
+    icon: Award,
+    blurb: "Senior crest. Auto-awarded once you have 3+ PWDD-stage projects (SPARTAN-certified MVP PDDs across manual, ingested, or cartridge sessions).",
+    unlocksAtStage: null,
+  },
+  {
+    id: "AISE_BUILD",
+    name: "ADVANCED INTELLIGENT SYSTEMS ENGINEER",
+    icon: Trophy,
+    blurb: "Senior crest. Claim by submitting a verified live-build URL plus an evidence note — same SSRF-hardened URL verifier as AISE.",
     unlocksAtStage: null,
   },
 ];
@@ -341,7 +356,7 @@ Step 7  Score targets & certification level
 14. JCSE Self-Score         S:6 R:7 I:7 D:6 F:7 E:5 C:6  → 44 / 50
 15. Certification Block     FORGE Certified · SI Class · Issued 2026-05-20`,
     bridgeToNext:
-      "The SPC is the certified spec — but it's still a card. F6 expands it into the 4-Part ATLAS Project Definition Document: the structured build plan an engineering team can pick up and execute.",
+      "The SPC is the certified spec — but it's still a card. F6 expands it into the 4-Part ATLAS Project Definition Document. One-click PUBLISH TO SPHINX from this screen also lists the SPC on your Ark.Onecraft Sphinx Marketplace (per-user bearer key — see Account → Connected Services).",
   },
   {
     id: 6,
@@ -384,7 +399,7 @@ F6-VDJ Recommendation
   IDE:   Cursor (best for cron + adapter scaffolding)
   Vibe:  "calm operator" — monochrome theme, no Slack while building`,
     bridgeToNext:
-      "The ATLAS PDD is complete but heavy. F7 SPARTAN-compresses it into the certifiable MVP PDD — the lean, signable, publicly-verifiable artefact you ship and forget.",
+      "The ATLAS PDD is complete but heavy. F7 SPARTAN-compresses it into the certifiable MVP PDD — the lean, signable, publicly-verifiable artefact you ship and forget. (Optional side-step from this screen: ATLAS J crystallises the markdown ATLAS PDD into a typed JSON view with stable per-phase prompt IDs — useful for downstream tooling.)",
   },
   {
     id: 7,
@@ -426,7 +441,7 @@ VERIFICATION
     tagline: "Scaffold the codebase from the certified MVP PDD.",
     icon: Code2,
     whyItMatters:
-      "F8 turns the SPARTAN-certified MVP PDD into a runnable starter project — up to 12 files plus a manifest — targeted at one of five platforms (Next.js + Vercel, React + Vite static, Express on Replit, Expo mobile, or a pnpm monorepo). It refuses any MVP PDD that isn't SPARTAN-certified, so you can only DJ specs that survived F7. Architect tier only.",
+      "F8 turns the SPARTAN-certified MVP PDD into a runnable starter project — up to 12 files plus a manifest — targeted at one of five platforms (Next.js + Vercel, React + Vite static, Express on Replit, Expo mobile, or a pnpm monorepo). It refuses any MVP PDD without a spartanCert, and is hard-gated by the PFP drift report: if PFP found any CRITICAL findings, F8 replies HTTP 409 / DRIFT_GATE unless the request carries acknowledgeDrift: true. Tier: ARCHITECT (2 / day) or INSTITUTION / Team-seat (unlimited).",
     inputLabel: "CERTIFIED MVP PDD FROM F7  +  PLATFORM CHOICE",
     inputBody:
       "MVP PDD: Morning Briefing MA (SPARTAN-certified, score 47/50)\nPlatform: express-replit",
@@ -636,8 +651,97 @@ export default function Demo() {
               All three on-ramps feed the same F1–F8 pipeline shown below.
               <span className="text-foreground">
                 {" "}
-                F8 Code DJ remains Architect-tier-only regardless of how the session started.
+                F8 Code DJ remains Architect-tier-only — included with TEAM LITE
+                ($99/seat → ARCHITECT, 2 F8/day) and TEAM ($149/seat →
+                INSTITUTION, unlimited F8) seat memberships.
               </span>
+            </div>
+          </div>
+        </section>
+
+        {/* SIDE ENGINES — ATLAS J + PFP */}
+        <section className="border-b bg-background">
+          <div className="container px-4 md:px-6 py-8 md:py-12 max-w-5xl">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold text-primary tracking-wider mb-3">
+              <Sparkles className="h-3.5 w-3.5" />
+              SIDE ENGINES · OFF THE LINEAR PATH
+            </div>
+            <h2 className="font-display text-2xl md:text-3xl tracking-wider mb-2">
+              TWO OPTIONAL ENGINES ATTACH TO THE PIPELINE
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground font-serif max-w-3xl leading-relaxed mb-6">
+              The F1→F8 ladder is the spine, but two side engines branch off it.
+              You can ignore them and ship the linear flow, or invoke them to get
+              a typed JSON view of your ATLAS PDD and an explicit drift report
+              before letting F8 scaffold code.
+            </p>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div
+                className="rounded-lg border bg-card/40 p-5 flex flex-col gap-3"
+                data-testid="demo-sideengine-atlasj"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center">
+                    <FileText className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="font-display tracking-wider text-base">
+                    ATLAS J · CRYSTALLISE
+                  </div>
+                  <span className="ml-auto text-[9px] font-mono px-1.5 py-0.5 rounded border border-primary/40 bg-primary/5 text-primary">
+                    PRACTITIONER+
+                  </span>
+                </div>
+                <div className="text-[10px] font-mono font-bold tracking-wider text-muted-foreground">
+                  ATLAS PDD (MARKDOWN) → ATLAS_PDD_JSON
+                </div>
+                <p className="text-sm font-serif text-foreground/90 leading-snug">
+                  Converts the F6 ATLAS PDD into a typed JSON view with stable
+                  per-phase prompt IDs (P-PHASE-NNN, RED → WHITE rainbow),
+                  CLASS A/B/C classification, dependency edges, stack, routes,
+                  and deploy target. Surfaced as the 5th tab on the F6 screen.
+                </p>
+                <ul className="text-xs font-mono text-muted-foreground space-y-1 mt-auto">
+                  <li>· Endpoint: <span className="text-foreground">POST /api/harness/atlas-crystallise</span></li>
+                  <li>· Artifact: <span className="text-foreground">ATLAS_PDD_JSON (schemaVersion atlas-pdd-v1)</span></li>
+                  <li>· Why a side-step: <span className="text-foreground">keeps F6 prompt byte-identical so cached fixtures survive</span></li>
+                </ul>
+              </div>
+
+              <div
+                className="rounded-lg border-2 border-secondary/40 bg-secondary/5 p-5 flex flex-col gap-3"
+                data-testid="demo-sideengine-pfp"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-md bg-secondary/15 border border-secondary/40 flex items-center justify-center">
+                    <ShieldCheck className="h-4 w-4 text-secondary" />
+                  </div>
+                  <div className="font-display tracking-wider text-base">
+                    PFP · DRIFT GATE
+                  </div>
+                  <span className="ml-auto text-[9px] font-mono px-1.5 py-0.5 rounded border border-secondary/40 bg-secondary/10 text-secondary">
+                    PRACTITIONER+
+                  </span>
+                </div>
+                <div className="text-[10px] font-mono font-bold tracking-wider text-muted-foreground">
+                  MVP PDD  +  CODEBASE_BUNDLE  →  PFP_REPORT
+                </div>
+                <p className="text-sm font-serif text-foreground/90 leading-snug">
+                  The PDD Fidelity Protocol (BUGMXT Layer 4) cross-references a
+                  SPARTAN-certified MVP PDD against an F8 codebase bundle and
+                  emits a report with a fixed 7-code taxonomy
+                  (SPEC_DRIFT, PDD_ORPHAN, UNAUTHORIZED_EXTENSION,
+                  CIRCULAR_DEPENDENCY, SEMANTIC_DRIFT, OVER_SPECIFICATION,
+                  AMBIGUOUS_OUTPUT), a 4-rung severity ladder, and an FCI
+                  coverage score 0–100. counts and verdict are recomputed
+                  server-side so the model can't self-grade.
+                </p>
+                <ul className="text-xs font-mono text-muted-foreground space-y-1 mt-auto">
+                  <li>· Endpoint: <span className="text-foreground">POST /api/harness/pfp</span></li>
+                  <li>· Hard gate: <span className="text-foreground">F8 returns 409 DRIFT_GATE on any CRITICAL finding</span></li>
+                  <li>· Override: <span className="text-foreground">acknowledgeDrift: true in the F8 request body</span></li>
+                </ul>
+              </div>
             </div>
           </div>
         </section>
