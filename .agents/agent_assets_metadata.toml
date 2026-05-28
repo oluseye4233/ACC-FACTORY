@@ -156,3 +156,9 @@ id = "bM5cm-fjSjxW9vaUISQW_"
 uri = "file://exports/atanda_cc_safe_transformation_guide.pdf"
 type = "pdf"
 title = "AI Transformation with the ATANDA Command Centre — SAFe Practitioner's Guide"
+
+[[outputs]]
+id = "m3_nE5VX1TnkIQPdHPOQe"
+uri = "file://exports/atanda_cc_safe_transformation_guide_v1_1.pdf"
+type = "pdf"
+title = "ATANDA CC — AI Transformation Guide v1.1 (code-audited)"

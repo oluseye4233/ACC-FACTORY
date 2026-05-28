@@ -2,7 +2,7 @@
 
 ## A Practitioner's Guide — SAFe-Aligned, Reality-Bound
 
-*Version 1.0 · May 2026*
+*Version 1.1 · May 2026 — revised after deep code audit*
 
 ---
 
@@ -32,25 +32,25 @@ Throughout, every step references a real engine, route, or schema on the platfor
 
 **Pre-PI Planning (the week before PI Planning).** Devon opens the Command Centre and creates a new session named `pi-26q3-dock-exception-triage`. He pastes the rough business hypothesis into the F1 workspace: *"We can cut dock-door exception triage handling time in half by surfacing a top-3 classification and a recommended desk for each ticket, with the shift lead always making the final call."* F1 returns a 7-pillar diagnostic. The ROLE pillar comes back weak — *"too many implicit actors; whose AI is this, the shift lead's or the carrier desk's?"* Devon iterates twice and lands a tightened version. The diagnostic, the iterations, and the final score are persisted under `harness_artifacts` for the session; everything is visible in the Activity Log.
 
-He then runs **F2** (Build Atomic Prompt) against the tightened brief. F2 produces the canonical atomic prompt — the unit the rest of the HARNESS will operate on. JCSE score is 47/50. Good enough.
+He then runs **F2** (Build Atomic Prompt) against the tightened brief. F2 produces the canonical atomic prompt — the unit the rest of the HARNESS will operate on. JCSE score (Junglenomics Composite Score Estimate, a 0–50 rubric baked into every scoring engine's system prompt) comes back at 47/50. Good enough.
 
 **PI Planning, Day 1.** Devon presents the F2 atomic prompt as the **Solution Intent draft** in PI Planning. The four feature teams break it down into features and stories on the SAFe board. Maya tracks dependencies. One feature team raises a flag: *"We don't know if our exception data is clean enough."* Devon notes this as a Phase 2 readiness risk — this is where the platform leaves the SAFe ART on its own; there is no readiness-index engine, the team will assess manually using their own data-quality tooling.
 
-**PI Planning, Day 2.** Devon runs **F3 (CELL — Micro Agent Birth Package)** on the atomic prompt. F3 streams its output for ~90 seconds (SSE — the F3 route is one of the two SSE engines on the platform). The CELL package defines the agent's birth conditions: role boundary, input contract, output contract, escalation rules. Two feature teams take dependencies on the output contract; this becomes a hard interface for them.
+**PI Planning, Day 2.** Devon runs **F3 (CELL — Micro Agent Birth Package)** on the atomic prompt. F3 takes ~60–90 seconds to return (it is a long-running request/response, not a streamed SSE engine — the only SSE endpoint on the platform today is `/harness/escalations/stream`). The CELL package defines the agent's birth conditions using archetype-tagged pillars (SPHINX / SPARTAN / ADA / SOLVA — these archetype labels are literally in the F3 prompt, not just marketing). Two feature teams take dependencies on the output contract; this becomes a hard interface for them.
 
 He then runs **F4 (Micro PDD)** — a one-page PDD that crystallises the CELL into a development-ready spec. The Micro PDD is exported as an artifact and pinned to the ART's Confluence (the platform does not have its own document-sharing surface; export-and-pin is the pattern).
 
-**Iteration 1.** The four feature teams build. Devon runs **F5 (Build SPC)** in parallel. F5 is the heavy engine — it produces the full Specification of Performance Constraints with all 7 pillars filled, governance gates, and JCSE scoring. JCSE comes back 41/50; the CONSTRAINT pillar is flagged for under-specification of failure modes. Devon iterates the input twice and lands at 46/50. The platform's tier gates allow Devon (Architect) 8 F5 runs per day; he uses 3.
+**Iteration 1.** The four feature teams build. Devon runs **F5 (Build SPC)** in parallel. F5 walks the canonical FORGE 7-step Q&A script (the seven step names are hard-coded into the F5 prompt) and produces a 15-section SPC with HIVE 14-D scoring across dimensions including Ethics/GRO and Token Optimization/ZPOS. JCSE comes back 41/50; the CONSTRAINT pillar is flagged for under-specification of failure modes. Devon iterates twice and lands at 46/50, cert class GOLD (the SILVER/GOLD/PLATINUM cert tiers are real, enumerated in the F5 finaliser prompt). Devon (Architect tier) has unlimited F5 runs per day; he uses 3.
 
 **Iteration 2.** Devon runs **F6 (Draft ATLAS PDD)** — the 4-Part PDD that the feature teams will use as their authoritative spec. He also runs **F6-VDJ** to get the VIBE DJ recommendation: which coding tool (Cursor / Lovable / v0 / etc.) is the best primary conductor for this workload. F6-VDJ recommends Cursor at 88/100 because the team already has a Cursor convention. Devon attaches the recommendation as a System Architect note in the SAFe board.
 
 During Iteration 2 the team hits the monthly cost cap warning at 70% of the Architect tier's $250/month cap. Devon checks `/me/costs`. F5 and F6 dominate the cost — predictable, those are the long-context engines. He decides to pace the remaining iterations and not pre-run F7 until the team is ready.
 
-**Iteration 3 + System Demo.** Devon runs **F7 (Convert to MVP PDD)** to produce the SPARTAN-certified MVP-PDD with a public verification URL. The MVP-PDD is the demo artifact for the System Demo — it links the business hypothesis to the certified spec to the public verification record. The shift lead persona in the demo runs through three exception tickets against the not-yet-built model; the team aligns on whether the certified contract matches what the shift lead actually needs.
+**Iteration 3 + System Demo.** Devon runs **F7 (Convert to MVP PDD)** which executes the seven-step SPARTAN pipeline (SCAN → PROFILE → ASSESS → REDUCE → TRANSFORM → ZPOS → PACKAGE — all in F7's engine code) and emits an MVP-PDD with a SPARTAN cert ID (format `SPARTAN-YYYYMMDD-shortuuid`). The cert artifact has a verify page at `/verify?artifactId=...`. If Devon also publishes to Sphinx (requires `SPHINX_BASE_URL` to be configured), the verify URL becomes externally public. The MVP-PDD is the demo artifact for the System Demo. The shift lead persona runs through three exception tickets against the not-yet-built model; the team aligns on whether the certified contract matches what the shift lead actually needs.
 
 **Iteration 4.** One feature team uses **F8 Code DJ** to scaffold the model-serving wrapper from the certified MVP-PDD. F8 produces a runnable codebase that the team takes into Cursor for completion. Two Team Lite seats burn their daily F8 quota (2/day each); the architect's Architect tier seat also burns one F8 call. The platform's per-engine `harness_engine_runs` table records cost per run; this lands in `/me/costs`.
 
-**Pre-PFP run before merge.** Before the team merges the F8-scaffolded code, Devon runs the **PFP (Promptware Failure Predictor)**. PFP analyses the F8 output for drift from the F7-certified spec. Two findings come back, one flagged HIGH (the output contract is missing the `confidence_score` field that the SPC promised). The team fixes it before merge.
+**PFP run before merge.** After F8 scaffolds the code (PFP runs **post-F8**, not pre-F8 — it checks the scaffold against the certified spec, it does not auto-gate F8 itself), Devon runs the **PFP (Promptware Failure Predictor)**. PFP analyses the F8 output for drift from the F7-certified spec; the verdict and finding counts are recomputed server-side from `findings` so the model's self-reported numbers cannot bypass the check. Two findings come back, one flagged HIGH (the output contract is missing the `confidence_score` field that the SPC promised). The team enforces the merge block as a manual policy — the platform reports drift, humans gate the PR. The fix lands before merge.
 
 **Inspect & Adapt.** At I&A, the ART pulls the Activity Log filtered to the PI's session ID. The log is the audit trail: every engine run, who ran it, what the input was, what the output JCSE score was, what the cost was. The retrospective surfaces two things: (a) F5 iterations are the most expensive learning cycle — invest more time in F3/F4 to reduce F5 rework next PI; (b) the team did not use the **Sphinx Marketplace** publish — they could have published the certified spec for the wider organisation to fork. Action item for PI N+1.
 
@@ -71,9 +71,9 @@ This part assumes a new AI workflow with no prior spec, no prior code, and a fre
 | Role | Tier | Why |
 |---|---|---|
 | Lead Solution Architect | **Architect** ($199/mo) | Highest daily limits on F5/F6/F7; 8 F5/day, 8 F6/day, 4 F7/day. |
-| Each feature team lead | **Team Lite seat** | Elevates to ARCHITECT-equivalent rate limits + 2 F8/day each. |
+| Each feature team lead | **Team Lite seat** (per-seat) | Elevates to ARCHITECT-equivalent rate limits + 2 F8/day each. |
 | Wider engineering org (read-only) | **Explorer** (free) | Lets them browse exemplars and run F1 diagnostics. |
-| Centralised platform team (optional) | **Institution** | Only if you need unlimited F8 + private team workspace. |
+| Centralised platform team (optional) | **Institution** (per-seat via team subs) | Only if you need unlimited F8. Note: there is no flat-rate Institution SKU — it is sold per seat via `STRIPE_PRICE_TEAM_SEAT_*`. |
 
 Set the org's monthly cost-cap override if the default ($250 for Architect, ~$2000 for Institution per seat) is wrong for your workload. The admin route is `PATCH /api/admin/subscribers/:userId/cost-cap`.
 
@@ -103,18 +103,18 @@ Set the org's monthly cost-cap override if the default ($250 for Architect, ~$20
 - **Architect runs F5 (Build SPC)** at start of Iteration 1. F5 is the heaviest cost-per-run engine. Plan 2–3 iterations to hit JCSE ≥ 45/50.
 - **Architect runs F6 (Draft ATLAS PDD)** at start of Iteration 2. F6 produces the 4-Part PDD the teams will treat as authoritative.
 - **Run F6-VDJ** to get the VIBE DJ recommendation for primary coding tool. Pin the recommendation as a System Architect note.
-- **Monitor `/me/costs`.** The dashboard shows a 30-day cost chart, per-engine breakdown, and the current cap meter. Pace runs if you cross 60% of the cap before mid-PI.
+- **Monitor `/me/costs`.** The dashboard shows a 30-day cost chart, per-engine breakdown, and the current cap meter. **The platform does not push a warning at any threshold** — it returns `402 COST_CAP_EXCEEDED` only when the cap is actually hit. Architects must check the dashboard themselves. Pace runs if you cross 60% of the cap before mid-PI.
 
 ### Step 5 — Iteration 3, System Demo prep (architect)
 
-- **Run F7 (Convert PDD to MVP).** F7 is the second SSE engine and produces the SPARTAN-certified MVP-PDD with a public verification URL.
+- **Run F7 (Convert PDD to MVP).** F7 walks the SPARTAN seven-step pipeline (SCAN→PROFILE→ASSESS→REDUCE→TRANSFORM→ZPOS→PACKAGE) and emits a SPARTAN-certified MVP-PDD. The verify page is local by default; publish to Sphinx for an externally public URL (requires `SPHINX_BASE_URL`).
 - **The verification URL is the System Demo artifact.** It links the hypothesis → atomic prompt → CELL → Micro PDD → SPC → ATLAS PDD → certified MVP-PDD.
 - **Walk the personas through the certified contract** at System Demo. Capture mismatches as Iteration 4 stories.
 
 ### Step 6 — Iteration 4 (feature teams + architect)
 
 - **Feature teams use F8 Code DJ** to scaffold model-serving code from the certified MVP-PDD. F8 is rate-limited per-day per-seat; plan accordingly.
-- **Run PFP (Promptware Failure Predictor)** on every F8 output before merge. PFP's recomputed verdict (server-side from `findings`) is the gate — never trust the model's self-reported numbers. Block merge on any HIGH finding.
+- **Run PFP (Promptware Failure Predictor)** on every F8 output before merge. PFP runs **after F8** and reports drift against the F7-certified spec; its verdict is recomputed server-side from `findings` so the model's self-reported numbers cannot bypass the check. The platform does NOT auto-block F8 or auto-block your PR — your CI/team policy is the actual gate. Block merge on any HIGH finding.
 - **Off-platform:** the actual model training, deployment, observability, and human-in-the-loop UI all live in your normal engineering stack. The platform's contribution stops at the certified spec + scaffolded code + drift check.
 
 ### Step 7 — Inspect & Adapt (ART)
@@ -161,8 +161,9 @@ Identical to greenfield. Brownfield does not require a higher tier; if anything,
 
 - **Prepare the IPDD.** Whatever you have — the legacy PDD, the SDD, the concept note, the runbook, the post-mortem of the last failed attempt — assemble it into one document. This becomes the **IPDD** (Ingestion Product Design Document, the platform's formal input name).
 - **For code-only brownfield:** the architect writes a 2–4 page narrative of what the deployed workflow *actually does today*, what it gets wrong, and the hypothesised root cause. This narrative IS the IPDD. Do not skip it.
-- **Open a session** named for the PI. Set `origin = 'ingested'` (the platform marks ingested sessions; they produce **PWDDs**, not regular MVP-PDDs, at F7 — same engine, different output label).
+- **Open a session** named for the PI. Set `origin = 'ingested'` (the platform marks ingested sessions with one of three values: `manual`, `ingested`, `cartridge`). Note: ingested sessions are conventionally referred to as producing **PWDDs**, but F7's stored `artifactType` is still `MVP_PDD` — the PWDD distinction is a user-facing terminology layer, not a database enum value today.
 - **Run the Ingestion engine** on the IPDD. The Ingestion engine normalises the input into the seed context for F1.
+- **Consider an Advanced Cartridge ($499.99 one-time per project) instead of, or alongside, plain Ingestion.** The Cartridge mechanism is meaningfully more powerful: cartridge files (PDFs, DOCX, JSON specs, prompt inventories) are uploaded once and then **prepended to every subsequent engine call within that session**, fenced with `=== CARTRIDGE CONTEXT (authoritative · do not contradict) ===`. Every F1 diagnostic, every F5 SPC, every F7 SPARTAN compression runs with the full legacy context in scope. For brownfield work with a deep legacy surface, this is the highest-leverage spend on the platform.
 
 ### Step 2 — Pre-PI Planning, narrowing scope
 
@@ -242,13 +243,14 @@ These gaps are not bugs — they are scope. The Command Centre's scope is *the c
 |---|---|---|
 | Pre-PI prep (architect alone) | F1, F2 | Low |
 | PI Planning Day 1 | F2 output presented | Zero |
-| PI Planning Day 2 | F3, F4 | Medium (F3 is SSE, long context) |
-| Iteration 1 | F5 (2–3 iterations) | **High** |
+| PI Planning Day 2 | F3, F4 | Medium (F3 is long-running, ~60–90s, not SSE) |
+| Iteration 1 | F5 (2–3 iterations) | **High** (FORGE 7-step Q&A + HIVE 14-D scoring) |
 | Iteration 2 | F6, F6-VDJ | Medium |
-| Iteration 3 (System Demo prep) | F7 | High (SSE) |
-| Iteration 4 | F8 Code DJ, PFP | Medium per F8 call |
+| Iteration 3 (System Demo prep) | F7 | High (SPARTAN 7-step pipeline, long-running, not SSE) |
+| Iteration 4 | F8 Code DJ, then PFP | Medium per F8 call; PFP runs post-F8 |
 | Inspect & Adapt | Activity Log + `/me/costs` | Zero |
-| End of PI | Cartridge (optional) | $499.99 one-time |
+| Brownfield PI start (recommended) | Advanced Cartridge upload | **$499.99 one-time** — highest-leverage spend; prepends legacy context to every subsequent engine call |
+| End of PI | Cartridge bundle hand-off (optional) | $499.99 one-time |
 | PI N+1 ramp | Ingestion + F1 | Low (+ Ingestion line item) |
 
 ---
@@ -256,3 +258,20 @@ These gaps are not bugs — they are scope. The Command Centre's scope is *the c
 *End of guide.*
 
 *Generated against ATANDA Command Centre platform state, May 2026.*
+
+---
+
+## Appendix — v1.1 corrections vs v1.0
+
+This version was revised after a deep audit of the engine system prompts and route handlers. Material changes from v1.0:
+
+1. **SSE claim corrected.** v1.0 said F3 and F7 stream via SSE. They do not. Both are long-running request/response engines. The only SSE endpoint on the platform today is `/harness/escalations/stream`.
+2. **PFP positioning corrected.** v1.0 implied PFP gates F8 pre-merge. PFP actually runs *after* F8 to check the scaffold against the F7-certified spec. The platform does not auto-block — humans gate the PR.
+3. **Cartridge mechanism strengthened.** v1.0 underplayed the Cartridge. The mechanism is real and powerful: cartridge files are uploaded once and then prepended to every subsequent engine call within that session, fenced as `=== CARTRIDGE CONTEXT (authoritative · do not contradict) ===`. For brownfield, this is the highest-leverage spend at $499.99/project.
+4. **HIVE 14-D / GRO / ZPOS+5 positioning corrected.** These are scoring conventions baked into the engine system prompts (the LLM is asked to apply them), not separate engines or runtime state machines. JCSE itself is the "Junglenomics Composite Score Estimate" defined in the F1/F2/F5 prompts.
+5. **Persona archetypes clarified.** SPHINX, SPARTAN, ADA, SOLVA (and others) appear in engine prompts as pillar archetype tags and in the exemplar library as fork-able starting points. They are NOT runtime multi-agent panels.
+6. **Cert tier language pinned to what the F5 prompt actually enumerates: SILVER / GOLD / PLATINUM.** "FORGE Stage 7 Platinum Tier" is the right family of label but the "Stage 7" specificity isn't in code.
+7. **Institution tier shape clarified.** Institution is sold per-seat via `STRIPE_PRICE_TEAM_SEAT_*`. No flat-rate Institution SKU exists.
+8. **Cost-cap warning behaviour clarified.** The platform `402`s only when the cap is exceeded — there is no push notification at 70% or any other threshold.
+9. **PWDD terminology clarified.** Sessions with `origin='ingested'` are referred to as producing PWDDs, but the stored `artifactType` is still `MVP_PDD` — PWDD is a terminology layer, not a database enum value today.
+10. **SPARTAN cert ID format documented.** Format is `SPARTAN-YYYYMMDD-shortuuid`; the verify page is local at `/verify?artifactId=...` and only becomes externally public when published to Sphinx (`SPHINX_BASE_URL` required).
