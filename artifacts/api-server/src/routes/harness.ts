@@ -1,6 +1,6 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type RequestHandler } from "express";
 import { and, eq } from "drizzle-orm";
-import { db, harnessSessionsTable } from "@workspace/db";
+import { db, harnessSessionsTable, type SubscriberTier } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { rateLimit, requireTier } from "../lib/tier";
 import { requireCostBudget } from "../lib/cost-budget";
@@ -37,79 +37,85 @@ async function requireAspeBadge(
   res.status(403).json({ error: "ASPE badge required", detail: "Unlock ASPE (≥3 SPCs + ≥4 MAs) to evolve." });
 }
 
-// Note: `requireCostBudget` is mounted AFTER `rateLimit` so the rate-limit
-// ledger does not tick for a request that we're about to refuse, and BEFORE
-// the engine handler so a cap-hit user never burns LLM tokens. It applies to
-// every engine route — there is no tier exemption (INSTITUTION has a $2000
-// monthly default which is effectively unlimited for normal use).
-router.post("/harness/f1", requireAuth, rateLimit(1), requireCostBudget, handleF1);
-router.post("/harness/f2", requireAuth, rateLimit(2), requireCostBudget, handleF2);
-router.post("/harness/f3", requireAuth, rateLimit(3), requireCostBudget, handleF3Stream);
-router.post("/harness/f4", requireAuth, rateLimit(4), requireCostBudget, handleF4);
+/**
+ * Canonical gate stack for every HARNESS engine route.
+ *
+ * Order is load-bearing and enforced here so individual route registrations
+ * cannot accidentally drop a gate:
+ *
+ *   requireAuth          → populate req.localUser / req.subscriber / req.effectiveTier
+ *   requireTier?         → tier floor (optional; omit for EXPLORER-reachable engines)
+ *   rateLimit(featureId) → per-day, per-engine cap; tick the daily ledger
+ *   ...extra?            → engine-specific extras (e.g. badge checks) — mount BEFORE
+ *                          requireCostBudget so a refused request still doesn't sum LLM cost
+ *   requireCostBudget    → live monthly SUM vs MONTHLY_COST_CAP_USD[effectiveTier]
+ *   handler              → the engine itself
+ *
+ * `requireCostBudget` is always last in the middleware chain so the rate-limit
+ * ledger does not tick for a request we're about to refuse on cost, and so
+ * `req.subscriber` / `req.effectiveTier` are populated for the lookup.
+ *
+ * NOTE: when `featureId === null` the engine is not rate-limited per-day
+ * (matches today's `f6-vdj`, `atlas-crystallise`, `pfp`, `evolve` behaviour
+ * — they're tier-gated and cost-gated but not feature-id-throttled).
+ */
+type HarnessFeatureId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
+function harnessRoute(opts: {
+  featureId: HarnessFeatureId | null;
+  tier?: SubscriberTier;
+  extra?: RequestHandler[];
+  handler: RequestHandler;
+}): RequestHandler[] {
+  const stack: RequestHandler[] = [requireAuth];
+  if (opts.tier) stack.push(requireTier(opts.tier));
+  if (opts.featureId !== null) stack.push(rateLimit(opts.featureId));
+  if (opts.extra) stack.push(...opts.extra);
+  stack.push(requireCostBudget);
+  stack.push(opts.handler);
+  return stack;
+}
+
+router.post("/harness/f1", ...harnessRoute({ featureId: 1, handler: handleF1 }));
+router.post("/harness/f2", ...harnessRoute({ featureId: 2, handler: handleF2 }));
+router.post("/harness/f3", ...harnessRoute({ featureId: 3, handler: handleF3Stream }));
+router.post("/harness/f4", ...harnessRoute({ featureId: 4, handler: handleF4 }));
 router.post(
   "/harness/f5",
-  requireAuth,
-  requireTier("PRACTITIONER"),
-  rateLimit(5),
-  requireCostBudget,
-  handleF5,
+  ...harnessRoute({ featureId: 5, tier: "PRACTITIONER", handler: handleF5 }),
 );
 router.post(
   "/harness/f6",
-  requireAuth,
-  requireTier("PRACTITIONER"),
-  rateLimit(6),
-  requireCostBudget,
-  handleF6,
+  ...harnessRoute({ featureId: 6, tier: "PRACTITIONER", handler: handleF6 }),
 );
 router.post(
   "/harness/f6-vdj",
-  requireAuth,
-  requireTier("PRACTITIONER"),
-  requireCostBudget,
-  handleF6Vdj,
+  ...harnessRoute({ featureId: null, tier: "PRACTITIONER", handler: handleF6Vdj }),
 );
 router.post(
   "/harness/f7",
-  requireAuth,
-  requireTier("PRACTITIONER"),
-  rateLimit(7),
-  requireCostBudget,
-  handleF7Stream,
+  ...harnessRoute({ featureId: 7, tier: "PRACTITIONER", handler: handleF7Stream }),
 );
-
 router.post(
   "/harness/f8",
-  requireAuth,
-  requireTier("ARCHITECT"),
-  rateLimit(8),
-  requireCostBudget,
-  handleF8CodeDj,
+  ...harnessRoute({ featureId: 8, tier: "ARCHITECT", handler: handleF8CodeDj }),
 );
-
 router.post(
   "/harness/atlas-crystallise",
-  requireAuth,
-  requireTier("PRACTITIONER"),
-  requireCostBudget,
-  handleAtlasCrystallise,
+  ...harnessRoute({ featureId: null, tier: "PRACTITIONER", handler: handleAtlasCrystallise }),
 );
-
 router.post(
   "/harness/pfp",
-  requireAuth,
-  requireTier("PRACTITIONER"),
-  requireCostBudget,
-  handlePfp,
+  ...harnessRoute({ featureId: null, tier: "PRACTITIONER", handler: handlePfp }),
 );
-
 router.post(
   "/harness/evolve",
-  requireAuth,
-  requireTier("PRACTITIONER"),
-  requireAspeBadge,
-  requireCostBudget,
-  handleEvolve,
+  ...harnessRoute({
+    featureId: null,
+    tier: "PRACTITIONER",
+    extra: [requireAspeBadge],
+    handler: handleEvolve,
+  }),
 );
 
 router.get("/harness/escalations/stream", requireAuth, async (req, res): Promise<void> => {

@@ -42,7 +42,7 @@ The "and-a-half" is the provider gate in `routes/sessions.ts`: choosing a non-Cl
 
 **There is no compile-time enforcement of this ordering.** The architect subagent and the always-on Top-5 gotcha in `replit.md` are the safety net. Skipping any one middleware silently breaks at least one of the invariants — `rateLimit` without `requireCostBudget` lets a power user burn cash; `requireCostBudget` without `rateLimit` lets a single user dominate the day's LLM throughput.
 
-**Action item (next hardening pass).** Wrap the three middlewares in a single `harnessRoute(featureId, handler)` factory in `routes/harness.ts` so future engine routes become physically incapable of forgetting a gate. This is the highest-leverage hardening before any new engine surface ships.
+**Hardening (live).** Every engine route now goes through the `harnessRoute({ featureId, tier?, extra?, handler })` factory in `routes/harness.ts`. The factory composes the canonical stack — `requireAuth → requireTier? → rateLimit(featureId)? → ...extra? → requireCostBudget → handler` — so a future engine route physically cannot drop `requireCostBudget` or get the order wrong. New engines must register through it; do not hand-roll the middleware list on a `router.post` call.
 
 ### 2.2 Why cost-denominated, not just rate-denominated
 
@@ -84,7 +84,7 @@ The day Finance decides to enforce the literal 10% Rule (move PRACTITIONER from 
 
 1. `MONTHLY_COST_CAP_USD` in `artifacts/api-server/src/lib/tier.ts`.
 2. An invariant test that asserts `MONTHLY_COST_CAP_USD[tier] === round(price_usd * 0.10)` for PRACTITIONER and ARCHITECT, with explicit exceptions for EXPLORER (floor) and INSTITUTION (per-seat).
-3. A **grandfather window**, ideally a `COST_CAP_GRANDFATHER_UNTIL=YYYY-MM-DD` env var that keeps current caps for `subscriber.createdAt < flip_date` until the grandfather date.
+3. A **grandfather window** (live mechanism). Three env vars cooperate, all UTC: `COST_CAP_GRANDFATHER_UNTIL=YYYY-MM-DD` (the day grandfathered users lose the legacy cap), `COST_CAP_LEGACY_CUTOFF=YYYY-MM-DD` (only subscribers created strictly before this date are grandfathered), and per-tier `MONTHLY_COST_CAP_LEGACY_<TIER>` (USD, the value the grandfathered user keeps). All three must be set for a user to receive a legacy cap; any missing/malformed value falls back to the live `MONTHLY_COST_CAP_USD` (fail-strict toward the new cap, never accidentally elevate). See `lib/cost-budget.ts#resolveTierDefaultCapUsd`. Per-subscriber overrides still win regardless of grandfather state.
 4. **Heads-up email** to active paying users at least 14 days prior, naming the new cap and the date.
 5. **In-product notice** on `/me/costs` and the dashboard for the same 14 days.
 6. **Support runbook copy** for the predictable tickets ("why am I getting 402 today when I was fine yesterday?", "where did my AI budget go?").

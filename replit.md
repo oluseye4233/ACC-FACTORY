@@ -27,6 +27,7 @@ Deep notes live under `docs/architecture/`:
 - **Required:** `DATABASE_URL`, `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY` (auto-provisioned).
 - **Stripe pricing:** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_{PRACTITIONER,ARCHITECT}_{MONTHLY,YEARLY}`, `STRIPE_PRICE_TEAM_SEAT_{MONTHLY,YEARLY}` (per-seat → INSTITUTION, unlimited F8), `STRIPE_PRICE_TEAM_LITE_SEAT_{MONTHLY,YEARLY}` (per-seat → ARCHITECT, 2 F8/day), `STRIPE_PRICE_INGESTION_PROJECT`, `STRIPE_PRICE_CARTRIDGE_PROJECT` ($499.99 one-time).
 - **Integrations & ops:** `ANTHROPIC_API_KEY`, `SPHINX_BASE_URL` (without it `/api/integrations/sphinx/publish` returns 503 `SPHINX_NOT_CONFIGURED`), `ADMIN_EMAILS`, `CRON_SECRET`, `RESEND_API_KEY` + `EMAIL_FROM` (falls back to `[email:dry-run]` console log when unset), `SENTRY_DSN` + `VITE_SENTRY_DSN` (no-op when unset), `PUBLIC_BASE_URL`.
+- **Cost-cap grandfather (optional, all UTC dates):** `COST_CAP_GRANDFATHER_UNTIL=YYYY-MM-DD`, `COST_CAP_LEGACY_CUTOFF=YYYY-MM-DD`, `MONTHLY_COST_CAP_LEGACY_{EXPLORER,PRACTITIONER,ARCHITECT,INSTITUTION}` (USD). All three must be set for a subscriber created before the cutoff to keep their legacy cap until the grandfather date. Unset = no grandfather, every subscriber uses the live `MONTHLY_COST_CAP_USD`. See `docs/architecture/llm-cost-guardrail.md → §3.2`.
 
 ## Stack
 
