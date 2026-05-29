@@ -41,6 +41,7 @@ import Cartridge from "@/pages/cartridge";
 import AdminBadges from "@/pages/admin-badges";
 import Orgs from "@/pages/orgs";
 import OrgDetail from "@/pages/org-detail";
+import Ascension from "@/pages/ascension";
 import AcceptInvite from "@/pages/accept-invite";
 import Activity from "@/pages/activity";
 import MeCosts from "@/pages/me-costs";
@@ -234,6 +235,7 @@ function ClerkProviderWithRoutes() {
             <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
             <Route path="/prompts" component={() => <ProtectedRoute component={Prompts} />} />
             <Route path="/quests" component={() => <ProtectedRoute component={Quests} />} />
+            <Route path="/ascension" component={() => <ProtectedRoute component={Ascension} />} />
             <Route path="/account" component={() => <ProtectedRoute component={Account} />} />
             <Route path="/admin/badges" component={() => <ProtectedRoute component={AdminBadges} />} />
             <Route path="/orgs" component={() => <ProtectedRoute component={Orgs} />} />

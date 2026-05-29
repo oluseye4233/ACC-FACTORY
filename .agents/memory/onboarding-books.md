@@ -14,4 +14,4 @@ Two manuscripts have been supplied as candidate onboarding material for ATANDA C
 
 **Why:** the platform is literally named/architected after Atomic Prompt's doctrine (FORGE.BONSAI HARNESS, JCSE, JST, HIVE). A book teaching one dimension of one engine can't be the spine of an 8-engine pipeline.
 
-Deliverables produced: `exports/atanda_cc_book_comparison.pdf` (this analysis), `exports/atanda_cc_business_cases_and_onboarding.pdf` (business cases + Context-Craft checkpoint design). Tooling: docx→txt via python `zipfile`+regex on `word/document.xml` (no pandoc/unzip in env); md→PDF via `exports/md_to_pdf.py` (reportlab).
+**How applied:** the Ascension Protocol (`/ascension`) makes this spine concrete — a 13-rung ladder anchored to Atomic Prompt chapters (Context Craft pillars are rung 5 / Ch.4), seeded by the JST self-assessment and proven by real engine/artifact/badge/org signals.

@@ -50,6 +50,7 @@ Deep notes live under `docs/architecture/`:
 - Routes: `artifacts/api-server/src/routes/*.ts`
 - HARNESS engines: `artifacts/api-server/src/engines/{prompts,shared,f1,f2,f3,f4,f5,f6,f6vdj,f7,f8codedj,atlas-crystallise,pfp}.ts` — see `docs/architecture/features.md` for per-engine notes.
 - Front-end command-centre artifact: portal shell + F1–F7 workspaces complete; exemplar library with "Fork to session" CTA shipped.
+- Ascension Protocol onboarding: `artifacts/api-server/src/lib/ascension.ts` (JST scoring + 13-rung journey composing badges/context-craft/artifacts/engine-runs/orgs), `routes/onboarding.ts` (`/me/jst`, `/me/ascension`, `/me/onboarding/reader-code`), DB `lib/db/src/schema/{jst-assessments,reader-onboarding}.ts`, frontend `pages/ascension.tsx`. *The Atomic Prompt* book is the onboarding spine; rungs are proven by real signals, never self-reported. Reader codes (allowlist in `routes/onboarding.ts`) flip the track to `atomic_prompt_v1`.
 
 ## Product
 

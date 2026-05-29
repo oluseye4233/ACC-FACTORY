@@ -1073,6 +1073,72 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /me/jst:
+    get:
+      operationId: getMyJst
+      tags: [onboarding]
+      summary: Latest JST (Jobs/Skills/Talent) self-assessment plus history
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JstSummary" }
+    post:
+      operationId: submitMyJst
+      tags: [onboarding]
+      summary: Submit a JST self-assessment (composite + band derived server-side)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/JstInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JstSummary" }
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /me/ascension:
+    get:
+      operationId: getMyAscension
+      tags: [onboarding]
+      summary: The Ascension Protocol journey — ordered rungs anchored to The Atomic Prompt
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AscensionJourney" }
+
+  /me/onboarding/reader-code:
+    post:
+      operationId: claimReaderCode
+      tags: [onboarding]
+      summary: Claim a reader code from The Atomic Prompt to join the atomic_prompt_v1 track
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReaderCodeInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OnboardingState" }
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
 components:
   parameters:
     SessionId:
@@ -2077,6 +2143,83 @@ components:
         revocationCount: { type: integer, minimum: 0 }
         restoredAt: { type: ["string", "null"], format: date-time }
         restoredNote: { type: ["string", "null"] }
+
+    JstInput:
+      type: object
+      required: [jobsScore, skillsScore, talentScore]
+      properties:
+        jobsScore: { type: integer, minimum: 1, maximum: 10, description: "Jobs — paid work / market demand for what you do (1-10)." }
+        skillsScore: { type: integer, minimum: 1, maximum: 10, description: "Skills — learned, practised capability (1-10)." }
+        talentScore: { type: integer, minimum: 1, maximum: 10, description: "Talent — innate edge / natural advantage (1-10)." }
+        notes: { type: string, maxLength: 2000 }
+
+    JstAssessment:
+      type: object
+      required: [id, jobsScore, skillsScore, talentScore, composite, band, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        jobsScore: { type: integer }
+        skillsScore: { type: integer }
+        talentScore: { type: integer }
+        composite: { type: number, description: "0-100 derived composite." }
+        band: { type: string, enum: [SEEKER, BUILDER, OPERATOR, ASCENDANT] }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+
+    JstSummary:
+      type: object
+      required: [latest, history, count]
+      properties:
+        latest: { oneOf: [{ $ref: "#/components/schemas/JstAssessment" }, { type: "null" }] }
+        history:
+          type: array
+          items: { $ref: "#/components/schemas/JstAssessment" }
+        count: { type: integer, minimum: 0 }
+
+    ReaderCodeInput:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string, minLength: 1, maxLength: 64 }
+
+    OnboardingState:
+      type: object
+      required: [track, readerCode, startedAt]
+      properties:
+        track: { type: string, enum: [default, atomic_prompt_v1] }
+        readerCode: { type: ["string", "null"] }
+        startedAt: { type: string, format: date-time }
+
+    AscensionRung:
+      type: object
+      required: [index, key, title, role, engine, chapter, blurb, complete, current, progress, target, actionLabel, actionHref]
+      properties:
+        index: { type: integer, description: "0-based position on the ladder." }
+        key: { type: string, description: "Stable rung identifier." }
+        title: { type: string, description: "Badge / rung name." }
+        role: { type: string, description: "Operator persona earned at this rung." }
+        engine: { type: string, description: "Platform action / engine that proves the rung." }
+        chapter: { type: string, description: "Anchor in The Atomic Prompt." }
+        blurb: { type: string }
+        complete: { type: boolean }
+        current: { type: boolean, description: "The next incomplete rung — the reader's focus." }
+        progress: { type: integer, minimum: 0 }
+        target: { type: integer, minimum: 1 }
+        actionLabel: { type: string }
+        actionHref: { type: string }
+
+    AscensionJourney:
+      type: object
+      required: [track, readerCode, completedCount, totalCount, band, rungs]
+      properties:
+        track: { type: string, enum: [default, atomic_prompt_v1] }
+        readerCode: { type: ["string", "null"] }
+        completedCount: { type: integer, minimum: 0 }
+        totalCount: { type: integer, minimum: 1 }
+        band: { type: ["string", "null"], enum: [SEEKER, BUILDER, OPERATOR, ASCENDANT, null] }
+        rungs:
+          type: array
+          items: { $ref: "#/components/schemas/AscensionRung" }
 
     AiseClaimInput:
       type: object

@@ -1303,3 +1303,137 @@ export const VerifyCertificateResponse = zod.object({
 })
 
 
+/**
+ * @summary Latest JST (Jobs/Skills/Talent) self-assessment plus history
+ */
+export const getMyJstResponseCountMin = 0;
+
+
+
+export const GetMyJstResponse = zod.object({
+  "latest": zod.union([zod.object({
+  "id": zod.string().uuid(),
+  "jobsScore": zod.number(),
+  "skillsScore": zod.number(),
+  "talentScore": zod.number(),
+  "composite": zod.number().describe('0-100 derived composite.'),
+  "band": zod.enum(['SEEKER', 'BUILDER', 'OPERATOR', 'ASCENDANT']),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]),
+  "history": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "jobsScore": zod.number(),
+  "skillsScore": zod.number(),
+  "talentScore": zod.number(),
+  "composite": zod.number().describe('0-100 derived composite.'),
+  "band": zod.enum(['SEEKER', 'BUILDER', 'OPERATOR', 'ASCENDANT']),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})),
+  "count": zod.number().min(getMyJstResponseCountMin)
+})
+
+
+/**
+ * @summary Submit a JST self-assessment (composite + band derived server-side)
+ */
+export const submitMyJstBodyJobsScoreMax = 10;
+
+export const submitMyJstBodySkillsScoreMax = 10;
+
+export const submitMyJstBodyTalentScoreMax = 10;
+
+export const submitMyJstBodyNotesMax = 2000;
+
+
+
+export const SubmitMyJstBody = zod.object({
+  "jobsScore": zod.number().min(1).max(submitMyJstBodyJobsScoreMax).describe('Jobs — paid work \/ market demand for what you do (1-10).'),
+  "skillsScore": zod.number().min(1).max(submitMyJstBodySkillsScoreMax).describe('Skills — learned, practised capability (1-10).'),
+  "talentScore": zod.number().min(1).max(submitMyJstBodyTalentScoreMax).describe('Talent — innate edge \/ natural advantage (1-10).'),
+  "notes": zod.string().max(submitMyJstBodyNotesMax).optional()
+})
+
+export const submitMyJstResponseCountMin = 0;
+
+
+
+export const SubmitMyJstResponse = zod.object({
+  "latest": zod.union([zod.object({
+  "id": zod.string().uuid(),
+  "jobsScore": zod.number(),
+  "skillsScore": zod.number(),
+  "talentScore": zod.number(),
+  "composite": zod.number().describe('0-100 derived composite.'),
+  "band": zod.enum(['SEEKER', 'BUILDER', 'OPERATOR', 'ASCENDANT']),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]),
+  "history": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "jobsScore": zod.number(),
+  "skillsScore": zod.number(),
+  "talentScore": zod.number(),
+  "composite": zod.number().describe('0-100 derived composite.'),
+  "band": zod.enum(['SEEKER', 'BUILDER', 'OPERATOR', 'ASCENDANT']),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})),
+  "count": zod.number().min(submitMyJstResponseCountMin)
+})
+
+
+/**
+ * @summary The Ascension Protocol journey — ordered rungs anchored to The Atomic Prompt
+ */
+export const getMyAscensionResponseCompletedCountMin = 0;
+
+
+export const getMyAscensionResponseRungsItemProgressMin = 0;
+
+
+
+
+export const GetMyAscensionResponse = zod.object({
+  "track": zod.enum(['default', 'atomic_prompt_v1']),
+  "readerCode": zod.string().nullable(),
+  "completedCount": zod.number().min(getMyAscensionResponseCompletedCountMin),
+  "totalCount": zod.number().min(1),
+  "band": zod.union([zod.literal('SEEKER'),zod.literal('BUILDER'),zod.literal('OPERATOR'),zod.literal('ASCENDANT'),zod.literal(null)]).nullable(),
+  "rungs": zod.array(zod.object({
+  "index": zod.number().describe('0-based position on the ladder.'),
+  "key": zod.string().describe('Stable rung identifier.'),
+  "title": zod.string().describe('Badge \/ rung name.'),
+  "role": zod.string().describe('Operator persona earned at this rung.'),
+  "engine": zod.string().describe('Platform action \/ engine that proves the rung.'),
+  "chapter": zod.string().describe('Anchor in The Atomic Prompt.'),
+  "blurb": zod.string(),
+  "complete": zod.boolean(),
+  "current": zod.boolean().describe('The next incomplete rung — the reader\'s focus.'),
+  "progress": zod.number().min(getMyAscensionResponseRungsItemProgressMin),
+  "target": zod.number().min(1),
+  "actionLabel": zod.string(),
+  "actionHref": zod.string()
+}))
+})
+
+
+/**
+ * @summary Claim a reader code from The Atomic Prompt to join the atomic_prompt_v1 track
+ */
+export const claimReaderCodeBodyCodeMax = 64;
+
+
+
+export const ClaimReaderCodeBody = zod.object({
+  "code": zod.string().min(1).max(claimReaderCodeBodyCodeMax)
+})
+
+export const ClaimReaderCodeResponse = zod.object({
+  "track": zod.enum(['default', 'atomic_prompt_v1']),
+  "readerCode": zod.string().nullable(),
+  "startedAt": zod.coerce.date()
+})
+
+

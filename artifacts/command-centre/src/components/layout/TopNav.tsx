@@ -20,6 +20,7 @@ const SIGNED_IN_LINKS: Array<{ href: string; label: string }> = [
   { href: "/cartridge", label: "Cartridge" },
   { href: "/prompts", label: "Prompts" },
   { href: "/quests", label: "Quests" },
+  { href: "/ascension", label: "Ascension" },
   { href: "/orgs", label: "Teams" },
   { href: "/me/activity", label: "Activity" },
   { href: "/me/costs", label: "Costs" },

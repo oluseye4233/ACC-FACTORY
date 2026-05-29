@@ -29,6 +29,7 @@ import type {
   AdminRevokeBadgeInput,
   AdminRevokeBadgeResult,
   AiseClaimInput,
+  AscensionJourney,
   AtlasPdd,
   AtlasPddJson,
   AtomicPrompt,
@@ -71,12 +72,15 @@ import type {
   IngestionCheckoutInput,
   IngestionCreditsSummary,
   IngestionDocument,
+  JstInput,
+  JstSummary,
   ListMyPromptsParams,
   MeResponse,
   MicroPdd,
   MyDataExport,
   NotFoundResponse,
   Ok,
+  OnboardingState,
   PfpReport,
   PortalInput,
   PortalSession,
@@ -84,6 +88,7 @@ import type {
   PromptDiagnostic,
   PromptLibraryPage,
   RateLimitedResponse,
+  ReaderCodeInput,
   SessionDetail,
   SessionInput,
   SessionUpdate,
@@ -4433,4 +4438,300 @@ export function useVerifyCertificate<TData = Awaited<ReturnType<typeof verifyCer
 
 
 
+
+export const getGetMyJstUrl = () => {
+
+
+
+
+  return `/api/me/jst`
+}
+
+/**
+ * @summary Latest JST (Jobs/Skills/Talent) self-assessment plus history
+ */
+export const getMyJst = async ( options?: RequestInit): Promise<JstSummary> => {
+
+  return customFetch<JstSummary>(getGetMyJstUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyJstQueryKey = () => {
+    return [
+    `/api/me/jst`
+    ] as const;
+    }
+
+
+export const getGetMyJstQueryOptions = <TData = Awaited<ReturnType<typeof getMyJst>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyJst>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyJstQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyJst>>> = ({ signal }) => getMyJst({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyJst>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMyJstQueryResult = NonNullable<Awaited<ReturnType<typeof getMyJst>>>
+export type GetMyJstQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Latest JST (Jobs/Skills/Talent) self-assessment plus history
+ */
+
+export function useGetMyJst<TData = Awaited<ReturnType<typeof getMyJst>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyJst>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMyJstQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSubmitMyJstUrl = () => {
+
+
+
+
+  return `/api/me/jst`
+}
+
+/**
+ * @summary Submit a JST self-assessment (composite + band derived server-side)
+ */
+export const submitMyJst = async (jstInput: JstInput, options?: RequestInit): Promise<JstSummary> => {
+
+  return customFetch<JstSummary>(getSubmitMyJstUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      jstInput,)
+  }
+);}
+
+
+
+
+export const getSubmitMyJstMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitMyJst>>, TError,{data: BodyType<JstInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitMyJst>>, TError,{data: BodyType<JstInput>}, TContext> => {
+
+const mutationKey = ['submitMyJst'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitMyJst>>, {data: BodyType<JstInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  submitMyJst(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitMyJstMutationResult = NonNullable<Awaited<ReturnType<typeof submitMyJst>>>
+    export type SubmitMyJstMutationBody = BodyType<JstInput>
+    export type SubmitMyJstMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Submit a JST self-assessment (composite + band derived server-side)
+ */
+export const useSubmitMyJst = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitMyJst>>, TError,{data: BodyType<JstInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof submitMyJst>>,
+        TError,
+        {data: BodyType<JstInput>},
+        TContext
+      > => {
+      return useMutation(getSubmitMyJstMutationOptions(options));
+    }
+
+export const getGetMyAscensionUrl = () => {
+
+
+
+
+  return `/api/me/ascension`
+}
+
+/**
+ * @summary The Ascension Protocol journey — ordered rungs anchored to The Atomic Prompt
+ */
+export const getMyAscension = async ( options?: RequestInit): Promise<AscensionJourney> => {
+
+  return customFetch<AscensionJourney>(getGetMyAscensionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyAscensionQueryKey = () => {
+    return [
+    `/api/me/ascension`
+    ] as const;
+    }
+
+
+export const getGetMyAscensionQueryOptions = <TData = Awaited<ReturnType<typeof getMyAscension>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyAscension>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyAscensionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyAscension>>> = ({ signal }) => getMyAscension({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyAscension>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMyAscensionQueryResult = NonNullable<Awaited<ReturnType<typeof getMyAscension>>>
+export type GetMyAscensionQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The Ascension Protocol journey — ordered rungs anchored to The Atomic Prompt
+ */
+
+export function useGetMyAscension<TData = Awaited<ReturnType<typeof getMyAscension>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyAscension>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMyAscensionQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getClaimReaderCodeUrl = () => {
+
+
+
+
+  return `/api/me/onboarding/reader-code`
+}
+
+/**
+ * @summary Claim a reader code from The Atomic Prompt to join the atomic_prompt_v1 track
+ */
+export const claimReaderCode = async (readerCodeInput: ReaderCodeInput, options?: RequestInit): Promise<OnboardingState> => {
+
+  return customFetch<OnboardingState>(getClaimReaderCodeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      readerCodeInput,)
+  }
+);}
+
+
+
+
+export const getClaimReaderCodeMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimReaderCode>>, TError,{data: BodyType<ReaderCodeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof claimReaderCode>>, TError,{data: BodyType<ReaderCodeInput>}, TContext> => {
+
+const mutationKey = ['claimReaderCode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof claimReaderCode>>, {data: BodyType<ReaderCodeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  claimReaderCode(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClaimReaderCodeMutationResult = NonNullable<Awaited<ReturnType<typeof claimReaderCode>>>
+    export type ClaimReaderCodeMutationBody = BodyType<ReaderCodeInput>
+    export type ClaimReaderCodeMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Claim a reader code from The Atomic Prompt to join the atomic_prompt_v1 track
+ */
+export const useClaimReaderCode = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimReaderCode>>, TError,{data: BodyType<ReaderCodeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof claimReaderCode>>,
+        TError,
+        {data: BodyType<ReaderCodeInput>},
+        TContext
+      > => {
+      return useMutation(getClaimReaderCodeMutationOptions(options));
+    }
 

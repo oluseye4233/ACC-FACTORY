@@ -1120,6 +1120,141 @@ export interface BadgeProgress {
   restoredNote: string | null;
 }
 
+export interface JstInput {
+  /**
+     * Jobs — paid work / market demand for what you do (1-10).
+     * @minimum 1
+     * @maximum 10
+     */
+  jobsScore: number;
+  /**
+     * Skills — learned, practised capability (1-10).
+     * @minimum 1
+     * @maximum 10
+     */
+  skillsScore: number;
+  /**
+     * Talent — innate edge / natural advantage (1-10).
+     * @minimum 1
+     * @maximum 10
+     */
+  talentScore: number;
+  /** @maxLength 2000 */
+  notes?: string;
+}
+
+export type JstAssessmentBand = typeof JstAssessmentBand[keyof typeof JstAssessmentBand];
+
+
+export const JstAssessmentBand = {
+  SEEKER: 'SEEKER',
+  BUILDER: 'BUILDER',
+  OPERATOR: 'OPERATOR',
+  ASCENDANT: 'ASCENDANT',
+} as const;
+
+export interface JstAssessment {
+  id: string;
+  jobsScore: number;
+  skillsScore: number;
+  talentScore: number;
+  /** 0-100 derived composite. */
+  composite: number;
+  band: JstAssessmentBand;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface JstSummary {
+  latest: JstAssessment | null;
+  history: JstAssessment[];
+  /** @minimum 0 */
+  count: number;
+}
+
+export interface ReaderCodeInput {
+  /**
+     * @minLength 1
+     * @maxLength 64
+     */
+  code: string;
+}
+
+export type OnboardingStateTrack = typeof OnboardingStateTrack[keyof typeof OnboardingStateTrack];
+
+
+export const OnboardingStateTrack = {
+  default: 'default',
+  atomic_prompt_v1: 'atomic_prompt_v1',
+} as const;
+
+export interface OnboardingState {
+  track: OnboardingStateTrack;
+  /** @nullable */
+  readerCode: string | null;
+  startedAt: string;
+}
+
+export interface AscensionRung {
+  /** 0-based position on the ladder. */
+  index: number;
+  /** Stable rung identifier. */
+  key: string;
+  /** Badge / rung name. */
+  title: string;
+  /** Operator persona earned at this rung. */
+  role: string;
+  /** Platform action / engine that proves the rung. */
+  engine: string;
+  /** Anchor in The Atomic Prompt. */
+  chapter: string;
+  blurb: string;
+  complete: boolean;
+  /** The next incomplete rung — the reader's focus. */
+  current: boolean;
+  /** @minimum 0 */
+  progress: number;
+  /** @minimum 1 */
+  target: number;
+  actionLabel: string;
+  actionHref: string;
+}
+
+export type AscensionJourneyTrack = typeof AscensionJourneyTrack[keyof typeof AscensionJourneyTrack];
+
+
+export const AscensionJourneyTrack = {
+  default: 'default',
+  atomic_prompt_v1: 'atomic_prompt_v1',
+} as const;
+
+/**
+ * @nullable
+ */
+export type AscensionJourneyBand = typeof AscensionJourneyBand[keyof typeof AscensionJourneyBand] | null;
+
+
+export const AscensionJourneyBand = {
+  SEEKER: 'SEEKER',
+  BUILDER: 'BUILDER',
+  OPERATOR: 'OPERATOR',
+  ASCENDANT: 'ASCENDANT',
+} as const;
+
+export interface AscensionJourney {
+  track: AscensionJourneyTrack;
+  /** @nullable */
+  readerCode: string | null;
+  /** @minimum 0 */
+  completedCount: number;
+  /** @minimum 1 */
+  totalCount: number;
+  /** @nullable */
+  band: AscensionJourneyBand;
+  rungs: AscensionRung[];
+}
+
 export interface AiseClaimInput {
   spcDnaAgentUrl?: string;
   gptUrl?: string;

@@ -16,3 +16,5 @@ export * from "./badge-revocations";
 export * from "./organizations";
 export * from "./notification-preferences";
 export * from "./integration-credentials";
+export * from "./jst-assessments";
+export * from "./reader-onboarding";

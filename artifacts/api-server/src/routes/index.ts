@@ -19,11 +19,13 @@ import activityRouter from "./activity";
 import costRouter from "./cost";
 import notificationsRouter from "./notifications";
 import integrationsRouter from "./integrations";
+import onboardingRouter from "./onboarding";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(meRouter);
+router.use(onboardingRouter);
 router.use(promptsRouter);
 router.use(exportsRouter);
 router.use(badgesRouter);
