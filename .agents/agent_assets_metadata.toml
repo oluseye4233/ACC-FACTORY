@@ -192,3 +192,9 @@ id = "uwRt3tgqjYS2yndci6zwG"
 uri = "file://docs/atlas-pdd-command-centre.pdf"
 type = "pdf"
 title = "ATLAS PDD — ATANDA Command Centre (PDF)"
+
+[[outputs]]
+id = "Y6tlV2WwLtaKd0Cyzf3UQ"
+uri = "file://docs/spartan-mvp-codedj-bugmxt-command-centre.pdf"
+type = "pdf"
+title = "SPARTAN MVP · CODE DJ · BUGMXT — ATANDA Command Centre"

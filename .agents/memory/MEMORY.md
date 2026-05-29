@@ -1,1 +1,1 @@
-- [Onboarding book mapping](onboarding-books.md) — Atomic Prompt = platform doctrine/spine; Context Craft = its Ch4 (F1 pillars only) companion. Sequence as a set.
+- [Doctrine-application docs](doctrine-application-docs.md) — SPARTAN/CODE DJ quality gates are SPC doctrine, NOT enforced in engine code; label them analyst overlays in self-audit docs.
