@@ -186,3 +186,9 @@ id = "fBPio_c7C6VtXJmImP2vM"
 uri = "file://docs/atlas-pdd-command-centre.md"
 type = "text"
 title = "ATLAS PDD — ATANDA Command Centre"
+
+[[outputs]]
+id = "uwRt3tgqjYS2yndci6zwG"
+uri = "file://docs/atlas-pdd-command-centre.pdf"
+type = "pdf"
+title = "ATLAS PDD — ATANDA Command Centre (PDF)"
