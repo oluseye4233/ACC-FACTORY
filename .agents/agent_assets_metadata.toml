@@ -174,3 +174,9 @@ id = "eC5Z0Tc5e0geisQ5CZgwN"
 uri = "file://exports/atanda_cc_book_comparison.pdf"
 type = "pdf"
 title = "Onboarding Book Selection — Atomic Prompt vs Context Craft (Comparative Analysis)"
+
+[[outputs]]
+id = "3gMMDGinosOw4aZYNthq6"
+uri = "file://exports/atomic_prompt_onboarding_edition.pdf"
+type = "pdf"
+title = "The Atomic Prompt — Ascension Protocol (Onboarding Edition: Subscriptions + Quest Badge Ladder)"
