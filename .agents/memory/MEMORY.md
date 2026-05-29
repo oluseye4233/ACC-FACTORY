@@ -1,0 +1,1 @@
+- [Onboarding book mapping](onboarding-books.md) — Atomic Prompt = platform doctrine/spine; Context Craft = its Ch4 (F1 pillars only) companion. Sequence as a set.

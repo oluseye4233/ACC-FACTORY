@@ -168,3 +168,9 @@ id = "L9W7Mwz8x0VsVanx3ghQx"
 uri = "file://exports/atanda_cc_business_cases_and_onboarding.pdf"
 type = "pdf"
 title = "ATANDA CC — Business Cases Catalogue + Context Craft Onboarding Design"
+
+[[outputs]]
+id = "eC5Z0Tc5e0geisQ5CZgwN"
+uri = "file://exports/atanda_cc_book_comparison.pdf"
+type = "pdf"
+title = "Onboarding Book Selection — Atomic Prompt vs Context Craft (Comparative Analysis)"
