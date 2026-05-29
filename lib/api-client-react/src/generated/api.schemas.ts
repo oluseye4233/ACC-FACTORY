@@ -1153,6 +1153,17 @@ export const JstAssessmentBand = {
   ASCENDANT: 'ASCENDANT',
 } as const;
 
+/**
+ * Where the score came from: in-app self-assessment or the ARK.ONECRAFT platform.
+ */
+export type JstAssessmentSource = typeof JstAssessmentSource[keyof typeof JstAssessmentSource];
+
+
+export const JstAssessmentSource = {
+  self_assessment: 'self_assessment',
+  ark_onecraft: 'ark_onecraft',
+} as const;
+
 export interface JstAssessment {
   id: string;
   jobsScore: number;
@@ -1161,6 +1172,8 @@ export interface JstAssessment {
   /** 0-100 derived composite. */
   composite: number;
   band: JstAssessmentBand;
+  /** Where the score came from: in-app self-assessment or the ARK.ONECRAFT platform. */
+  source: JstAssessmentSource;
   /** @nullable */
   notes?: string | null;
   createdAt: string;

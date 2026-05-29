@@ -4735,3 +4735,74 @@ export const useClaimReaderCode = <TError = ErrorType<ErrorResponse>,
       return useMutation(getClaimReaderCodeMutationOptions(options));
     }
 
+export const getImportJstFromArkUrl = () => {
+
+
+
+
+  return `/api/me/jst/import-from-ark`
+}
+
+/**
+ * Pulls the authoritative JST (Jobs/Skills/Talent) score from the connected ARK.ONECRAFT production platform and records it as a `ark_onecraft`-sourced assessment that supersedes the interim in-app self-assessment. Returns 503 until the ARK.ONECRAFT integration is configured on the server.
+ * @summary Import the user's JST score from the ARK.ONECRAFT platform
+ */
+export const importJstFromArk = async ( options?: RequestInit): Promise<JstSummary> => {
+
+  return customFetch<JstSummary>(getImportJstFromArkUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getImportJstFromArkMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importJstFromArk>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof importJstFromArk>>, TError,void, TContext> => {
+
+const mutationKey = ['importJstFromArk'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importJstFromArk>>, void> = () => {
+
+
+          return  importJstFromArk(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImportJstFromArkMutationResult = NonNullable<Awaited<ReturnType<typeof importJstFromArk>>>
+
+    export type ImportJstFromArkMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Import the user's JST score from the ARK.ONECRAFT platform
+ */
+export const useImportJstFromArk = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importJstFromArk>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof importJstFromArk>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getImportJstFromArkMutationOptions(options));
+    }
+

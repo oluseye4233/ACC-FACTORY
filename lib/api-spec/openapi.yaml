@@ -1139,6 +1139,34 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
 
+  /me/jst/import-from-ark:
+    post:
+      operationId: importJstFromArk
+      tags: [onboarding]
+      summary: Import the user's JST score from the ARK.ONECRAFT platform
+      description: >-
+        Pulls the authoritative JST (Jobs/Skills/Talent) score from the
+        connected ARK.ONECRAFT production platform and records it as a
+        `ark_onecraft`-sourced assessment that supersedes the interim in-app
+        self-assessment. Returns 503 until the ARK.ONECRAFT integration is
+        configured on the server.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JstSummary" }
+        "502":
+          description: ARK.ONECRAFT could not be reached or rejected the request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "503":
+          description: ARK.ONECRAFT integration is not yet configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
 components:
   parameters:
     SessionId:
@@ -2155,7 +2183,7 @@ components:
 
     JstAssessment:
       type: object
-      required: [id, jobsScore, skillsScore, talentScore, composite, band, createdAt]
+      required: [id, jobsScore, skillsScore, talentScore, composite, band, source, createdAt]
       properties:
         id: { type: string, format: uuid }
         jobsScore: { type: integer }
@@ -2163,6 +2191,10 @@ components:
         talentScore: { type: integer }
         composite: { type: number, description: "0-100 derived composite." }
         band: { type: string, enum: [SEEKER, BUILDER, OPERATOR, ASCENDANT] }
+        source:
+          type: string
+          enum: [self_assessment, ark_onecraft]
+          description: "Where the score came from: in-app self-assessment or the ARK.ONECRAFT platform."
         notes: { type: ["string", "null"] }
         createdAt: { type: string, format: date-time }
 

@@ -21,6 +21,16 @@ import { usersTable } from "./users";
 export const JST_BANDS = ["SEEKER", "BUILDER", "OPERATOR", "ASCENDANT"] as const;
 export type JstBand = (typeof JST_BANDS)[number];
 
+/**
+ * Where a JST score originated. `self_assessment` is the interim in-app
+ * "Know Your Number" form; `ark_onecraft` is a score imported from the
+ * ARK.ONECRAFT platform once that production integration is connected — at
+ * which point imported scores supersede the manual self-assessment as the
+ * authoritative source.
+ */
+export const JST_SOURCES = ["self_assessment", "ark_onecraft"] as const;
+export type JstSource = (typeof JST_SOURCES)[number];
+
 export const jstAssessmentsTable = pgTable(
   "jst_assessments",
   {
@@ -33,6 +43,10 @@ export const jstAssessmentsTable = pgTable(
     talentScore: integer("talent_score").notNull(),
     composite: numeric("composite", { precision: 5, scale: 2 }).notNull(),
     band: varchar("band", { length: 16 }).notNull().$type<JstBand>(),
+    source: varchar("source", { length: 24 })
+      .notNull()
+      .default("self_assessment")
+      .$type<JstSource>(),
     notes: text("notes"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

@@ -6,6 +6,7 @@ import {
   useGetMyJst,
   useSubmitMyJst,
   useClaimReaderCode,
+  useImportJstFromArk,
   type AscensionRung,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, BookOpen, CheckCircle2, Circle, Lock, Sparkles, Target } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2, Circle, CloudDownload, Lock, Sparkles, Target } from "lucide-react";
 
 const BAND_BLURB: Record<string, string> = {
   SEEKER: "You're naming the gap. The protocol begins here.",
@@ -42,6 +43,7 @@ export default function Ascension() {
   const { data: jst, refetch: refetchJst } = useGetMyJst();
   const submitJst = useSubmitMyJst();
   const claimCode = useClaimReaderCode();
+  const importArk = useImportJstFromArk();
   const { toast } = useToast();
 
   const [jobs, setJobs] = useState(5);
@@ -88,8 +90,41 @@ export default function Ascension() {
     );
   };
 
+  const handleImportArk = (): void => {
+    importArk.mutate(undefined, {
+      onSuccess: (data) => {
+        const l = data.latest;
+        toast({
+          title: "Imported from ARK.ONECRAFT",
+          description: l ? `Your number: ${l.composite} (${l.band}).` : "JST score synced.",
+        });
+        void refetchJst();
+        void refetch();
+      },
+      onError: (e) => {
+        const err = e as {
+          status?: number;
+          message?: string;
+          data?: { code?: string; error?: string } | null;
+        };
+        const notConnected =
+          err.status === 503 ||
+          err.data?.code === "ARK_NOT_CONFIGURED" ||
+          /not yet connected/i.test(err.message ?? "");
+        toast({
+          title: notConnected ? "ARK.ONECRAFT — coming soon" : "Import failed",
+          description: notConnected
+            ? "The ARK.ONECRAFT integration is being connected. Use the self-assessment below for now."
+            : err.data?.error ?? err.message ?? "Could not import from ARK.ONECRAFT.",
+          variant: notConnected ? "default" : "destructive",
+        });
+      },
+    });
+  };
+
   const onTrack = journey?.track === "atomic_prompt_v1";
   const latest = jst?.latest ?? null;
+  const fromArk = latest?.source === "ark_onecraft";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -143,10 +178,36 @@ export default function Ascension() {
                 <Target className="h-5 w-5 text-primary" /> KNOW YOUR NUMBER (JST)
               </CardTitle>
               <CardDescription className="font-serif">
-                Rate yourself honestly on the three axes. Your composite is computed from these — that's your number.
+                Pull your authoritative score from ARK.ONECRAFT, or use the interim self-assessment below until the
+                integration is live.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
+              {/* ARK.ONECRAFT integration — primary, authoritative source */}
+              <div className="rounded-lg border border-primary/40 bg-primary/5 p-3">
+                <Button
+                  className="w-full font-mono gap-2"
+                  onClick={handleImportArk}
+                  disabled={importArk.isPending}
+                  data-testid="button-import-ark"
+                >
+                  <CloudDownload className="h-4 w-4" />
+                  {importArk.isPending ? "SYNCING…" : "UPLOAD JST SCORE FROM ARK.ONECRAFT"}
+                </Button>
+                <p className="text-[10px] font-serif text-muted-foreground mt-2 text-center">
+                  Full integration with the ARK.ONECRAFT production platform. Once connected, your JST score is sourced
+                  from ARK and supersedes the manual self-assessment.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-[10px] font-mono text-muted-foreground tracking-widest">
+                  OR SELF-ASSESS (INTERIM)
+                </span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+
               {[
                 { label: "JOBS — market demand for what you do", val: jobs, set: setJobs },
                 { label: "SKILLS — learned, practised capability", val: skills, set: setSkills },
@@ -199,7 +260,8 @@ export default function Ascension() {
               </Button>
               {latest && (
                 <p className="text-[11px] font-mono text-muted-foreground text-center">
-                  Last recorded: {latest.composite} ({latest.band}) ·{" "}
+                  Last recorded: {latest.composite} ({latest.band})
+                  {fromArk ? " · via ARK.ONECRAFT" : ""} ·{" "}
                   {new Date(latest.createdAt).toLocaleDateString()} · {jst?.count ?? 0} total
                 </p>
               )}

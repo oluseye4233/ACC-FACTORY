@@ -1318,6 +1318,7 @@ export const GetMyJstResponse = zod.object({
   "talentScore": zod.number(),
   "composite": zod.number().describe('0-100 derived composite.'),
   "band": zod.enum(['SEEKER', 'BUILDER', 'OPERATOR', 'ASCENDANT']),
+  "source": zod.enum(['self_assessment', 'ark_onecraft']).describe('Where the score came from: in-app self-assessment or the ARK.ONECRAFT platform.'),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]),
@@ -1328,6 +1329,7 @@ export const GetMyJstResponse = zod.object({
   "talentScore": zod.number(),
   "composite": zod.number().describe('0-100 derived composite.'),
   "band": zod.enum(['SEEKER', 'BUILDER', 'OPERATOR', 'ASCENDANT']),
+  "source": zod.enum(['self_assessment', 'ark_onecraft']).describe('Where the score came from: in-app self-assessment or the ARK.ONECRAFT platform.'),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })),
@@ -1367,6 +1369,7 @@ export const SubmitMyJstResponse = zod.object({
   "talentScore": zod.number(),
   "composite": zod.number().describe('0-100 derived composite.'),
   "band": zod.enum(['SEEKER', 'BUILDER', 'OPERATOR', 'ASCENDANT']),
+  "source": zod.enum(['self_assessment', 'ark_onecraft']).describe('Where the score came from: in-app self-assessment or the ARK.ONECRAFT platform.'),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]),
@@ -1377,6 +1380,7 @@ export const SubmitMyJstResponse = zod.object({
   "talentScore": zod.number(),
   "composite": zod.number().describe('0-100 derived composite.'),
   "band": zod.enum(['SEEKER', 'BUILDER', 'OPERATOR', 'ASCENDANT']),
+  "source": zod.enum(['self_assessment', 'ark_onecraft']).describe('Where the score came from: in-app self-assessment or the ARK.ONECRAFT platform.'),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })),
@@ -1434,6 +1438,41 @@ export const ClaimReaderCodeResponse = zod.object({
   "track": zod.enum(['default', 'atomic_prompt_v1']),
   "readerCode": zod.string().nullable(),
   "startedAt": zod.coerce.date()
+})
+
+
+/**
+ * Pulls the authoritative JST (Jobs/Skills/Talent) score from the connected ARK.ONECRAFT production platform and records it as a `ark_onecraft`-sourced assessment that supersedes the interim in-app self-assessment. Returns 503 until the ARK.ONECRAFT integration is configured on the server.
+ * @summary Import the user's JST score from the ARK.ONECRAFT platform
+ */
+export const importJstFromArkResponseCountMin = 0;
+
+
+
+export const ImportJstFromArkResponse = zod.object({
+  "latest": zod.union([zod.object({
+  "id": zod.string().uuid(),
+  "jobsScore": zod.number(),
+  "skillsScore": zod.number(),
+  "talentScore": zod.number(),
+  "composite": zod.number().describe('0-100 derived composite.'),
+  "band": zod.enum(['SEEKER', 'BUILDER', 'OPERATOR', 'ASCENDANT']),
+  "source": zod.enum(['self_assessment', 'ark_onecraft']).describe('Where the score came from: in-app self-assessment or the ARK.ONECRAFT platform.'),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]),
+  "history": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "jobsScore": zod.number(),
+  "skillsScore": zod.number(),
+  "talentScore": zod.number(),
+  "composite": zod.number().describe('0-100 derived composite.'),
+  "band": zod.enum(['SEEKER', 'BUILDER', 'OPERATOR', 'ASCENDANT']),
+  "source": zod.enum(['self_assessment', 'ark_onecraft']).describe('Where the score came from: in-app self-assessment or the ARK.ONECRAFT platform.'),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})),
+  "count": zod.number().min(importJstFromArkResponseCountMin)
 })
 
 

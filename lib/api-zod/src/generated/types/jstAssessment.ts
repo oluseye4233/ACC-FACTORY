@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { JstAssessmentBand } from './jstAssessmentBand';
+import type { JstAssessmentSource } from './jstAssessmentSource';
 
 export interface JstAssessment {
   id: string;
@@ -15,6 +16,8 @@ export interface JstAssessment {
   /** 0-100 derived composite. */
   composite: number;
   band: JstAssessmentBand;
+  /** Where the score came from: in-app self-assessment or the ARK.ONECRAFT platform. */
+  source: JstAssessmentSource;
   /** @nullable */
   notes?: string | null;
   createdAt: Date;

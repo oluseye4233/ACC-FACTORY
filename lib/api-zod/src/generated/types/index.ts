@@ -109,6 +109,7 @@ export * from './ingestStartSessionInput';
 export * from './jcseBreakdown';
 export * from './jstAssessment';
 export * from './jstAssessmentBand';
+export * from './jstAssessmentSource';
 export * from './jstInput';
 export * from './jstSummary';
 export * from './listMyPromptsKind';
