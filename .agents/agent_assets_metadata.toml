@@ -180,3 +180,9 @@ id = "3gMMDGinosOw4aZYNthq6"
 uri = "file://exports/atomic_prompt_onboarding_edition.pdf"
 type = "pdf"
 title = "The Atomic Prompt — Ascension Protocol (Onboarding Edition: Subscriptions + Quest Badge Ladder)"
+
+[[outputs]]
+id = "fBPio_c7C6VtXJmImP2vM"
+uri = "file://docs/atlas-pdd-command-centre.md"
+type = "text"
+title = "ATLAS PDD — ATANDA Command Centre"
