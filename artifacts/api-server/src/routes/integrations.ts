@@ -560,9 +560,16 @@ router.delete(
 // Powers the "Use existing repo" picker in the push dialog. Reuses the same
 // per-user credential + Octokit the push handler uses, then keeps only repos
 // where the token actually has push access — so authorization is surfaced up
-// front instead of failing at push time. Results are sorted most-recently
-// pushed first (what a picker wants) and paginated; an optional `q` narrows by
-// substring on the full "owner/repo" name.
+// front instead of failing at push time.
+//
+// Two listing modes:
+//   - No `q`: the recency-sorted `listForAuthenticatedUser` listing (what a
+//     picker wants by default — most-recently pushed first), paginated.
+//   - With `q`: GitHub's repository SEARCH API scoped to the connected login
+//     (`<term> in:name user:<login> fork:true`). This finds a matching repo
+//     ANYWHERE in the account regardless of recency, instead of post-filtering
+//     the single recency page we happened to fetch (which would miss older
+//     repos until the user clicked "Load more" enough times).
 const ListReposQuery = z.object({
   q: z.string().max(140).optional(),
   page: z.coerce.number().int().min(1).max(20).optional(),
@@ -604,34 +611,75 @@ router.get(
     }
 
     let repos;
+    let hasMore: boolean;
     try {
       const token = decryptApiKey(ghCred.keyEncrypted);
       const gh = getGitHubClientFromToken(token);
       const perPage = 100;
-      const listed = await gh.rest.repos.listForAuthenticatedUser({
-        per_page: perPage,
-        page,
-        sort: "pushed",
-        direction: "desc",
-        // Include repos the user owns, collaborates on, or reaches via org
-        // membership — any of which may be push-eligible for their token.
-        affiliation: "owner,collaborator,organization_member",
+
+      // Map a GitHub-API repo row (from either the list or the search endpoint)
+      // to the picker shape. Both shapes carry these fields; search items mark
+      // `owner` nullable, so fall back to the owner segment of full_name.
+      const toPickerRepo = (r: {
+        full_name: string;
+        owner: { login: string } | null;
+        name: string;
+        private: boolean;
+        default_branch?: string;
+        html_url: string;
+        pushed_at?: string | null;
+        permissions?: { push?: boolean };
+      }): {
+        fullName: string;
+        owner: string;
+        name: string;
+        private: boolean;
+        defaultBranch: string;
+        htmlUrl: string;
+        pushedAt: string | null;
+      } => ({
+        fullName: r.full_name,
+        owner: r.owner?.login ?? r.full_name.split("/")[0]!,
+        name: r.name,
+        private: r.private,
+        defaultBranch: r.default_branch ?? "main",
+        htmlUrl: r.html_url,
+        pushedAt: r.pushed_at ?? null,
       });
-      const hasMore = listed.data.length === perPage;
-      repos = listed.data
-        // Keep only repos the token can actually push to — the whole point of
-        // surfacing authorization before the user commits to a push.
-        .filter((r) => r.permissions?.push === true)
-        .map((r) => ({
-          fullName: r.full_name,
-          owner: r.owner.login,
-          name: r.name,
-          private: r.private,
-          defaultBranch: r.default_branch ?? "main",
-          htmlUrl: r.html_url,
-          pushedAt: r.pushed_at ?? null,
-        }))
-        .filter((r) => (q ? r.fullName.toLowerCase().includes(q) : true));
+
+      // Keep only repos the token can actually push to — the whole point of
+      // surfacing authorization before the user commits to a push.
+      const canPush = (r: { permissions?: { push?: boolean } }): boolean =>
+        r.permissions?.push === true;
+
+      if (q) {
+        // Search the WHOLE account (scoped to the connected login + repo names)
+        // so any matching repo surfaces regardless of recency. `fork:true`
+        // mirrors the list path, which includes forks.
+        const login =
+          ghCred.label ?? (await gh.rest.users.getAuthenticated()).data.login;
+        const searched = await gh.rest.search.repos({
+          q: `${q} in:name user:${login} fork:true`,
+          per_page: perPage,
+          page,
+          sort: "updated",
+          order: "desc",
+        });
+        hasMore = searched.data.items.length === perPage;
+        repos = searched.data.items.filter(canPush).map(toPickerRepo);
+      } else {
+        const listed = await gh.rest.repos.listForAuthenticatedUser({
+          per_page: perPage,
+          page,
+          sort: "pushed",
+          direction: "desc",
+          // Include repos the user owns, collaborates on, or reaches via org
+          // membership — any of which may be push-eligible for their token.
+          affiliation: "owner,collaborator,organization_member",
+        });
+        hasMore = listed.data.length === perPage;
+        repos = listed.data.filter(canPush).map(toPickerRepo);
+      }
       res.json({ repos, page, hasMore });
       return;
     } catch (err) {

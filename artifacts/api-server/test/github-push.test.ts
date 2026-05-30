@@ -70,6 +70,12 @@ const mockGh = vi.hoisted(() => {
     listReposData: [] as Array<Record<string, unknown>>,
     listReposStatus: null as number | null,
     listReposCalls: [] as Array<Record<string, unknown>>,
+    // ── repo-search controls (GET /integrations/github/repos with ?q=) ──────
+    // Items `search.repos` returns for a query; a non-null `searchReposStatus`
+    // makes the call throw with that HTTP status.
+    searchReposData: [] as Array<Record<string, unknown>>,
+    searchReposStatus: null as number | null,
+    searchReposCalls: [] as Array<Record<string, unknown>>,
     reset(): void {
       this.authThrows = false;
       this.createRepoStatus = null;
@@ -93,6 +99,9 @@ const mockGh = vi.hoisted(() => {
       this.listReposData = [];
       this.listReposStatus = null;
       this.listReposCalls = [];
+      this.searchReposData = [];
+      this.searchReposStatus = null;
+      this.searchReposCalls = [];
     },
   };
 });
@@ -206,6 +215,25 @@ function buildFakeGitHubClient() {
             updateRef: async () => {
               mockGh.updateRefCalls += 1;
               return { data: {} };
+            },
+          },
+          search: {
+            repos: async (args: Record<string, unknown>) => {
+              mockGh.searchReposCalls.push(args);
+              if (mockGh.searchReposStatus !== null) {
+                const err = new Error("github search failed") as Error & {
+                  status: number;
+                };
+                err.status = mockGh.searchReposStatus;
+                throw err;
+              }
+              return {
+                data: {
+                  total_count: mockGh.searchReposData.length,
+                  incomplete_results: false,
+                  items: mockGh.searchReposData,
+                },
+              };
             },
           },
           pulls: {
@@ -874,19 +902,42 @@ describe("GET /integrations/github/repos", () => {
     });
   });
 
-  test("applies the q filter as a case-insensitive substring on owner/repo", async () => {
-    mockGh.listReposData = [
+  test("a q query is backed by GitHub's search API scoped to the login, and still push-filtered", async () => {
+    // The route delegates matching to GitHub's search API (so any repo across
+    // the whole account surfaces, not just the recency page), then keeps only
+    // push-eligible results. We return one non-pushable item to prove the
+    // push filter still applies to search results.
+    mockGh.searchReposData = [
       rawRepo("alpha-service", { push: true }),
-      rawRepo("beta-widget", { push: true }),
-      rawRepo("gamma-Alpha", { push: true }),
+      rawRepo("legacy-alpha", { push: true }),
+      rawRepo("alpha-readonly", { push: false }),
     ];
     const res = await listRepos(architectId, "?q=ALPHA");
     const body = (await res.json()) as RepoListBody;
-    expect(res.status).toBe(200);
+    expect(res.status, JSON.stringify(body)).toBe(200);
+    // The recency list endpoint must NOT be used for a search query.
+    expect(mockGh.listReposCalls).toHaveLength(0);
+    expect(mockGh.searchReposCalls).toHaveLength(1);
+    // Query is scoped to the connected login and to repo names; the term is
+    // lower-cased by the route before being embedded.
+    expect(mockGh.searchReposCalls[0]).toMatchObject({
+      q: "alpha in:name user:octo-tester fork:true",
+      page: 1,
+    });
+    // Non-pushable search hits are dropped; the two push:true repos survive.
     expect(body.repos.map((r) => r.name).sort()).toEqual([
       "alpha-service",
-      "gamma-Alpha",
+      "legacy-alpha",
     ]);
+  });
+
+  test("a q-search failure maps to 502 GITHUB_LIST_FAILED", async () => {
+    mockGh.searchReposStatus = 500;
+    const res = await listRepos(architectId, "?q=anything");
+    const body = (await res.json()) as { code?: string };
+    expect(res.status).toBe(502);
+    expect(body.code).toBe("GITHUB_LIST_FAILED");
+    expect(mockGh.listReposCalls).toHaveLength(0);
   });
 
   test("non-Architect tier is blocked (403)", async () => {
