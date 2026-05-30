@@ -373,3 +373,142 @@ describe("PushToGitHubButton — manual owner/repo fallback", () => {
     expect(screen.queryByTestId("f8-github-repo-picker")).toBeNull();
   });
 });
+
+describe("PushToGitHubButton — push error toasts", () => {
+  // Same mocked ApiError shape the thin `api` wrapper throws: a `code` body
+  // plus a message. `instanceof ApiError` inside the component resolves against
+  // this mocked class, so the code-specific catch branches fire.
+  function apiError(code: string, message = `${code} happened`) {
+    return new ApiError(503, { code }, message);
+  }
+
+  // Drive the simplest push: open the dialog (defaults to "create" mode with a
+  // pre-filled repo name, so the confirm button is enabled) and click confirm,
+  // which calls push("create") and hits the pre-seeded failing apiPost.
+  async function triggerCreatePush() {
+    fireEvent.click(screen.getByTestId("f8-github-push"));
+    fireEvent.click(await screen.findByTestId("f8-github-confirm"));
+  }
+
+  it("maps GITHUB_NOT_CONNECTED to the 'GitHub not connected' toast", async () => {
+    apiPost.mockRejectedValue(apiError("GITHUB_NOT_CONNECTED"));
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    await triggerCreatePush();
+
+    // Both connection codes share a fixed guidance description, ignoring the
+    // ApiError message entirely.
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenLastCalledWith({
+        variant: "destructive",
+        title: "GitHub not connected",
+        description:
+          "Connect your GitHub in Account → Connected Services, then retry.",
+      }),
+    );
+  });
+
+  it("maps GITHUB_BAD_TOKEN to the 'GitHub not connected' toast", async () => {
+    apiPost.mockRejectedValue(apiError("GITHUB_BAD_TOKEN"));
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    await triggerCreatePush();
+
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenLastCalledWith({
+        variant: "destructive",
+        title: "GitHub not connected",
+        description:
+          "Connect your GitHub in Account → Connected Services, then retry.",
+      }),
+    );
+  });
+
+  it("maps GITHUB_REPO_EXISTS to the 'Repo name taken' toast", async () => {
+    apiPost.mockRejectedValue(apiError("GITHUB_REPO_EXISTS"));
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    await triggerCreatePush();
+
+    // Static description; the ApiError message is not surfaced here.
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenLastCalledWith({
+        variant: "destructive",
+        title: "Repo name taken",
+        description:
+          "That repo already exists on the connected account. Pick another name.",
+      }),
+    );
+  });
+
+  it("maps GITHUB_REPO_NOT_FOUND to the 'Repo not found' toast", async () => {
+    // This branch surfaces the ApiError message as the description, so pin a
+    // specific message and assert it rides through.
+    apiPost.mockRejectedValue(
+      apiError("GITHUB_REPO_NOT_FOUND", "octocat/ghost is gone"),
+    );
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    await triggerCreatePush();
+
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenLastCalledWith({
+        variant: "destructive",
+        title: "Repo not found",
+        description: "octocat/ghost is gone",
+      }),
+    );
+  });
+
+  it("maps GITHUB_REPO_NOT_AUTHORIZED to the 'Repo not authorized' toast", async () => {
+    apiPost.mockRejectedValue(
+      apiError("GITHUB_REPO_NOT_AUTHORIZED", "token can't touch octocat/secret"),
+    );
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    await triggerCreatePush();
+
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenLastCalledWith({
+        variant: "destructive",
+        title: "Repo not authorized",
+        description: "token can't touch octocat/secret",
+      }),
+    );
+  });
+
+  it("falls back to the generic 'PUSH FAILED' toast for any other error code", async () => {
+    // An unrecognised code takes the catch-all branch, which surfaces the
+    // ApiError message as the description.
+    apiPost.mockRejectedValue(
+      apiError("SOMETHING_ELSE", "unexpected backend failure"),
+    );
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    await triggerCreatePush();
+
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenLastCalledWith({
+        variant: "destructive",
+        title: "PUSH FAILED",
+        description: "unexpected backend failure",
+      }),
+    );
+  });
+
+  it("uses the generic 'PUSH FAILED' toast for a non-ApiError failure", async () => {
+    // A non-ApiError (e.g. a network blip) falls through to the static copy.
+    apiPost.mockRejectedValue(new Error("network down"));
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    await triggerCreatePush();
+
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenLastCalledWith({
+        variant: "destructive",
+        title: "PUSH FAILED",
+        description: "Could not push to GitHub.",
+      }),
+    );
+  });
+});
