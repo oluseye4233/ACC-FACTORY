@@ -78,3 +78,35 @@ export async function getUncachableGitHubClient(): Promise<Octokit> {
   const accessToken = await getAccessToken();
   return new Octokit({ auth: accessToken });
 }
+
+/**
+ * Per-user GitHub access.
+ *
+ * Unlike the Replit-managed connection above (which is bound to the Repl
+ * owner's account), each subscriber connects their OWN GitHub by pasting a
+ * personal access token in Account → Connected Services. The token is stored
+ * encrypted in `integration_credentials` and decrypted only to mint a client
+ * for that one request. Mirrors the per-user Sphinx credential pattern.
+ */
+
+/** GitHub personal-access-token shapes we accept (classic + fine-grained + OAuth). */
+export const GITHUB_TOKEN_RE =
+  /^(gh[posur]_[A-Za-z0-9]{16,255}|github_pat_[A-Za-z0-9_]{20,255})$/u;
+
+/**
+ * Returns a fresh Octokit client authenticated with a per-user personal access
+ * token. NEVER cache the returned client — it is scoped to one request.
+ */
+export function getGitHubClientFromToken(token: string): Octokit {
+  return new Octokit({ auth: token });
+}
+
+/**
+ * A non-secret identifier for a stored token (its scheme prefix, e.g. `ghp_`
+ * or `github_pat_`). Used as the required `key_prefix` column without leaking
+ * any of the secret body — for GitHub we display the resolved login instead.
+ */
+export function githubTokenScheme(token: string): string {
+  const m = /^(github_pat_|gh[posur]_)/u.exec(token);
+  return m ? m[1]! : "token";
+}

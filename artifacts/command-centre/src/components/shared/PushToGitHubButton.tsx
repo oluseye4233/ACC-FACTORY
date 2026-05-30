@@ -115,12 +115,12 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
       });
     } catch (e) {
       const body = e instanceof ApiError ? (e.body as { code?: string } | null) : null;
-      if (body?.code === "GITHUB_NOT_CONNECTED") {
+      if (body?.code === "GITHUB_NOT_CONNECTED" || body?.code === "GITHUB_BAD_TOKEN") {
         toast({
           variant: "destructive",
           title: "GitHub not connected",
           description:
-            "Ask the workspace owner to connect GitHub in Replit integrations, then retry.",
+            "Connect your GitHub in Account → Connected Services, then retry.",
         });
         return;
       }

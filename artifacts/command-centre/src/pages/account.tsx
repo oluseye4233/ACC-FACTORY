@@ -10,6 +10,7 @@ import {
 import { TierBadge } from "@/components/shared/TierBadge";
 import { NotificationPreferences } from "@/components/shared/NotificationPreferences";
 import { SphinxConnect } from "@/components/shared/SphinxConnect";
+import { GitHubConnect } from "@/components/shared/GitHubConnect";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -254,6 +255,12 @@ export default function Account() {
                     Ark.Onecraft Sphinx Marketplace
                   </h3>
                   <SphinxConnect />
+                </div>
+                <div>
+                  <h3 className="font-mono text-xs font-bold uppercase tracking-wider mb-2">
+                    GitHub
+                  </h3>
+                  <GitHubConnect />
                 </div>
               </CardContent>
             </Card>

@@ -22,7 +22,7 @@ import { usersTable } from "./users";
  * credential, not per artifact — per-artifact listing pointers live on
  * `harness_artifacts.artifactContent.sphinxListing`.
  */
-export const INTEGRATION_PROVIDERS = ["sphinx"] as const;
+export const INTEGRATION_PROVIDERS = ["sphinx", "github"] as const;
 export type IntegrationProvider = (typeof INTEGRATION_PROVIDERS)[number];
 
 export const integrationCredentialsTable = pgTable(

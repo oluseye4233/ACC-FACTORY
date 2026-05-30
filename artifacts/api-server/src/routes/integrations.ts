@@ -16,8 +16,9 @@ import {
   maskKey,
 } from "../lib/integration-crypto";
 import {
-  getUncachableGitHubClient,
-  GitHubNotConnectedError,
+  getGitHubClientFromToken,
+  GITHUB_TOKEN_RE,
+  githubTokenScheme,
 } from "../lib/github";
 
 const router: IRouter = Router();
@@ -305,31 +306,122 @@ router.post(
   },
 );
 
-// ─── GitHub (Replit-managed connection) ────────────────────────────────────
+// ─── GitHub (per-user personal access token) ───────────────────────────────
 //
-// The GitHub account is connected at the Repl level via the Replit connectors
-// proxy (not a per-user pasted key like Sphinx). These endpoints let an
-// Architect-tier operator push a CODE DJ codebase bundle straight to a new
-// GitHub repo so any IDE can clone it — the most universal "send to IDE" path.
+// Each subscriber connects their OWN GitHub by pasting a personal access token
+// (mirrors the per-user Sphinx credential pattern), so a CODE DJ codebase push
+// lands in *their* account — not the Repl owner's. The token is stored
+// encrypted in `integration_credentials` and decrypted only at push time.
 
 // ─── GET github status ──────────────────────────────────────────────────────
 router.get(
   "/integrations/github",
   requireAuth,
-  async (_req, res): Promise<void> => {
-    try {
-      const gh = await getUncachableGitHubClient();
-      const me = await gh.rest.users.getAuthenticated();
-      res.json({ connected: true, login: me.data.login });
-    } catch (err) {
-      if (err instanceof GitHubNotConnectedError) {
-        res.json({ connected: false, login: null });
-        return;
-      }
-      // Token present but the call failed (revoked / network) — treat as not
-      // connected so the UI prompts a reconnect rather than hard-erroring.
+  async (req, res): Promise<void> => {
+    const rows = await db
+      .select({
+        login: integrationCredentialsTable.label,
+        lastUsedAt: integrationCredentialsTable.lastUsedAt,
+        createdAt: integrationCredentialsTable.createdAt,
+      })
+      .from(integrationCredentialsTable)
+      .where(
+        and(
+          eq(integrationCredentialsTable.userId, req.localUser!.id),
+          eq(integrationCredentialsTable.provider, "github"),
+        ),
+      )
+      .limit(1);
+    const row = rows[0];
+    if (!row) {
       res.json({ connected: false, login: null });
+      return;
     }
+    res.json({
+      connected: true,
+      login: row.login,
+      lastUsedAt: row.lastUsedAt,
+      createdAt: row.createdAt,
+    });
+  },
+);
+
+// ─── POST connect (paste personal access token) ────────────────────────────
+const GitHubConnectBody = z.object({
+  token: z
+    .string()
+    .min(20, "Token looks too short")
+    .max(255, "Token looks too long")
+    .regex(GITHUB_TOKEN_RE, "Expected a GitHub token (ghp_…, github_pat_…)"),
+});
+router.post(
+  "/integrations/github",
+  requireAuth,
+  async (req, res): Promise<void> => {
+    const parsed = GitHubConnectBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const { token } = parsed.data;
+
+    // Validate the token against GitHub and resolve the account login so we can
+    // show "connected as <login>" and tag pushes to the right account.
+    let login: string;
+    try {
+      const gh = getGitHubClientFromToken(token);
+      const me = await gh.rest.users.getAuthenticated();
+      login = me.data.login;
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      req.log.warn({ err }, "GitHub connect: token validation failed");
+      res.status(status === 401 ? 401 : 502).json({
+        error:
+          status === 401
+            ? "GitHub rejected that token. Check it has the 'repo' scope and hasn't expired."
+            : "Could not reach GitHub to verify the token. Try again.",
+        code: status === 401 ? "GITHUB_BAD_TOKEN" : "GITHUB_UNREACHABLE",
+      });
+      return;
+    }
+
+    const enc = encryptApiKey(token);
+    await db
+      .insert(integrationCredentialsTable)
+      .values({
+        userId: req.localUser!.id,
+        provider: "github",
+        label: login,
+        keyPrefix: githubTokenScheme(token),
+        keyEncrypted: enc,
+      })
+      .onConflictDoUpdate({
+        target: [integrationCredentialsTable.userId, integrationCredentialsTable.provider],
+        set: {
+          label: login,
+          keyPrefix: githubTokenScheme(token),
+          keyEncrypted: enc,
+          updatedAt: new Date(),
+        },
+      });
+    res.json({ connected: true, login });
+  },
+);
+
+// ─── DELETE disconnect ─────────────────────────────────────────────────────
+router.delete(
+  "/integrations/github",
+  requireAuth,
+  async (req, res): Promise<void> => {
+    await db
+      .delete(integrationCredentialsTable)
+      .where(
+        and(
+          eq(integrationCredentialsTable.userId, req.localUser!.id),
+          eq(integrationCredentialsTable.provider, "github"),
+        ),
+      );
+    res.json({ connected: false });
   },
 );
 
@@ -416,17 +508,42 @@ router.post(
       return;
     }
 
+    // Load THIS user's GitHub credential (their pasted personal access token),
+    // so the push lands in their own account — not the Repl owner's.
+    const ghCredRows = await db
+      .select()
+      .from(integrationCredentialsTable)
+      .where(
+        and(
+          eq(integrationCredentialsTable.userId, req.localUser!.id),
+          eq(integrationCredentialsTable.provider, "github"),
+        ),
+      )
+      .limit(1);
+    const ghCred = ghCredRows[0];
+    if (!ghCred) {
+      res.status(503).json({
+        error:
+          "GitHub is not connected. Add a personal access token in Account → Connected Services.",
+        code: "GITHUB_NOT_CONNECTED",
+      });
+      return;
+    }
+
     let gh;
     let owner: string;
     try {
-      gh = await getUncachableGitHubClient();
+      const token = decryptApiKey(ghCred.keyEncrypted);
+      gh = getGitHubClientFromToken(token);
       const me = await gh.rest.users.getAuthenticated();
       owner = me.data.login;
     } catch (err) {
-      if (err instanceof GitHubNotConnectedError) {
-        res.status(503).json({
-          error: "GitHub is not connected on this server.",
-          code: "GITHUB_NOT_CONNECTED",
+      const status = (err as { status?: number }).status;
+      if (status === 401) {
+        res.status(401).json({
+          error:
+            "Your GitHub token was rejected. Reconnect GitHub in Account → Connected Services.",
+          code: "GITHUB_BAD_TOKEN",
         });
         return;
       }
@@ -628,6 +745,12 @@ router.post(
         },
       })
       .where(eq(harnessArtifactsTable.id, artifact.id));
+
+    // Touch lastUsedAt on the GitHub credential.
+    await db
+      .update(integrationCredentialsTable)
+      .set({ lastUsedAt: sql`now()` })
+      .where(eq(integrationCredentialsTable.id, ghCred.id));
 
     res.json({
       ok: true,

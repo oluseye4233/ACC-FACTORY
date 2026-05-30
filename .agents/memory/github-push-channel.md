@@ -16,17 +16,27 @@ The F8 CODE DJ live handoff pushes a generated codebase to a new GitHub repo
   channels (ZIP, GitHub). Re-deriving the file set server-side risks drift —
   the export generator is the single source of the file set.
 
-- **GitHub is a Replit-managed, REPL-LEVEL connection, not per-end-user.** The
-  token comes from the connectors proxy
-  (`/api/v2/connection?include_secrets=true&connector_names=github`) and is the
-  Repl owner's account. So in a multi-tenant deploy every user pushes into the
-  *owner's* GitHub. Mitigated by gating the route behind `requireTier("ARCHITECT")`
-  (matches F8). A true multi-tenant fix would need per-user GitHub OAuth.
+- **GitHub push is now PER-USER (pasted PAT), not the repl-level connection.**
+  Each subscriber pastes a GitHub personal access token in Account → Connected
+  Services; it is stored encrypted in `integration_credentials`
+  (`provider:"github"`, `label`=resolved login, `key_prefix`=token scheme like
+  `ghp_`/`github_pat_` — never any secret body) and decrypted only at push time.
+  The push route loads the *requesting user's* token (404/503 `GITHUB_NOT_CONNECTED`
+  if absent), so repos land in their own account. Connect/disconnect mirrors the
+  Sphinx UX. The old repl-level helper (`getUncachableGitHubClient`,
+  connectors proxy) still exists in `lib/github.ts` but is no longer used by the
+  push path. Still `requireTier("ARCHITECT")` like F8.
+  **Why:** the repl-level connector token is the Repl owner's account, so in a
+  multi-tenant deploy every user's push landed in the owner's GitHub.
 
-- **Connector quirks:** the connection `settings.expires_at` can be `undefined`
-  → don't rely on it for token caching (refetch each call is fine). Granted
-  scopes are `read:org read:project read:user repo user:email` — **no
-  `delete_repo`**, so do not create throwaway test repos you can't clean up.
+- **Token validation on connect:** POST `/integrations/github` calls
+  `users.getAuthenticated()` with the pasted token to verify it and capture the
+  login before storing. 401 → `GITHUB_BAD_TOKEN` (UI tells them to reconnect).
+  GET status does NOT re-validate (mirrors Sphinx GET) — it just reads the row.
+
+- **PATs need the `repo` scope** to create/push repos. The repl-level connector
+  scopes were `read:org read:project read:user repo user:email` (no
+  `delete_repo`); a user-pasted PAT's scopes are whatever they granted.
 
 - Integration endpoints live alongside Sphinx in `routes/integrations.ts` and
   use inline Zod + the thin `@/lib/api` wrapper (NOT the OpenAPI codegen) —
