@@ -579,7 +579,7 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
                               </ToggleGroupItem>
                             </ToggleGroup>
                             <CommandList>
-                              {!reposLoading && repos.length === 0 ? (
+                              {!reposLoading && visibleRepos.length === 0 ? (
                                 <CommandEmpty className="font-mono text-xs">
                                   {repoSearch.trim()
                                     ? "No repositories match your search."
