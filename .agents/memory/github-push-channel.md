@@ -67,6 +67,20 @@ The F8 CODE DJ live handoff pushes a generated codebase to a new GitHub repo
   **Why:** a narrowly-scoped fine-grained token can't hit the `create` path at
   all, so "push onto a repo I already made" is the only channel that works for it.
 
+- **Testing the push route: seed a credential + SESSION_SECRET, mock
+  `getGitHubClientFromToken` (NOT `getUncachableGitHubClient`).** The route mints
+  its client via the per-user `getGitHubClientFromToken` and decrypts the
+  `integration_credentials` row with `integration-crypto` (key derived from
+  SESSION_SECRET). A test must (1) set `SESSION_SECRET` before any encrypt, (2)
+  insert a `provider:"github"` row with a real `encryptApiKey(...)` value, and
+  (3) `vi.mock` the github lib with `importOriginal` + `...actual` so non-client
+  exports like `GITHUB_TOKEN_RE`/`githubTokenScheme` survive. "Not connected" is
+  the ABSENCE of the credential row, not the client throwing.
+  **Why:** the github-push test was written against the old repl-level
+  `getUncachableGitHubClient` and silently broke when the route moved to
+  per-user PATs — overriding only `getUncachableGitHubClient` leaves the real
+  network-calling `getGitHubClientFromToken` in place.
+
 - **Update mode has two channels: direct commit vs. pull request.** Body field
   `pullRequest: boolean` (honored for `mode==="update"`/`"existing"`). PR path commits
   the fresh tree onto a new `code-dj-update-<ts>` branch off HEAD, then

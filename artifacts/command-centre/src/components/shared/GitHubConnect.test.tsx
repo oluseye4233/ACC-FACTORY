@@ -97,7 +97,7 @@ describe("GitHubConnect — not connected", () => {
 
     fireEvent.click(await screen.findByTestId("github-connect-oauth"));
 
-    expect(assignedHref).toBe("/api/integrations/github/oauth/start");
+    expect(assignedHref).toBe("/api/integrations/github/oauth/start?scope=repo");
   });
 
   it("toggles the paste-a-token fallback open and closed", async () => {

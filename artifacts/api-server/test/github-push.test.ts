@@ -13,14 +13,21 @@ import express, {
   type Response,
   type NextFunction,
 } from "express";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import {
   db,
   usersTable,
   commandCentreSubscribersTable,
   harnessSessionsTable,
   harnessArtifactsTable,
+  integrationCredentialsTable,
 } from "@workspace/db";
+
+// The push route loads the caller's encrypted GitHub credential and decrypts it
+// with `integration-crypto`, which derives its key from SESSION_SECRET. Set a
+// stable test secret before any encrypt/decrypt happens so the seeded
+// credential below round-trips.
+process.env.SESSION_SECRET ??= "test-session-secret-abcdef0123456789";
 
 // ---------- GitHub client mock ----------
 // The real `lib/github.ts` reaches out to the Replit connectors proxy for a
@@ -63,63 +70,70 @@ const mockGh = vi.hoisted(() => {
   };
 });
 
-vi.mock("../src/lib/github", () => {
+vi.mock("../src/lib/github", async (importOriginal) => {
+  // Spread the real module so non-client exports the route relies on
+  // (e.g. `GITHUB_TOKEN_RE`, `githubTokenScheme`, `githubOAuthConfigured`)
+  // stay intact, and override only the client factories with our fake.
+  const actual = await importOriginal<typeof import("../src/lib/github")>();
+  const buildFakeClient = () => ({
+    rest: {
+      users: {
+        getAuthenticated: async () => {
+          if (mockGh.authThrows) throw new Error("github auth network error");
+          return { data: { login: mockGh.owner } };
+        },
+      },
+      repos: {
+        createForAuthenticatedUser: async (args: {
+          name: string;
+          private: boolean;
+        }) => {
+          mockGh.createdCalls.push({
+            name: args.name,
+            private: args.private,
+          });
+          if (mockGh.createRepoStatus !== null) {
+            const err = new Error("github rejected create") as Error & {
+              status: number;
+            };
+            err.status = mockGh.createRepoStatus;
+            throw err;
+          }
+          return {
+            data: {
+              full_name: `${mockGh.owner}/${args.name}`,
+              html_url: `https://github.com/${mockGh.owner}/${args.name}`,
+            },
+          };
+        },
+      },
+      git: {
+        createTree: async (args: {
+          tree: Array<{ path: string; content: string }>;
+        }) => {
+          if (mockGh.treeThrows) throw new Error("github tree error");
+          mockGh.treeFiles = args.tree.map((t) => ({
+            path: t.path,
+            content: t.content,
+          }));
+          return { data: { sha: "tree-sha" } };
+        },
+        createCommit: async () => ({ data: { sha: "commit-sha" } }),
+        createRef: async () => {
+          mockGh.refCalls += 1;
+          return { data: {} };
+        },
+      },
+    },
+  });
   return {
+    ...actual,
     GitHubNotConnectedError: mockGh.GitHubNotConnectedError,
     getUncachableGitHubClient: async () => {
       if (mockGh.notConnected) throw new mockGh.GitHubNotConnectedError();
-      return {
-        rest: {
-          users: {
-            getAuthenticated: async () => {
-              if (mockGh.authThrows) throw new Error("github auth network error");
-              return { data: { login: mockGh.owner } };
-            },
-          },
-          repos: {
-            createForAuthenticatedUser: async (args: {
-              name: string;
-              private: boolean;
-            }) => {
-              mockGh.createdCalls.push({
-                name: args.name,
-                private: args.private,
-              });
-              if (mockGh.createRepoStatus !== null) {
-                const err = new Error("github rejected create") as Error & {
-                  status: number;
-                };
-                err.status = mockGh.createRepoStatus;
-                throw err;
-              }
-              return {
-                data: {
-                  full_name: `${mockGh.owner}/${args.name}`,
-                  html_url: `https://github.com/${mockGh.owner}/${args.name}`,
-                },
-              };
-            },
-          },
-          git: {
-            createTree: async (args: {
-              tree: Array<{ path: string; content: string }>;
-            }) => {
-              if (mockGh.treeThrows) throw new Error("github tree error");
-              mockGh.treeFiles = args.tree.map((t) => ({
-                path: t.path,
-                content: t.content,
-              }));
-              return { data: { sha: "tree-sha" } };
-            },
-            createCommit: async () => ({ data: { sha: "commit-sha" } }),
-            createRef: async () => {
-              mockGh.refCalls += 1;
-              return { data: {} };
-            },
-          },
-        },
-      };
+      return buildFakeClient();
     },
+    getGitHubClientFromToken: () => buildFakeClient(),
   };
 });
 
@@ -177,6 +191,17 @@ function injectLog(req: Request, _res: Response, next: NextFunction): void {
   next();
 }
 
+async function seedGithubCredential(userId: string): Promise<void> {
+  const { encryptApiKey } = await import("../src/lib/integration-crypto");
+  await db.insert(integrationCredentialsTable).values({
+    userId,
+    provider: "github",
+    label: "octo-tester",
+    keyPrefix: "ghp_testtoken000",
+    keyEncrypted: encryptApiKey("ghp_testtoken0000000000000000000000000000"),
+  });
+}
+
 async function startApp(
   app: Express,
 ): Promise<{ url: string; close: () => Promise<void> }> {
@@ -225,6 +250,12 @@ beforeAll(async () => {
   await db
     .insert(commandCentreSubscribersTable)
     .values({ userId: explorerId, tier: "EXPLORER", status: "inactive" });
+
+  // Seed the architect's per-user GitHub credential. The push route looks this
+  // row up (by userId + provider) and decrypts the token before minting a
+  // client. The token value itself is irrelevant — `getGitHubClientFromToken`
+  // is mocked — but the row must exist and decrypt cleanly.
+  await seedGithubCredential(architectId);
 
   const [session] = await db
     .insert(harnessSessionsTable)
@@ -382,17 +413,31 @@ describe("POST /integrations/github/push-codebase", () => {
     expect(mockGh.refCalls).toBe(0);
   });
 
-  test("a not-connected client maps to 503 GITHUB_NOT_CONNECTED", async () => {
-    mockGh.notConnected = true;
-    const res = await push(architectId, {
-      artifactId: bundleArtifactId,
-      repoName: `noconn-${stamp}`,
-      files: validFiles,
-    });
-    const body = (await res.json()) as { code?: string };
-    expect(res.status).toBe(503);
-    expect(body.code).toBe("GITHUB_NOT_CONNECTED");
-    expect(mockGh.createdCalls).toHaveLength(0);
+  test("a missing GitHub credential maps to 503 GITHUB_NOT_CONNECTED", async () => {
+    // The route treats "GitHub not connected" as the absence of a per-user
+    // credential row. Drop the seeded credential, assert the 503, then restore
+    // it so subsequent tests keep their connected architect.
+    await db
+      .delete(integrationCredentialsTable)
+      .where(
+        and(
+          eq(integrationCredentialsTable.userId, architectId),
+          eq(integrationCredentialsTable.provider, "github"),
+        ),
+      );
+    try {
+      const res = await push(architectId, {
+        artifactId: bundleArtifactId,
+        repoName: `noconn-${stamp}`,
+        files: validFiles,
+      });
+      const body = (await res.json()) as { code?: string };
+      expect(res.status).toBe(503);
+      expect(body.code).toBe("GITHUB_NOT_CONNECTED");
+      expect(mockGh.createdCalls).toHaveLength(0);
+    } finally {
+      await seedGithubCredential(architectId);
+    }
   });
 
   test("an authenticate failure (token present, call fails) maps to 502 GITHUB_AUTH_FAILED", async () => {
