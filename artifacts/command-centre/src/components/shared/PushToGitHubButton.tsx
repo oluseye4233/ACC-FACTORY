@@ -84,6 +84,27 @@ function defaultRepoName(bundle: CodebaseBundle): string {
   return `code-dj-${bundle.artifactId.slice(0, 8)}-${bundle.platform}`;
 }
 
+// Compact "last pushed" relative time (e.g. "3d ago") for the picker rows.
+function relativePushedAt(iso: string | null): string | null {
+  if (!iso) return null;
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return null;
+  const diffMs = Date.now() - then;
+  if (diffMs < 0) return "just now";
+  const sec = Math.floor(diffMs / 1000);
+  const min = Math.floor(sec / 60);
+  const hr = Math.floor(min / 60);
+  const day = Math.floor(hr / 24);
+  const month = Math.floor(day / 30);
+  const year = Math.floor(day / 365);
+  if (year >= 1) return `${year}y ago`;
+  if (month >= 1) return `${month}mo ago`;
+  if (day >= 1) return `${day}d ago`;
+  if (hr >= 1) return `${hr}h ago`;
+  if (min >= 1) return `${min}m ago`;
+  return "just now";
+}
+
 export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -471,30 +492,44 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
                                 No matching repositories.
                               </CommandEmpty>
                               <CommandGroup>
-                                {repos.map((repo) => (
-                                  <CommandItem
-                                    key={repo.fullName}
-                                    value={repo.fullName}
-                                    onSelect={() => {
-                                      setTargetRepo(repo.fullName);
-                                      setPickerOpen(false);
-                                    }}
-                                    className="font-mono text-xs"
-                                    data-testid={`f8-github-repo-option-${repo.fullName}`}
-                                  >
-                                    <Check
-                                      className={
-                                        targetRepo === repo.fullName
-                                          ? "h-3.5 w-3.5 opacity-100"
-                                          : "h-3.5 w-3.5 opacity-0"
-                                      }
-                                    />
-                                    <span className="truncate">{repo.fullName}</span>
-                                    {repo.private ? (
-                                      <Lock className="ml-auto h-3 w-3 text-muted-foreground" />
-                                    ) : null}
-                                  </CommandItem>
-                                ))}
+                                {repos.map((repo) => {
+                                  const pushed = relativePushedAt(repo.pushedAt);
+                                  return (
+                                    <CommandItem
+                                      key={repo.fullName}
+                                      value={repo.fullName}
+                                      onSelect={() => {
+                                        setTargetRepo(repo.fullName);
+                                        setPickerOpen(false);
+                                      }}
+                                      className="font-mono text-xs items-start"
+                                      data-testid={`f8-github-repo-option-${repo.fullName}`}
+                                    >
+                                      <Check
+                                        className={
+                                          targetRepo === repo.fullName
+                                            ? "mt-0.5 h-3.5 w-3.5 opacity-100"
+                                            : "mt-0.5 h-3.5 w-3.5 opacity-0"
+                                        }
+                                      />
+                                      <span className="flex min-w-0 flex-col gap-0.5">
+                                        <span className="truncate">{repo.fullName}</span>
+                                        <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/70">
+                                          <span>{repo.private ? "Private" : "Public"}</span>
+                                          {pushed ? (
+                                            <>
+                                              <span aria-hidden>·</span>
+                                              <span>Updated {pushed}</span>
+                                            </>
+                                          ) : null}
+                                        </span>
+                                      </span>
+                                      {repo.private ? (
+                                        <Lock className="ml-auto mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
+                                      ) : null}
+                                    </CommandItem>
+                                  );
+                                })}
                               </CommandGroup>
                             </CommandList>
                           </Command>
