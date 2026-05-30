@@ -25,6 +25,7 @@ interface PushResult {
   repoFullName: string;
   htmlUrl: string;
   replitImportUrl: string;
+  created?: boolean;
 }
 
 interface ExistingRepo {
@@ -76,7 +77,7 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
     );
   }, [bundle.artifactId, existing]);
 
-  const push = async () => {
+  const push = async (mode: "create" | "update") => {
     setPending(true);
     try {
       // Reuse the shared CODE DJ export generator so the GitHub repo carries
@@ -89,13 +90,17 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
           artifactId: bundle.artifactId,
           repoName: repoName.trim(),
           private: isPrivate,
+          mode,
           files,
         },
       );
       setResult(r);
       toast({
-        title: "PUSHED TO GITHUB",
-        description: `${r.repoFullName} — ${SUPPORTED_IDES.length} IDE adapters rode along`,
+        title: mode === "update" ? "PUSHED UPDATE" : "CREATED & PUSHED",
+        description:
+          mode === "update"
+            ? `New commit on ${r.repoFullName} — ${SUPPORTED_IDES.length} IDE adapters refreshed`
+            : `${r.repoFullName} — ${SUPPORTED_IDES.length} IDE adapters rode along`,
       });
     } catch (e) {
       const body = e instanceof ApiError ? (e.body as { code?: string } | null) : null;
@@ -147,16 +152,20 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
               Push codebase to GitHub
             </DialogTitle>
             <DialogDescription className="font-mono text-xs">
-              Creates a new repo seeded with the CODE DJ scaffold plus AGENTS.md
-              and per-IDE adapter files, so any IDE can clone and keep building
-              in fidelity to the certified spec.
+              {result
+                ? "This bundle is linked to a GitHub repo. Push an update to commit the regenerated scaffold on top of its history."
+                : "Creates a new repo seeded with the CODE DJ scaffold plus AGENTS.md and per-IDE adapter files, so any IDE can clone and keep building in fidelity to the certified spec."}
             </DialogDescription>
           </DialogHeader>
 
           {result ? (
             <div className="space-y-3 py-2">
               <div className="font-mono text-xs text-muted-foreground">
-                Pushed to{" "}
+                {result.created === false
+                  ? "Pushed an update to "
+                  : result.created === true
+                    ? "Created and pushed to "
+                    : "Linked to "}
                 <span className="text-foreground font-bold">{result.repoFullName}</span>.
               </div>
               <div className="flex flex-col gap-2">
@@ -221,16 +230,32 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
 
           <DialogFooter>
             {result ? (
-              <Button
-                variant="outline"
-                onClick={() => setOpen(false)}
-                className="font-mono text-xs"
-              >
-                Close
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                  disabled={pending}
+                  className="font-mono text-xs"
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => push("update")}
+                  disabled={pending}
+                  className="font-display tracking-wider gap-2"
+                  data-testid="f8-github-push-update"
+                >
+                  {pending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Github className="h-4 w-4" />
+                  )}
+                  {pending ? "PUSHING…" : "PUSH UPDATE"}
+                </Button>
+              </>
             ) : (
               <Button
-                onClick={push}
+                onClick={() => push("create")}
                 disabled={pending || !repoName.trim()}
                 className="font-display tracking-wider gap-2"
                 data-testid="f8-github-confirm"

@@ -345,6 +345,9 @@ const PushCodebaseBody = z.object({
     .regex(RepoNameRe, "Repo name may use letters, numbers, '.', '-', '_' only"),
   description: z.string().max(350).optional(),
   private: z.boolean().optional(),
+  // "create" (default) makes a brand-new repo; "update" commits a fresh tree
+  // on top of the repo already linked to this bundle (re-running CODE DJ).
+  mode: z.enum(["create", "update"]).optional(),
   files: z
     .record(
       z
@@ -373,6 +376,7 @@ router.post(
     }
     const { artifactId, repoName, description, files } = parsed.data;
     const isPrivate = parsed.data.private ?? true;
+    const mode = parsed.data.mode ?? "create";
 
     const totalBytes = Object.values(files).reduce((n, c) => n + c.length, 0);
     if (totalBytes > 2_000_000) {
@@ -429,74 +433,151 @@ router.post(
       return;
     }
 
-    // 1) Create the (empty) repo.
+    // A previously-linked repo pointer (if this bundle was pushed before).
+    const content = (artifact.artifactContent ?? {}) as Record<string, unknown>;
+    const existingRepo = content.githubRepo as
+      | {
+          fullName?: string;
+          htmlUrl?: string;
+          defaultBranch?: string;
+          private?: boolean;
+        }
+      | undefined;
+
+    // Build the git tree once — used by both code paths. Omitting `base_tree`
+    // makes this the *complete* tree, so files removed between CODE DJ runs are
+    // dropped rather than left behind as stale entries.
+    const treeEntries = Object.entries(files).map(([path, fileContent]) => ({
+      path,
+      mode: "100644" as const,
+      type: "blob" as const,
+      content: fileContent,
+    }));
+
     let repoFullName: string;
     let htmlUrl: string;
-    try {
-      const created = await gh.rest.repos.createForAuthenticatedUser({
-        name: repoName,
-        description: description ?? "Scaffolded by CODE DJ (F8) — ATANDA Command Centre",
-        private: isPrivate,
-        auto_init: false,
-      });
-      repoFullName = created.data.full_name;
-      htmlUrl = created.data.html_url;
-    } catch (err) {
-      const status = (err as { status?: number }).status;
-      if (status === 422) {
+    let branch: string;
+    let created: boolean;
+
+    if (mode === "update") {
+      // ── Push a fresh commit onto the already-linked repo ──────────────────
+      if (!existingRepo?.fullName) {
         res.status(409).json({
-          error: `A repo named "${repoName}" already exists on ${owner}. Pick another name.`,
-          code: "GITHUB_REPO_EXISTS",
+          error: "This bundle is not linked to a GitHub repo yet. Create one first.",
+          code: "GITHUB_NO_LINKED_REPO",
         });
         return;
       }
-      req.log.warn({ err }, "GitHub push: repo create failed");
-      res.status(502).json({
-        error: "GitHub rejected the repo creation.",
-        code: "GITHUB_CREATE_FAILED",
-      });
-      return;
+      const linkedRepo = existingRepo.fullName.split("/").pop() ?? repoName;
+      branch = existingRepo.defaultBranch ?? "main";
+      try {
+        // HEAD of the default branch becomes the parent of the new commit.
+        const ref = await gh.rest.git.getRef({
+          owner,
+          repo: linkedRepo,
+          ref: `heads/${branch}`,
+        });
+        const headSha = ref.data.object.sha;
+        const tree = await gh.rest.git.createTree({
+          owner,
+          repo: linkedRepo,
+          tree: treeEntries,
+        });
+        const commit = await gh.rest.git.createCommit({
+          owner,
+          repo: linkedRepo,
+          message: "CODE DJ scaffold — update",
+          tree: tree.data.sha,
+          parents: [headSha],
+        });
+        await gh.rest.git.updateRef({
+          owner,
+          repo: linkedRepo,
+          ref: `heads/${branch}`,
+          sha: commit.data.sha,
+        });
+      } catch (err) {
+        const status = (err as { status?: number }).status;
+        if (status === 404) {
+          res.status(409).json({
+            error:
+              "The linked GitHub repo no longer exists. Create a new repo for this bundle.",
+            code: "GITHUB_REPO_MISSING",
+          });
+          return;
+        }
+        req.log.warn({ err }, "GitHub push: update failed");
+        res.status(502).json({
+          error: "Could not push the update to the linked GitHub repo.",
+          code: "GITHUB_UPDATE_FAILED",
+        });
+        return;
+      }
+      repoFullName = existingRepo.fullName;
+      htmlUrl = existingRepo.htmlUrl ?? `https://github.com/${existingRepo.fullName}`;
+      created = false;
+    } else {
+      // ── Create a brand-new repo and seed it ───────────────────────────────
+      try {
+        const repo = await gh.rest.repos.createForAuthenticatedUser({
+          name: repoName,
+          description: description ?? "Scaffolded by CODE DJ (F8) — ATANDA Command Centre",
+          private: isPrivate,
+          auto_init: false,
+        });
+        repoFullName = repo.data.full_name;
+        htmlUrl = repo.data.html_url;
+      } catch (err) {
+        const status = (err as { status?: number }).status;
+        if (status === 422) {
+          res.status(409).json({
+            error: `A repo named "${repoName}" already exists on ${owner}. Pick another name${existingRepo?.fullName ? ', or push an update to the linked repo' : ''}.`,
+            code: "GITHUB_REPO_EXISTS",
+          });
+          return;
+        }
+        req.log.warn({ err }, "GitHub push: repo create failed");
+        res.status(502).json({
+          error: "GitHub rejected the repo creation.",
+          code: "GITHUB_CREATE_FAILED",
+        });
+        return;
+      }
+
+      branch = "main";
+      try {
+        const tree = await gh.rest.git.createTree({
+          owner,
+          repo: repoName,
+          tree: treeEntries,
+        });
+        const commit = await gh.rest.git.createCommit({
+          owner,
+          repo: repoName,
+          message: "CODE DJ scaffold — initial commit",
+          tree: tree.data.sha,
+        });
+        await gh.rest.git.createRef({
+          owner,
+          repo: repoName,
+          ref: `refs/heads/${branch}`,
+          sha: commit.data.sha,
+        });
+      } catch (err) {
+        req.log.warn({ err }, "GitHub push: tree/commit failed");
+        res.status(502).json({
+          error:
+            "Repo was created but the codebase could not be pushed. Delete it on GitHub and retry.",
+          code: "GITHUB_PUSH_FAILED",
+          repoUrl: htmlUrl,
+        });
+        return;
+      }
+      created = true;
     }
 
-    // 2) Build a tree of all files, commit it, and point the default branch at it.
-    const branch = "main";
-    try {
-      const tree = await gh.rest.git.createTree({
-        owner,
-        repo: repoName,
-        tree: Object.entries(files).map(([path, content]) => ({
-          path,
-          mode: "100644" as const,
-          type: "blob" as const,
-          content,
-        })),
-      });
-      const commit = await gh.rest.git.createCommit({
-        owner,
-        repo: repoName,
-        message: "CODE DJ scaffold — initial commit",
-        tree: tree.data.sha,
-      });
-      await gh.rest.git.createRef({
-        owner,
-        repo: repoName,
-        ref: `refs/heads/${branch}`,
-        sha: commit.data.sha,
-      });
-    } catch (err) {
-      req.log.warn({ err }, "GitHub push: tree/commit failed");
-      res.status(502).json({
-        error:
-          "Repo was created but the codebase could not be pushed. Delete it on GitHub and retry.",
-        code: "GITHUB_PUSH_FAILED",
-        repoUrl: htmlUrl,
-      });
-      return;
-    }
-
-    // 3) Persist a pointer on the bundle artifact for lineage + "already pushed" UI.
+    // Persist a pointer on the bundle artifact for lineage + "already pushed" UI.
     const replitImportUrl = `https://replit.com/github/${repoFullName}`;
-    const content = (artifact.artifactContent ?? {}) as Record<string, unknown>;
     await db
       .update(harnessArtifactsTable)
       .set({
@@ -507,7 +588,7 @@ router.post(
             htmlUrl,
             defaultBranch: branch,
             replitImportUrl,
-            private: isPrivate,
+            private: created ? isPrivate : existingRepo?.private ?? isPrivate,
             pushedAt: new Date().toISOString(),
           },
         },
@@ -516,8 +597,9 @@ router.post(
 
     res.json({
       ok: true,
+      created,
       owner,
-      repo: repoName,
+      repo: repoFullName.split("/").pop(),
       repoFullName,
       htmlUrl,
       defaultBranch: branch,
