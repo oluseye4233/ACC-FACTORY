@@ -348,6 +348,10 @@ const PushCodebaseBody = z.object({
   // "create" (default) makes a brand-new repo; "update" commits a fresh tree
   // on top of the repo already linked to this bundle (re-running CODE DJ).
   mode: z.enum(["create", "update"]).optional(),
+  // When true (only meaningful in "update" mode), push the fresh tree to a new
+  // branch off HEAD and open a pull request instead of committing straight onto
+  // the default branch, so the user can review the diff before it goes live.
+  pullRequest: z.boolean().optional(),
   files: z
     .record(
       z
@@ -377,6 +381,7 @@ router.post(
     const { artifactId, repoName, description, files } = parsed.data;
     const isPrivate = parsed.data.private ?? true;
     const mode = parsed.data.mode ?? "create";
+    const asPullRequest = mode === "update" && parsed.data.pullRequest === true;
 
     const totalBytes = Object.values(files).reduce((n, c) => n + c.length, 0);
     if (totalBytes > 2_000_000) {
@@ -458,6 +463,7 @@ router.post(
     let htmlUrl: string;
     let branch: string;
     let created: boolean;
+    let pullRequestUrl: string | undefined;
 
     if (mode === "update") {
       // ── Push a fresh commit onto the already-linked repo ──────────────────
@@ -486,16 +492,42 @@ router.post(
         const commit = await gh.rest.git.createCommit({
           owner,
           repo: linkedRepo,
-          message: "CODE DJ scaffold — update",
+          message: asPullRequest
+            ? "CODE DJ scaffold — proposed update"
+            : "CODE DJ scaffold — update",
           tree: tree.data.sha,
           parents: [headSha],
         });
-        await gh.rest.git.updateRef({
-          owner,
-          repo: linkedRepo,
-          ref: `heads/${branch}`,
-          sha: commit.data.sha,
-        });
+        if (asPullRequest) {
+          // Push the commit to a fresh branch off HEAD and open a PR so the user
+          // can review the diff (including files removed between runs) before it
+          // lands on the default branch.
+          const prBranch = `code-dj-update-${Date.now()}`;
+          await gh.rest.git.createRef({
+            owner,
+            repo: linkedRepo,
+            ref: `refs/heads/${prBranch}`,
+            sha: commit.data.sha,
+          });
+          const pr = await gh.rest.pulls.create({
+            owner,
+            repo: linkedRepo,
+            title: "CODE DJ scaffold — proposed update",
+            head: prBranch,
+            base: branch,
+            body:
+              "This pull request was opened by CODE DJ (F8) with a freshly regenerated scaffold.\n\n" +
+              "Review the diff — including any files removed between runs — then merge to apply the update to the default branch.",
+          });
+          pullRequestUrl = pr.data.html_url;
+        } else {
+          await gh.rest.git.updateRef({
+            owner,
+            repo: linkedRepo,
+            ref: `heads/${branch}`,
+            sha: commit.data.sha,
+          });
+        }
       } catch (err) {
         const status = (err as { status?: number }).status;
         if (status === 404) {
@@ -508,8 +540,10 @@ router.post(
         }
         req.log.warn({ err }, "GitHub push: update failed");
         res.status(502).json({
-          error: "Could not push the update to the linked GitHub repo.",
-          code: "GITHUB_UPDATE_FAILED",
+          error: asPullRequest
+            ? "Could not open a pull request on the linked GitHub repo."
+            : "Could not push the update to the linked GitHub repo.",
+          code: asPullRequest ? "GITHUB_PR_FAILED" : "GITHUB_UPDATE_FAILED",
         });
         return;
       }
@@ -604,6 +638,7 @@ router.post(
       htmlUrl,
       defaultBranch: branch,
       replitImportUrl,
+      pullRequestUrl,
     });
   },
 );

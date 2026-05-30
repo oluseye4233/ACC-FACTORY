@@ -26,6 +26,7 @@ interface PushResult {
   htmlUrl: string;
   replitImportUrl: string;
   created?: boolean;
+  pullRequestUrl?: string;
 }
 
 interface ExistingRepo {
@@ -52,6 +53,7 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
   const [open, setOpen] = useState(false);
   const [repoName, setRepoName] = useState(defaultRepoName(bundle));
   const [isPrivate, setIsPrivate] = useState(true);
+  const [asPullRequest, setAsPullRequest] = useState(false);
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState<PushResult | null>(
     existing
@@ -84,6 +86,7 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
       // byte-identical files to the ZIP: scaffold tree + AGENTS.md + per-IDE
       // adapter files. Doctrine stays identical across delivery channels.
       const files = buildExportFiles(bundle, source, pfp);
+      const pullRequest = mode === "update" && asPullRequest;
       const r = await api.post<PushResult>(
         "/api/integrations/github/push-codebase",
         {
@@ -91,15 +94,23 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
           repoName: repoName.trim(),
           private: isPrivate,
           mode,
+          pullRequest,
           files,
         },
       );
       setResult(r);
       toast({
-        title: mode === "update" ? "PUSHED UPDATE" : "CREATED & PUSHED",
+        title:
+          mode === "update"
+            ? pullRequest
+              ? "PULL REQUEST OPENED"
+              : "PUSHED UPDATE"
+            : "CREATED & PUSHED",
         description:
           mode === "update"
-            ? `New commit on ${r.repoFullName} — ${SUPPORTED_IDES.length} IDE adapters refreshed`
+            ? pullRequest
+              ? `PR opened on ${r.repoFullName} — review the diff before merging`
+              : `New commit on ${r.repoFullName} — ${SUPPORTED_IDES.length} IDE adapters refreshed`
             : `${r.repoFullName} — ${SUPPORTED_IDES.length} IDE adapters rode along`,
       });
     } catch (e) {
@@ -153,7 +164,7 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
             </DialogTitle>
             <DialogDescription className="font-mono text-xs">
               {result
-                ? "This bundle is linked to a GitHub repo. Push an update to commit the regenerated scaffold on top of its history."
+                ? "This bundle is linked to a GitHub repo. Commit the regenerated scaffold straight onto the default branch, or open a pull request to review the diff before it goes live."
                 : "Creates a new repo seeded with the CODE DJ scaffold plus AGENTS.md and per-IDE adapter files, so any IDE can clone and keep building in fidelity to the certified spec."}
             </DialogDescription>
           </DialogHeader>
@@ -189,6 +200,37 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
                   <ExternalLink className="h-3.5 w-3.5" />
                   Open in Replit
                 </a>
+                {result.pullRequestUrl ? (
+                  <a
+                    href={result.pullRequestUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 font-mono text-xs text-primary hover:underline"
+                    data-testid="f8-github-pr-link"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Review pull request
+                  </a>
+                ) : null}
+              </div>
+
+              <div className="flex items-center justify-between border-t border-border/50 pt-3">
+                <div>
+                  <Label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Open as pull request
+                  </Label>
+                  <p className="font-mono text-[10px] text-muted-foreground/70">
+                    {asPullRequest
+                      ? "Pushes to a new branch and opens a PR to review before merging."
+                      : "Commits straight onto the default branch."}
+                  </p>
+                </div>
+                <Switch
+                  checked={asPullRequest}
+                  onCheckedChange={setAsPullRequest}
+                  disabled={pending}
+                  data-testid="f8-github-pr-mode"
+                />
               </div>
             </div>
           ) : (
@@ -250,7 +292,13 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
                   ) : (
                     <Github className="h-4 w-4" />
                   )}
-                  {pending ? "PUSHING…" : "PUSH UPDATE"}
+                  {pending
+                    ? asPullRequest
+                      ? "OPENING PR…"
+                      : "PUSHING…"
+                    : asPullRequest
+                      ? "OPEN PULL REQUEST"
+                      : "PUSH UPDATE"}
                 </Button>
               </>
             ) : (

@@ -31,3 +31,12 @@ The F8 CODE DJ live handoff pushes a generated codebase to a new GitHub repo
 - Integration endpoints live alongside Sphinx in `routes/integrations.ts` and
   use inline Zod + the thin `@/lib/api` wrapper (NOT the OpenAPI codegen) —
   that is the established convention for the integrations surface here.
+
+- **Update mode has two channels: direct commit vs. pull request.** Body field
+  `pullRequest: boolean` (only honored when `mode==="update"`). PR path commits
+  the fresh tree onto a new `code-dj-update-<ts>` branch off HEAD, then
+  `gh.rest.pulls.create({head, base})`; response surfaces `pullRequestUrl`.
+  **Why:** a force-style regeneration onto `main` is surprising for users who
+  treat the repo as a working project; PR mode lets them review the diff
+  (including files dropped between runs — the tree omits `base_tree`) first.
+  PR creation needs only the existing `repo` scope (no extra grant).
