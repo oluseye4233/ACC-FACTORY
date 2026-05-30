@@ -58,8 +58,17 @@ The F8 CODE DJ live handoff pushes a generated codebase to a new GitHub repo
   use inline Zod + the thin `@/lib/api` wrapper (NOT the OpenAPI codegen) —
   that is the established convention for the integrations surface here.
 
+- **Three push modes: `create` | `update` | `existing`.** A fine-grained token
+  scoped to only selected repos CANNOT create repos but CAN push to ones already
+  in its selection — so `existing` (body `targetRepo:"owner/repo"`) resolves the
+  repo via `repos.get` (authorizes the token + reads the real default branch),
+  then reuses the same commit-onto-existing-repo path as `update`, generalised
+  over `owner/repo` so org-owned repos work too.
+  **Why:** a narrowly-scoped fine-grained token can't hit the `create` path at
+  all, so "push onto a repo I already made" is the only channel that works for it.
+
 - **Update mode has two channels: direct commit vs. pull request.** Body field
-  `pullRequest: boolean` (only honored when `mode==="update"`). PR path commits
+  `pullRequest: boolean` (honored for `mode==="update"`/`"existing"`). PR path commits
   the fresh tree onto a new `code-dj-update-<ts>` branch off HEAD, then
   `gh.rest.pulls.create({head, base})`; response surfaces `pullRequestUrl`.
   **Why:** a force-style regeneration onto `main` is surprising for users who

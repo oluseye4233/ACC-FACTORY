@@ -557,22 +557,35 @@ router.delete(
 
 // ─── POST push a CODE DJ codebase bundle to a new GitHub repo ───────────────
 const RepoNameRe = /^[A-Za-z0-9._-]{1,100}$/u;
+const TargetRepoRe = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/u;
 const PushCodebaseBody = z.object({
   // The CODEBASE_BUNDLE artifact this push corresponds to — for ownership
   // checks and lineage. The file *contents* are assembled client-side by the
   // shared CODE DJ export generator so they are byte-identical to the ZIP.
   artifactId: z.string().uuid(),
+  // Required for "create"; ignored for "update" / "existing". Optional so an
+  // "existing"-mode push (which targets `targetRepo` instead) can omit it.
   repoName: z
     .string()
-    .regex(RepoNameRe, "Repo name may use letters, numbers, '.', '-', '_' only"),
+    .regex(RepoNameRe, "Repo name may use letters, numbers, '.', '-', '_' only")
+    .optional(),
+  // Required for "existing": the already-created repo to push onto, as
+  // "owner/repo". A fine-grained token scoped to only selected repos cannot
+  // create repos, but it can push to ones already in its selection.
+  targetRepo: z
+    .string()
+    .regex(TargetRepoRe, "Target repo must be in 'owner/repo' form")
+    .optional(),
   description: z.string().max(350).optional(),
   private: z.boolean().optional(),
   // "create" (default) makes a brand-new repo; "update" commits a fresh tree
-  // on top of the repo already linked to this bundle (re-running CODE DJ).
-  mode: z.enum(["create", "update"]).optional(),
-  // When true (only meaningful in "update" mode), push the fresh tree to a new
-  // branch off HEAD and open a pull request instead of committing straight onto
-  // the default branch, so the user can review the diff before it goes live.
+  // on top of the repo already linked to this bundle (re-running CODE DJ);
+  // "existing" commits onto a repo the user already created (named via
+  // `targetRepo`) when this bundle isn't linked to a repo yet.
+  mode: z.enum(["create", "update", "existing"]).optional(),
+  // When true (only meaningful in "update" / "existing" mode), push the fresh
+  // tree to a new branch off HEAD and open a pull request instead of committing
+  // straight onto the default branch, so the user can review the diff first.
   pullRequest: z.boolean().optional(),
   files: z
     .record(
@@ -600,10 +613,23 @@ router.post(
       res.status(400).json({ error: parsed.error.message });
       return;
     }
-    const { artifactId, repoName, description, files } = parsed.data;
+    const { artifactId, repoName, targetRepo, description, files } = parsed.data;
     const isPrivate = parsed.data.private ?? true;
     const mode = parsed.data.mode ?? "create";
-    const asPullRequest = mode === "update" && parsed.data.pullRequest === true;
+    const asPullRequest =
+      (mode === "update" || mode === "existing") && parsed.data.pullRequest === true;
+
+    // Per-mode required fields (zod can't express the conditional cleanly).
+    if (mode === "create" && !repoName) {
+      res.status(400).json({ error: "repoName is required to create a repo." });
+      return;
+    }
+    if (mode === "existing" && !targetRepo) {
+      res
+        .status(400)
+        .json({ error: "targetRepo ('owner/repo') is required to push to an existing repo." });
+      return;
+    }
 
     const totalBytes = Object.values(files).reduce((n, c) => n + c.length, 0);
     if (totalBytes > 2_000_000) {
@@ -711,34 +737,87 @@ router.post(
     let branch: string;
     let created: boolean;
     let pullRequestUrl: string | undefined;
+    // Privacy persisted on the lineage pointer. For "create" it's the chosen
+    // visibility; for an existing repo it's the repo's actual visibility.
+    let pointerPrivate: boolean;
 
-    if (mode === "update") {
-      // ── Push a fresh commit onto the already-linked repo ──────────────────
-      if (!existingRepo?.fullName) {
-        res.status(409).json({
-          error: "This bundle is not linked to a GitHub repo yet. Create one first.",
-          code: "GITHUB_NO_LINKED_REPO",
-        });
-        return;
+    if (mode === "update" || mode === "existing") {
+      // ── Push a fresh commit onto a repo that already exists ───────────────
+      // "update" pushes onto the repo already linked to this bundle; "existing"
+      // pushes onto a repo the user named (owner/repo) that they created
+      // themselves — the path a narrowly-scoped fine-grained token must use,
+      // since such a token can't create repos but can push to selected ones.
+      let pushOwner: string;
+      let pushRepo: string;
+
+      if (mode === "existing") {
+        const [tOwner, tRepo] = targetRepo!.split("/");
+        try {
+          // Resolve the repo first: this both authorizes the token against it
+          // and tells us the real default branch to commit onto.
+          const info = await gh.rest.repos.get({ owner: tOwner!, repo: tRepo! });
+          pushOwner = info.data.owner.login;
+          pushRepo = info.data.name;
+          branch = info.data.default_branch || "main";
+          repoFullName = info.data.full_name;
+          htmlUrl = info.data.html_url;
+          pointerPrivate = info.data.private;
+        } catch (err) {
+          const status = (err as { status?: number }).status;
+          if (status === 404) {
+            res.status(404).json({
+              error: `No repository "${targetRepo}" found, or your GitHub token can't see it. Create it on GitHub (or add it to the token's selected repos), then retry.`,
+              code: "GITHUB_REPO_NOT_FOUND",
+            });
+            return;
+          }
+          if (status === 403) {
+            res.status(403).json({
+              error: `Your GitHub token isn't authorized for "${targetRepo}". If you used a fine-grained token, add this repository to its selected repos and grant Contents: Read and write, then retry.`,
+              code: "GITHUB_REPO_NOT_AUTHORIZED",
+            });
+            return;
+          }
+          req.log.warn({ err }, "GitHub push: target repo lookup failed");
+          res.status(502).json({
+            error: "Could not look up the target GitHub repo.",
+            code: "GITHUB_REPO_LOOKUP_FAILED",
+          });
+          return;
+        }
+      } else {
+        if (!existingRepo?.fullName) {
+          res.status(409).json({
+            error: "This bundle is not linked to a GitHub repo yet. Create one first.",
+            code: "GITHUB_NO_LINKED_REPO",
+          });
+          return;
+        }
+        const [linkedOwner, linkedRepoName] = existingRepo.fullName.split("/");
+        pushOwner = linkedOwner || owner;
+        pushRepo = linkedRepoName || existingRepo.fullName;
+        branch = existingRepo.defaultBranch ?? "main";
+        repoFullName = existingRepo.fullName;
+        htmlUrl = existingRepo.htmlUrl ?? `https://github.com/${existingRepo.fullName}`;
+        pointerPrivate = existingRepo.private ?? isPrivate;
       }
-      const linkedRepo = existingRepo.fullName.split("/").pop() ?? repoName;
-      branch = existingRepo.defaultBranch ?? "main";
+
       try {
         // HEAD of the default branch becomes the parent of the new commit.
         const ref = await gh.rest.git.getRef({
-          owner,
-          repo: linkedRepo,
+          owner: pushOwner,
+          repo: pushRepo,
           ref: `heads/${branch}`,
         });
         const headSha = ref.data.object.sha;
         const tree = await gh.rest.git.createTree({
-          owner,
-          repo: linkedRepo,
+          owner: pushOwner,
+          repo: pushRepo,
           tree: treeEntries,
         });
         const commit = await gh.rest.git.createCommit({
-          owner,
-          repo: linkedRepo,
+          owner: pushOwner,
+          repo: pushRepo,
           message: asPullRequest
             ? "CODE DJ scaffold — proposed update"
             : "CODE DJ scaffold — update",
@@ -751,14 +830,14 @@ router.post(
           // lands on the default branch.
           const prBranch = `code-dj-update-${Date.now()}`;
           await gh.rest.git.createRef({
-            owner,
-            repo: linkedRepo,
+            owner: pushOwner,
+            repo: pushRepo,
             ref: `refs/heads/${prBranch}`,
             sha: commit.data.sha,
           });
           const pr = await gh.rest.pulls.create({
-            owner,
-            repo: linkedRepo,
+            owner: pushOwner,
+            repo: pushRepo,
             title: "CODE DJ scaffold — proposed update",
             head: prBranch,
             base: branch,
@@ -769,8 +848,8 @@ router.post(
           pullRequestUrl = pr.data.html_url;
         } else {
           await gh.rest.git.updateRef({
-            owner,
-            repo: linkedRepo,
+            owner: pushOwner,
+            repo: pushRepo,
             ref: `heads/${branch}`,
             sha: commit.data.sha,
           });
@@ -778,16 +857,21 @@ router.post(
       } catch (err) {
         const status = (err as { status?: number }).status;
         if (status === 404) {
+          // For "existing" this means the default branch has no commits yet
+          // (a freshly created, empty repo); for "update" the linked repo or
+          // its branch is gone.
           res.status(409).json({
             error:
-              "The linked GitHub repo no longer exists. Create a new repo for this bundle.",
-            code: "GITHUB_REPO_MISSING",
+              mode === "existing"
+                ? `"${repoFullName}" has no commits on "${branch}" yet. Add a first commit (e.g. a README) on GitHub to initialise it, then retry.`
+                : "The linked GitHub repo no longer exists. Create a new repo for this bundle.",
+            code: mode === "existing" ? "GITHUB_REPO_EMPTY" : "GITHUB_REPO_MISSING",
           });
           return;
         }
         if (status === 403) {
           res.status(403).json({
-            error: `Your GitHub token isn't authorized for "${existingRepo.fullName}". If you used a fine-grained token, add this repository to its selected repos and grant Contents: Read and write, then retry.`,
+            error: `Your GitHub token isn't authorized for "${repoFullName}". If you used a fine-grained token, add this repository to its selected repos and grant Contents: Read and write, then retry.`,
             code: "GITHUB_REPO_NOT_AUTHORIZED",
           });
           return;
@@ -795,20 +879,20 @@ router.post(
         req.log.warn({ err }, "GitHub push: update failed");
         res.status(502).json({
           error: asPullRequest
-            ? "Could not open a pull request on the linked GitHub repo."
-            : "Could not push the update to the linked GitHub repo.",
+            ? "Could not open a pull request on the GitHub repo."
+            : "Could not push the update to the GitHub repo.",
           code: asPullRequest ? "GITHUB_PR_FAILED" : "GITHUB_UPDATE_FAILED",
         });
         return;
       }
-      repoFullName = existingRepo.fullName;
-      htmlUrl = existingRepo.htmlUrl ?? `https://github.com/${existingRepo.fullName}`;
       created = false;
     } else {
       // ── Create a brand-new repo and seed it ───────────────────────────────
+      // `repoName` is guaranteed present here by the per-mode validation above.
+      const newRepoName = repoName!;
       try {
         const repo = await gh.rest.repos.createForAuthenticatedUser({
-          name: repoName,
+          name: newRepoName,
           description: description ?? "Scaffolded by CODE DJ (F8) — ATANDA Command Centre",
           private: isPrivate,
           auto_init: false,
@@ -819,14 +903,14 @@ router.post(
         const status = (err as { status?: number }).status;
         if (status === 422) {
           res.status(409).json({
-            error: `A repo named "${repoName}" already exists on ${owner}. Pick another name${existingRepo?.fullName ? ', or push an update to the linked repo' : ''}.`,
+            error: `A repo named "${newRepoName}" already exists on ${owner}. Pick another name${existingRepo?.fullName ? ', or push an update to the linked repo' : ''}.`,
             code: "GITHUB_REPO_EXISTS",
           });
           return;
         }
         if (status === 403) {
           res.status(403).json({
-            error: `Your GitHub token isn't allowed to create a new repository on ${owner}. A fine-grained token scoped to only selected repos can't create repos — grant it Administration: Read and write on all repositories, or create "${repoName}" on GitHub yourself and push an update to it.`,
+            error: `Your GitHub token isn't allowed to create a new repository on ${owner}. A fine-grained token scoped to only selected repos can't create repos — grant it Administration: Read and write on all repositories, or create "${newRepoName}" on GitHub yourself and push to it as an existing repo.`,
             code: "GITHUB_REPO_NOT_AUTHORIZED",
           });
           return;
@@ -843,18 +927,18 @@ router.post(
       try {
         const tree = await gh.rest.git.createTree({
           owner,
-          repo: repoName,
+          repo: newRepoName,
           tree: treeEntries,
         });
         const commit = await gh.rest.git.createCommit({
           owner,
-          repo: repoName,
+          repo: newRepoName,
           message: "CODE DJ scaffold — initial commit",
           tree: tree.data.sha,
         });
         await gh.rest.git.createRef({
           owner,
-          repo: repoName,
+          repo: newRepoName,
           ref: `refs/heads/${branch}`,
           sha: commit.data.sha,
         });
@@ -869,6 +953,7 @@ router.post(
         return;
       }
       created = true;
+      pointerPrivate = isPrivate;
     }
 
     // Persist a pointer on the bundle artifact for lineage + "already pushed" UI.
@@ -883,7 +968,7 @@ router.post(
             htmlUrl,
             defaultBranch: branch,
             replitImportUrl,
-            private: created ? isPrivate : existingRepo?.private ?? isPrivate,
+            private: pointerPrivate,
             pushedAt: new Date().toISOString(),
           },
         },

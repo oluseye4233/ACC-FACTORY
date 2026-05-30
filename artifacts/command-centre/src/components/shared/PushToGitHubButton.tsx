@@ -52,6 +52,8 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [repoName, setRepoName] = useState(defaultRepoName(bundle));
+  const [targetRepo, setTargetRepo] = useState("");
+  const [targetMode, setTargetMode] = useState<"create" | "existing">("create");
   const [isPrivate, setIsPrivate] = useState(true);
   const [asPullRequest, setAsPullRequest] = useState(false);
   const [pending, setPending] = useState(false);
@@ -68,6 +70,8 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
   // Reset the suggested name whenever a new bundle is targeted.
   useEffect(() => {
     setRepoName(defaultRepoName(bundle));
+    setTargetRepo("");
+    setTargetMode("create");
     setResult(
       existing
         ? {
@@ -79,7 +83,7 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
     );
   }, [bundle.artifactId, existing]);
 
-  const push = async (mode: "create" | "update") => {
+  const push = async (mode: "create" | "update" | "existing") => {
     setPending(true);
     try {
       // Reuse the shared CODE DJ export generator so the GitHub repo carries
@@ -91,7 +95,12 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
         "/api/integrations/github/push-codebase",
         {
           artifactId: bundle.artifactId,
-          repoName: repoName.trim(),
+          // "create" carries a repo name to mint; "existing" carries the
+          // owner/repo of a repo the user already made (the only path a
+          // narrowly-scoped fine-grained token can push through).
+          ...(mode === "existing"
+            ? { targetRepo: targetRepo.trim() }
+            : { repoName: repoName.trim() }),
           private: isPrivate,
           mode,
           pullRequest,
@@ -101,17 +110,21 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
       setResult(r);
       toast({
         title:
-          mode === "update"
-            ? pullRequest
-              ? "PULL REQUEST OPENED"
-              : "PUSHED UPDATE"
-            : "CREATED & PUSHED",
+          mode === "create"
+            ? "CREATED & PUSHED"
+            : mode === "existing"
+              ? "PUSHED TO REPO"
+              : pullRequest
+                ? "PULL REQUEST OPENED"
+                : "PUSHED UPDATE",
         description:
-          mode === "update"
-            ? pullRequest
-              ? `PR opened on ${r.repoFullName} — review the diff before merging`
-              : `New commit on ${r.repoFullName} — ${SUPPORTED_IDES.length} IDE adapters refreshed`
-            : `${r.repoFullName} — ${SUPPORTED_IDES.length} IDE adapters rode along`,
+          mode === "create"
+            ? `${r.repoFullName} — ${SUPPORTED_IDES.length} IDE adapters rode along`
+            : mode === "existing"
+              ? `Pushed onto ${r.repoFullName} — ${SUPPORTED_IDES.length} IDE adapters rode along`
+              : pullRequest
+                ? `PR opened on ${r.repoFullName} — review the diff before merging`
+                : `New commit on ${r.repoFullName} — ${SUPPORTED_IDES.length} IDE adapters refreshed`,
       });
     } catch (e) {
       const body = e instanceof ApiError ? (e.body as { code?: string } | null) : null;
@@ -129,6 +142,28 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
           variant: "destructive",
           title: "Repo name taken",
           description: "That repo already exists on the connected account. Pick another name.",
+        });
+        return;
+      }
+      if (body?.code === "GITHUB_REPO_NOT_FOUND") {
+        toast({
+          variant: "destructive",
+          title: "Repo not found",
+          description:
+            e instanceof ApiError
+              ? e.message
+              : "No such repository, or your GitHub token can't see it. Create it on GitHub (or add it to the token's selected repos), then retry.",
+        });
+        return;
+      }
+      if (body?.code === "GITHUB_REPO_EMPTY") {
+        toast({
+          variant: "destructive",
+          title: "Repo has no commits",
+          description:
+            e instanceof ApiError
+              ? e.message
+              : "That repo is empty. Add a first commit (e.g. a README) on GitHub to initialise it, then retry.",
         });
         return;
       }
@@ -176,7 +211,9 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
             <DialogDescription className="font-mono text-xs">
               {result
                 ? "This bundle is linked to a GitHub repo. Commit the regenerated scaffold straight onto the default branch, or open a pull request to review the diff before it goes live."
-                : "Creates a new repo seeded with the CODE DJ scaffold plus AGENTS.md and per-IDE adapter files, so any IDE can clone and keep building in fidelity to the certified spec."}
+                : targetMode === "existing"
+                  ? "Pushes the CODE DJ scaffold (plus AGENTS.md and per-IDE adapter files) onto a repo you already created. Use this if your GitHub token only covers selected repos and can't create new ones."
+                  : "Creates a new repo seeded with the CODE DJ scaffold plus AGENTS.md and per-IDE adapter files, so any IDE can clone and keep building in fidelity to the certified spec."}
             </DialogDescription>
           </DialogHeader>
 
@@ -246,38 +283,87 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
             </div>
           ) : (
             <div className="space-y-4 py-2">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="gh-repo-name"
-                  className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={targetMode === "create" ? "default" : "outline"}
+                  onClick={() => setTargetMode("create")}
+                  disabled={pending}
+                  className="font-mono text-[10px] uppercase tracking-wider"
+                  data-testid="f8-github-mode-create"
                 >
-                  Repository name
-                </Label>
-                <Input
-                  id="gh-repo-name"
-                  value={repoName}
-                  onChange={(e) => setRepoName(e.target.value)}
-                  placeholder="my-new-app"
-                  maxLength={100}
-                  className="font-mono text-xs"
-                  data-testid="f8-github-repo-name"
-                />
+                  Create new repo
+                </Button>
+                <Button
+                  type="button"
+                  variant={targetMode === "existing" ? "default" : "outline"}
+                  onClick={() => setTargetMode("existing")}
+                  disabled={pending}
+                  className="font-mono text-[10px] uppercase tracking-wider"
+                  data-testid="f8-github-mode-existing"
+                >
+                  Use existing repo
+                </Button>
               </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Private repository
+
+              {targetMode === "existing" ? (
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="gh-target-repo"
+                    className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Existing repository (owner/repo)
                   </Label>
+                  <Input
+                    id="gh-target-repo"
+                    value={targetRepo}
+                    onChange={(e) => setTargetRepo(e.target.value)}
+                    placeholder="my-org/my-existing-app"
+                    maxLength={140}
+                    className="font-mono text-xs"
+                    data-testid="f8-github-target-repo"
+                  />
                   <p className="font-mono text-[10px] text-muted-foreground/70">
-                    {isPrivate ? "Only the owner can see it." : "Anyone can see it."}
+                    The repo must already exist and be covered by your GitHub
+                    token. The scaffold is committed onto its default branch.
                   </p>
                 </div>
-                <Switch
-                  checked={isPrivate}
-                  onCheckedChange={setIsPrivate}
-                  data-testid="f8-github-private"
-                />
-              </div>
+              ) : (
+                <>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="gh-repo-name"
+                      className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Repository name
+                    </Label>
+                    <Input
+                      id="gh-repo-name"
+                      value={repoName}
+                      onChange={(e) => setRepoName(e.target.value)}
+                      placeholder="my-new-app"
+                      maxLength={100}
+                      className="font-mono text-xs"
+                      data-testid="f8-github-repo-name"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Private repository
+                      </Label>
+                      <p className="font-mono text-[10px] text-muted-foreground/70">
+                        {isPrivate ? "Only the owner can see it." : "Anyone can see it."}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={isPrivate}
+                      onCheckedChange={setIsPrivate}
+                      data-testid="f8-github-private"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -314,8 +400,13 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
               </>
             ) : (
               <Button
-                onClick={() => push("create")}
-                disabled={pending || !repoName.trim()}
+                onClick={() => push(targetMode)}
+                disabled={
+                  pending ||
+                  (targetMode === "existing"
+                    ? !targetRepo.trim().includes("/")
+                    : !repoName.trim())
+                }
                 className="font-display tracking-wider gap-2"
                 data-testid="f8-github-confirm"
               >
@@ -324,7 +415,11 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
                 ) : (
                   <Github className="h-4 w-4" />
                 )}
-                {pending ? "PUSHING…" : "CREATE & PUSH"}
+                {pending
+                  ? "PUSHING…"
+                  : targetMode === "existing"
+                    ? "PUSH TO REPO"
+                    : "CREATE & PUSH"}
               </Button>
             )}
           </DialogFooter>
