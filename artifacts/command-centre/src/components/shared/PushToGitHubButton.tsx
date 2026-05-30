@@ -156,17 +156,6 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
         });
         return;
       }
-      if (body?.code === "GITHUB_REPO_EMPTY") {
-        toast({
-          variant: "destructive",
-          title: "Repo has no commits",
-          description:
-            e instanceof ApiError
-              ? e.message
-              : "That repo is empty. Add a first commit (e.g. a README) on GitHub to initialise it, then retry.",
-        });
-        return;
-      }
       if (body?.code === "GITHUB_REPO_NOT_AUTHORIZED") {
         toast({
           variant: "destructive",

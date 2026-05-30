@@ -49,7 +49,6 @@ const mockGh = vi.hoisted(() => {
   }
   return {
     GitHubNotConnectedError,
-    notConnected: false,
     authThrows: false,
     createRepoStatus: null as number | null,
     treeThrows: false,
@@ -57,8 +56,25 @@ const mockGh = vi.hoisted(() => {
     createdCalls: [] as Array<{ name: string; private: boolean }>,
     treeFiles: [] as Array<{ path: string; content: string }>,
     refCalls: 0,
+    // ── "existing"-mode controls ────────────────────────────────────────────
+    // `repos.get` lookup result / failure for a named target repo.
+    repoGetStatus: null as number | null,
+    repoInfo: {
+      owner: "octo-tester",
+      name: "existing-repo",
+      defaultBranch: "main",
+      private: true,
+    },
+    // `git.getRef` outcome: a 404 models a freshly-created EMPTY repo (no
+    // default-branch ref yet) so the route seeds it; a number models any other
+    // error; null returns a real HEAD sha to parent onto.
+    getRefStatus: null as number | null,
+    // Recorded so tests can assert the seed commit had NO parents.
+    commitParents: [] as string[][],
+    createdRefs: [] as string[],
+    updateRefCalls: 0,
+    prCalls: 0,
     reset(): void {
-      this.notConnected = false;
       this.authThrows = false;
       this.createRepoStatus = null;
       this.treeThrows = false;
@@ -66,74 +82,143 @@ const mockGh = vi.hoisted(() => {
       this.createdCalls = [];
       this.treeFiles = [];
       this.refCalls = 0;
+      this.repoGetStatus = null;
+      this.repoInfo = {
+        owner: "octo-tester",
+        name: "existing-repo",
+        defaultBranch: "main",
+        private: true,
+      };
+      this.getRefStatus = null;
+      this.commitParents = [];
+      this.createdRefs = [];
+      this.updateRefCalls = 0;
+      this.prCalls = 0;
     },
   };
 });
 
-vi.mock("../src/lib/github", async (importOriginal) => {
-  // Spread the real module so non-client exports the route relies on
-  // (e.g. `GITHUB_TOKEN_RE`, `githubTokenScheme`, `githubOAuthConfigured`)
-  // stay intact, and override only the client factories with our fake.
-  const actual = await importOriginal<typeof import("../src/lib/github")>();
-  const buildFakeClient = () => ({
-    rest: {
-      users: {
-        getAuthenticated: async () => {
-          if (mockGh.authThrows) throw new Error("github auth network error");
-          return { data: { login: mockGh.owner } };
-        },
-      },
-      repos: {
-        createForAuthenticatedUser: async (args: {
-          name: string;
-          private: boolean;
-        }) => {
-          mockGh.createdCalls.push({
-            name: args.name,
-            private: args.private,
-          });
-          if (mockGh.createRepoStatus !== null) {
-            const err = new Error("github rejected create") as Error & {
-              status: number;
-            };
-            err.status = mockGh.createRepoStatus;
-            throw err;
-          }
-          return {
-            data: {
-              full_name: `${mockGh.owner}/${args.name}`,
-              html_url: `https://github.com/${mockGh.owner}/${args.name}`,
-            },
-          };
-        },
-      },
-      git: {
-        createTree: async (args: {
-          tree: Array<{ path: string; content: string }>;
-        }) => {
-          if (mockGh.treeThrows) throw new Error("github tree error");
-          mockGh.treeFiles = args.tree.map((t) => ({
-            path: t.path,
-            content: t.content,
-          }));
-          return { data: { sha: "tree-sha" } };
-        },
-        createCommit: async () => ({ data: { sha: "commit-sha" } }),
-        createRef: async () => {
-          mockGh.refCalls += 1;
-          return { data: {} };
-        },
-      },
-    },
-  });
+// The push handler decrypts the user's stored PAT before building a client.
+// We seed credentials with a plaintext sentinel and make decryption a no-op so
+// the test doesn't depend on SESSION_SECRET-derived encryption.
+vi.mock("../src/lib/integration-crypto", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("../src/lib/integration-crypto")>();
+  return { ...actual, decryptApiKey: (stored: string) => stored };
+});
+
+// Build the fake Octokit-shaped client the route drives. `getGitHubClientFromToken`
+// returns it synchronously (the route does `gh = getGitHubClientFromToken(token)`
+// then awaits individual REST calls).
+function buildFakeGitHubClient() {
   return {
-    ...actual,
-    GitHubNotConnectedError: mockGh.GitHubNotConnectedError,
-    getUncachableGitHubClient: async () => {
-      if (mockGh.notConnected) throw new mockGh.GitHubNotConnectedError();
-      return buildFakeClient();
+    rest: {
+          users: {
+            getAuthenticated: async () => {
+              if (mockGh.authThrows) throw new Error("github auth network error");
+              return { data: { login: mockGh.owner } };
+            },
+          },
+          repos: {
+            createForAuthenticatedUser: async (args: {
+              name: string;
+              private: boolean;
+            }) => {
+              mockGh.createdCalls.push({
+                name: args.name,
+                private: args.private,
+              });
+              if (mockGh.createRepoStatus !== null) {
+                const err = new Error("github rejected create") as Error & {
+                  status: number;
+                };
+                err.status = mockGh.createRepoStatus;
+                throw err;
+              }
+              return {
+                data: {
+                  full_name: `${mockGh.owner}/${args.name}`,
+                  html_url: `https://github.com/${mockGh.owner}/${args.name}`,
+                },
+              };
+            },
+            get: async () => {
+              if (mockGh.repoGetStatus !== null) {
+                const err = new Error("github repo get failed") as Error & {
+                  status: number;
+                };
+                err.status = mockGh.repoGetStatus;
+                throw err;
+              }
+              const { owner, name, defaultBranch, private: priv } = mockGh.repoInfo;
+              return {
+                data: {
+                  owner: { login: owner },
+                  name,
+                  default_branch: defaultBranch,
+                  full_name: `${owner}/${name}`,
+                  html_url: `https://github.com/${owner}/${name}`,
+                  private: priv,
+                },
+              };
+            },
+          },
+          git: {
+            getRef: async () => {
+              if (mockGh.getRefStatus !== null) {
+                const err = new Error("github getRef failed") as Error & {
+                  status: number;
+                };
+                err.status = mockGh.getRefStatus;
+                throw err;
+              }
+              return { data: { object: { sha: "head-sha" } } };
+            },
+            createTree: async (args: {
+              tree: Array<{ path: string; content: string }>;
+            }) => {
+              if (mockGh.treeThrows) throw new Error("github tree error");
+              mockGh.treeFiles = args.tree.map((t) => ({
+                path: t.path,
+                content: t.content,
+              }));
+              return { data: { sha: "tree-sha" } };
+            },
+            createCommit: async (args: { parents?: string[] }) => {
+              mockGh.commitParents.push(args.parents ?? []);
+              return { data: { sha: "commit-sha" } };
+            },
+            createRef: async (args: { ref: string }) => {
+              mockGh.refCalls += 1;
+              mockGh.createdRefs.push(args.ref);
+              return { data: {} };
+            },
+            updateRef: async () => {
+              mockGh.updateRefCalls += 1;
+              return { data: {} };
+            },
+          },
+          pulls: {
+            create: async () => {
+              mockGh.prCalls += 1;
+              return {
+                data: {
+                  html_url: `https://github.com/${mockGh.repoInfo.owner}/${mockGh.repoInfo.name}/pull/1`,
+                },
+              };
+            },
+          },
     },
-    getGitHubClientFromToken: () => buildFakeClient(),
+  };
+}
+
+vi.mock("../src/lib/github", () => {
+  return {
+    GitHubNotConnectedError: mockGh.GitHubNotConnectedError,
+    // Real token-shape regex the route imports for its PAT-paste validation.
+    GITHUB_TOKEN_RE:
+      /^(gh[posur]_[A-Za-z0-9]{16,255}|github_pat_[A-Za-z0-9_]{20,255})$/u,
+    getGitHubClientFromToken: () => buildFakeGitHubClient(),
   };
 });
 
@@ -221,9 +306,11 @@ const PUSH_PATH = "/api/integrations/github/push-codebase";
 const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 let architectId = "";
 let explorerId = "";
+let architectNoGhId = "";
 let sessionId = "";
 let bundleArtifactId = "";
 let spcArtifactId = "";
+let noGhBundleArtifactId = "";
 let srv: { url: string; close: () => Promise<void> };
 
 beforeAll(async () => {
@@ -241,8 +328,18 @@ beforeAll(async () => {
       email: `ghpush-exp-${stamp}@example.test`,
     })
     .returning();
+  // An Architect-tier user who has NOT connected GitHub (no credential row),
+  // used to exercise the GITHUB_NOT_CONNECTED path past the tier gate.
+  const [archNoGh] = await db
+    .insert(usersTable)
+    .values({
+      clerkUserId: `clerk_ghpush_nogh_${stamp}`,
+      email: `ghpush-nogh-${stamp}@example.test`,
+    })
+    .returning();
   architectId = arch!.id;
   explorerId = exp!.id;
+  architectNoGhId = archNoGh!.id;
 
   await db
     .insert(commandCentreSubscribersTable)
@@ -250,6 +347,9 @@ beforeAll(async () => {
   await db
     .insert(commandCentreSubscribersTable)
     .values({ userId: explorerId, tier: "EXPLORER", status: "inactive" });
+  await db
+    .insert(commandCentreSubscribersTable)
+    .values({ userId: architectNoGhId, tier: "ARCHITECT", status: "active" });
 
   // Seed the architect's per-user GitHub credential. The push route looks this
   // row up (by userId + provider) and decrypts the token before minting a
@@ -287,6 +387,24 @@ beforeAll(async () => {
     .returning();
   spcArtifactId = spc!.id;
 
+  // A bundle owned by the GitHub-less architect (ownership is checked before the
+  // credential lookup, so this user needs their own bundle to reach the 503).
+  const [noGhSession] = await db
+    .insert(harnessSessionsTable)
+    .values({ userId: architectNoGhId, sessionName: "GH push no-cred session" })
+    .returning();
+  const [noGhBundle] = await db
+    .insert(harnessArtifactsTable)
+    .values({
+      sessionId: noGhSession!.id,
+      userId: architectNoGhId,
+      featureId: 8,
+      artifactType: "CODEBASE_BUNDLE",
+      artifactContent: { note: "scaffold" },
+    })
+    .returning();
+  noGhBundleArtifactId = noGhBundle!.id;
+
   const app = express();
   app.use(injectLog);
   // NOTE: production `app.ts` mounts `express.json()` with the DEFAULT 100kb
@@ -306,7 +424,7 @@ afterAll(async () => {
   // users cascade to subscribers, sessions, and artifacts.
   await db
     .delete(usersTable)
-    .where(inArray(usersTable.id, [architectId, explorerId]));
+    .where(inArray(usersTable.id, [architectId, explorerId, architectNoGhId]));
 });
 
 beforeEach(() => {
@@ -413,31 +531,16 @@ describe("POST /integrations/github/push-codebase", () => {
     expect(mockGh.refCalls).toBe(0);
   });
 
-  test("a missing GitHub credential maps to 503 GITHUB_NOT_CONNECTED", async () => {
-    // The route treats "GitHub not connected" as the absence of a per-user
-    // credential row. Drop the seeded credential, assert the 503, then restore
-    // it so subsequent tests keep their connected architect.
-    await db
-      .delete(integrationCredentialsTable)
-      .where(
-        and(
-          eq(integrationCredentialsTable.userId, architectId),
-          eq(integrationCredentialsTable.provider, "github"),
-        ),
-      );
-    try {
-      const res = await push(architectId, {
-        artifactId: bundleArtifactId,
-        repoName: `noconn-${stamp}`,
-        files: validFiles,
-      });
-      const body = (await res.json()) as { code?: string };
-      expect(res.status).toBe(503);
-      expect(body.code).toBe("GITHUB_NOT_CONNECTED");
-      expect(mockGh.createdCalls).toHaveLength(0);
-    } finally {
-      await seedGithubCredential(architectId);
-    }
+  test("an architect without a stored GitHub token maps to 503 GITHUB_NOT_CONNECTED", async () => {
+    const res = await push(architectNoGhId, {
+      artifactId: noGhBundleArtifactId,
+      repoName: `noconn-${stamp}`,
+      files: validFiles,
+    });
+    const body = (await res.json()) as { code?: string };
+    expect(res.status).toBe(503);
+    expect(body.code).toBe("GITHUB_NOT_CONNECTED");
+    expect(mockGh.createdCalls).toHaveLength(0);
   });
 
   test("an authenticate failure (token present, call fails) maps to 502 GITHUB_AUTH_FAILED", async () => {
@@ -548,5 +651,127 @@ describe("POST /integrations/github/push-codebase", () => {
     });
     expect(res.status).toBe(400);
     expect(mockGh.createdCalls).toHaveLength(0);
+  });
+
+  describe("existing-repo mode", () => {
+    test("pushes onto a populated existing repo with a parented update commit", async () => {
+      mockGh.repoInfo = {
+        owner: "octo-tester",
+        name: "populated-repo",
+        defaultBranch: "main",
+        private: true,
+      };
+      mockGh.getRefStatus = null; // HEAD exists → parent onto it.
+      const res = await push(architectId, {
+        artifactId: bundleArtifactId,
+        mode: "existing",
+        targetRepo: "octo-tester/populated-repo",
+        files: validFiles,
+      });
+      const body = (await res.json()) as {
+        ok: boolean;
+        created: boolean;
+        repoFullName: string;
+      };
+      expect(res.status, JSON.stringify(body)).toBe(200);
+      expect(body.ok).toBe(true);
+      expect(body.created).toBe(false);
+      expect(body.repoFullName).toBe("octo-tester/populated-repo");
+      // No repo was created; the commit parented onto HEAD; the ref was updated.
+      expect(mockGh.createdCalls).toHaveLength(0);
+      expect(mockGh.commitParents).toEqual([["head-sha"]]);
+      expect(mockGh.updateRefCalls).toBe(1);
+      expect(mockGh.refCalls).toBe(0);
+    });
+
+    test("seeds a brand-new EMPTY existing repo with a parentless initial commit", async () => {
+      mockGh.repoInfo = {
+        owner: "octo-tester",
+        name: "fresh-empty-repo",
+        defaultBranch: "main",
+        private: false,
+      };
+      mockGh.getRefStatus = 404; // No default-branch ref yet → empty repo.
+      const res = await push(architectId, {
+        artifactId: bundleArtifactId,
+        mode: "existing",
+        targetRepo: "octo-tester/fresh-empty-repo",
+        files: validFiles,
+      });
+      const body = (await res.json()) as {
+        ok: boolean;
+        created: boolean;
+        repoFullName: string;
+        defaultBranch: string;
+      };
+      expect(res.status, JSON.stringify(body)).toBe(200);
+      expect(body.ok).toBe(true);
+      // The repo existed but we created its first commit — flagged like a create.
+      expect(body.created).toBe(true);
+      expect(body.repoFullName).toBe("octo-tester/fresh-empty-repo");
+      expect(body.defaultBranch).toBe("main");
+      // We never created the repo itself, the seed commit had NO parents, and the
+      // default-branch ref was created (not updated).
+      expect(mockGh.createdCalls).toHaveLength(0);
+      expect(mockGh.commitParents).toEqual([[]]);
+      expect(mockGh.createdRefs).toEqual(["refs/heads/main"]);
+      expect(mockGh.updateRefCalls).toBe(0);
+      // The bundle pointer captures the now-populated repo.
+      const [row] = await db
+        .select()
+        .from(harnessArtifactsTable)
+        .where(eq(harnessArtifactsTable.id, bundleArtifactId))
+        .limit(1);
+      const githubRepo = (
+        row!.artifactContent as { githubRepo?: Record<string, unknown> }
+      ).githubRepo;
+      expect(githubRepo!.fullName).toBe("octo-tester/fresh-empty-repo");
+      expect(githubRepo!.defaultBranch).toBe("main");
+    });
+
+    test("seeds an empty repo on its real default branch even when a PR was requested", async () => {
+      mockGh.repoInfo = {
+        owner: "octo-tester",
+        name: "empty-trunk-repo",
+        defaultBranch: "trunk",
+        private: true,
+      };
+      mockGh.getRefStatus = 404;
+      const res = await push(architectId, {
+        artifactId: bundleArtifactId,
+        mode: "existing",
+        targetRepo: "octo-tester/empty-trunk-repo",
+        files: validFiles,
+        pullRequest: true,
+      });
+      const body = (await res.json()) as {
+        created: boolean;
+        defaultBranch: string;
+        pullRequestUrl?: string | null;
+      };
+      expect(res.status, JSON.stringify(body)).toBe(200);
+      expect(body.created).toBe(true);
+      expect(body.defaultBranch).toBe("trunk");
+      // An empty repo has no base to diff against — no PR is opened, the seed
+      // lands directly on the resolved default branch.
+      expect(mockGh.prCalls).toBe(0);
+      expect(mockGh.commitParents).toEqual([[]]);
+      expect(mockGh.createdRefs).toEqual(["refs/heads/trunk"]);
+      expect(body.pullRequestUrl ?? null).toBeNull();
+    });
+
+    test("a missing / unauthorized target repo still errors clearly (404)", async () => {
+      mockGh.repoGetStatus = 404;
+      const res = await push(architectId, {
+        artifactId: bundleArtifactId,
+        mode: "existing",
+        targetRepo: "octo-tester/does-not-exist",
+        files: validFiles,
+      });
+      const body = (await res.json()) as { code?: string };
+      expect(res.status).toBe(404);
+      expect(body.code).toBe("GITHUB_REPO_NOT_FOUND");
+      expect(mockGh.commitParents).toHaveLength(0);
+    });
   });
 });

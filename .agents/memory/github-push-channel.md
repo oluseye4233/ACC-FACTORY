@@ -89,3 +89,25 @@ The F8 CODE DJ live handoff pushes a generated codebase to a new GitHub repo
   treat the repo as a working project; PR mode lets them review the diff
   (including files dropped between runs — the tree omits `base_tree`) first.
   PR creation needs only the existing `repo` scope (no extra grant).
+
+- **An empty `existing` repo (no default-branch ref yet) is SEEDED, not rejected.**
+  In `existing` mode the route resolves HEAD via `getRef`; a 404 there means a
+  freshly-created repo with no initial commit, so it falls through to a parentless
+  `createCommit` (`parents: []`) + `createRef refs/heads/<default-branch>` — the
+  same no-parent flow `create` mode uses. PR requests are ignored when seeding
+  (an empty repo has no base branch to diff against), and the seed always lands
+  on the repo's *real* default branch from `repos.get`, not a hardcoded `main`.
+  The success response flags `created:true` for a seed (it's the first commit),
+  vs `created:false` for an ordinary update onto a populated repo. `GITHUB_REPO_EMPTY`
+  no longer exists — both server emit and the frontend toast were removed.
+  **Why:** people commonly create an empty repo specifically to push into it;
+  the old dead-end ("add a first commit on GitHub then retry") forced a manual step.
+
+- **The `github-push.test.ts` mock must track the route's client factory.** The
+  route uses `getGitHubClientFromToken(token)` (SYNC return) + a decrypted per-user
+  PAT from `integration_credentials`, NOT the old async `getUncachableGitHubClient`.
+  Tests seed a `provider:"github"` credential row and mock `decryptApiKey` to a
+  no-op so they don't depend on SESSION_SECRET; `GITHUB_NOT_CONNECTED` is exercised
+  with an Architect-tier user that has no credential row (tier gate runs first).
+  **Why:** the suite silently went all-skipped when the mock drifted from the
+  route (missing `GITHUB_TOKEN_RE` export crashed module load) — keep them in sync.

@@ -802,14 +802,50 @@ router.post(
         pointerPrivate = existingRepo.private ?? isPrivate;
       }
 
+      // Resolve HEAD of the default branch. A 404 here in "existing" mode means
+      // the repo was created with no initial commit (no default-branch ref yet),
+      // so there is nothing to parent onto — we seed it with an initial commit
+      // below instead of dead-ending.
+      let headSha: string | null = null;
       try {
-        // HEAD of the default branch becomes the parent of the new commit.
         const ref = await gh.rest.git.getRef({
           owner: pushOwner,
           repo: pushRepo,
           ref: `heads/${branch}`,
         });
-        const headSha = ref.data.object.sha;
+        headSha = ref.data.object.sha;
+      } catch (err) {
+        const status = (err as { status?: number }).status;
+        if (status === 404 && mode === "existing") {
+          // Empty repo (no commits yet) — fall through and seed it.
+          headSha = null;
+        } else if (status === 404) {
+          // For "update" the linked repo or its branch is gone.
+          res.status(409).json({
+            error: "The linked GitHub repo no longer exists. Create a new repo for this bundle.",
+            code: "GITHUB_REPO_MISSING",
+          });
+          return;
+        } else if (status === 403) {
+          res.status(403).json({
+            error: `Your GitHub token isn't authorized for "${repoFullName}". If you used a fine-grained token, add this repository to its selected repos and grant Contents: Read and write, then retry.`,
+            code: "GITHUB_REPO_NOT_AUTHORIZED",
+          });
+          return;
+        } else {
+          req.log.warn({ err }, "GitHub push: ref lookup failed");
+          res.status(502).json({
+            error: "Could not look up the GitHub repo's default branch.",
+            code: "GITHUB_UPDATE_FAILED",
+          });
+          return;
+        }
+      }
+
+      // An empty repo has no base branch to diff against, so a PR doesn't apply —
+      // we always seed its default branch directly with the initial commit.
+      const seedingEmptyRepo = headSha === null;
+      try {
         const tree = await gh.rest.git.createTree({
           owner: pushOwner,
           repo: pushRepo,
@@ -818,13 +854,23 @@ router.post(
         const commit = await gh.rest.git.createCommit({
           owner: pushOwner,
           repo: pushRepo,
-          message: asPullRequest
-            ? "CODE DJ scaffold — proposed update"
-            : "CODE DJ scaffold — update",
+          message: seedingEmptyRepo
+            ? "CODE DJ scaffold — initial commit"
+            : asPullRequest
+              ? "CODE DJ scaffold — proposed update"
+              : "CODE DJ scaffold — update",
           tree: tree.data.sha,
-          parents: [headSha],
+          parents: seedingEmptyRepo ? [] : [headSha!],
         });
-        if (asPullRequest) {
+        if (seedingEmptyRepo) {
+          // No default-branch ref exists yet — create it pointing at the seed.
+          await gh.rest.git.createRef({
+            owner: pushOwner,
+            repo: pushRepo,
+            ref: `refs/heads/${branch}`,
+            sha: commit.data.sha,
+          });
+        } else if (asPullRequest) {
           // Push the commit to a fresh branch off HEAD and open a PR so the user
           // can review the diff (including files removed between runs) before it
           // lands on the default branch.
@@ -856,19 +902,6 @@ router.post(
         }
       } catch (err) {
         const status = (err as { status?: number }).status;
-        if (status === 404) {
-          // For "existing" this means the default branch has no commits yet
-          // (a freshly created, empty repo); for "update" the linked repo or
-          // its branch is gone.
-          res.status(409).json({
-            error:
-              mode === "existing"
-                ? `"${repoFullName}" has no commits on "${branch}" yet. Add a first commit (e.g. a README) on GitHub to initialise it, then retry.`
-                : "The linked GitHub repo no longer exists. Create a new repo for this bundle.",
-            code: mode === "existing" ? "GITHUB_REPO_EMPTY" : "GITHUB_REPO_MISSING",
-          });
-          return;
-        }
         if (status === 403) {
           res.status(403).json({
             error: `Your GitHub token isn't authorized for "${repoFullName}". If you used a fine-grained token, add this repository to its selected repos and grant Contents: Read and write, then retry.`,
@@ -885,7 +918,9 @@ router.post(
         });
         return;
       }
-      created = false;
+      // We seed empty repos with their first commit, so flag that like a create
+      // for the success UI; an ordinary update to an already-populated repo is not.
+      created = seedingEmptyRepo;
     } else {
       // ── Create a brand-new repo and seed it ───────────────────────────────
       // `repoName` is guaranteed present here by the per-mode validation above.
