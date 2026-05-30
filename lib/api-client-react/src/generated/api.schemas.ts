@@ -90,6 +90,7 @@ export const ArtifactType = {
   MVP_PDD: 'MVP_PDD',
   CODEBASE_BUNDLE: 'CODEBASE_BUNDLE',
   PFP_REPORT: 'PFP_REPORT',
+  HOSTING_PLAN: 'HOSTING_PLAN',
 } as const;
 
 /**
@@ -151,6 +152,142 @@ export interface HarnessF8Input {
   /** Override the PFP drift gate. Required when the most recent PFP report for the same MVP PDD has any critical findings. */
   acknowledgeDrift?: boolean;
   provider?: LlmProvider;
+}
+
+/**
+ * Closed registry of deployment hosts the Host DJ ranks. "replit-deployments" is the HARNESS-certified default.
+ */
+export type HostPlatform = typeof HostPlatform[keyof typeof HostPlatform];
+
+
+export const HostPlatform = {
+  'replit-deployments': 'replit-deployments',
+  vercel: 'vercel',
+  'fly-io': 'fly-io',
+  render: 'render',
+  railway: 'railway',
+  'cloudflare-pages': 'cloudflare-pages',
+  netlify: 'netlify',
+  'aws-amplify': 'aws-amplify',
+  'expo-eas': 'expo-eas',
+} as const;
+
+export interface HarnessF8HdjInput {
+  sessionId: string;
+  mvpPddArtifactId: string;
+  /** Optional F8 codebase bundle to sharpen the hosting requirements profile. */
+  codebaseBundleArtifactId?: string;
+  /**
+     * Optional operator hints for the Host DJ (preferred host, region/compliance constraints, budget ceiling).
+     * @maxLength 2000
+     */
+  notes?: string;
+  provider?: LlmProvider;
+}
+
+export type HostingRequirementsProfileScaleProfile = typeof HostingRequirementsProfileScaleProfile[keyof typeof HostingRequirementsProfileScaleProfile];
+
+
+export const HostingRequirementsProfileScaleProfile = {
+  prototype: 'prototype',
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export interface HostingRequirementsProfile {
+  /** e.g. node, python, static, mobile */
+  runtime: string;
+  /** Surface implied by the PDD, e.g. web-service, static-site, mobile-app */
+  deployTarget: string;
+  /** DB need, e.g. postgres, none, sqlite, managed-kv */
+  database: string;
+  regions: string[];
+  compliance: string[];
+  scaleProfile: HostingRequirementsProfileScaleProfile;
+  summary: string;
+}
+
+/**
+ * Fixed Host-Selection-Engine criterion weights (sum 100), recomputed server-side.
+ */
+export interface HseWeights {
+  stackCompat: number;
+  cost: number;
+  deploySimplicity: number;
+  dbFit: number;
+  cicd: number;
+  compliance: number;
+  scalability: number;
+  lockin: number;
+}
+
+/**
+ * Per-criterion 0..10 scores. "lockin" is scored 10 = no vendor lock-in.
+ */
+export interface HseScores {
+  stackCompat: number;
+  cost: number;
+  deploySimplicity: number;
+  dbFit: number;
+  cicd: number;
+  compliance: number;
+  scalability: number;
+  lockin: number;
+}
+
+export interface HseRow {
+  platform: HostPlatform;
+  scores: HseScores;
+  /** 0..100, recomputed server-side from scores × weights. */
+  weightedTotal: number;
+}
+
+export interface HostPick {
+  platform: HostPlatform;
+  score: number;
+  rationale: string;
+}
+
+export interface DeploymentJourneyPhase {
+  name: string;
+  detail: string;
+}
+
+export interface EnvTemplateEntry {
+  /** Env var NAME only — never a value. */
+  key: string;
+  description: string;
+  required: boolean;
+}
+
+export interface SelfDeployFactory {
+  envTemplate: EnvTemplateEntry[];
+  /** CI/CD pipeline YAML (advisory; contains no secrets). */
+  ciYaml: string;
+  healthCheck: string;
+  rollback: string;
+}
+
+export type HostingPlanJourney = {
+  /** Recommended deployment tier on the primary host. */
+  tier: string;
+  phases: DeploymentJourneyPhase[];
+};
+
+export interface HostingPlan {
+  artifactId: string;
+  hrp: HostingRequirementsProfile;
+  weights: HseWeights;
+  /** Candidate hosts ranked desc by weightedTotal. */
+  hse: HseRow[];
+  primary: HostPick;
+  fallback: HostPick;
+  journey: HostingPlanJourney;
+  sdf: SelfDeployFactory;
+  /** Journey Confidence / Self-deploy Estimate 0..100, derived server-side from the winning weighted score. */
+  jcse: number;
+  notes?: string;
 }
 
 export interface HarnessAtlasCrystalliseInput {

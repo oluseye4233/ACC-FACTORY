@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessF8,
+  useHarnessF8Hdj,
   useHarnessPfp,
   getListSessionArtifactsQueryKey,
   ArtifactType,
@@ -9,6 +10,7 @@ import {
   type HarnessArtifact,
   type CodebaseBundle,
   type PfpReport,
+  type HostingPlan,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -33,7 +35,20 @@ import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
 import { exportCodeDjBundle, SUPPORTED_IDES } from "@/lib/codeDjExport";
 import { PushToGitHubButton } from "@/components/shared/PushToGitHubButton";
-import { AlertTriangle, Cpu, Download, FileCode, Radar, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Cpu, Download, FileCode, Radar, Rocket, ShieldCheck } from "lucide-react";
+
+const HOST_LABELS: Record<string, string> = {
+  "replit-deployments": "Replit Deployments",
+  vercel: "Vercel",
+  "fly-io": "Fly.io",
+  render: "Render",
+  railway: "Railway",
+  "cloudflare-pages": "Cloudflare Pages",
+  netlify: "Netlify",
+  "aws-amplify": "AWS Amplify",
+  "expo-eas": "Expo EAS",
+};
+const hostLabel = (p: string) => HOST_LABELS[p] ?? p;
 
 const PLATFORM_LABELS: Record<CodeDjPlatform, string> = {
   [CodeDjPlatform["nextjs-vercel"]]: "Next.js → Vercel",
@@ -88,6 +103,8 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
     useState<OverrideValue>("session");
   const [pfp, setPfp] = useState<PfpReport | undefined>();
   const [pfpError, setPfpError] = useState<string | null>(null);
+  const [hostPlan, setHostPlan] = useState<HostingPlan | undefined>();
+  const [hostError, setHostError] = useState<string | null>(null);
   const [acknowledgeDrift, setAcknowledgeDrift] = useState(false);
   const [driftGateBlock, setDriftGateBlock] = useState<{
     counts: { critical: number; high: number; medium: number; low: number };
@@ -96,6 +113,22 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
   } | null>(null);
 
   const mutation = useHarnessF8();
+  const hostM = useHarnessF8Hdj({
+    mutation: {
+      onSuccess: (data) => {
+        setHostPlan(data);
+        setHostError(null);
+        qc.invalidateQueries({
+          queryKey: getListSessionArtifactsQueryKey(sessionId),
+        });
+      },
+      onError: (e) => {
+        const x = extractApiError(e);
+        if (x.status === 403) setUpgrade(true);
+        setHostError(x.message);
+      },
+    },
+  });
   const pfpM = useHarnessPfp({
     mutation: {
       onSuccess: (data) => {
@@ -183,6 +216,24 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
         sessionId,
         mvpPddArtifactId: sourceId,
         codebaseBundleArtifactId: bundleId,
+        ...overrideToBody(providerOverride),
+      },
+    });
+  };
+
+  const runHostDj = async () => {
+    if (!sourceId) {
+      setHostError("Pick a certified MVP PDD source first");
+      return;
+    }
+    setHostError(null);
+    const bundleId = result?.artifactId ?? latestArtifact?.id;
+    hostM.mutate({
+      data: {
+        sessionId,
+        mvpPddArtifactId: sourceId,
+        ...(bundleId ? { codebaseBundleArtifactId: bundleId } : {}),
+        ...(notes.trim() ? { notes: notes.trim() } : {}),
         ...overrideToBody(providerOverride),
       },
     });
@@ -448,6 +499,135 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
               {result || latestArtifact
                 ? "Cross-references the certified MVP PDD against the scaffolded codebase bundle. Critical findings hard-block further F8 runs until acknowledged."
                 : "Run Code DJ once to produce a bundle, then drift-check it against the MVP PDD."}
+            </p>
+          )}
+        </Card>
+
+        {/* HOST DJ — F8-HDJ: hosting plan, the final advisory step before publish */}
+        <Card className="p-5 bg-card/50">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Rocket className="h-4 w-4 text-primary" />
+              <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
+                HOST DJ · Hosting Plan (pre-publish)
+              </h4>
+            </div>
+            <Button
+              onClick={runHostDj}
+              size="sm"
+              variant="outline"
+              disabled={hostM.isPending}
+              className="font-mono text-xs gap-1.5"
+              data-testid="f8-hdj-run"
+            >
+              <Rocket className="h-3.5 w-3.5" />
+              {hostM.isPending ? "PLANNING..." : "PLAN HOSTING"}
+            </Button>
+          </div>
+          {hostError && <ErrorBanner message={hostError} />}
+          {hostPlan ? (
+            <div className="space-y-3" data-testid="f8-hdj-result">
+              <div className="flex flex-wrap items-center gap-4 font-mono text-xs">
+                <div>
+                  <span className="text-muted-foreground">PRIMARY </span>
+                  <span className="font-bold text-emerald-400">
+                    {hostLabel(hostPlan.primary.platform)}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {" "}
+                    · {hostPlan.primary.score.toFixed(1)}/100
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">FALLBACK </span>
+                  <span className="font-bold text-amber-400">
+                    {hostLabel(hostPlan.fallback.platform)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">JCSE </span>
+                  <span className="font-bold">{hostPlan.jcse}/100</span>
+                </div>
+              </div>
+
+              <p className="font-mono text-xs text-foreground/80">
+                {hostPlan.hrp.summary}
+              </p>
+
+              {/* HSE ranking matrix */}
+              <div className="border border-border/40 rounded divide-y divide-border/40 max-h-[200px] overflow-auto">
+                {hostPlan.hse.map((row, i) => (
+                  <div
+                    key={row.platform}
+                    className="p-2 font-mono text-[11px] flex items-center justify-between gap-2"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-muted-foreground w-4">{i + 1}.</span>
+                      <span
+                        className={
+                          i === 0 ? "text-emerald-400 font-bold" : "text-foreground/80"
+                        }
+                      >
+                        {hostLabel(row.platform)}
+                      </span>
+                    </span>
+                    <span className="text-foreground/70">
+                      {row.weightedTotal.toFixed(1)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Deployment journey */}
+              {hostPlan.journey.phases.length > 0 && (
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                    Journey · {hostPlan.journey.tier}
+                  </div>
+                  <ol className="space-y-1">
+                    {hostPlan.journey.phases.map((ph, i) => (
+                      <li
+                        key={i}
+                        className="font-mono text-[11px] text-foreground/80"
+                      >
+                        <span className="text-primary">{i + 1}.</span>{" "}
+                        <span className="font-bold">{ph.name}</span> — {ph.detail}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {/* Self-deploy factory: env template (keys only) */}
+              {hostPlan.sdf.envTemplate.length > 0 && (
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                    Env template (names only — no values)
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {hostPlan.sdf.envTemplate.map((e) => (
+                      <span
+                        key={e.key}
+                        title={e.description}
+                        className={`px-1.5 py-0.5 rounded border text-[10px] font-mono ${
+                          e.required
+                            ? "border-primary/30 bg-primary/10 text-primary"
+                            : "border-border/40 bg-muted/30 text-muted-foreground"
+                        }`}
+                      >
+                        {e.key}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="font-mono text-xs text-muted-foreground">
+              Ranks deployment hosts (HSE 8-criterion matrix), maps the
+              deployment journey, and drafts self-deploy artifacts from your
+              certified MVP PDD — the last advisory pass before you publish.
+              Replit Deployments is the HARNESS-certified default.
             </p>
           )}
         </Card>

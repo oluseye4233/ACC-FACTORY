@@ -15,6 +15,7 @@ export const ARTIFACT_TYPES = [
   "MVP_PDD",
   "CODEBASE_BUNDLE",
   "PFP_REPORT",
+  "HOSTING_PLAN",
 ] as const;
 export type ArtifactType = (typeof ARTIFACT_TYPES)[number];
 

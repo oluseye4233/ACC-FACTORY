@@ -488,6 +488,32 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /harness/f8-hdj:
+    post:
+      operationId: harnessF8Hdj
+      tags: [harness]
+      summary: Host DJ — recommend a host + deployment journey from a certified MVP PDD (Architect tier)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF8HdjInput" }
+      responses:
+        "200":
+          description: Hosting plan produced from the certified MVP PDD (and optional codebase bundle)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HostingPlan" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Source MVP PDD is not SPARTAN-certified
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
   /harness/atlas-crystallise:
     post:
       operationId: harnessAtlasCrystallise
@@ -1260,6 +1286,7 @@ components:
         - MVP_PDD
         - CODEBASE_BUNDLE
         - PFP_REPORT
+        - HOSTING_PLAN
 
     CodeDjPlatform:
       type: string
@@ -1306,6 +1333,147 @@ components:
           type: boolean
           description: Override the PFP drift gate. Required when the most recent PFP report for the same MVP PDD has any critical findings.
         provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    HostPlatform:
+      type: string
+      description: Closed registry of deployment hosts the Host DJ ranks. "replit-deployments" is the HARNESS-certified default.
+      enum:
+        - replit-deployments
+        - vercel
+        - fly-io
+        - render
+        - railway
+        - cloudflare-pages
+        - netlify
+        - aws-amplify
+        - expo-eas
+
+    HarnessF8HdjInput:
+      type: object
+      required: [sessionId, mvpPddArtifactId]
+      properties:
+        sessionId:        { type: string, format: uuid }
+        mvpPddArtifactId: { type: string, format: uuid }
+        codebaseBundleArtifactId:
+          type: string
+          format: uuid
+          description: Optional F8 codebase bundle to sharpen the hosting requirements profile.
+        notes:
+          type: string
+          description: Optional operator hints for the Host DJ (preferred host, region/compliance constraints, budget ceiling).
+          maxLength: 2000
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    HostingRequirementsProfile:
+      type: object
+      required: [runtime, deployTarget, database, regions, compliance, scaleProfile, summary]
+      properties:
+        runtime:      { type: string, description: "e.g. node, python, static, mobile" }
+        deployTarget: { type: string, description: "Surface implied by the PDD, e.g. web-service, static-site, mobile-app" }
+        database:     { type: string, description: "DB need, e.g. postgres, none, sqlite, managed-kv" }
+        regions:
+          type: array
+          items: { type: string }
+        compliance:
+          type: array
+          items: { type: string }
+        scaleProfile: { type: string, enum: [prototype, low, medium, high] }
+        summary:      { type: string }
+
+    HseWeights:
+      type: object
+      required: [stackCompat, cost, deploySimplicity, dbFit, cicd, compliance, scalability, lockin]
+      description: Fixed Host-Selection-Engine criterion weights (sum 100), recomputed server-side.
+      properties:
+        stackCompat:      { type: integer }
+        cost:             { type: integer }
+        deploySimplicity: { type: integer }
+        dbFit:            { type: integer }
+        cicd:             { type: integer }
+        compliance:       { type: integer }
+        scalability:      { type: integer }
+        lockin:           { type: integer }
+
+    HseScores:
+      type: object
+      required: [stackCompat, cost, deploySimplicity, dbFit, cicd, compliance, scalability, lockin]
+      description: Per-criterion 0..10 scores. "lockin" is scored 10 = no vendor lock-in.
+      properties:
+        stackCompat:      { type: number }
+        cost:             { type: number }
+        deploySimplicity: { type: number }
+        dbFit:            { type: number }
+        cicd:             { type: number }
+        compliance:       { type: number }
+        scalability:      { type: number }
+        lockin:           { type: number }
+
+    HseRow:
+      type: object
+      required: [platform, scores, weightedTotal]
+      properties:
+        platform:      { $ref: "#/components/schemas/HostPlatform" }
+        scores:        { $ref: "#/components/schemas/HseScores" }
+        weightedTotal: { type: number, description: "0..100, recomputed server-side from scores × weights." }
+
+    HostPick:
+      type: object
+      required: [platform, score, rationale]
+      properties:
+        platform:  { $ref: "#/components/schemas/HostPlatform" }
+        score:     { type: number }
+        rationale: { type: string }
+
+    DeploymentJourneyPhase:
+      type: object
+      required: [name, detail]
+      properties:
+        name:   { type: string }
+        detail: { type: string }
+
+    EnvTemplateEntry:
+      type: object
+      required: [key, description, required]
+      properties:
+        key:         { type: string, description: "Env var NAME only — never a value." }
+        description: { type: string }
+        required:    { type: boolean }
+
+    SelfDeployFactory:
+      type: object
+      required: [envTemplate, ciYaml, healthCheck, rollback]
+      properties:
+        envTemplate:
+          type: array
+          items: { $ref: "#/components/schemas/EnvTemplateEntry" }
+        ciYaml:      { type: string, description: "CI/CD pipeline YAML (advisory; contains no secrets)." }
+        healthCheck: { type: string }
+        rollback:    { type: string }
+
+    HostingPlan:
+      type: object
+      required: [artifactId, hrp, weights, hse, primary, fallback, journey, sdf, jcse]
+      properties:
+        artifactId: { type: string, format: uuid }
+        hrp:        { $ref: "#/components/schemas/HostingRequirementsProfile" }
+        weights:    { $ref: "#/components/schemas/HseWeights" }
+        hse:
+          type: array
+          description: Candidate hosts ranked desc by weightedTotal.
+          items: { $ref: "#/components/schemas/HseRow" }
+        primary:    { $ref: "#/components/schemas/HostPick" }
+        fallback:   { $ref: "#/components/schemas/HostPick" }
+        journey:
+          type: object
+          required: [tier, phases]
+          properties:
+            tier: { type: string, description: "Recommended deployment tier on the primary host." }
+            phases:
+              type: array
+              items: { $ref: "#/components/schemas/DeploymentJourneyPhase" }
+        sdf:  { $ref: "#/components/schemas/SelfDeployFactory" }
+        jcse: { type: number, description: "Journey Confidence / Self-deploy Estimate 0..100, derived server-side from the winning weighted score." }
+        notes: { type: string }
 
     HarnessAtlasCrystalliseInput:
       type: object

@@ -18,11 +18,11 @@
 >
 > **Shipped vs Planned (honesty legend — applies to every ledger below).** This is a
 > *compression of the v4 ATLAS build plan*, so FFS measures whether features survive the
-> compression, **not** what is live in the repo. Of the 24 features: **23 are SHIPPED**
-> in the current codebase; **F-24 (F8-HDJ / HOST DJ) is PLANNED — a new engine role, not
-> yet implemented** (no `/api/harness/f8-hdj` route, no `engines/f8hdj.ts`, no
-> `HOSTING_PLAN` artifact type, no `f9_today` counter exist today). Every `🆕`/`** NEW
-> ROLE **` mark on F-24 means "to build in Phase 5", never "already merged".
+> compression, **not** what is live in the repo. All **24 features are SHIPPED** in the
+> current codebase; **F-24 (F8-HDJ / HOST DJ) is now SHIPPED** — `/api/harness/f8-hdj`
+> route (ARCHITECT tier, advisory side-step), `engines/f8hdj.ts` (engineId 12), and the
+> `HOSTING_PLAN` artifact type are all live. F8-HDJ is an advisory side-step (no daily
+> counter), so no `f9_today` counter is required.
 
 ---
 
@@ -47,8 +47,8 @@ DB tables:       ~20 (sessions, artifacts, feature-state, escalations,
                      ingestion-*, cartridge-*, organizations*, jst-assessments,
                      reader-onboarding, integration-credentials,
                      stripe-webhook-events, users)
-HARNESS engines: 12 shipped (F1, F2, F3, F4, F5, F6, F6-VDJ, F7, DE-SPC,
-                     F8 Code DJ, ATLAS J, PFP) + 1 PLANNED new role (F8-HDJ / HOST DJ)
+HARNESS engines: 13 shipped (F1, F2, F3, F4, F5, F6, F6-VDJ, F7, DE-SPC,
+                     F8 Code DJ, ATLAS J, PFP, F8-HDJ / HOST DJ)
 Delivery layer:  F8 IDE export bundle (ZIP + AGENTS.md) + push-to-GitHub
                      (per-user PAT/OAuth, repo picker, empty-repo seed, PR)
 Billing SKUs:    Subscription tiers x2 cadences + per-seat team/team-lite
@@ -206,9 +206,9 @@ this MVP plan. The "MVP" column is the compressed prompt id, not a claim of merg
 | F-21 | Cron + telemetry + cost cap | routes/cron + harness_engine_runs + cost-budget | MVCC-OPS |
 | **F-22** | **F8 IDE export bundle** (SHIPPED) | **command-centre/lib/codeDjExport.ts** | **MVCC-EXPORT** |
 | **F-23** | **F8 push-to-GitHub** (SHIPPED) | **routes/integrations.ts + lib/github.ts + PushToGitHubButton/GitHubConnect** | **MVCC-GITHUB** |
-| **F-24** | **F8-HDJ HOST DJ** (PLANNED — not yet in code) | **engines/f8hdj.ts (to build) + routes/harness.ts** | **MVCC-HDJ** |
+| **F-24** | **F8-HDJ HOST DJ** (SHIPPED) | **engines/f8hdj.ts + routes/harness.ts + F8CodeDj.tsx HOST DJ card** | **MVCC-HDJ** |
 
-Features F-01 through F-23 are **SHIPPED**. F-24 is the single **PLANNED** net-new engine.
+Features F-01 through F-24 are all **SHIPPED**.
 
 ## 2.2 CLASS B Merges (0 user impact)
 
@@ -350,7 +350,7 @@ BOUNDARY     Advisory only — no cloud credentials, no executed deploy, env key
 ║  CR_t           :   38%                                     ║
 ║  CR_c           :   ~0%  (same Replit infra)               ║
 ║  JCSE           :   49/50  ·  Wolf  ·  Platinum            ║
-║  Status         :   ✅ PLAN CERTIFIED · 23/24 SHIPPED ·    ║
-║                       F8-HDJ = the one build target left   ║
+║  Status         :   ✅ PLAN CERTIFIED · 24/24 SHIPPED ·    ║
+║                       F8-HDJ HOST DJ now live              ║
 ╚══════════════════════════════════════════════════════════════╝
 ```

@@ -20,4 +20,5 @@ export const ArtifactType = {
   MVP_PDD: 'MVP_PDD',
   CODEBASE_BUNDLE: 'CODEBASE_BUNDLE',
   PFP_REPORT: 'PFP_REPORT',
+  HOSTING_PLAN: 'HOSTING_PLAN',
 } as const;

@@ -260,9 +260,9 @@ F6 output schema = `{cheatSheet, execSummary, worksheet, implementation}` →
    (parentless commit)** / optional PR. Architect-tier gated to match the F8 it feeds.
 
 ### 🆕 F8-HDJ — HOST DJ (Hosting Decision & Journey) · *new engine role*
-**Status: SPECIFIED (new role). Not yet implemented in code.** This is the doctrinal
-re-casting of the attached `HOST_DJ_SPC_v1_0` from a marketplace SPC into a HARNESS
-instruction-layer engine.
+**Status: ✅ SHIPPED.** Live as `engines/f8hdj.ts` (engineId 12) + `POST /api/harness/f8-hdj`
++ the HOST DJ card in `F8CodeDj.tsx`. This is the doctrinal re-casting of the attached
+`HOST_DJ_SPC_v1_0` from a marketplace SPC into a HARNESS instruction-layer engine.
 
 - **Endpoint / placement.** `POST /api/harness/f8-hdj` registered via
   `harnessRoute`; **Architect-tier** (mirrors F8). Middleware order is the standing rule:

@@ -154,9 +154,9 @@ Against the live `https://<your-app>.replit.app`:
 - [ ] `reset-harness-limits` cron tick returns success and zeroes the daily counters.
 - [ ] Cert-issued email arrives (or logs `[email:dry-run]` if Resend is unset).
 
-If F8-HDJ has shipped by go-live, also verify: **F8-HDJ** returns a `HOSTING_PLAN` with a
-scored primary + fallback host and a deployment journey, and its SDF env template contains
-**keys only** (no values).
+**F8-HDJ (HOST DJ) is shipped** — verify it returns a `HOSTING_PLAN` with a scored primary +
+fallback host and a deployment journey, and that its SDF env template contains **keys only**
+(no values).
 
 ---
 

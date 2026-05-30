@@ -13,6 +13,7 @@ import { handleF6 } from "../engines/f6";
 import { handleF6Vdj } from "../engines/f6vdj";
 import { handleF7Stream } from "../engines/f7";
 import { handleF8CodeDj } from "../engines/f8codedj";
+import { handleF8Hdj } from "../engines/f8hdj";
 import { handleEvolve } from "../engines/de";
 import { handleAtlasCrystallise } from "../engines/atlas-crystallise";
 import { handlePfp } from "../engines/pfp";
@@ -99,6 +100,10 @@ router.post(
 router.post(
   "/harness/f8",
   ...harnessRoute({ featureId: 8, tier: "ARCHITECT", handler: handleF8CodeDj }),
+);
+router.post(
+  "/harness/f8-hdj",
+  ...harnessRoute({ featureId: null, tier: "ARCHITECT", handler: handleF8Hdj }),
 );
 router.post(
   "/harness/atlas-crystallise",

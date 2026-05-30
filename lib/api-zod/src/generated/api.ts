@@ -195,7 +195,7 @@ export const GetSessionResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -356,7 +356,7 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -381,7 +381,7 @@ export const GetArtifactResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -641,6 +641,88 @@ export const HarnessF8Response = zod.object({
   "content": zod.string()
 })),
   "notes": zod.string()
+})
+
+
+/**
+ * @summary Host DJ — recommend a host + deployment journey from a certified MVP PDD (Architect tier)
+ */
+export const harnessF8HdjBodyNotesMax = 2000;
+
+
+
+export const HarnessF8HdjBody = zod.object({
+  "sessionId": zod.string().uuid(),
+  "mvpPddArtifactId": zod.string().uuid(),
+  "codebaseBundleArtifactId": zod.string().uuid().optional().describe('Optional F8 codebase bundle to sharpen the hosting requirements profile.'),
+  "notes": zod.string().max(harnessF8HdjBodyNotesMax).optional().describe('Optional operator hints for the Host DJ (preferred host, region\/compliance constraints, budget ceiling).'),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+})
+
+export const HarnessF8HdjResponse = zod.object({
+  "artifactId": zod.string().uuid(),
+  "hrp": zod.object({
+  "runtime": zod.string().describe('e.g. node, python, static, mobile'),
+  "deployTarget": zod.string().describe('Surface implied by the PDD, e.g. web-service, static-site, mobile-app'),
+  "database": zod.string().describe('DB need, e.g. postgres, none, sqlite, managed-kv'),
+  "regions": zod.array(zod.string()),
+  "compliance": zod.array(zod.string()),
+  "scaleProfile": zod.enum(['prototype', 'low', 'medium', 'high']),
+  "summary": zod.string()
+}),
+  "weights": zod.object({
+  "stackCompat": zod.number(),
+  "cost": zod.number(),
+  "deploySimplicity": zod.number(),
+  "dbFit": zod.number(),
+  "cicd": zod.number(),
+  "compliance": zod.number(),
+  "scalability": zod.number(),
+  "lockin": zod.number()
+}).describe('Fixed Host-Selection-Engine criterion weights (sum 100), recomputed server-side.'),
+  "hse": zod.array(zod.object({
+  "platform": zod.enum(['replit-deployments', 'vercel', 'fly-io', 'render', 'railway', 'cloudflare-pages', 'netlify', 'aws-amplify', 'expo-eas']).describe('Closed registry of deployment hosts the Host DJ ranks. \"replit-deployments\" is the HARNESS-certified default.'),
+  "scores": zod.object({
+  "stackCompat": zod.number(),
+  "cost": zod.number(),
+  "deploySimplicity": zod.number(),
+  "dbFit": zod.number(),
+  "cicd": zod.number(),
+  "compliance": zod.number(),
+  "scalability": zod.number(),
+  "lockin": zod.number()
+}).describe('Per-criterion 0..10 scores. \"lockin\" is scored 10 = no vendor lock-in.'),
+  "weightedTotal": zod.number().describe('0..100, recomputed server-side from scores × weights.')
+})).describe('Candidate hosts ranked desc by weightedTotal.'),
+  "primary": zod.object({
+  "platform": zod.enum(['replit-deployments', 'vercel', 'fly-io', 'render', 'railway', 'cloudflare-pages', 'netlify', 'aws-amplify', 'expo-eas']).describe('Closed registry of deployment hosts the Host DJ ranks. \"replit-deployments\" is the HARNESS-certified default.'),
+  "score": zod.number(),
+  "rationale": zod.string()
+}),
+  "fallback": zod.object({
+  "platform": zod.enum(['replit-deployments', 'vercel', 'fly-io', 'render', 'railway', 'cloudflare-pages', 'netlify', 'aws-amplify', 'expo-eas']).describe('Closed registry of deployment hosts the Host DJ ranks. \"replit-deployments\" is the HARNESS-certified default.'),
+  "score": zod.number(),
+  "rationale": zod.string()
+}),
+  "journey": zod.object({
+  "tier": zod.string().describe('Recommended deployment tier on the primary host.'),
+  "phases": zod.array(zod.object({
+  "name": zod.string(),
+  "detail": zod.string()
+}))
+}),
+  "sdf": zod.object({
+  "envTemplate": zod.array(zod.object({
+  "key": zod.string().describe('Env var NAME only — never a value.'),
+  "description": zod.string(),
+  "required": zod.boolean()
+})),
+  "ciYaml": zod.string().describe('CI\/CD pipeline YAML (advisory; contains no secrets).'),
+  "healthCheck": zod.string(),
+  "rollback": zod.string()
+}),
+  "jcse": zod.number().describe('Journey Confidence \/ Self-deploy Estimate 0..100, derived server-side from the winning weighted score.'),
+  "notes": zod.string().optional()
 })
 
 
@@ -1041,7 +1123,7 @@ export const ListMyPromptsResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "sessionName": zod.string().nullish(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
   "certTier": zod.string().nullish(),
   "jcseScore": zod.number().nullish(),
   "spcOrigin": zod.union([zod.literal('artisanal'),zod.literal('digitally_evolved'),zod.literal(null)]).nullish(),
@@ -1271,7 +1353,7 @@ export const HarnessEvolveResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
