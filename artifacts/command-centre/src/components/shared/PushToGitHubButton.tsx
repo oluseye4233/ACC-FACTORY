@@ -122,6 +122,9 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
   const [reposError, setReposError] = useState<string | null>(null);
   const [reposHasMore, setReposHasMore] = useState(false);
   const [reposLoaded, setReposLoaded] = useState(false);
+  const [reposPage, setReposPage] = useState(1);
+  const [reposLoadingMore, setReposLoadingMore] = useState(false);
+  const [repoSearch, setRepoSearch] = useState("");
   const [manualEntry, setManualEntry] = useState(false);
   // Client-side visibility filter over the already-loaded repo list.
   const [visibilityFilter, setVisibilityFilter] = useState<
@@ -148,6 +151,8 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
     setReposError(null);
     setReposHasMore(false);
     setVisibilityFilter("all");
+    setReposPage(1);
+    setRepoSearch("");
     setResult(
       existing
         ? {
@@ -162,15 +167,28 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
   // Load the repos this user's connected token can push to. Called when the
   // "Use existing repo" tab is first opened; falls back to manual entry if the
   // list can't be fetched (e.g. token rejected) so the user is never blocked.
-  const loadRepos = async () => {
-    setReposLoading(true);
+  const loadRepos = async (opts?: {
+    q?: string;
+    page?: number;
+    append?: boolean;
+  }) => {
+    const page = opts?.page ?? 1;
+    const q = (opts?.q ?? repoSearch).trim();
+    const append = opts?.append ?? false;
+    if (append) setReposLoadingMore(true);
+    else setReposLoading(true);
     setReposError(null);
     try {
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      if (page > 1) params.set("page", String(page));
+      const qs = params.toString();
       const r = await api.get<ListReposResponse>(
-        "/api/integrations/github/repos",
+        `/api/integrations/github/repos${qs ? `?${qs}` : ""}`,
       );
-      setRepos(r.repos);
+      setRepos((prev) => (append ? [...prev, ...r.repos] : r.repos));
       setReposHasMore(r.hasMore);
+      setReposPage(r.page);
       setReposLoaded(true);
     } catch (e) {
       const body =
@@ -184,9 +202,13 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
               ? e.message
               : "Could not list your repos. Type owner/repo by hand.";
       setReposError(msg);
-      setManualEntry(true);
+      // Only fall back to manual entry if we never managed to load a list at
+      // all (e.g. token rejected up front). A failed search or "load more"
+      // after a good first load shouldn't blow away the repos already shown.
+      if (!reposLoaded) setManualEntry(true);
     } finally {
-      setReposLoading(false);
+      if (append) setReposLoadingMore(false);
+      else setReposLoading(false);
     }
   };
 
@@ -197,6 +219,19 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetMode]);
+
+  // Re-query the server (debounced) as the user types in the picker search box.
+  // The server's `q` filter reaches repos beyond what's already loaded, so the
+  // picker isn't limited to client-side filtering of the first page. Skipped
+  // until an initial list has loaded (and while in manual-entry fallback).
+  useEffect(() => {
+    if (targetMode !== "existing" || manualEntry || !reposLoaded) return;
+    const t = setTimeout(() => {
+      void loadRepos({ q: repoSearch, page: 1 });
+    }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [repoSearch]);
 
   // Apply the client-side visibility filter over the already-loaded repos.
   const visibleRepos = repos.filter((repo) =>
@@ -499,14 +534,10 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
                           className="w-[--radix-popover-trigger-width] p-0"
                           align="start"
                         >
-                          <Command
-                            filter={(value, search) =>
-                              value.toLowerCase().includes(search.toLowerCase())
-                                ? 1
-                                : 0
-                            }
-                          >
+                          <Command shouldFilter={false}>
                             <CommandInput
+                              value={repoSearch}
+                              onValueChange={setRepoSearch}
                               placeholder="Search repositories…"
                               className="font-mono text-xs"
                               data-testid="f8-github-repo-search"
@@ -548,9 +579,13 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
                               </ToggleGroupItem>
                             </ToggleGroup>
                             <CommandList>
-                              <CommandEmpty className="font-mono text-xs">
-                                No matching repositories.
-                              </CommandEmpty>
+                              {!reposLoading && repos.length === 0 ? (
+                                <CommandEmpty className="font-mono text-xs">
+                                  {repoSearch.trim()
+                                    ? "No repositories match your search."
+                                    : "No matching repositories."}
+                                </CommandEmpty>
+                              ) : null}
                               <CommandGroup>
                                 {visibleRepos.map((repo) => {
                                   const pushed = relativePushedAt(repo.pushedAt);
@@ -590,6 +625,34 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
                                     </CommandItem>
                                   );
                                 })}
+                                {reposHasMore ? (
+                                  <CommandItem
+                                    value="__load_more__"
+                                    // Keep the popover open and pull the next
+                                    // page in place; don't treat it as a repo
+                                    // selection.
+                                    onSelect={() => {
+                                      if (!reposLoadingMore)
+                                        void loadRepos({
+                                          q: repoSearch,
+                                          page: reposPage + 1,
+                                          append: true,
+                                        });
+                                    }}
+                                    disabled={reposLoadingMore}
+                                    className="justify-center font-mono text-[10px] uppercase tracking-wider text-primary"
+                                    data-testid="f8-github-repo-load-more"
+                                  >
+                                    {reposLoadingMore ? (
+                                      <>
+                                        <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                                        Loading more…
+                                      </>
+                                    ) : (
+                                      "Load more repositories"
+                                    )}
+                                  </CommandItem>
+                                ) : null}
                               </CommandGroup>
                             </CommandList>
                           </Command>
@@ -599,9 +662,11 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
                       <div className="flex items-center justify-between">
                         <p className="font-mono text-[10px] text-muted-foreground/70">
                           {repos.length === 0 && reposLoaded
-                            ? "No pushable repos found on your token."
+                            ? repoSearch.trim()
+                              ? "No repos match. Refine your search, or enter it by hand."
+                              : "No pushable repos found on your token."
                             : reposHasMore
-                              ? "Showing your most recent repos. Can't find it? Enter it by hand."
+                              ? "Search or load more to reach older repos, or enter it by hand."
                               : "The scaffold is committed onto the repo's default branch."}
                         </p>
                         <button
