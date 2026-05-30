@@ -1,1 +1,2 @@
 - [Doctrine-application docs](doctrine-application-docs.md) — SPARTAN/CODE DJ quality gates are SPC doctrine, NOT enforced in engine code; label them analyst overlays in self-audit docs.
+- [F8 IDE export bundle](f8-ide-export-bundle.md) — F8 "send to IDE" = scaffold ZIP + AGENTS.md + per-IDE adapter files; reuse the codeDjExport generator for any future GitHub/Replit handoff.

@@ -31,6 +31,7 @@ import {
 } from "@/components/shared/ProviderOverride";
 import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
+import { exportCodeDjBundle, SUPPORTED_IDES } from "@/lib/codeDjExport";
 import { AlertTriangle, Cpu, Download, FileCode, Radar, ShieldCheck } from "lucide-react";
 
 const PLATFORM_LABELS: Record<CodeDjPlatform, string> = {
@@ -198,20 +199,26 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
     low: "bg-muted/40 text-muted-foreground border-border/40",
   };
 
-  const downloadBundle = () => {
+  const downloadBundle = async () => {
     if (!result) return;
-    // Lightweight, dependency-free "bundle" = single JSON manifest the operator
-    // can hand to any unpacker. A real ZIP can be added later behind a download
-    // endpoint; the JSON contains every byte of source so nothing is lost.
-    const blob = new Blob([JSON.stringify(result, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `code-dj-${result.artifactId.slice(0, 8)}-${result.platform}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    // Ready-to-open project ZIP: the scaffold files at their real paths plus a
+    // CODE DJ operating brief (AGENTS.md) and per-IDE adapter files, so the
+    // bundle drops straight into Cursor / Replit / Codex / Claude Code / etc.
+    // and the IDE's agent keeps building in fidelity to the certified spec.
+    const source = certifiedMvpSources.find((s) => s.id === sourceId);
+    try {
+      await exportCodeDjBundle(result, source, pfp);
+      toast({
+        title: "BUNDLE EXPORTED",
+        description: `Ready-to-open ZIP with AGENTS.md + ${SUPPORTED_IDES.length} IDE adapters`,
+      });
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "EXPORT FAILED",
+        description: "Could not assemble the bundle ZIP",
+      });
+    }
   };
 
   const activeFileContent = result?.files.find((f) => f.path === activeFile);
@@ -445,16 +452,25 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
                   </div>
                 )}
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={downloadBundle}
-                data-testid="f8-download"
-                className="gap-2 font-mono text-xs"
-              >
-                <Download className="h-3.5 w-3.5" />
-                EXPORT BUNDLE
-              </Button>
+              <div className="flex flex-col items-end gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={downloadBundle}
+                  data-testid="f8-download"
+                  className="gap-2 font-mono text-xs"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  SEND TO IDE
+                </Button>
+                <span
+                  className="font-mono text-[9px] text-muted-foreground text-right max-w-[220px] leading-tight"
+                  data-testid="f8-ide-hint"
+                >
+                  ZIP + AGENTS.md for{" "}
+                  {SUPPORTED_IDES.map((i) => i.ide.split(" ")[0]).join(", ")}
+                </span>
+              </div>
             </div>
 
             <Tabs defaultValue="files" className="flex-1 flex flex-col min-h-0">
