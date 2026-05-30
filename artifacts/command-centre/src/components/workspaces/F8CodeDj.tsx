@@ -32,6 +32,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
 import { exportCodeDjBundle, SUPPORTED_IDES } from "@/lib/codeDjExport";
+import { PushToGitHubButton } from "@/components/shared/PushToGitHubButton";
 import { AlertTriangle, Cpu, Download, FileCode, Radar, ShieldCheck } from "lucide-react";
 
 const PLATFORM_LABELS: Record<CodeDjPlatform, string> = {
@@ -222,6 +223,29 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
   };
 
   const activeFileContent = result?.files.find((f) => f.path === activeFile);
+
+  // Surface an existing GitHub push (persisted on the bundle artifact) so the
+  // button reflects an "already on GitHub" state across reloads.
+  const existingGithubRepo = useMemo(() => {
+    const bundleId = result?.artifactId ?? latestArtifact?.id;
+    const art = artifacts.find((a) => a.id === bundleId);
+    const repo = (art?.artifactContent as { githubRepo?: unknown } | null)
+      ?.githubRepo as
+      | {
+          fullName?: string;
+          htmlUrl?: string;
+          replitImportUrl?: string;
+          pushedAt?: string;
+        }
+      | undefined;
+    if (!repo?.fullName || !repo.htmlUrl || !repo.replitImportUrl) return null;
+    return {
+      fullName: repo.fullName,
+      htmlUrl: repo.htmlUrl,
+      replitImportUrl: repo.replitImportUrl,
+      pushedAt: repo.pushedAt,
+    };
+  }, [artifacts, result?.artifactId, latestArtifact?.id]);
 
   return (
     <WorkspaceShell>
@@ -453,16 +477,24 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
                 )}
               </div>
               <div className="flex flex-col items-end gap-1">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={downloadBundle}
-                  data-testid="f8-download"
-                  className="gap-2 font-mono text-xs"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  SEND TO IDE
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={downloadBundle}
+                    data-testid="f8-download"
+                    className="gap-2 font-mono text-xs"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    SEND TO IDE
+                  </Button>
+                  <PushToGitHubButton
+                    bundle={result}
+                    source={certifiedMvpSources.find((s) => s.id === sourceId)}
+                    pfp={pfp}
+                    existing={existingGithubRepo}
+                  />
+                </div>
                 <span
                   className="font-mono text-[9px] text-muted-foreground text-right max-w-[240px] leading-tight"
                   data-testid="f8-ide-hint"

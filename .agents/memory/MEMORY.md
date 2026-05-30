@@ -1,3 +1,4 @@
 - [Doctrine-application docs](doctrine-application-docs.md) — SPARTAN/CODE DJ quality gates are SPC doctrine, NOT enforced in engine code; label them analyst overlays in self-audit docs.
 - [F8 IDE export bundle](f8-ide-export-bundle.md) — F8 "send to IDE" = scaffold ZIP + AGENTS.md + per-IDE adapter files; reuse the codeDjExport generator for any future GitHub/Replit handoff.
 - [pnpm add prunes siblings](pnpm-workspace-add-prunes-siblings.md) — scoped `pnpm add` can dangle another package's dep symlink; run root `pnpm install` + full `pnpm run test` after.
+- [F8 GitHub push channel](github-push-channel.md) — F8 "push to GitHub/Open in Replit" reuses buildExportFiles client-side → Octokit; repl-level connection, Architect-gated, no delete_repo scope.

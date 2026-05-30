@@ -8,12 +8,17 @@ import {
   usersTable,
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
+import { requireTier } from "../lib/tier";
 import {
   decryptApiKey,
   encryptApiKey,
   keyPrefixFor,
   maskKey,
 } from "../lib/integration-crypto";
+import {
+  getUncachableGitHubClient,
+  GitHubNotConnectedError,
+} from "../lib/github";
 
 const router: IRouter = Router();
 
@@ -296,6 +301,227 @@ router.post(
       ok: true,
       listingId: listing.listingId ?? null,
       listingUrl: listing.listingUrl ?? null,
+    });
+  },
+);
+
+// ─── GitHub (Replit-managed connection) ────────────────────────────────────
+//
+// The GitHub account is connected at the Repl level via the Replit connectors
+// proxy (not a per-user pasted key like Sphinx). These endpoints let an
+// Architect-tier operator push a CODE DJ codebase bundle straight to a new
+// GitHub repo so any IDE can clone it — the most universal "send to IDE" path.
+
+// ─── GET github status ──────────────────────────────────────────────────────
+router.get(
+  "/integrations/github",
+  requireAuth,
+  async (_req, res): Promise<void> => {
+    try {
+      const gh = await getUncachableGitHubClient();
+      const me = await gh.rest.users.getAuthenticated();
+      res.json({ connected: true, login: me.data.login });
+    } catch (err) {
+      if (err instanceof GitHubNotConnectedError) {
+        res.json({ connected: false, login: null });
+        return;
+      }
+      // Token present but the call failed (revoked / network) — treat as not
+      // connected so the UI prompts a reconnect rather than hard-erroring.
+      res.json({ connected: false, login: null });
+    }
+  },
+);
+
+// ─── POST push a CODE DJ codebase bundle to a new GitHub repo ───────────────
+const RepoNameRe = /^[A-Za-z0-9._-]{1,100}$/u;
+const PushCodebaseBody = z.object({
+  // The CODEBASE_BUNDLE artifact this push corresponds to — for ownership
+  // checks and lineage. The file *contents* are assembled client-side by the
+  // shared CODE DJ export generator so they are byte-identical to the ZIP.
+  artifactId: z.string().uuid(),
+  repoName: z
+    .string()
+    .regex(RepoNameRe, "Repo name may use letters, numbers, '.', '-', '_' only"),
+  description: z.string().max(350).optional(),
+  private: z.boolean().optional(),
+  files: z
+    .record(
+      z
+        .string()
+        .min(1)
+        .max(200)
+        .refine((p) => !p.startsWith("/") && !p.includes(".."), {
+          message: "file path must be relative and free of '..' traversal",
+        }),
+      z.string().max(100_000),
+    )
+    .refine((f) => Object.keys(f).length > 0, "No files to push")
+    .refine((f) => Object.keys(f).length <= 60, "Too many files in bundle"),
+});
+
+router.post(
+  "/integrations/github/push-codebase",
+  requireAuth,
+  // F8 / CODE DJ is an Architect-tier capability; gate the live handoff the same.
+  requireTier("ARCHITECT"),
+  async (req, res): Promise<void> => {
+    const parsed = PushCodebaseBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const { artifactId, repoName, description, files } = parsed.data;
+    const isPrivate = parsed.data.private ?? true;
+
+    const totalBytes = Object.values(files).reduce((n, c) => n + c.length, 0);
+    if (totalBytes > 2_000_000) {
+      res
+        .status(400)
+        .json({ error: "Bundle too large to push (2 MB limit).", code: "BUNDLE_TOO_LARGE" });
+      return;
+    }
+
+    // Ownership + lineage: the bundle artifact must belong to this user and be
+    // a CODE DJ codebase bundle.
+    const artRows = await db
+      .select()
+      .from(harnessArtifactsTable)
+      .where(
+        and(
+          eq(harnessArtifactsTable.id, artifactId),
+          eq(harnessArtifactsTable.userId, req.localUser!.id),
+        ),
+      )
+      .limit(1);
+    const artifact = artRows[0];
+    if (!artifact) {
+      res.status(404).json({ error: "Codebase bundle artifact not found" });
+      return;
+    }
+    if (artifact.artifactType !== "CODEBASE_BUNDLE") {
+      res.status(400).json({
+        error: `Only CODE DJ codebase bundles can be pushed (got ${artifact.artifactType}).`,
+        code: "GITHUB_WRONG_TYPE",
+      });
+      return;
+    }
+
+    let gh;
+    let owner: string;
+    try {
+      gh = await getUncachableGitHubClient();
+      const me = await gh.rest.users.getAuthenticated();
+      owner = me.data.login;
+    } catch (err) {
+      if (err instanceof GitHubNotConnectedError) {
+        res.status(503).json({
+          error: "GitHub is not connected on this server.",
+          code: "GITHUB_NOT_CONNECTED",
+        });
+        return;
+      }
+      req.log.warn({ err }, "GitHub push: could not authenticate");
+      res.status(502).json({
+        error: "Could not authenticate with GitHub.",
+        code: "GITHUB_AUTH_FAILED",
+      });
+      return;
+    }
+
+    // 1) Create the (empty) repo.
+    let repoFullName: string;
+    let htmlUrl: string;
+    try {
+      const created = await gh.rest.repos.createForAuthenticatedUser({
+        name: repoName,
+        description: description ?? "Scaffolded by CODE DJ (F8) — ATANDA Command Centre",
+        private: isPrivate,
+        auto_init: false,
+      });
+      repoFullName = created.data.full_name;
+      htmlUrl = created.data.html_url;
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      if (status === 422) {
+        res.status(409).json({
+          error: `A repo named "${repoName}" already exists on ${owner}. Pick another name.`,
+          code: "GITHUB_REPO_EXISTS",
+        });
+        return;
+      }
+      req.log.warn({ err }, "GitHub push: repo create failed");
+      res.status(502).json({
+        error: "GitHub rejected the repo creation.",
+        code: "GITHUB_CREATE_FAILED",
+      });
+      return;
+    }
+
+    // 2) Build a tree of all files, commit it, and point the default branch at it.
+    const branch = "main";
+    try {
+      const tree = await gh.rest.git.createTree({
+        owner,
+        repo: repoName,
+        tree: Object.entries(files).map(([path, content]) => ({
+          path,
+          mode: "100644" as const,
+          type: "blob" as const,
+          content,
+        })),
+      });
+      const commit = await gh.rest.git.createCommit({
+        owner,
+        repo: repoName,
+        message: "CODE DJ scaffold — initial commit",
+        tree: tree.data.sha,
+      });
+      await gh.rest.git.createRef({
+        owner,
+        repo: repoName,
+        ref: `refs/heads/${branch}`,
+        sha: commit.data.sha,
+      });
+    } catch (err) {
+      req.log.warn({ err }, "GitHub push: tree/commit failed");
+      res.status(502).json({
+        error:
+          "Repo was created but the codebase could not be pushed. Delete it on GitHub and retry.",
+        code: "GITHUB_PUSH_FAILED",
+        repoUrl: htmlUrl,
+      });
+      return;
+    }
+
+    // 3) Persist a pointer on the bundle artifact for lineage + "already pushed" UI.
+    const replitImportUrl = `https://replit.com/github/${repoFullName}`;
+    const content = (artifact.artifactContent ?? {}) as Record<string, unknown>;
+    await db
+      .update(harnessArtifactsTable)
+      .set({
+        artifactContent: {
+          ...content,
+          githubRepo: {
+            fullName: repoFullName,
+            htmlUrl,
+            defaultBranch: branch,
+            replitImportUrl,
+            private: isPrivate,
+            pushedAt: new Date().toISOString(),
+          },
+        },
+      })
+      .where(eq(harnessArtifactsTable.id, artifact.id));
+
+    res.json({
+      ok: true,
+      owner,
+      repo: repoName,
+      repoFullName,
+      htmlUrl,
+      defaultBranch: branch,
+      replitImportUrl,
     });
   },
 );
