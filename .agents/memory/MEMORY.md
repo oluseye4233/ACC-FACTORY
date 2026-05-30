@@ -3,3 +3,4 @@
 - [pnpm add prunes siblings](pnpm-workspace-add-prunes-siblings.md) — scoped `pnpm add` can dangle another package's dep symlink; run root `pnpm install` + full `pnpm run test` after.
 - [F8 GitHub push channel](github-push-channel.md) — F8 "push to GitHub/Open in Replit" reuses buildExportFiles client-side → Octokit; repl-level connection, Architect-gated, no delete_repo scope.
 - [HOST DJ → F8-HDJ engine doctrine](host-dj-engine-doctrine.md) — SHIPPED advisory side-step (no daily counter); never an SPC; server-recomputes HSE ranking; env template names-only (key+desc sanitised).
+- [LLM prompt determinism](llm-prompt-determinism.md) — HARNESS engine prompts built from DB rows need a stable order; inArray() has none, which breaks the replay-fixture cache key.

@@ -110,6 +110,10 @@ export async function handleEvolve(req: Request, res: Response): Promise<void> {
     return;
   }
   const { sessionId, maArtifactIds, provider: bodyProvider } = parsed.data;
+  if (new Set(maArtifactIds).size !== maArtifactIds.length) {
+    res.status(400).json({ error: "Duplicate MA birth package ids" });
+    return;
+  }
   const owns = await ownedSessionOr404(req, sessionId);
   if (!owns.ok) {
     res.status(owns.status).json({ error: owns.error });
@@ -138,10 +142,24 @@ export async function handleEvolve(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  // `inArray` does not guarantee row order, so fusing in raw DB order makes the
+  // synthesis prompt — and therefore the LLM request, its telemetry, and its
+  // cache key — nondeterministic across identical inputs. Replay the caller's
+  // requested `maArtifactIds` order so the same inputs always produce the same
+  // prompt.
+  const masById = new Map(mas.map((m) => [m.id, m] as const));
+  const orderedMas = maArtifactIds
+    .map((id) => masById.get(id))
+    .filter((m): m is NonNullable<typeof m> => m != null);
+  if (orderedMas.length !== maArtifactIds.length) {
+    res.status(400).json({ error: "Some requested MA birth packages were not found in this session" });
+    return;
+  }
+
   const userPrompt = [
-    `Synthesise these ${mas.length} Micro Agent (MA) Birth Packages into ONE adaptive multi-agent SPC:`,
+    `Synthesise these ${orderedMas.length} Micro Agent (MA) Birth Packages into ONE adaptive multi-agent SPC:`,
     "",
-    ...mas.map((m, i) => `--- MA #${i + 1} (id=${m.id}) ---\n${JSON.stringify(m.artifactContent, null, 2)}`),
+    ...orderedMas.map((m, i) => `--- MA #${i + 1} (id=${m.id}) ---\n${JSON.stringify(m.artifactContent, null, 2)}`),
     "",
     "Return ONLY the JSON object matching the DE-SPC schema.",
   ].join("\n");
@@ -162,7 +180,7 @@ export async function handleEvolve(req: Request, res: Response): Promise<void> {
     userId: owns.userId,
     featureId: 5,
     artifactType: "SPC",
-    artifactContent: { ...synth, sourceMaIds: mas.map((m) => m.id) },
+    artifactContent: { ...synth, sourceMaIds: orderedMas.map((m) => m.id) },
     jcseScore: synth.jcse.total,
     certTier: certTierForJcse(synth.jcse.total),
     groState: "SAFE_LIFE",
