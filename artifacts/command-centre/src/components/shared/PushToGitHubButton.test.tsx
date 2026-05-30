@@ -512,3 +512,120 @@ describe("PushToGitHubButton — push error toasts", () => {
     );
   });
 });
+
+describe("PushToGitHubButton — push success toasts", () => {
+  // A successful push returns a PushResult. Only repoFullName is read by the
+  // success-toast mapping, so a thin object is enough; pullRequestUrl is added
+  // for the PR branch so the result view also renders the PR link.
+  function pushResult(repoFullName: string, extra?: Record<string, unknown>) {
+    return {
+      repoFullName,
+      htmlUrl: `https://github.com/${repoFullName}`,
+      replitImportUrl: `https://replit.com/import/${repoFullName}`,
+      ...extra,
+    };
+  }
+
+  // Pointer persisted on an already-pushed bundle: supplying `existing` puts the
+  // component straight into its "result" view, where the update/PR path lives.
+  const EXISTING_REPO = "octocat/linked-app";
+  function existingPointer() {
+    return {
+      fullName: EXISTING_REPO,
+      htmlUrl: `https://github.com/${EXISTING_REPO}`,
+      replitImportUrl: `https://replit.com/import/${EXISTING_REPO}`,
+    };
+  }
+
+  it("create mode fires the 'CREATED & PUSHED' toast", async () => {
+    apiPost.mockResolvedValue(pushResult("octocat/new-app", { created: true }));
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    // Default "create" mode with a pre-filled name: confirm calls push("create").
+    fireEvent.click(screen.getByTestId("f8-github-push"));
+    fireEvent.click(await screen.findByTestId("f8-github-confirm"));
+
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          title: "CREATED & PUSHED",
+          description: expect.stringContaining("octocat/new-app"),
+        }),
+      ),
+    );
+  });
+
+  it("existing mode fires the 'PUSHED TO REPO' toast", async () => {
+    apiPost.mockResolvedValue(pushResult(PUBLIC_REPO));
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    // Open the picker, pick a repo (sets targetRepo to owner/repo), then confirm
+    // — which calls push("existing").
+    await openPicker();
+    fireEvent.click(screen.getByTestId(`f8-github-repo-option-${PUBLIC_REPO}`));
+    fireEvent.click(screen.getByTestId("f8-github-confirm"));
+
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          title: "PUSHED TO REPO",
+          description: expect.stringContaining(PUBLIC_REPO),
+        }),
+      ),
+    );
+  });
+
+  it("update mode (PR off) fires the 'PUSHED UPDATE' toast", async () => {
+    apiPost.mockResolvedValue(pushResult(EXISTING_REPO, { created: false }));
+
+    render(
+      <PushToGitHubButton
+        bundle={makeBundle("artifact-1234abcd")}
+        existing={existingPointer()}
+      />,
+    );
+    // `existing` opens the dialog straight into the result view. PR toggle is off
+    // by default, so the update button calls push("update") with pullRequest=false.
+    fireEvent.click(screen.getByTestId("f8-github-push"));
+    fireEvent.click(await screen.findByTestId("f8-github-push-update"));
+
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          title: "PUSHED UPDATE",
+          description: expect.stringContaining("New commit on"),
+        }),
+      ),
+    );
+  });
+
+  it("update mode (PR on) fires the 'PULL REQUEST OPENED' toast", async () => {
+    apiPost.mockResolvedValue(
+      pushResult(EXISTING_REPO, {
+        created: false,
+        pullRequestUrl: `https://github.com/${EXISTING_REPO}/pull/1`,
+      }),
+    );
+
+    render(
+      <PushToGitHubButton
+        bundle={makeBundle("artifact-1234abcd")}
+        existing={existingPointer()}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("f8-github-push"));
+    // Flip the PR switch on, so the update button calls push("update") with
+    // pullRequest=true and maps to the PR-opened copy.
+    fireEvent.click(await screen.findByTestId("f8-github-pr-mode"));
+    fireEvent.click(screen.getByTestId("f8-github-push-update"));
+
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          title: "PULL REQUEST OPENED",
+          description: expect.stringContaining("PR opened on"),
+        }),
+      ),
+    );
+  });
+});
