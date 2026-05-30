@@ -57,6 +57,7 @@ vi.mock("@/lib/api", () => ({
 }));
 
 import { PushToGitHubButton } from "./PushToGitHubButton";
+import { ApiError } from "@/lib/api";
 
 // Minimal bundle — only artifactId/platform are read before a push happens.
 function makeBundle(artifactId: string): CodebaseBundle {
@@ -264,5 +265,111 @@ describe("PushToGitHubButton — visibility filter", () => {
     expect(
       screen.getByTestId(`f8-github-repo-option-${PRIVATE_REPO}`),
     ).toBeTruthy();
+  });
+});
+
+describe("PushToGitHubButton — manual owner/repo fallback", () => {
+  // Build a mocked ApiError carrying a `code` body, matching what the thin
+  // `api` wrapper throws. `instanceof ApiError` inside the component resolves
+  // against this same mocked class, so the code-specific branches fire.
+  function apiError(code: string, message = `${code} happened`) {
+    return new ApiError(503, { code }, message);
+  }
+
+  // Switch into "Use existing repo", which kicks off the list load. The caller
+  // pre-seeds apiGet to fail so the component drops into manual entry.
+  async function openExistingTab() {
+    fireEvent.click(screen.getByTestId("f8-github-push"));
+    fireEvent.click(await screen.findByTestId("f8-github-mode-existing"));
+    await waitFor(() => expect(apiGet).toHaveBeenCalled());
+  }
+
+  it("falls back to manual entry with the GITHUB_NOT_CONNECTED guidance", async () => {
+    apiGet.mockRejectedValue(apiError("GITHUB_NOT_CONNECTED"));
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    await openExistingTab();
+
+    expect(
+      await screen.findByTestId("f8-github-target-repo"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "GitHub isn't connected. Connect it in Account → Connected Services, or type owner/repo by hand.",
+      ),
+    ).toBeTruthy();
+    // The picker button should be gone while in manual mode.
+    expect(screen.queryByTestId("f8-github-repo-picker")).toBeNull();
+  });
+
+  it("falls back to manual entry with the GITHUB_BAD_TOKEN guidance", async () => {
+    apiGet.mockRejectedValue(apiError("GITHUB_BAD_TOKEN"));
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    await openExistingTab();
+
+    expect(
+      await screen.findByTestId("f8-github-target-repo"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Your GitHub token was rejected. Reconnect it, or type owner/repo by hand.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("falls back to manual entry with a generic message for any other list error", async () => {
+    // A non-ApiError (e.g. a network blip) takes the generic branch.
+    apiGet.mockRejectedValue(new Error("network down"));
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    await openExistingTab();
+
+    expect(
+      await screen.findByTestId("f8-github-target-repo"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Could not list your repos. Type owner/repo by hand."),
+    ).toBeTruthy();
+  });
+
+  it("'Pick from list' returns to the picker and retriggers a list load", async () => {
+    // First load fails (manual fallback); the retry from "Pick from list"
+    // succeeds and shows the picker again.
+    apiGet
+      .mockRejectedValueOnce(apiError("GITHUB_NOT_CONNECTED"))
+      .mockResolvedValueOnce(mixedRepos());
+
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    await openExistingTab();
+
+    // In manual mode after the failed load.
+    await screen.findByTestId("f8-github-target-repo");
+
+    fireEvent.click(screen.getByTestId("f8-github-pick-from-list"));
+
+    // Back to the picker, and a second list load fired.
+    expect(await screen.findByTestId("f8-github-repo-picker")).toBeTruthy();
+    await waitFor(() => expect(apiGet).toHaveBeenCalledTimes(2));
+    expect(screen.queryByTestId("f8-github-target-repo")).toBeNull();
+  });
+
+  it("'Enter manually' switches into manual mode from a loaded list", async () => {
+    // Default mock resolves a good list, so the picker loads normally.
+    render(<PushToGitHubButton bundle={makeBundle("artifact-1234abcd")} />);
+    fireEvent.click(screen.getByTestId("f8-github-push"));
+    fireEvent.click(await screen.findByTestId("f8-github-mode-existing"));
+    await waitFor(() => expect(apiGet).toHaveBeenCalled());
+
+    // The picker (not manual entry) is shown after a successful load.
+    expect(await screen.findByTestId("f8-github-repo-picker")).toBeTruthy();
+    expect(screen.queryByTestId("f8-github-target-repo")).toBeNull();
+
+    fireEvent.click(screen.getByTestId("f8-github-enter-manually"));
+
+    expect(
+      await screen.findByTestId("f8-github-target-repo"),
+    ).toBeTruthy();
+    expect(screen.queryByTestId("f8-github-repo-picker")).toBeNull();
   });
 });
