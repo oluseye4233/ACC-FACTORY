@@ -52,7 +52,7 @@ export function TopNav() {
       <div className="container flex h-20 items-center justify-between gap-2 px-4">
         <div className="flex items-center gap-6 min-w-0">
           <Link
-            href="/"
+            href="/landing"
             className="flex flex-col items-start gap-0.5 shrink-0"
             aria-label="ATANDA home"
             data-testid="link-home"
