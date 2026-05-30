@@ -1,28 +1,29 @@
 ---
 name: F8 CODE DJ → IDE export bundle
-description: How the F8 "send to IDE" handoff is structured and where to extend it.
+description: Durable decisions behind the F8 "send to IDE" handoff.
 ---
 
-F8 (CODE DJ) exports its generated codebase as a **ready-to-open project ZIP**,
-not a flat JSON. The handoff convention:
+F8 (CODE DJ) hands off its generated codebase as a **ready-to-open project ZIP**,
+not a flat JSON dump. Durable decisions worth keeping consistent:
 
-- The scaffold `files[]` are written at their real `path`s (genuine folder tree).
-- A universal **`AGENTS.md`** carries the CODE DJ operating brief: doctrine note,
-  build manifest, scaffold file table, SPARTAN cert lineage, PFP/BUGMXT fidelity
-  (verdict/FCI/counts + findings when a drift check ran), and fidelity rules.
-- Per-IDE adapter files mirror/point to AGENTS.md, each in that IDE's expected
-  format: Cursor `.cursor/rules/code-dj.mdc`, Claude Code `CLAUDE.md`, Replit
-  `replit.md`, Copilot `.github/copilot-instructions.md`, Windsurf `.windsurfrules`.
-- The raw bundle is retained at `.code-dj/bundle.json` for lineage.
+- Ship a real folder tree of the scaffold files **plus** a universal `AGENTS.md`
+  operating brief **plus** per-IDE adapter files (Cursor, Claude Code, Replit,
+  Copilot, Windsurf each auto-read a different instruction file, so all are
+  shipped and each points back to AGENTS.md). This makes one bundle work in any
+  IDE with no backend/auth.
+  **Why:** different AI IDEs auto-load different project-level instruction files.
 
-**Why:** different AI IDEs auto-read different project-level instruction files;
-shipping all of them makes one bundle work everywhere with no backend/auth.
+- AGENTS.md must carry *spec traceability*, not just metadata: a certified
+  MVP-PDD summary (from the F7 artifact's `sections` + `donut`) and a one-row-
+  per-file → PDD-section table. The file→section map is best-effort, derived from
+  PFP code↔spec findings; files with no resolved section are flagged "trace in
+  your IDE" rather than fabricated.
+  **Why:** a code review rejected an earlier version that shipped only manifest +
+  cert metadata — the doctrine requires every scaffold file to trace to the spec.
 
-**How to apply:** the generator lives in
-`artifacts/command-centre/src/lib/codeDjExport.ts` and zips via the shared
-`src/lib/zipExport.ts` `downloadZip` helper (jszip + file-saver, already deps).
-Any future GitHub-push / one-click-Replit-import handoff should reuse
-`buildExportFiles()` / `buildAgentsMd()` rather than re-deriving the file set, so
-the doctrine stays identical across delivery channels. Keep doctrine wording
-correct: HARNESS engines are an instruction layer, never SPCs; IPDD=input,
-PWDD=output.
+- Doctrine wording is load-bearing: HARNESS engines are an instruction layer,
+  never SPCs; IPDD=input, PWDD=output. Keep it correct in every generated file.
+
+**How to apply:** any future delivery channel (GitHub push, one-click Replit
+import) should reuse the same export generator so the doctrine and traceability
+stay identical across channels rather than being re-derived per channel.

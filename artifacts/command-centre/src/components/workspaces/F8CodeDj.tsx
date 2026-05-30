@@ -464,11 +464,13 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
                   SEND TO IDE
                 </Button>
                 <span
-                  className="font-mono text-[9px] text-muted-foreground text-right max-w-[220px] leading-tight"
+                  className="font-mono text-[9px] text-muted-foreground text-right max-w-[240px] leading-tight"
                   data-testid="f8-ide-hint"
                 >
-                  ZIP + AGENTS.md for{" "}
-                  {SUPPORTED_IDES.map((i) => i.ide.split(" ")[0]).join(", ")}
+                  ZIP + AGENTS.md. Each IDE reads:{" "}
+                  {SUPPORTED_IDES.map(
+                    (i) => `${i.ide.split(" ")[0]} → ${i.file}`,
+                  ).join("; ")}
                 </span>
               </div>
             </div>
