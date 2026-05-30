@@ -30,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useToast } from "@/hooks/use-toast";
 import { buildExportFiles, SUPPORTED_IDES } from "@/lib/codeDjExport";
 import {
@@ -122,6 +123,10 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
   const [reposHasMore, setReposHasMore] = useState(false);
   const [reposLoaded, setReposLoaded] = useState(false);
   const [manualEntry, setManualEntry] = useState(false);
+  // Client-side visibility filter over the already-loaded repo list.
+  const [visibilityFilter, setVisibilityFilter] = useState<
+    "all" | "public" | "private"
+  >("all");
   const [result, setResult] = useState<PushResult | null>(
     existing
       ? {
@@ -142,6 +147,7 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
     setReposLoaded(false);
     setReposError(null);
     setReposHasMore(false);
+    setVisibilityFilter("all");
     setResult(
       existing
         ? {
@@ -191,6 +197,15 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetMode]);
+
+  // Apply the client-side visibility filter over the already-loaded repos.
+  const visibleRepos = repos.filter((repo) =>
+    visibilityFilter === "all"
+      ? true
+      : visibilityFilter === "private"
+        ? repo.private
+        : !repo.private,
+  );
 
   const push = async (mode: "create" | "update" | "existing") => {
     setPending(true);
@@ -299,7 +314,16 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
         {result ? "ON GITHUB" : "PUSH TO GITHUB"}
       </Button>
 
-      <Dialog open={open} onOpenChange={(o) => !pending && setOpen(o)}>
+      <Dialog
+        open={open}
+        onOpenChange={(o) => {
+          if (pending) return;
+          // Reset the client-side visibility filter each time the dialog
+          // closes so reopening it always starts on "All".
+          if (!o) setVisibilityFilter("all");
+          setOpen(o);
+        }}
+      >
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle className="font-display tracking-wider flex items-center gap-2">
@@ -487,12 +511,48 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
                               className="font-mono text-xs"
                               data-testid="f8-github-repo-search"
                             />
+                            <ToggleGroup
+                              type="single"
+                              value={visibilityFilter}
+                              onValueChange={(v) =>
+                                setVisibilityFilter(
+                                  (v as "all" | "public" | "private") || "all",
+                                )
+                              }
+                              className="justify-start gap-1 border-b border-border px-2 py-1.5"
+                              data-testid="f8-github-visibility-filter"
+                            >
+                              <ToggleGroupItem
+                                value="all"
+                                size="sm"
+                                className="h-6 px-2 font-mono text-[10px] uppercase tracking-wider"
+                                data-testid="f8-github-visibility-all"
+                              >
+                                All
+                              </ToggleGroupItem>
+                              <ToggleGroupItem
+                                value="public"
+                                size="sm"
+                                className="h-6 px-2 font-mono text-[10px] uppercase tracking-wider"
+                                data-testid="f8-github-visibility-public"
+                              >
+                                Public
+                              </ToggleGroupItem>
+                              <ToggleGroupItem
+                                value="private"
+                                size="sm"
+                                className="h-6 px-2 font-mono text-[10px] uppercase tracking-wider"
+                                data-testid="f8-github-visibility-private"
+                              >
+                                Private
+                              </ToggleGroupItem>
+                            </ToggleGroup>
                             <CommandList>
                               <CommandEmpty className="font-mono text-xs">
                                 No matching repositories.
                               </CommandEmpty>
                               <CommandGroup>
-                                {repos.map((repo) => {
+                                {visibleRepos.map((repo) => {
                                   const pushed = relativePushedAt(repo.pushedAt);
                                   return (
                                     <CommandItem
