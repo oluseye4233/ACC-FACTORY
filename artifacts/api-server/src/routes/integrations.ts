@@ -22,6 +22,7 @@ import {
   GITHUB_TOKEN_RE,
   githubOAuthConfigured,
   githubTokenScheme,
+  isGitHubOAuthScope,
   publicBaseUrl,
   revokeGitHubOAuthToken,
   signOAuthState,
@@ -375,8 +376,12 @@ router.get(
       frontendRedirect(res, "oauth_unavailable");
       return;
     }
+    // The user may narrow the grant to public repos only; default to `repo`
+    // (public + private) so private codebases can still be pushed. OAuth-App
+    // scopes can't express per-repo selection — that's the fine-grained PAT path.
+    const scope = isGitHubOAuthScope(req.query.scope) ? req.query.scope : "repo";
     const state = signOAuthState(req.localUser!.id);
-    res.redirect(buildGitHubAuthorizeUrl(state));
+    res.redirect(buildGitHubAuthorizeUrl(state, scope));
   },
 );
 
@@ -780,6 +785,13 @@ router.post(
           });
           return;
         }
+        if (status === 403) {
+          res.status(403).json({
+            error: `Your GitHub token isn't authorized for "${existingRepo.fullName}". If you used a fine-grained token, add this repository to its selected repos and grant Contents: Read and write, then retry.`,
+            code: "GITHUB_REPO_NOT_AUTHORIZED",
+          });
+          return;
+        }
         req.log.warn({ err }, "GitHub push: update failed");
         res.status(502).json({
           error: asPullRequest
@@ -809,6 +821,13 @@ router.post(
           res.status(409).json({
             error: `A repo named "${repoName}" already exists on ${owner}. Pick another name${existingRepo?.fullName ? ', or push an update to the linked repo' : ''}.`,
             code: "GITHUB_REPO_EXISTS",
+          });
+          return;
+        }
+        if (status === 403) {
+          res.status(403).json({
+            error: `Your GitHub token isn't allowed to create a new repository on ${owner}. A fine-grained token scoped to only selected repos can't create repos — grant it Administration: Read and write on all repositories, or create "${repoName}" on GitHub yourself and push an update to it.`,
+            code: "GITHUB_REPO_NOT_AUTHORIZED",
           });
           return;
         }

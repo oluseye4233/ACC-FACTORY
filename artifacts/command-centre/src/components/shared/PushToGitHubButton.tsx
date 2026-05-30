@@ -132,6 +132,17 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
         });
         return;
       }
+      if (body?.code === "GITHUB_REPO_NOT_AUTHORIZED") {
+        toast({
+          variant: "destructive",
+          title: "Repo not authorized",
+          description:
+            e instanceof ApiError
+              ? e.message
+              : "Your GitHub token doesn't cover this repository. Widen its access in Account → Connected Services.",
+        });
+        return;
+      }
       toast({
         variant: "destructive",
         title: "PUSH FAILED",

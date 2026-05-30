@@ -152,13 +152,53 @@ export function githubOAuthCallbackUrl(): string {
   return `${publicBaseUrl()}/api/integrations/github/oauth/callback`;
 }
 
+/**
+ * OAuth scopes we let the user choose between when connecting via the one-click
+ * flow. OAuth-App scopes are coarse (all-or-nothing per category) — they cannot
+ * express GitHub's per-repository selection. For true "only the repos I choose"
+ * control the user must paste a *fine-grained* personal access token instead
+ * (see `GITHUB_FINE_GRAINED_PERMISSIONS`), which the paste path already accepts.
+ *
+ * - `repo`        — read/write on all public AND private repos (default; needed
+ *                   to create private repos and push private codebases).
+ * - `public_repo` — narrows the grant to public repositories only.
+ */
+export const GITHUB_OAUTH_SCOPES = ["repo", "public_repo"] as const;
+export type GitHubOAuthScope = (typeof GITHUB_OAUTH_SCOPES)[number];
+
+/** Type-guard for an untrusted scope value coming off the query string. */
+export function isGitHubOAuthScope(v: unknown): v is GitHubOAuthScope {
+  return (
+    typeof v === "string" &&
+    (GITHUB_OAUTH_SCOPES as readonly string[]).includes(v)
+  );
+}
+
+/**
+ * The repository permissions a *fine-grained* personal access token needs for
+ * the CODE DJ push flow. A token scoped to only the repos the user chooses
+ * works for pushing updates to those repos; creating a brand-new repo
+ * additionally needs account-level "Administration" write on all repositories
+ * (a narrowly-scoped token cannot create repos that don't exist yet). Surfaced
+ * verbatim in the connect UI so the guidance and the enforcement agree.
+ */
+export const GITHUB_FINE_GRAINED_PERMISSIONS = {
+  contents: "Contents: Read and write (push the scaffold)",
+  administration:
+    "Administration: Read and write (only needed to create a new repo)",
+} as const;
+
 /** Build the github.com authorize URL the user is redirected to. */
-export function buildGitHubAuthorizeUrl(state: string): string {
+export function buildGitHubAuthorizeUrl(
+  state: string,
+  scope: GitHubOAuthScope = "repo",
+): string {
   const params = new URLSearchParams({
     client_id: process.env.GITHUB_OAUTH_CLIENT_ID ?? "",
     redirect_uri: githubOAuthCallbackUrl(),
-    // `repo` is required to create repos and push trees on the user's behalf.
-    scope: "repo",
+    // `repo` grants public+private; `public_repo` narrows to public only. Both
+    // are needed to create repos and push trees on the user's behalf.
+    scope,
     state,
     allow_signup: "false",
   });

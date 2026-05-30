@@ -3,6 +3,7 @@ import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Github, Link2Off } from "lucide-react";
 
@@ -20,6 +21,7 @@ export function GitHubConnect() {
   const [status, setStatus] = useState<Status | null>(null);
   const [token, setToken] = useState("");
   const [showPaste, setShowPaste] = useState(false);
+  const [publicOnly, setPublicOnly] = useState(false);
   const [pending, setPending] = useState(false);
   const { toast } = useToast();
 
@@ -74,7 +76,8 @@ export function GitHubConnect() {
   }, []);
 
   const connectOAuth = () => {
-    window.location.href = "/api/integrations/github/oauth/start";
+    const scope = publicOnly ? "public_repo" : "repo";
+    window.location.href = `/api/integrations/github/oauth/start?scope=${scope}`;
   };
 
   const connect = async () => {
@@ -157,15 +160,43 @@ export function GitHubConnect() {
     <div className="space-y-3" data-testid="github-not-connected">
       <p className="text-xs text-muted-foreground font-mono">
         Connect GitHub to enable “Push to GitHub” on F8 CODE DJ codebases — repos
-        land in your own account with the <span className="font-bold">repo</span> scope.
+        land in your own account. For the tightest control, paste a{" "}
+        <span className="font-bold">fine-grained token</span> limited to only the
+        repos you choose.
       </p>
 
       {oauthAvailable ? (
         <>
+          <div className="flex items-center justify-between rounded border border-border/50 p-2.5">
+            <div className="min-w-0 pr-3">
+              <Label
+                htmlFor="github-public-only"
+                className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+              >
+                Public repos only
+              </Label>
+              <p className="font-mono text-[10px] text-muted-foreground/70">
+                {publicOnly
+                  ? "Grants the public_repo scope — private repos stay off-limits."
+                  : "Grants the repo scope (public + private)."}
+              </p>
+            </div>
+            <Switch
+              id="github-public-only"
+              checked={publicOnly}
+              onCheckedChange={setPublicOnly}
+              disabled={pending}
+              data-testid="github-public-only"
+            />
+          </div>
           <Button onClick={connectOAuth} disabled={pending} data-testid="github-connect-oauth">
             <Github className="h-4 w-4 mr-2" />
             CONNECT GITHUB
           </Button>
+          <p className="text-[10px] text-muted-foreground/70 font-mono">
+            One-click connect can’t limit access to individual repos. To expose
+            only specific repos, paste a fine-grained token below.
+          </p>
           <button
             type="button"
             className="block text-[10px] font-mono text-muted-foreground underline underline-offset-2 hover:text-foreground"
@@ -187,16 +218,29 @@ export function GitHubConnect() {
             type="password"
             value={token}
             onChange={(e) => setToken(e.target.value)}
-            placeholder="ghp_… or github_pat_…"
+            placeholder="github_pat_… or ghp_…"
             className="font-mono"
             autoComplete="off"
             spellCheck={false}
             data-testid="github-token-input"
           />
-          <p className="text-[10px] text-muted-foreground font-mono">
-            Paste a personal access token with the{" "}
-            <span className="font-bold">repo</span> scope.
-          </p>
+          <div className="text-[10px] text-muted-foreground font-mono space-y-1">
+            <p>
+              Recommended: a{" "}
+              <span className="font-bold">fine-grained token</span> scoped to
+              only the repositories you choose, with:
+            </p>
+            <ul className="list-disc pl-4 space-y-0.5">
+              <li>Contents: Read and write (push the scaffold)</li>
+              <li>
+                Administration: Read and write (only needed to create a new repo)
+              </li>
+            </ul>
+            <p className="text-muted-foreground/70">
+              A classic token with the <span className="font-bold">repo</span>{" "}
+              scope also works, but grants access to all your repos.
+            </p>
+          </div>
           <Button
             onClick={connect}
             disabled={pending || !token.trim()}
