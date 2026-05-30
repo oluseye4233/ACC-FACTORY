@@ -204,3 +204,9 @@ id = "0abzgIonOKU8GR_fH7LtN"
 uri = "file://docs/ATANDA_Command_Centre_Living_PDD_ATLAS.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — ATLAS Living PDD (4-Part)"
+
+[[outputs]]
+id = "-d_7VLYRdMW0u843WhrmC"
+uri = "file://docs/ATANDA_Command_Centre_MVP_PDD_SPARTAN_Living.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — SPARTAN-Certified MVP PDD"
