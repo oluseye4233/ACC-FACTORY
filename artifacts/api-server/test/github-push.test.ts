@@ -32,23 +32,12 @@ process.env.SESSION_SECRET ??= "test-session-secret-abcdef0123456789";
 // ---------- GitHub client mock ----------
 // The real `lib/github.ts` reaches out to the Replit connectors proxy for a
 // token and returns a live Octokit. Pushing for real would create repos we
-// cannot clean up (the granted token has no delete_repo scope). We swap the
-// client factory for a fake whose behaviour each test drives via `mockGh`.
-// `GitHubNotConnectedError` is kept real because the route branches on
-// `err instanceof GitHubNotConnectedError`.
+// cannot clean up (the granted token has no delete_repo scope). We swap only
+// the client factory (`getGitHubClientFromToken`) for a fake whose behaviour
+// each test drives via `mockGh`; every other github.ts export is kept real via
+// `...actual` in the `vi.mock` below.
 const mockGh = vi.hoisted(() => {
-  // Mirror of the real GitHubNotConnectedError. The route imports this class
-  // from the (mocked) module and branches on `err instanceof
-  // GitHubNotConnectedError`; throwing this same class keeps that check valid
-  // without loading the real github.ts (which pulls in @octokit/rest).
-  class GitHubNotConnectedError extends Error {
-    constructor(message = "GitHub is not connected") {
-      super(message);
-      this.name = "GitHubNotConnectedError";
-    }
-  }
   return {
-    GitHubNotConnectedError,
     authThrows: false,
     createRepoStatus: null as number | null,
     treeThrows: false,
@@ -74,6 +63,13 @@ const mockGh = vi.hoisted(() => {
     createdRefs: [] as string[],
     updateRefCalls: 0,
     prCalls: 0,
+    // ── repo-list controls (GET /integrations/github/repos) ─────────────────
+    // Raw GitHub-shaped rows `repos.listForAuthenticatedUser` returns; the route
+    // filters/maps them. A non-null `listReposStatus` makes the call throw with
+    // that HTTP status (401 → bad-token, anything else → list-failed).
+    listReposData: [] as Array<Record<string, unknown>>,
+    listReposStatus: null as number | null,
+    listReposCalls: [] as Array<Record<string, unknown>>,
     reset(): void {
       this.authThrows = false;
       this.createRepoStatus = null;
@@ -94,6 +90,9 @@ const mockGh = vi.hoisted(() => {
       this.createdRefs = [];
       this.updateRefCalls = 0;
       this.prCalls = 0;
+      this.listReposData = [];
+      this.listReposStatus = null;
+      this.listReposCalls = [];
     },
   };
 });
@@ -141,6 +140,17 @@ function buildFakeGitHubClient() {
                   html_url: `https://github.com/${mockGh.owner}/${args.name}`,
                 },
               };
+            },
+            listForAuthenticatedUser: async (args: Record<string, unknown>) => {
+              mockGh.listReposCalls.push(args);
+              if (mockGh.listReposStatus !== null) {
+                const err = new Error("github list failed") as Error & {
+                  status: number;
+                };
+                err.status = mockGh.listReposStatus;
+                throw err;
+              }
+              return { data: mockGh.listReposData };
             },
             get: async () => {
               if (mockGh.repoGetStatus !== null) {
@@ -212,12 +222,15 @@ function buildFakeGitHubClient() {
   };
 }
 
-vi.mock("../src/lib/github", () => {
+// Spread `...actual` so EVERY export `integrations.ts` imports from this module
+// (GITHUB_TOKEN_RE, GitHubNotConnectedError, the OAuth helpers, …) is present —
+// otherwise an unlisted import is `undefined` at module load and the whole suite
+// fails to import. We override only the one boundary that would reach the network:
+// `getGitHubClientFromToken`, which we replace with a fake Octokit each test drives.
+vi.mock("../src/lib/github", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/lib/github")>();
   return {
-    GitHubNotConnectedError: mockGh.GitHubNotConnectedError,
-    // Real token-shape regex the route imports for its PAT-paste validation.
-    GITHUB_TOKEN_RE:
-      /^(gh[posur]_[A-Za-z0-9]{16,255}|github_pat_[A-Za-z0-9_]{20,255})$/u,
+    ...actual,
     getGitHubClientFromToken: () => buildFakeGitHubClient(),
   };
 });
@@ -773,5 +786,140 @@ describe("POST /integrations/github/push-codebase", () => {
       expect(body.code).toBe("GITHUB_REPO_NOT_FOUND");
       expect(mockGh.commitParents).toHaveLength(0);
     });
+  });
+});
+
+// ---------- Repo-list endpoint ----------
+const REPOS_PATH = "/api/integrations/github/repos";
+
+function listRepos(
+  userId: string,
+  query = "",
+): Promise<Response & { json: () => Promise<unknown> }> {
+  return fetch(`${srv.url}${REPOS_PATH}${query}`, {
+    headers: { "x-test-user-id": userId },
+  }) as unknown as Promise<Response & { json: () => Promise<unknown> }>;
+}
+
+// Build a raw GitHub-API-shaped repo row (what `listForAuthenticatedUser`
+// returns), so the route's filter/map logic is what's under test.
+function rawRepo(
+  name: string,
+  opts: { push?: boolean; private?: boolean; pushedAt?: string | null } = {},
+): Record<string, unknown> {
+  const owner = "octo-tester";
+  return {
+    full_name: `${owner}/${name}`,
+    owner: { login: owner },
+    name,
+    private: opts.private ?? false,
+    default_branch: "main",
+    html_url: `https://github.com/${owner}/${name}`,
+    pushed_at: opts.pushedAt === undefined ? "2026-01-01T00:00:00Z" : opts.pushedAt,
+    permissions: { push: opts.push ?? true },
+  };
+}
+
+type RepoListBody = {
+  repos: Array<{
+    fullName: string;
+    owner: string;
+    name: string;
+    private: boolean;
+    defaultBranch: string;
+    htmlUrl: string;
+    pushedAt: string | null;
+  }>;
+  page: number;
+  hasMore: boolean;
+};
+
+describe("GET /integrations/github/repos", () => {
+  test("returns only push-eligible repos, mapped to the picker shape", async () => {
+    mockGh.listReposData = [
+      rawRepo("can-push", { push: true, private: true }),
+      rawRepo("read-only", { push: false }),
+      rawRepo("also-pushable", { push: true, pushedAt: null }),
+    ];
+    const res = await listRepos(architectId);
+    const body = (await res.json()) as RepoListBody;
+    expect(res.status, JSON.stringify(body)).toBe(200);
+    // The non-pushable repo is dropped; only the two push:true repos survive.
+    expect(body.repos.map((r) => r.name).sort()).toEqual([
+      "also-pushable",
+      "can-push",
+    ]);
+    expect(body.page).toBe(1);
+    expect(body.hasMore).toBe(false);
+    // Field mapping from the raw GitHub shape.
+    const canPush = body.repos.find((r) => r.name === "can-push")!;
+    expect(canPush).toMatchObject({
+      fullName: "octo-tester/can-push",
+      owner: "octo-tester",
+      name: "can-push",
+      private: true,
+      defaultBranch: "main",
+      htmlUrl: "https://github.com/octo-tester/can-push",
+      pushedAt: "2026-01-01T00:00:00Z",
+    });
+    // A null pushed_at maps through as null rather than being dropped.
+    const alsoPushable = body.repos.find((r) => r.name === "also-pushable")!;
+    expect(alsoPushable.pushedAt).toBeNull();
+    // Default request asks for the pushed-desc first page.
+    expect(mockGh.listReposCalls).toHaveLength(1);
+    expect(mockGh.listReposCalls[0]).toMatchObject({
+      page: 1,
+      sort: "pushed",
+      direction: "desc",
+    });
+  });
+
+  test("applies the q filter as a case-insensitive substring on owner/repo", async () => {
+    mockGh.listReposData = [
+      rawRepo("alpha-service", { push: true }),
+      rawRepo("beta-widget", { push: true }),
+      rawRepo("gamma-Alpha", { push: true }),
+    ];
+    const res = await listRepos(architectId, "?q=ALPHA");
+    const body = (await res.json()) as RepoListBody;
+    expect(res.status).toBe(200);
+    expect(body.repos.map((r) => r.name).sort()).toEqual([
+      "alpha-service",
+      "gamma-Alpha",
+    ]);
+  });
+
+  test("non-Architect tier is blocked (403)", async () => {
+    mockGh.listReposData = [rawRepo("anything", { push: true })];
+    const res = await listRepos(explorerId);
+    const body = (await res.json()) as { error?: string };
+    expect(res.status).toBe(403);
+    expect(body.error).toContain("ARCHITECT");
+    // The tier gate runs before any GitHub call.
+    expect(mockGh.listReposCalls).toHaveLength(0);
+  });
+
+  test("an architect without a stored token maps to 503 GITHUB_NOT_CONNECTED", async () => {
+    const res = await listRepos(architectNoGhId);
+    const body = (await res.json()) as { code?: string };
+    expect(res.status).toBe(503);
+    expect(body.code).toBe("GITHUB_NOT_CONNECTED");
+    expect(mockGh.listReposCalls).toHaveLength(0);
+  });
+
+  test("a rejected token maps to 401 GITHUB_BAD_TOKEN", async () => {
+    mockGh.listReposStatus = 401;
+    const res = await listRepos(architectId);
+    const body = (await res.json()) as { code?: string };
+    expect(res.status).toBe(401);
+    expect(body.code).toBe("GITHUB_BAD_TOKEN");
+  });
+
+  test("any other GitHub failure maps to 502 GITHUB_LIST_FAILED", async () => {
+    mockGh.listReposStatus = 500;
+    const res = await listRepos(architectId);
+    const body = (await res.json()) as { code?: string };
+    expect(res.status).toBe(502);
+    expect(body.code).toBe("GITHUB_LIST_FAILED");
   });
 });
