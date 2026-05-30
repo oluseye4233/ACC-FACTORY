@@ -555,6 +555,105 @@ router.delete(
   },
 );
 
+// ─── GET list repos the user's token can push to ───────────────────────────
+//
+// Powers the "Use existing repo" picker in the push dialog. Reuses the same
+// per-user credential + Octokit the push handler uses, then keeps only repos
+// where the token actually has push access — so authorization is surfaced up
+// front instead of failing at push time. Results are sorted most-recently
+// pushed first (what a picker wants) and paginated; an optional `q` narrows by
+// substring on the full "owner/repo" name.
+const ListReposQuery = z.object({
+  q: z.string().max(140).optional(),
+  page: z.coerce.number().int().min(1).max(20).optional(),
+});
+
+router.get(
+  "/integrations/github/repos",
+  requireAuth,
+  // Same Architect-tier gate as the push it feeds — the picker only appears in
+  // that flow, so don't expose the repo list any wider than the push itself.
+  requireTier("ARCHITECT"),
+  async (req, res): Promise<void> => {
+    const parsed = ListReposQuery.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const page = parsed.data.page ?? 1;
+    const q = parsed.data.q?.trim().toLowerCase();
+
+    const ghCredRows = await db
+      .select()
+      .from(integrationCredentialsTable)
+      .where(
+        and(
+          eq(integrationCredentialsTable.userId, req.localUser!.id),
+          eq(integrationCredentialsTable.provider, "github"),
+        ),
+      )
+      .limit(1);
+    const ghCred = ghCredRows[0];
+    if (!ghCred) {
+      res.status(503).json({
+        error:
+          "GitHub is not connected. Add a personal access token in Account → Connected Services.",
+        code: "GITHUB_NOT_CONNECTED",
+      });
+      return;
+    }
+
+    let repos;
+    try {
+      const token = decryptApiKey(ghCred.keyEncrypted);
+      const gh = getGitHubClientFromToken(token);
+      const perPage = 100;
+      const listed = await gh.rest.repos.listForAuthenticatedUser({
+        per_page: perPage,
+        page,
+        sort: "pushed",
+        direction: "desc",
+        // Include repos the user owns, collaborates on, or reaches via org
+        // membership — any of which may be push-eligible for their token.
+        affiliation: "owner,collaborator,organization_member",
+      });
+      const hasMore = listed.data.length === perPage;
+      repos = listed.data
+        // Keep only repos the token can actually push to — the whole point of
+        // surfacing authorization before the user commits to a push.
+        .filter((r) => r.permissions?.push === true)
+        .map((r) => ({
+          fullName: r.full_name,
+          owner: r.owner.login,
+          name: r.name,
+          private: r.private,
+          defaultBranch: r.default_branch ?? "main",
+          htmlUrl: r.html_url,
+          pushedAt: r.pushed_at ?? null,
+        }))
+        .filter((r) => (q ? r.fullName.toLowerCase().includes(q) : true));
+      res.json({ repos, page, hasMore });
+      return;
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      if (status === 401) {
+        res.status(401).json({
+          error:
+            "Your GitHub token was rejected. Reconnect GitHub in Account → Connected Services.",
+          code: "GITHUB_BAD_TOKEN",
+        });
+        return;
+      }
+      req.log.warn({ err }, "GitHub repos: list failed");
+      res.status(502).json({
+        error: "Could not list your GitHub repositories.",
+        code: "GITHUB_LIST_FAILED",
+      });
+      return;
+    }
+  },
+);
+
 // ─── POST push a CODE DJ codebase bundle to a new GitHub repo ───────────────
 const RepoNameRe = /^[A-Za-z0-9._-]{1,100}$/u;
 const TargetRepoRe = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/u;
