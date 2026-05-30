@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Response as ExpressResponse } from "express";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import {
@@ -16,9 +16,16 @@ import {
   maskKey,
 } from "../lib/integration-crypto";
 import {
+  buildGitHubAuthorizeUrl,
+  exchangeGitHubOAuthCode,
   getGitHubClientFromToken,
   GITHUB_TOKEN_RE,
+  githubOAuthConfigured,
   githubTokenScheme,
+  publicBaseUrl,
+  revokeGitHubOAuthToken,
+  signOAuthState,
+  verifyOAuthState,
 } from "../lib/github";
 
 const router: IRouter = Router();
@@ -333,8 +340,9 @@ router.get(
       )
       .limit(1);
     const row = rows[0];
+    const oauthAvailable = githubOAuthConfigured();
     if (!row) {
-      res.json({ connected: false, login: null });
+      res.json({ connected: false, login: null, oauthAvailable });
       return;
     }
     res.json({
@@ -342,7 +350,103 @@ router.get(
       login: row.login,
       lastUsedAt: row.lastUsedAt,
       createdAt: row.createdAt,
+      oauthAvailable,
     });
+  },
+);
+
+// ─── OAuth: one-click "Connect GitHub" ─────────────────────────────────────
+//
+// The friendlier alternative to pasting a PAT. `start` (auth'd) redirects the
+// user to github.com; `callback` (no Clerk session — bound by signed state)
+// exchanges the code for a token and stores it in the same per-user
+// `integration_credentials` row the paste path uses.
+
+function frontendRedirect(res: ExpressResponse, status: string): void {
+  const base = publicBaseUrl();
+  res.redirect(`${base}/account?github=${status}`);
+}
+
+router.get(
+  "/integrations/github/oauth/start",
+  requireAuth,
+  (req, res): void => {
+    if (!githubOAuthConfigured()) {
+      frontendRedirect(res, "oauth_unavailable");
+      return;
+    }
+    const state = signOAuthState(req.localUser!.id);
+    res.redirect(buildGitHubAuthorizeUrl(state));
+  },
+);
+
+router.get(
+  "/integrations/github/oauth/callback",
+  async (req, res): Promise<void> => {
+    // The user denied access, or GitHub returned an error.
+    if (typeof req.query.error === "string") {
+      req.log.warn({ error: req.query.error }, "GitHub OAuth: authorize error");
+      frontendRedirect(res, "denied");
+      return;
+    }
+
+    const code = typeof req.query.code === "string" ? req.query.code : "";
+    const stateRaw = typeof req.query.state === "string" ? req.query.state : "";
+    if (!code || !stateRaw) {
+      frontendRedirect(res, "error");
+      return;
+    }
+
+    const state = verifyOAuthState(stateRaw);
+    if (!state) {
+      req.log.warn("GitHub OAuth: invalid or expired state");
+      frontendRedirect(res, "error");
+      return;
+    }
+
+    // Exchange the code for a user access token.
+    let token: string;
+    try {
+      token = await exchangeGitHubOAuthCode(code);
+    } catch (err) {
+      req.log.warn({ err }, "GitHub OAuth: code exchange failed");
+      frontendRedirect(res, "error");
+      return;
+    }
+
+    // Resolve the login so the UI can show "connected as <login>" and pushes
+    // are tagged to the right account.
+    let login: string;
+    try {
+      const gh = getGitHubClientFromToken(token);
+      const me = await gh.rest.users.getAuthenticated();
+      login = me.data.login;
+    } catch (err) {
+      req.log.warn({ err }, "GitHub OAuth: could not resolve account login");
+      frontendRedirect(res, "error");
+      return;
+    }
+
+    const enc = encryptApiKey(token);
+    await db
+      .insert(integrationCredentialsTable)
+      .values({
+        userId: state.userId,
+        provider: "github",
+        label: login,
+        keyPrefix: githubTokenScheme(token),
+        keyEncrypted: enc,
+      })
+      .onConflictDoUpdate({
+        target: [integrationCredentialsTable.userId, integrationCredentialsTable.provider],
+        set: {
+          label: login,
+          keyPrefix: githubTokenScheme(token),
+          keyEncrypted: enc,
+          updatedAt: new Date(),
+        },
+      });
+    frontendRedirect(res, "connected");
   },
 );
 
@@ -413,6 +517,27 @@ router.delete(
   "/integrations/github",
   requireAuth,
   async (req, res): Promise<void> => {
+    // Best-effort: revoke the grant on GitHub before clearing the local row,
+    // so a token obtained via OAuth is actually invalidated, not just forgotten.
+    const rows = await db
+      .select({ keyEncrypted: integrationCredentialsTable.keyEncrypted })
+      .from(integrationCredentialsTable)
+      .where(
+        and(
+          eq(integrationCredentialsTable.userId, req.localUser!.id),
+          eq(integrationCredentialsTable.provider, "github"),
+        ),
+      )
+      .limit(1);
+    const existing = rows[0];
+    if (existing && githubOAuthConfigured()) {
+      try {
+        await revokeGitHubOAuthToken(decryptApiKey(existing.keyEncrypted));
+      } catch (err) {
+        req.log.warn({ err }, "GitHub disconnect: token revoke failed (clearing anyway)");
+      }
+    }
+
     await db
       .delete(integrationCredentialsTable)
       .where(

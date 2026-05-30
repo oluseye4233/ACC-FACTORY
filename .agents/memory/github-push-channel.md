@@ -34,6 +34,22 @@ The F8 CODE DJ live handoff pushes a generated codebase to a new GitHub repo
   login before storing. 401 → `GITHUB_BAD_TOKEN` (UI tells them to reconnect).
   GET status does NOT re-validate (mirrors Sphinx GET) — it just reads the row.
 
+- **One-click OAuth connect is the friendlier alternative to pasting a PAT, but
+  lands in the SAME `integration_credentials` row.** `GET /oauth/start`
+  (auth'd) redirects to github.com with a short-lived HMAC-signed `state`
+  (signed with SESSION_SECRET, carries the userId + expiry); `GET /oauth/callback`
+  has NO Clerk session — it trusts the verified state instead, so a forged
+  callback can't attach someone else's GitHub. Both legs redirect back to the
+  FRONT-END (`<base>/account?github=connected|denied|error|oauth_unavailable`),
+  not JSON — the SPA toasts on the query param then strips it. Needs a registered
+  GitHub OAuth app (`GITHUB_OAUTH_CLIENT_ID`/`_SECRET`); when unset, GET status
+  returns `oauthAvailable:false` and the UI shows the PAT paste fallback.
+  Disconnect best-effort revokes the grant (DELETE `/applications/{id}/token`)
+  before clearing the row. The pasted-PAT path is kept as the fallback.
+  **Why:** the downstream push channel already keys off the per-user
+  `integration_credentials` row, so OAuth only needed to change HOW the token is
+  obtained, not where it's stored — keeping the push path untouched.
+
 - **PATs need the `repo` scope** to create/push repos. The repl-level connector
   scopes were `read:org read:project read:user repo user:email` (no
   `delete_repo`); a user-pasted PAT's scopes are whatever they granted.
