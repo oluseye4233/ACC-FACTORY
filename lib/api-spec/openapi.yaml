@@ -2338,6 +2338,7 @@ components:
         class: { type: ["string", "null"] }
         crP: { type: ["number", "null"] }
         issuedAt: { type: ["string", "null"], format: date-time }
+        productName: { type: ["string", "null"] }
         sessionName: { type: ["string", "null"] }
         provider: { type: ["string", "null"] }
         modelId: { type: ["string", "null"] }

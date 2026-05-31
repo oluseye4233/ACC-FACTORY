@@ -32,6 +32,10 @@ router.get("/verify", async (req, res): Promise<void> => {
     class: typeof c.class === "string" ? c.class : null,
     crP: typeof c.crP === "number" ? c.crP : null,
     issuedAt: typeof c.issuedAt === "string" ? c.issuedAt : null,
+    // The certified MVP product's name — the artifact name the user gave it,
+    // falling back to the session name so the certificate always identifies
+    // what was certified.
+    productName: r.artifact.name?.trim() || r.sessionName || null,
     sessionName: r.sessionName,
     provider: r.artifact.provider ?? null,
     modelId: r.artifact.modelId ?? null,

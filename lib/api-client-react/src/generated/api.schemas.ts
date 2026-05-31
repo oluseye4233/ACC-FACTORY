@@ -1171,6 +1171,8 @@ export interface VerifyResult {
   /** @nullable */
   issuedAt?: string | null;
   /** @nullable */
+  productName?: string | null;
+  /** @nullable */
   sessionName?: string | null;
   /** @nullable */
   provider?: string | null;

@@ -86,8 +86,19 @@ export default function Verify() {
               ) : data && data.valid ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-secondary/50 bg-secondary/5 rounded-lg shadow-[0_0_30px_rgba(201,162,39,0.1)]">
                   <ShieldCheck className="h-20 w-20 text-secondary mb-4 drop-shadow-[0_0_15px_rgba(201,162,39,0.5)]" />
-                  <h2 className="font-display text-4xl text-secondary tracking-wider mb-6">VERIFIED AUTHENTIC</h2>
-                  
+                  <h2 className="font-display text-4xl text-secondary tracking-wider mb-2">VERIFIED AUTHENTIC</h2>
+
+                  {data.productName ? (
+                    <p
+                      className="font-display text-2xl tracking-wide text-foreground mb-6 max-w-[300px] break-words"
+                      data-testid="verify-product-name"
+                    >
+                      {data.productName}
+                    </p>
+                  ) : (
+                    <div className="mb-6" />
+                  )}
+
                   <div className="w-full max-w-[300px] space-y-3 text-left bg-background/50 p-4 rounded-md border border-secondary/20">
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
                       <span className="text-xs font-mono text-muted-foreground">ID</span>
