@@ -407,6 +407,25 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /harness/f5-finalize:
+    post:
+      operationId: harnessF5FinalizeStream
+      tags: [harness]
+      summary: SPC Builder — FORGE.COMMIT synthesis (SSE stream)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF5FinalizeInput" }
+      responses:
+        "200":
+          description: text/event-stream of FORGE.COMMIT synthesis events
+          content:
+            text/event-stream:
+              schema: { type: string }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /harness/f6:
     post:
       operationId: harnessF6
@@ -1971,6 +1990,16 @@ components:
           type: object
           additionalProperties: true
         finalize: { type: boolean }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    HarnessF5FinalizeInput:
+      type: object
+      required: [sessionId]
+      properties:
+        sessionId: { type: string, format: uuid }
+        answers:
+          type: object
+          additionalProperties: true
         provider: { $ref: "#/components/schemas/LlmProvider" }
 
     SpcSection:

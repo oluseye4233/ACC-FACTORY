@@ -92,6 +92,8 @@ export * from './harnessF1Input';
 export * from './harnessF2Input';
 export * from './harnessF3Input';
 export * from './harnessF4Input';
+export * from './harnessF5FinalizeInput';
+export * from './harnessF5FinalizeInputAnswers';
 export * from './harnessF5Input';
 export * from './harnessF5InputAnswers';
 export * from './harnessF6Input';

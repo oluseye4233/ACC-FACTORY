@@ -60,6 +60,7 @@ import type {
   HarnessF2Input,
   HarnessF3Input,
   HarnessF4Input,
+  HarnessF5FinalizeInput,
   HarnessF5Input,
   HarnessF6Input,
   HarnessF6VdjInput,
@@ -1848,6 +1849,77 @@ export const useHarnessF5 = <TError = ErrorType<ForbiddenResponse>,
         TContext
       > => {
       return useMutation(getHarnessF5MutationOptions(options));
+    }
+
+export const getHarnessF5FinalizeStreamUrl = () => {
+
+
+
+
+  return `/api/harness/f5-finalize`
+}
+
+/**
+ * @summary SPC Builder — FORGE.COMMIT synthesis (SSE stream)
+ */
+export const harnessF5FinalizeStream = async (harnessF5FinalizeInput: HarnessF5FinalizeInput, options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getHarnessF5FinalizeStreamUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      harnessF5FinalizeInput,)
+  }
+);}
+
+
+
+
+export const getHarnessF5FinalizeStreamMutationOptions = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF5FinalizeStream>>, TError,{data: BodyType<HarnessF5FinalizeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof harnessF5FinalizeStream>>, TError,{data: BodyType<HarnessF5FinalizeInput>}, TContext> => {
+
+const mutationKey = ['harnessF5FinalizeStream'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof harnessF5FinalizeStream>>, {data: BodyType<HarnessF5FinalizeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  harnessF5FinalizeStream(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HarnessF5FinalizeStreamMutationResult = NonNullable<Awaited<ReturnType<typeof harnessF5FinalizeStream>>>
+    export type HarnessF5FinalizeStreamMutationBody = BodyType<HarnessF5FinalizeInput>
+    export type HarnessF5FinalizeStreamMutationError = ErrorType<ForbiddenResponse>
+
+    /**
+ * @summary SPC Builder — FORGE.COMMIT synthesis (SSE stream)
+ */
+export const useHarnessF5FinalizeStream = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF5FinalizeStream>>, TError,{data: BodyType<HarnessF5FinalizeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof harnessF5FinalizeStream>>,
+        TError,
+        {data: BodyType<HarnessF5FinalizeInput>},
+        TContext
+      > => {
+      return useMutation(getHarnessF5FinalizeStreamMutationOptions(options));
     }
 
 export const getHarnessF6Url = () => {

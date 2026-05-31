@@ -558,6 +558,16 @@ export const HarnessF5Response = zod.object({
 
 
 /**
+ * @summary SPC Builder — FORGE.COMMIT synthesis (SSE stream)
+ */
+export const HarnessF5FinalizeStreamBody = zod.object({
+  "sessionId": zod.string().uuid(),
+  "answers": zod.record(zod.string(), zod.unknown()).optional(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+})
+
+
+/**
  * @summary ATLAS PDD Drafter
  */
 export const HarnessF6Body = zod.object({

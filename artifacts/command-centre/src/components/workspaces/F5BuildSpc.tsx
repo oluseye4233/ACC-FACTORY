@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessF5,
+  getHarnessF5FinalizeStreamUrl,
   getListSessionArtifactsQueryKey,
   getListFeatureStateQueryKey,
   Spc,
@@ -19,7 +20,7 @@ import {
   overrideToBody,
   type OverrideValue,
 } from "@/components/shared/ProviderOverride";
-import { extractApiError } from "@/lib/sse";
+import { streamSse, extractApiError } from "@/lib/sse";
 import { Download, Send } from "lucide-react";
 import { PublishToSphinxButton } from "@/components/shared/PublishToSphinxButton";
 import { downloadZip } from "@/lib/zipExport";
@@ -62,8 +63,12 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
   const [spc, setSpc] = useState<Spc | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [finalizing, setFinalizing] = useState(false);
   const [providerOverride, setProviderOverride] =
     useState<OverrideValue>("session");
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   useEffect(() => {
     try {
@@ -115,6 +120,49 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
     },
   });
 
+  const busy = m.isPending || finalizing;
+
+  // FORGE.COMMIT synthesis is the heavy LLM call; it streams over SSE so the
+  // proxy doesn't abort a multi-minute generation (the 502 failure mode).
+  const finalizeViaStream = async (answers: Record<string, string>) => {
+    setError(null);
+    setFinalizing(true);
+    setCurrentStep(7);
+    setCurrentQuestion("FORGE.COMMIT — synthesising SPC...");
+    const ac = new AbortController();
+    abortRef.current = ac;
+    try {
+      await streamSse(
+        getHarnessF5FinalizeStreamUrl(),
+        { sessionId, answers, ...overrideToBody(providerOverride) },
+        (e) => {
+          if (e.event === "step") {
+            const d = e.data as { label?: string };
+            if (d.label) setCurrentQuestion(`FORGE.COMMIT — ${d.label}`);
+          } else if (e.event === "complete") {
+            const built = e.data as Spc;
+            setSpc(built);
+            setCurrentQuestion("FORGE complete — SPC certified below.");
+            qc.invalidateQueries({ queryKey: getListSessionArtifactsQueryKey(sessionId) });
+            qc.invalidateQueries({ queryKey: getListFeatureStateQueryKey(sessionId) });
+          } else if (e.event === "error") {
+            const d = e.data as { error?: string };
+            setError(d.error || "Synthesis failed");
+          }
+        },
+        ac.signal,
+      );
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        const x = extractApiError(err);
+        if (x.status === 403) setUpgrade(true);
+        else setError(x.message);
+      }
+    } finally {
+      setFinalizing(false);
+    }
+  };
+
   const start = () => {
     setTranscript([]);
     setSpc(undefined);
@@ -132,19 +180,24 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
     for (const item of newTranscript) {
       answers[`step${item.step}`] = item.answer;
     }
-    const finalize = newTranscript.length >= 7;
+    if (newTranscript.length >= 7) {
+      void finalizeViaStream(answers);
+      return;
+    }
     m.mutate({
       data: {
         sessionId,
         step: currentStep,
         answers,
-        finalize,
+        finalize: false,
         ...overrideToBody(providerOverride),
       },
     });
   };
 
   const reset = () => {
+    abortRef.current?.abort();
+    setFinalizing(false);
     sessionStorage.removeItem(storeKey);
     setTranscript([]);
     setCurrentStep(0);
@@ -174,14 +227,14 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
               <ProviderOverride
                 value={providerOverride}
                 onChange={setProviderOverride}
-                disabled={m.isPending}
+                disabled={busy}
                 testId="f5-provider"
               />
               {currentStep === 0 && (
                 <Button
                   data-testid="f5-start"
                   onClick={start}
-                  disabled={m.isPending}
+                  disabled={busy}
                   size="sm"
                   className="font-display tracking-wider"
                 >
@@ -255,6 +308,9 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
                   </div>
                   <div className="font-mono text-xs text-foreground">
                     {m.isPending ? "Receiving..." : currentQuestion}
+                    {finalizing && (
+                      <span className="ml-1 inline-block animate-pulse">▍</span>
+                    )}
                   </div>
                 </div>
               )}
@@ -266,17 +322,17 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder={currentStep === 0 ? "Press START first" : "Answer..."}
-                disabled={currentStep === 0 || m.isPending || !!spc}
+                disabled={currentStep === 0 || busy || !!spc}
                 className="font-mono text-xs min-h-[80px] bg-background/50"
               />
               <Button
                 data-testid="f5-submit"
                 onClick={submit}
-                disabled={currentStep === 0 || m.isPending || !draft.trim() || !!spc}
+                disabled={currentStep === 0 || busy || !draft.trim() || !!spc}
                 className="w-full font-display tracking-wider"
               >
                 <Send className="h-3 w-3 mr-2" />
-                {m.isPending ? "PROCESSING..." : "SUBMIT"}
+                {finalizing ? "SYNTHESISING..." : m.isPending ? "PROCESSING..." : "SUBMIT"}
               </Button>
             </div>
           </Card>

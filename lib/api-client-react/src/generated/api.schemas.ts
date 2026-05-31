@@ -849,6 +849,14 @@ export interface HarnessF5Input {
   provider?: LlmProvider;
 }
 
+export type HarnessF5FinalizeInputAnswers = { [key: string]: unknown };
+
+export interface HarnessF5FinalizeInput {
+  sessionId: string;
+  answers?: HarnessF5FinalizeInputAnswers;
+  provider?: LlmProvider;
+}
+
 export interface SpcSection {
   key: string;
   title: string;
