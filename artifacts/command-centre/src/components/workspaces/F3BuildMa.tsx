@@ -32,14 +32,14 @@ type Organelle = {
 };
 
 const ORGANELLES: Array<{ id: string; short: string }> = [
-  { id: "NUCLEUS", short: "Nucleus" },
-  { id: "MITOCHONDRION", short: "Mito" },
-  { id: "RIBOSOME", short: "Ribosome" },
-  { id: "MEMBRANE", short: "Membrane" },
-  { id: "ENDOPLASMIC_RETICULUM", short: "ER" },
-  { id: "GOLGI_APPARATUS", short: "Golgi" },
-  { id: "LYSOSOME", short: "Lysosome" },
-  { id: "CYTOSKELETON", short: "Cyto" },
+  { id: "NUCLEUS", short: "Core Intent" },
+  { id: "MITOCHONDRION", short: "Why & Drive" },
+  { id: "RIBOSOME", short: "Build Skills" },
+  { id: "MEMBRANE", short: "Set Boundary" },
+  { id: "ENDOPLASMIC_RETICULUM", short: "Wire Knowledge" },
+  { id: "GOLGI_APPARATUS", short: "Verify & Stage" },
+  { id: "LYSOSOME", short: "Stress-Test" },
+  { id: "CYTOSKELETON", short: "Memory & Tools" },
 ];
 
 function isComplete(status: string): boolean {
@@ -97,7 +97,7 @@ function HexCell({
         }}
       >
         <span
-          className={`font-mono text-[10px] font-bold uppercase ${
+          className={`font-mono text-[9px] font-bold uppercase text-center leading-tight px-1.5 ${
             done ? "text-primary" : active ? "text-secondary" : "text-muted-foreground"
           }`}
         >
