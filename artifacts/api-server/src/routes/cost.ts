@@ -214,4 +214,82 @@ router.patch(
   },
 );
 
+const TierGrantBody = z.object({
+  tier: z.enum(["EXPLORER", "PRACTITIONER", "ARCHITECT", "INSTITUTION"]),
+  // Optional validity window in days (default 365). Ignored when downgrading
+  // to EXPLORER, which clears the period entirely.
+  days: z.number().int().positive().max(3650).optional(),
+});
+
+/**
+ * PATCH /api/admin/subscribers/:userId/tier
+ * Admin-only. Directly sets a subscriber's tier without going through Stripe —
+ * used to comp/grant access (e.g. staff or test accounts) on environments where
+ * a real checkout is not appropriate. Sets status='active' and a forward-dated
+ * period end for non-EXPLORER tiers; granting EXPLORER resets to inactive.
+ *
+ * This does NOT touch Stripe — a later webhook from a real subscription will
+ * legitimately overwrite these values.
+ */
+router.patch(
+  "/admin/subscribers/:userId/tier",
+  requireAuth,
+  requireAdmin,
+  async (req, res) => {
+    const parse = TierGrantBody.safeParse(req.body);
+    if (!parse.success) {
+      res.status(400).json({ error: "Invalid body", detail: parse.error.message });
+      return;
+    }
+    const userIdParam = req.params.userId;
+    const userId = typeof userIdParam === "string" ? userIdParam : "";
+    if (!userId) {
+      res.status(400).json({ error: "userId required" });
+      return;
+    }
+    const targets = await db
+      .select({ id: commandCentreSubscribersTable.id })
+      .from(commandCentreSubscribersTable)
+      .where(eq(commandCentreSubscribersTable.userId, userId))
+      .limit(1);
+    if (targets.length === 0) {
+      res.status(404).json({ error: "Subscriber not found" });
+      return;
+    }
+
+    const { tier } = parse.data;
+    const isExplorer = tier === "EXPLORER";
+    const periodEnd = isExplorer
+      ? null
+      : new Date(Date.now() + (parse.data.days ?? 365) * 24 * 60 * 60 * 1000);
+
+    const [updated] = await db
+      .update(commandCentreSubscribersTable)
+      .set({
+        tier,
+        status: isExplorer ? "inactive" : "active",
+        currentPeriodEnd: periodEnd,
+        cancelAtPeriodEnd: false,
+      })
+      .where(eq(commandCentreSubscribersTable.userId, userId))
+      .returning();
+
+    req.log.info(
+      {
+        targetUserId: userId,
+        adminUserId: req.localUser!.id,
+        newTier: tier,
+      },
+      "Admin granted subscriber tier",
+    );
+    res.json({
+      ok: true,
+      userId,
+      tier: updated?.tier,
+      status: updated?.status,
+      currentPeriodEnd: updated?.currentPeriodEnd ?? null,
+    });
+  },
+);
+
 export default router;

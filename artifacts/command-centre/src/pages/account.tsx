@@ -23,7 +23,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Trash2, Save, AlertTriangle } from "lucide-react";
+import { api, ApiError } from "@/lib/api";
+import { Download, Trash2, Save, AlertTriangle, ShieldCheck } from "lucide-react";
+
+const GRANTABLE_TIERS = ["EXPLORER", "PRACTITIONER", "ARCHITECT", "INSTITUTION"] as const;
 
 export default function Account() {
   const { data: me, isLoading } = useGetMe();
@@ -35,6 +38,7 @@ export default function Account() {
   const [displayName, setDisplayName] = useState("");
   const [confirmPhrase, setConfirmPhrase] = useState("");
   const [isExporting, setIsExporting] = useState(false);
+  const [grantingTier, setGrantingTier] = useState<string | null>(null);
 
   const updateProfile = useUpdateMyProfile();
   const deleteAccount = useDeleteMyAccount();
@@ -68,6 +72,24 @@ export default function Account() {
         },
       },
     );
+  };
+
+  const handleGrantTier = async (tier: string) => {
+    if (!me) return;
+    setGrantingTier(tier);
+    try {
+      await api.patch(`/api/admin/subscribers/${me.id}/tier`, { tier });
+      toast({ title: `Tier set to ${tier}` });
+      await qc.invalidateQueries({ queryKey: ["/me"] });
+    } catch (err) {
+      toast({
+        title: "Grant failed",
+        description: err instanceof ApiError ? err.message : (err as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setGrantingTier(null);
+    }
   };
 
   const handleExport = async () => {
@@ -226,6 +248,41 @@ export default function Account() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Admin tools */}
+            {me.role === "ADMIN" && (
+              <Card data-testid="card-admin-tier">
+                <CardHeader>
+                  <CardTitle className="font-display tracking-wider flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-primary" />
+                    ADMIN — GRANT TIER
+                  </CardTitle>
+                  <CardDescription className="font-mono">
+                    Set your own subscriber tier directly, bypassing Stripe. Use to comp
+                    access for testing. A real subscription webhook will override this later.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {GRANTABLE_TIERS.map((tier) => {
+                      const isCurrent = me.subscriber.tier === tier;
+                      return (
+                        <Button
+                          key={tier}
+                          variant={isCurrent ? "default" : "outline"}
+                          onClick={() => handleGrantTier(tier)}
+                          disabled={grantingTier !== null}
+                          data-testid={`button-grant-${tier.toLowerCase()}`}
+                        >
+                          {grantingTier === tier ? "SETTING…" : tier}
+                          {isCurrent ? " ✓" : ""}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Notifications */}
             <Card data-testid="card-notifications">

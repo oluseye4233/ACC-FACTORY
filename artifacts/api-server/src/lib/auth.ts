@@ -56,6 +56,26 @@ export async function requireAuth(
     res.status(503).json({ error: "Identity service temporarily unavailable" });
     return;
   }
+  // Admin allowlist is authoritative on every request: promote an existing
+  // user whose email is in ADMIN_EMAILS but whose stored role predates the
+  // allowlist (role is otherwise only set at first JIT-sync). Only ever
+  // promotes — never demotes — to stay conservative.
+  if (
+    local.role !== "ADMIN" &&
+    local.email &&
+    adminEmails.includes(local.email.toLowerCase())
+  ) {
+    try {
+      const [promoted] = await db
+        .update(usersTable)
+        .set({ role: "ADMIN" })
+        .where(eq(usersTable.id, local.id))
+        .returning();
+      if (promoted) local = promoted;
+    } catch (err) {
+      req.log.warn({ err, userId: local.id }, "admin role re-sync failed");
+    }
+  }
   req.localUser = local;
 
   const sub = await ensureSubscriber(local.id);
