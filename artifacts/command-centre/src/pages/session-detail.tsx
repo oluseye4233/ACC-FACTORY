@@ -33,6 +33,7 @@ import { F4MicroPdd } from "@/components/workspaces/F4MicroPdd";
 import { F5BuildSpc } from "@/components/workspaces/F5BuildSpc";
 import { F6DraftPdd } from "@/components/workspaces/F6DraftPdd";
 import { F7ConvertMvp } from "@/components/workspaces/F7ConvertMvp";
+import { F6VdjBuild } from "@/components/workspaces/F6VdjBuild";
 import { F8CodeDj } from "@/components/workspaces/F8CodeDj";
 import { ProviderSelector } from "@/components/shared/ProviderSelector";
 import { SessionOrgVisibility } from "@/components/shared/SessionOrgVisibility";
@@ -323,6 +324,7 @@ export default function SessionDetail() {
                 {activeEngineId === 5 && <F5BuildSpc sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 6 && <F6DraftPdd sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 7 && <F7ConvertMvp sessionId={id} artifacts={artifacts || []} />}
+                {activeEngineId === 8 && <F6VdjBuild sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 9 && <F8CodeDj sessionId={id} artifacts={artifacts || []} />}
               </>
             )}

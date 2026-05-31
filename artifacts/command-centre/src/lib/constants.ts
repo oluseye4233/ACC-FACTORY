@@ -64,10 +64,11 @@ export const ENGINES = [
   {
     id: 8,
     name: "F6-VDJ",
-    title: "VDJ",
-    description: "Recommend IDEs and vibes for ATLAS PDDs",
+    title: "BUILD INSTRUCTIONS",
+    description:
+      "VIBE DJ recommends the IDE + coding vibe for your ATLAS PDD; HOST DJ ranks deployment hosts for your certified MVP PDD. Exportable as a build brief.",
     explainer:
-      "Side-step engine. Reads your ATLAS PDD and recommends the IDE, coding vibe, and tool-chain best suited to actually build it. Does not block the F1 → F7 sequence.",
+      "Side-step page combining the two advisory mixers — VIBE DJ (F6-VDJ) reads your ATLAS PDD to recommend the IDE, coding vibe, and tool-chain; HOST DJ (F8-HDJ) ranks deployment hosts from your certified MVP PDD. Export both as a single BUILD INSTRUCTIONS brief. Does not block the F1 → F7 sequence.",
   },
   {
     id: 9,
