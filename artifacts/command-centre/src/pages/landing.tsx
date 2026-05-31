@@ -11,12 +11,14 @@ import videoIntelligenceAsset from "@assets/The_Intelligence_Asset__Beyond_the_C
 import videoRiskToRigor from "@assets/ATANDA__Risk_to_Rigor_1779543682393.mp4";
 import videoHarnessEngineering from "@assets/Harness_Engineering_1779544662971.mp4";
 import videoEngineeringClinicalIntuition from "@assets/Engineering_Clinical_Intuition_1780237497894.mp4";
+import videoSolvingTheCodeGap from "@assets/Solving_The_Code_Gap_1780266687323.mp4";
 import paperInstrumentingCognition from "@assets/Instrumenting_Cognition_1779502799785.pdf";
 import paperAtandaCommandCentre from "@assets/ATANDA_Command_Centre_1779502924595.pdf";
 import paperCognitiveMint from "@assets/The_Cognitive_Mint_1779539510121.pdf";
 import paperDeterministicVault from "@assets/The_Deterministic_Vault_1779543698477.pdf";
 import paperHarnessEngineeringBlueprint from "@assets/Harness_Engineering_Blueprint_1779544662970.pdf";
 import paperEngineeringClinicalIntuition from "@assets/Engineering_Clinical_Intuition_1780237497892.pdf";
+import paperRiseOfCognitiveEngineering from "@assets/The_Rise_of_Cognitive_Engineering_1780266687323.pdf";
 
 const VIDEOS = [
   {
@@ -54,6 +56,12 @@ const VIDEOS = [
     title: "Engineering Clinical Intuition",
     blurb:
       "How the HARNESS encodes expert clinical intuition into reproducible, auditable cognitive assets.",
+  },
+  {
+    src: videoSolvingTheCodeGap,
+    title: "Solving The Code Gap",
+    blurb:
+      "Why the gap between intent and code is the real bottleneck — and how the HARNESS closes it with certified specs.",
   },
 ] as const;
 
@@ -93,6 +101,12 @@ const WHITEPAPERS = [
     title: "Engineering Clinical Intuition",
     blurb:
       "The doctrine for converting tacit clinical intuition into instrumented, certifiable engineering rigor.",
+  },
+  {
+    href: paperRiseOfCognitiveEngineering,
+    title: "The Rise of Cognitive Engineering",
+    blurb:
+      "The manifesto for cognitive engineering — why governing how models think is the discipline that defines the next era of building.",
   },
 ] as const;
 
