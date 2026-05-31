@@ -138,8 +138,7 @@ export default function Landing() {
                 FORGE.BONSAI <span className="text-primary">HARNESS</span>
               </h1>
               <p className="font-serif text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                A single coherent sequence. From raw idea to certified MVP PDD.
-                Dense, instrumented, and clandestine.
+                The Production Floor for Cognitive Assets
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 w-full sm:w-auto">
                 {DEMO_MODE ? (
