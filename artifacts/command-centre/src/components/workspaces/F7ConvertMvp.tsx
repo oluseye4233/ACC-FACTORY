@@ -29,8 +29,9 @@ import {
 } from "@/components/shared/ProviderOverride";
 import { useToast } from "@/hooks/use-toast";
 import { streamSse, extractApiError } from "@/lib/sse";
+import { downloadZip } from "@/lib/zipExport";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
-import { Sparkles, ShieldCheck } from "lucide-react";
+import { Sparkles, ShieldCheck, Download } from "lucide-react";
 
 const SPARTAN_STEPS = [
   "SCAN",
@@ -154,6 +155,24 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
     }
   };
 
+  const exportZip = async () => {
+    if (!result) return;
+    const files: Record<string, string> = {};
+    for (const s of result.sections) {
+      files[`${s.key}.md`] = `# ${s.title}\n\n${s.body}`;
+    }
+    files["certificate.json"] = JSON.stringify(result.cert, null, 2);
+    const verifyUrl = `${window.location.origin}/verify?cert=${encodeURIComponent(result.cert.certId)}`;
+    files["verification.md"] =
+      `# SPARTAN Certification\n\n` +
+      `- **Cert ID:** ${result.cert.certId}\n` +
+      `- **Class:** ${result.cert.class}\n` +
+      `- **CR_p:** ${result.cert.crP.toFixed(2)}\n` +
+      `- **Issued:** ${new Date(result.cert.issuedAt).toISOString()}\n\n` +
+      `## Public verification URL\n\n${verifyUrl}\n`;
+    await downloadZip(`mvp-pdd-${sessionId.slice(0, 8)}.zip`, files);
+  };
+
   const donutData = result?.donut
     ? [
         { name: "Class A", value: result.donut.a },
@@ -274,6 +293,15 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
                   </ResponsiveContainer>
                 </div>
               )}
+              <Button
+                onClick={exportZip}
+                size="sm"
+                variant="outline"
+                className="font-mono text-xs mt-4 w-full"
+                data-testid="f7-export"
+              >
+                <Download className="h-3 w-3 mr-1" /> EXPORT MVP PDD
+              </Button>
             </Card>
 
             <Card className="p-5 bg-card/50 flex flex-col min-h-0">
