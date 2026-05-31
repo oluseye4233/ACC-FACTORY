@@ -103,9 +103,9 @@ const ENTRIES: Entry[] = [
   },
   {
     id: "code-dj",
-    title: "CODE DJ",
+    title: "CODE ORACLE",
     tagline:
-      "Code Distribution Junction — PromptWare-to-codebase conversion doctrine (powers F8 Code DJ)",
+      "Code Distribution Junction — PromptWare-to-codebase conversion doctrine (powers F8 Code ORACLE)",
     jcse: 50,
     certClass: "PLATINUM",
     source: "canonical",

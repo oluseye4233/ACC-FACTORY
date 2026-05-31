@@ -91,7 +91,7 @@ export default function SessionDetail() {
   const activeEngine = ENGINES.find(e => e.id === activeEngineId) || ENGINES[0];
   
   const getFeatureStatus = (engineId: number) => {
-    // Side-step engines (F6-VDJ = 8, F8 Code DJ = 9) are not part of the F1→F7
+    // Side-step engines (F6-VDJ = 8, F8 Code ORACLE = 9) are not part of the F1→F7
     // linear pipeline and so are not represented in feature_states. Surface
     // them as AVAILABLE; the server tier/badge gates are the real authorities.
     if (engineId > 7) return FeatureStatus.AVAILABLE;

@@ -44,13 +44,13 @@ function makeHostPlan(overrides: Partial<HostingPlan> = {}): HostingPlan {
 }
 
 describe("buildInstructionsMd", () => {
-  it("renders both VIBE DJ and HOST DJ sections when both are present", () => {
+  it("renders both VIBE ORACLE and HOST ORACLE sections when both are present", () => {
     const md = buildInstructionsMd(makeVdj(), makeHostPlan());
     expect(md).toContain("# BUILD INSTRUCTIONS");
-    expect(md).toContain("## VIBE DJ — build environment (F6-VDJ)");
+    expect(md).toContain("## VIBE ORACLE — build environment (F6-VDJ)");
     expect(md).toContain("Cursor");
     expect(md).toContain("Replit Agent");
-    expect(md).toContain("## HOST DJ — hosting plan (F8-HDJ)");
+    expect(md).toContain("## HOST ORACLE — hosting plan (F8-HDJ)");
     expect(md).toContain("Replit Deployments");
     expect(md).toContain("DATABASE_URL");
     expect(md).toContain("JCSE");
@@ -58,15 +58,15 @@ describe("buildInstructionsMd", () => {
 
   it("uses explicit placeholders when a recommendation is missing", () => {
     const onlyVdj = buildInstructionsMd(makeVdj(), undefined);
-    expect(onlyVdj).toContain("No HOST DJ hosting plan has been generated");
+    expect(onlyVdj).toContain("No HOST ORACLE hosting plan has been generated");
     expect(onlyVdj).toContain("Cursor");
 
     const onlyHost = buildInstructionsMd(undefined, makeHostPlan());
-    expect(onlyHost).toContain("No VIBE DJ recommendation has been generated");
+    expect(onlyHost).toContain("No VIBE ORACLE recommendation has been generated");
     expect(onlyHost).toContain("Replit Deployments");
 
     const neither = buildInstructionsMd(undefined, undefined);
-    expect(neither).toContain("No VIBE DJ recommendation has been generated");
-    expect(neither).toContain("No HOST DJ hosting plan has been generated");
+    expect(neither).toContain("No VIBE ORACLE recommendation has been generated");
+    expect(neither).toContain("No HOST ORACLE hosting plan has been generated");
   });
 });

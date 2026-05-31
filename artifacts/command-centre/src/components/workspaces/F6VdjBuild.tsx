@@ -160,7 +160,7 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
       await exportBuildInstructions(sessionId, vdj, hostPlan);
       toast({
         title: "BUILD INSTRUCTIONS exported",
-        description: "VIBE DJ + HOST DJ brief downloaded as a ZIP.",
+        description: "VIBE ORACLE + HOST ORACLE brief downloaded as a ZIP.",
       });
     } catch {
       toast({
@@ -177,7 +177,7 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
         <EmptyState
           icon={<Wrench className="h-12 w-12" />}
           title="BUILD INSTRUCTIONS"
-          body="This page mixes the VIBE DJ build-environment recommendation (from an ATLAS PDD) and the HOST DJ hosting plan (from a certified MVP PDD)."
+          body="This page mixes the VIBE ORACLE build-environment recommendation (from an ATLAS PDD) and the HOST ORACLE hosting plan (from a certified MVP PDD)."
           hint="Draft an F6 ATLAS PDD and certify an F7 MVP PDD first"
         />
       </WorkspaceShell>
@@ -203,12 +203,12 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
       }
     >
       <div className="grid lg:grid-cols-2 gap-4">
-        {/* VIBE DJ */}
+        {/* VIBE ORACLE */}
         <Card className="p-5 bg-card/50 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
             <Music2 className="h-4 w-4 text-secondary" />
             <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
-              VIBE DJ · Build Environment (F6-VDJ)
+              VIBE ORACLE · Build Environment (F6-VDJ)
             </h4>
           </div>
           <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -297,12 +297,12 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
           )}
         </Card>
 
-        {/* HOST DJ */}
+        {/* HOST ORACLE */}
         <Card className="p-5 bg-card/50 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
             <Rocket className="h-4 w-4 text-primary" />
             <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
-              HOST DJ · Hosting Plan (F8-HDJ)
+              HOST ORACLE · Hosting Plan (F8-HDJ)
             </h4>
           </div>
           <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -448,7 +448,7 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
       <UpgradeCTA
         open={upgrade}
         onOpenChange={setUpgrade}
-        message="BUILD INSTRUCTIONS (VIBE DJ + HOST DJ) requires the relevant tier or an active escalation."
+        message="BUILD INSTRUCTIONS (VIBE ORACLE + HOST ORACLE) requires the relevant tier or an active escalation."
       />
     </WorkspaceShell>
   );

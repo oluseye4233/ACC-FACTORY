@@ -13,7 +13,7 @@ const ENGINE_LABELS: Record<number, string> = {
   6: "F6 Draft PDD",
   7: "F7 MVP PDD",
   8: "F6-VDJ / DE-SPC",
-  9: "F8 Code DJ",
+  9: "F8 Code ORACLE",
   10: "ATLAS J",
   11: "PFP",
 };

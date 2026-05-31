@@ -81,7 +81,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
         .filter(
           (a) =>
             a.artifactType === ArtifactType.MVP_PDD &&
-            // Only SPARTAN-certified MVP PDDs are valid Code DJ sources.
+            // Only SPARTAN-certified MVP PDDs are valid Code ORACLE sources.
             !!(a as HarnessArtifact & { spartanCert?: unknown }).spartanCert,
         )
         .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)),
@@ -146,7 +146,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
         <EmptyState
           icon={<ShieldCheck className="h-12 w-12" />}
           title="CERTIFIED MVP PDD REQUIRED"
-          body="Code DJ scaffolds a deploy-ready codebase from a SPARTAN-certified MVP PDD / PWDD. Run F7 first to certify a source."
+          body="Code ORACLE scaffolds a deploy-ready codebase from a SPARTAN-certified MVP PDD / PWDD. Run F7 first to certify a source."
           hint="F8 is Architect tier only — upgrade if your run is gated."
         />
       </WorkspaceShell>
@@ -178,7 +178,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
         queryKey: getListSessionArtifactsQueryKey(sessionId),
       });
       toast({
-        title: "CODE DJ COMPLETE",
+        title: "CODE ORACLE COMPLETE",
         description: `${out.files.length} files scaffolded for ${PLATFORM_LABELS[out.platform]}`,
       });
     } catch (err) {
@@ -208,7 +208,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
     }
     const bundleId = result?.artifactId ?? latestArtifact?.id;
     if (!bundleId) {
-      setPfpError("Run Code DJ first to produce a codebase bundle");
+      setPfpError("Run Code ORACLE first to produce a codebase bundle");
       return;
     }
     pfpM.mutate({
@@ -254,7 +254,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
   const downloadBundle = async () => {
     if (!result) return;
     // Ready-to-open project ZIP: the scaffold files at their real paths plus a
-    // CODE DJ operating brief (AGENTS.md) and per-IDE adapter files, so the
+    // CODE ORACLE operating brief (AGENTS.md) and per-IDE adapter files, so the
     // bundle drops straight into Cursor / Replit / Codex / Claude Code / etc.
     // and the IDE's agent keeps building in fidelity to the certified spec.
     const source = certifiedMvpSources.find((s) => s.id === sourceId);
@@ -385,7 +385,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
               className="font-display tracking-wider gap-2"
             >
               <Cpu className="h-4 w-4" />
-              {mutation.isPending ? "SCAFFOLDING..." : "RUN CODE DJ"}
+              {mutation.isPending ? "SCAFFOLDING..." : "RUN CODE ORACLE"}
             </Button>
           </div>
 
@@ -498,18 +498,18 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
             <p className="font-mono text-xs text-muted-foreground">
               {result || latestArtifact
                 ? "Cross-references the certified MVP PDD against the scaffolded codebase bundle. Critical findings hard-block further F8 runs until acknowledged."
-                : "Run Code DJ once to produce a bundle, then drift-check it against the MVP PDD."}
+                : "Run Code ORACLE once to produce a bundle, then drift-check it against the MVP PDD."}
             </p>
           )}
         </Card>
 
-        {/* HOST DJ — F8-HDJ: hosting plan, the final advisory step before publish */}
+        {/* HOST ORACLE — F8-HDJ: hosting plan, the final advisory step before publish */}
         <Card className="p-5 bg-card/50">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Rocket className="h-4 w-4 text-primary" />
               <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
-                HOST DJ · Hosting Plan (pre-publish)
+                HOST ORACLE · Hosting Plan (pre-publish)
               </h4>
             </div>
             <Button
@@ -755,7 +755,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
             <div>
               <Cpu className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="font-mono text-xs text-muted-foreground">
-                Code DJ idle — pick a certified MVP PDD, choose a platform, and
+                Code ORACLE idle — pick a certified MVP PDD, choose a platform, and
                 spin.
               </p>
             </div>
@@ -765,7 +765,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
       <UpgradeCTA
         open={upgrade}
         onOpenChange={setUpgrade}
-        message="F8 Code DJ requires Architect tier — upgrade to scaffold a full codebase from your certified MVP PDD."
+        message="F8 Code ORACLE requires Architect tier — upgrade to scaffold a full codebase from your certified MVP PDD."
       />
     </WorkspaceShell>
   );

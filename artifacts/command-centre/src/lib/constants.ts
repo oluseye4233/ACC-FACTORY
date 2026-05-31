@@ -66,14 +66,14 @@ export const ENGINES = [
     name: "F6-VDJ",
     title: "BUILD INSTRUCTIONS",
     description:
-      "VIBE DJ recommends the IDE + coding vibe for your ATLAS PDD; HOST DJ ranks deployment hosts for your certified MVP PDD. Exportable as a build brief.",
+      "VIBE ORACLE recommends the IDE + coding vibe for your ATLAS PDD; HOST ORACLE ranks deployment hosts for your certified MVP PDD. Exportable as a build brief.",
     explainer:
-      "Side-step page combining the two advisory mixers — VIBE DJ (F6-VDJ) reads your ATLAS PDD to recommend the IDE, coding vibe, and tool-chain; HOST DJ (F8-HDJ) ranks deployment hosts from your certified MVP PDD. Export both as a single BUILD INSTRUCTIONS brief. Does not block the F1 → F7 sequence.",
+      "Side-step page combining the two advisory mixers — VIBE ORACLE (F6-VDJ) reads your ATLAS PDD to recommend the IDE, coding vibe, and tool-chain; HOST ORACLE (F8-HDJ) ranks deployment hosts from your certified MVP PDD. Export both as a single BUILD INSTRUCTIONS brief. Does not block the F1 → F7 sequence.",
   },
   {
     id: 9,
     name: "F8",
-    title: "CODE DJ",
+    title: "CODE ORACLE",
     description: "Architect-only — scaffold a complete codebase from a certified MVP PDD / PWDD",
     explainer:
       "Architect-tier only. Consumes a SPARTAN-certified MVP PDD / PWDD and emits a CODEBASE_BUNDLE — up to 12 files plus a manifest, scaffolded against your chosen platform. Refuses any uncertified input.",

@@ -19,15 +19,15 @@ const hostLabel = (p: string) => HOST_LABELS[p] ?? p;
 
 const DOCTRINE_NOTE = [
   "> **Doctrine.** BUILD INSTRUCTIONS combines the two advisory side-steps of the",
-  "> FORGE.BONSAI HARNESS — **VIBE DJ (F6-VDJ)**, which reads your ATLAS PDD and",
-  "> recommends the IDE + coding vibe to build it, and **HOST DJ (F8-HDJ)**, which",
+  "> FORGE.BONSAI HARNESS — **VIBE ORACLE (F6-VDJ)**, which reads your ATLAS PDD and",
+  "> recommends the IDE + coding vibe to build it, and **HOST ORACLE (F8-HDJ)**, which",
   "> ranks deployment hosts from your certified MVP-PDD. Both are advisory: they",
   "> do not block the F1 → F7 sequence and are never SPCs.",
 ].join("\n");
 
 function vdjBlock(vdj?: VdjRecommendation): string {
   if (!vdj) {
-    return "_No VIBE DJ recommendation has been generated yet. Run VIBE DJ against an ATLAS PDD to populate this section._";
+    return "_No VIBE ORACLE recommendation has been generated yet. Run VIBE ORACLE against an ATLAS PDD to populate this section._";
   }
   const lines = [
     `- **Recommended IDE:** ${vdj.recommendedIde}`,
@@ -54,7 +54,7 @@ function vdjBlock(vdj?: VdjRecommendation): string {
 
 function hostBlock(plan?: HostingPlan): string {
   if (!plan) {
-    return "_No HOST DJ hosting plan has been generated yet. Run HOST DJ against a certified MVP-PDD to populate this section._";
+    return "_No HOST ORACLE hosting plan has been generated yet. Run HOST ORACLE against a certified MVP-PDD to populate this section._";
   }
   const lines = [
     `- **Primary host:** ${hostLabel(plan.primary.platform)} · ${plan.primary.score.toFixed(1)}/100`,
@@ -98,12 +98,12 @@ function hostBlock(plan?: HostingPlan): string {
     );
   }
   if (plan.notes) {
-    lines.push("", "**HOST DJ notes**", "", plan.notes);
+    lines.push("", "**HOST ORACLE notes**", "", plan.notes);
   }
   return lines.join("\n");
 }
 
-/** Markdown build brief combining the VIBE DJ and HOST DJ recommendations. */
+/** Markdown build brief combining the VIBE ORACLE and HOST ORACLE recommendations. */
 export function buildInstructionsMd(
   vdj?: VdjRecommendation,
   hostPlan?: HostingPlan,
@@ -113,18 +113,18 @@ export function buildInstructionsMd(
     "",
     DOCTRINE_NOTE,
     "",
-    "## VIBE DJ — build environment (F6-VDJ)",
+    "## VIBE ORACLE — build environment (F6-VDJ)",
     "",
     vdjBlock(vdj),
     "",
-    "## HOST DJ — hosting plan (F8-HDJ)",
+    "## HOST ORACLE — hosting plan (F8-HDJ)",
     "",
     hostBlock(hostPlan),
     "",
   ].join("\n");
 }
 
-/** Download the BUILD INSTRUCTIONS brief (VIBE DJ + HOST DJ) as a ZIP. */
+/** Download the BUILD INSTRUCTIONS brief (VIBE ORACLE + HOST ORACLE) as a ZIP. */
 export async function exportBuildInstructions(
   sessionId: string,
   vdj?: VdjRecommendation,

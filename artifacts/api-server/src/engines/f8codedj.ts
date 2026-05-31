@@ -89,7 +89,7 @@ export async function handleF8CodeDj(
   if (!mvp.spartanCert) {
     res.status(409).json({
       error: "Source MVP PDD is not SPARTAN-certified",
-      detail: "Code DJ refuses to scaffold from an uncertified bundle.",
+      detail: "Code ORACLE refuses to scaffold from an uncertified bundle.",
     });
     return;
   }
@@ -141,7 +141,7 @@ export async function handleF8CodeDj(
     );
   } catch (err) {
     if (sendProviderTierError(res, err)) return;
-    req.log.error({ err }, "F8 Code DJ engine call failed");
+    req.log.error({ err }, "F8 Code ORACLE engine call failed");
     res.status(502).json({
       error: "Engine call failed",
       detail: (err as Error).message,

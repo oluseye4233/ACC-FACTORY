@@ -415,7 +415,7 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
           <Card className="p-5 bg-card/50 flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                VIBE DJ
+                VIBE ORACLE
               </h4>
               <div className="flex items-center gap-2">
                 <ProviderOverride

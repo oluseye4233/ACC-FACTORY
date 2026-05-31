@@ -245,7 +245,7 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
   const push = async (mode: "create" | "update" | "existing") => {
     setPending(true);
     try {
-      // Reuse the shared CODE DJ export generator so the GitHub repo carries
+      // Reuse the shared CODE ORACLE export generator so the GitHub repo carries
       // byte-identical files to the ZIP: scaffold tree + AGENTS.md + per-IDE
       // adapter files. Doctrine stays identical across delivery channels.
       const files = buildExportFiles(bundle, source, pfp);
@@ -369,8 +369,8 @@ export function PushToGitHubButton({ bundle, source, pfp, existing }: Props) {
               {result
                 ? "This bundle is linked to a GitHub repo. Commit the regenerated scaffold straight onto the default branch, or open a pull request to review the diff before it goes live."
                 : targetMode === "existing"
-                  ? "Pushes the CODE DJ scaffold (plus AGENTS.md and per-IDE adapter files) onto a repo you already created. Use this if your GitHub token only covers selected repos and can't create new ones."
-                  : "Creates a new repo seeded with the CODE DJ scaffold plus AGENTS.md and per-IDE adapter files, so any IDE can clone and keep building in fidelity to the certified spec."}
+                  ? "Pushes the CODE ORACLE scaffold (plus AGENTS.md and per-IDE adapter files) onto a repo you already created. Use this if your GitHub token only covers selected repos and can't create new ones."
+                  : "Creates a new repo seeded with the CODE ORACLE scaffold plus AGENTS.md and per-IDE adapter files, so any IDE can clone and keep building in fidelity to the certified spec."}
             </DialogDescription>
           </DialogHeader>
 

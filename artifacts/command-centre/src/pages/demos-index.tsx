@@ -58,7 +58,7 @@ const DEMOS: DemoTile[] = [
     code: "DEMO · 03",
     title: "FULL F1 → F8 PROCESS",
     blurb:
-      "The complete 8-stage FORGE.BONSAI tour: raw prompt → atomic prompt → CELL → Micro PDD → SPC → ATLAS PDD → SPARTAN-certified MVP PDD → F8 Code DJ codebase bundle.",
+      "The complete 8-stage FORGE.BONSAI tour: raw prompt → atomic prompt → CELL → Micro PDD → SPC → ATLAS PDD → SPARTAN-certified MVP PDD → F8 Code ORACLE codebase bundle.",
     bullets: [
       "Animated walkthrough of every engine",
       "Pillar scores and badge unlocks light up live",

@@ -337,7 +337,7 @@ export default function Pricing() {
                 </p>
                 <p className="font-serif text-sm text-muted-foreground leading-relaxed mb-4">
                   Each active member is elevated to the <strong>ARCHITECT</strong> tier —
-                  unlimited F1–F7 and 2 F8 Code DJ runs per day. Best for small teams who
+                  unlimited F1–F7 and 2 F8 Code ORACLE runs per day. Best for small teams who
                   want collaboration without uncapped F8 scaffolding.
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground mb-5 flex-1">
@@ -382,12 +382,12 @@ export default function Pricing() {
                 </p>
                 <p className="font-serif text-sm text-muted-foreground leading-relaxed mb-4">
                   Each active member is elevated to the <strong>INSTITUTION</strong> tier —
-                  unlimited engine runs across every engine, including F8 Code DJ. Best for
+                  unlimited engine runs across every engine, including F8 Code ORACLE. Best for
                   teams shipping codebases at volume.
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground mb-5 flex-1">
                   <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Active members → INSTITUTION tier</li>
-                  <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Unlimited everything, including F8 Code DJ</li>
+                  <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Unlimited everything, including F8 Code ORACLE</li>
                   <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Per-org Activity audit log + CSV export</li>
                   <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> Share sessions across the team</li>
                 </ul>
@@ -494,7 +494,7 @@ export default function Pricing() {
                     live <span className="text-foreground">codebase or database</span>.
                     You define the project scope; the HARNESS protects that
                     scope across F1 → F7 and ships a certified PWDD + MVP-PDD
-                    ready for F8 Code DJ hand-off.
+                    ready for F8 Code ORACLE hand-off.
                   </p>
                   <ul className="grid sm:grid-cols-2 gap-2 text-sm">
                     {[

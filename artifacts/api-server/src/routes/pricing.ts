@@ -38,7 +38,7 @@ const DEFAULT_PRICING = {
       features: [
         "Higher daily limits across F1–F4",
         "Unlock F5 SPC Builder",
-        "Unlock F6 PDD Drafter + VIBE DJ",
+        "Unlock F6 PDD Drafter + VIBE ORACLE",
         "Unlock F7 SPARTAN Compressor",
         "SPARTAN certificate issuance",
         "Email support",

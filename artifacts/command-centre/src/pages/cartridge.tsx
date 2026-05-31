@@ -264,7 +264,7 @@ export default function Cartridge() {
               project scope first — it{" "}
               <strong className="text-foreground">protects every prompt</strong>{" "}
               from F1 → F7 from drifting off-mission, then the HARNESS produces
-              a certified PWDD and an MVP-PDD ready for F8 Code DJ hand-off
+              a certified PWDD and an MVP-PDD ready for F8 Code ORACLE hand-off
               (Architect tier).
             </p>
           </div>
@@ -737,7 +737,7 @@ export default function Cartridge() {
                 <CardDescription className="font-serif">
                   Your cartridge is built and the scope is pinned. Starting the
                   session unlocks F1 → F7 against this protected context. F8
-                  Code DJ becomes available on the session page (Architect tier
+                  Code ORACLE becomes available on the session page (Architect tier
                   required) once F7 certifies the MVP-PDD.
                 </CardDescription>
               </CardHeader>

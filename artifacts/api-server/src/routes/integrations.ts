@@ -317,7 +317,7 @@ router.post(
 // ─── GitHub (per-user personal access token) ───────────────────────────────
 //
 // Each subscriber connects their OWN GitHub by pasting a personal access token
-// (mirrors the per-user Sphinx credential pattern), so a CODE DJ codebase push
+// (mirrors the per-user Sphinx credential pattern), so a CODE ORACLE codebase push
 // lands in *their* account — not the Repl owner's. The token is stored
 // encrypted in `integration_credentials` and decrypted only at push time.
 
@@ -702,13 +702,13 @@ router.get(
   },
 );
 
-// ─── POST push a CODE DJ codebase bundle to a new GitHub repo ───────────────
+// ─── POST push a CODE ORACLE codebase bundle to a new GitHub repo ───────────────
 const RepoNameRe = /^[A-Za-z0-9._-]{1,100}$/u;
 const TargetRepoRe = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/u;
 const PushCodebaseBody = z.object({
   // The CODEBASE_BUNDLE artifact this push corresponds to — for ownership
   // checks and lineage. The file *contents* are assembled client-side by the
-  // shared CODE DJ export generator so they are byte-identical to the ZIP.
+  // shared CODE ORACLE export generator so they are byte-identical to the ZIP.
   artifactId: z.string().uuid(),
   // Required for "create"; ignored for "update" / "existing". Optional so an
   // "existing"-mode push (which targets `targetRepo` instead) can omit it.
@@ -726,7 +726,7 @@ const PushCodebaseBody = z.object({
   description: z.string().max(350).optional(),
   private: z.boolean().optional(),
   // "create" (default) makes a brand-new repo; "update" commits a fresh tree
-  // on top of the repo already linked to this bundle (re-running CODE DJ);
+  // on top of the repo already linked to this bundle (re-running CODE ORACLE);
   // "existing" commits onto a repo the user already created (named via
   // `targetRepo`) when this bundle isn't linked to a repo yet.
   mode: z.enum(["create", "update", "existing"]).optional(),
@@ -752,7 +752,7 @@ const PushCodebaseBody = z.object({
 router.post(
   "/integrations/github/push-codebase",
   requireAuth,
-  // F8 / CODE DJ is an Architect-tier capability; gate the live handoff the same.
+  // F8 / CODE ORACLE is an Architect-tier capability; gate the live handoff the same.
   requireTier("ARCHITECT"),
   async (req, res): Promise<void> => {
     const parsed = PushCodebaseBody.safeParse(req.body);
@@ -787,7 +787,7 @@ router.post(
     }
 
     // Ownership + lineage: the bundle artifact must belong to this user and be
-    // a CODE DJ codebase bundle.
+    // a CODE ORACLE codebase bundle.
     const artRows = await db
       .select()
       .from(harnessArtifactsTable)
@@ -805,7 +805,7 @@ router.post(
     }
     if (artifact.artifactType !== "CODEBASE_BUNDLE") {
       res.status(400).json({
-        error: `Only CODE DJ codebase bundles can be pushed (got ${artifact.artifactType}).`,
+        error: `Only CODE ORACLE codebase bundles can be pushed (got ${artifact.artifactType}).`,
         code: "GITHUB_WRONG_TYPE",
       });
       return;
@@ -870,7 +870,7 @@ router.post(
       | undefined;
 
     // Build the git tree once — used by both code paths. Omitting `base_tree`
-    // makes this the *complete* tree, so files removed between CODE DJ runs are
+    // makes this the *complete* tree, so files removed between CODE ORACLE runs are
     // dropped rather than left behind as stale entries.
     const treeEntries = Object.entries(files).map(([path, fileContent]) => ({
       path,
@@ -1002,10 +1002,10 @@ router.post(
           owner: pushOwner,
           repo: pushRepo,
           message: seedingEmptyRepo
-            ? "CODE DJ scaffold — initial commit"
+            ? "CODE ORACLE scaffold — initial commit"
             : asPullRequest
-              ? "CODE DJ scaffold — proposed update"
-              : "CODE DJ scaffold — update",
+              ? "CODE ORACLE scaffold — proposed update"
+              : "CODE ORACLE scaffold — update",
           tree: tree.data.sha,
           parents: seedingEmptyRepo ? [] : [headSha!],
         });
@@ -1031,11 +1031,11 @@ router.post(
           const pr = await gh.rest.pulls.create({
             owner: pushOwner,
             repo: pushRepo,
-            title: "CODE DJ scaffold — proposed update",
+            title: "CODE ORACLE scaffold — proposed update",
             head: prBranch,
             base: branch,
             body:
-              "This pull request was opened by CODE DJ (F8) with a freshly regenerated scaffold.\n\n" +
+              "This pull request was opened by CODE ORACLE (F8) with a freshly regenerated scaffold.\n\n" +
               "Review the diff — including any files removed between runs — then merge to apply the update to the default branch.",
           });
           pullRequestUrl = pr.data.html_url;
@@ -1075,7 +1075,7 @@ router.post(
       try {
         const repo = await gh.rest.repos.createForAuthenticatedUser({
           name: newRepoName,
-          description: description ?? "Scaffolded by CODE DJ (F8) — ATANDA Command Centre",
+          description: description ?? "Scaffolded by CODE ORACLE (F8) — ATANDA Command Centre",
           private: isPrivate,
           auto_init: false,
         });
@@ -1115,7 +1115,7 @@ router.post(
         const commit = await gh.rest.git.createCommit({
           owner,
           repo: newRepoName,
-          message: "CODE DJ scaffold — initial commit",
+          message: "CODE ORACLE scaffold — initial commit",
           tree: tree.data.sha,
         });
         await gh.rest.git.createRef({

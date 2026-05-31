@@ -432,12 +432,12 @@ VERIFICATION
   Hash:  3b1c…d4e9   (matches issuer signature)
   Issued: 2026-05-20  by: <operator>`,
     bridgeToNext:
-      "The MVP PDD is the spec. F8 Code DJ (Architect tier) takes that certified spec and scaffolds the actual codebase — a runnable bundle for your chosen platform, with the PDD baked into the manifest.",
+      "The MVP PDD is the spec. F8 Code ORACLE (Architect tier) takes that certified spec and scaffolds the actual codebase — a runnable bundle for your chosen platform, with the PDD baked into the manifest.",
   },
   {
     id: 8,
     code: "F8",
-    name: "CODE DJ",
+    name: "CODE ORACLE",
     tagline: "Scaffold the codebase from the certified MVP PDD.",
     icon: Code2,
     whyItMatters:
@@ -514,7 +514,7 @@ export default function Demo() {
             <p className="text-base md:text-lg text-muted-foreground font-serif max-w-3xl leading-relaxed">
               Watch one raw idea move through the entire FORGE.BONSAI HARNESS — from
               fuzzy human prompt to SPARTAN-certified MVP PDD, and on into a runnable
-              codebase via F8 Code DJ — using a real worked example. Read at your own
+              codebase via F8 Code ORACLE — using a real worked example. Read at your own
               pace. No tokens spent, no session created.
             </p>
             <div className="mt-6 p-4 rounded-lg border bg-card/60 font-mono text-xs md:text-sm">
@@ -651,7 +651,7 @@ export default function Demo() {
               All three on-ramps feed the same F1–F8 pipeline shown below.
               <span className="text-foreground">
                 {" "}
-                F8 Code DJ remains Architect-tier-only — included with TEAM LITE
+                F8 Code ORACLE remains Architect-tier-only — included with TEAM LITE
                 ($99/seat → ARCHITECT, 2 F8/day) and TEAM ($149/seat →
                 INSTITUTION, unlimited F8) seat memberships.
               </span>

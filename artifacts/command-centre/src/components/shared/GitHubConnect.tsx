@@ -159,7 +159,7 @@ export function GitHubConnect() {
   return (
     <div className="space-y-3" data-testid="github-not-connected">
       <p className="text-xs text-muted-foreground font-mono">
-        Connect GitHub to enable “Push to GitHub” on F8 CODE DJ codebases — repos
+        Connect GitHub to enable “Push to GitHub” on F8 CODE ORACLE codebases — repos
         land in your own account. For the tightest control, paste a{" "}
         <span className="font-bold">fine-grained token</span> limited to only the
         repos you choose.

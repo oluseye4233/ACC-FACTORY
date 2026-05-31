@@ -97,7 +97,7 @@ const HdjOutputSchema = z.object({
   notes: z.string().max(800).default(""),
 });
 
-// Host DJ is advisory: its persisted/returned env template must carry NAMES ONLY.
+// Host ORACLE is advisory: its persisted/returned env template must carry NAMES ONLY.
 // A model can still smuggle a value into the `key` ("DATABASE_URL=postgres://…")
 // or `description` ("token: sk-…"), so both are sanitised server-side before the
 // HOSTING_PLAN is persisted/returned.
@@ -168,12 +168,12 @@ export async function handleF8Hdj(req: Request, res: Response): Promise<void> {
       .json({ error: "Certified MVP PDD artifact not found in this session" });
     return;
   }
-  // Host DJ only plans hosting for artefacts that actually passed SPARTAN — it
+  // Host ORACLE only plans hosting for artefacts that actually passed SPARTAN — it
   // is the last gate before a certified PDD is published.
   if (!mvp.spartanCert) {
     res.status(409).json({
       error: "Source MVP PDD is not SPARTAN-certified",
-      detail: "Host DJ refuses to plan hosting for an uncertified bundle.",
+      detail: "Host ORACLE refuses to plan hosting for an uncertified bundle.",
     });
     return;
   }
@@ -214,14 +214,14 @@ export async function handleF8Hdj(req: Request, res: Response): Promise<void> {
       F8_HDJ_SYSTEM,
       userPrompt,
       HdjOutputSchema,
-      // engineId=12 keeps Host DJ telemetry separable (F8 Code DJ=9, ATLAS J=10,
-      // PFP=11). Host DJ is a post-F8 advisory side-step; it is not rate-limited
+      // engineId=12 keeps Host ORACLE telemetry separable (F8 Code ORACLE=9, ATLAS J=10,
+      // PFP=11). Host ORACLE is a post-F8 advisory side-step; it is not rate-limited
       // per-day (tier + cost gated only), matching f6-vdj / pfp.
       { sessionId, userId: guard.userId, engineId: 12 },
     );
   } catch (err) {
     if (sendProviderTierError(res, err)) return;
-    req.log.error({ err }, "F8 Host DJ engine call failed");
+    req.log.error({ err }, "F8 Host ORACLE engine call failed");
     res.status(502).json({
       error: "Engine call failed",
       detail: (err as Error).message,
@@ -246,7 +246,7 @@ export async function handleF8Hdj(req: Request, res: Response): Promise<void> {
   const jcse = Math.round(primaryRow.weightedTotal);
 
   // Defensive: strip any value-bearing content a model might smuggle into the env
-  // template — Host DJ is advisory and must never echo a secret value. Entries
+  // template — Host ORACLE is advisory and must never echo a secret value. Entries
   // whose key cannot be normalised to a bare NAME are dropped entirely.
   const envTemplate = out.sdf.envTemplate
     .map((e) => {

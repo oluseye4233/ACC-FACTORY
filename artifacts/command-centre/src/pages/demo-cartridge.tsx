@@ -107,7 +107,7 @@ Total wall time:  ~9 s for 2 documents (provider-dependent)`,
     title: "UNLOCK FULL F1–F7 IN ONE SHOT",
     tagline: "All engines flip to AVAILABLE simultaneously.",
     whyItMatters:
-      "Manual and ingested sessions unlock engines one-by-one as you produce artefacts. Cartridge-origin sessions don't — because you already have the context, you get F1 through F7 unlocked at session start. F8 Code DJ stays gated to Architect tier (it is not auto-run from the cartridge start).",
+      "Manual and ingested sessions unlock engines one-by-one as you produce artefacts. Cartridge-origin sessions don't — because you already have the context, you get F1 through F7 unlocked at session start. F8 Code ORACLE stays gated to Architect tier (it is not auto-run from the cartridge start).",
     inputLabel: "POST /api/cartridge/:id/start-session",
     inputBody: `Creates:    harness_sessions  (origin='cartridge')
             session.cartridgeId = <package id>
@@ -133,7 +133,7 @@ Unlocks:    F1 AVAILABLE
   [F5 SPC    ]   AVAILABLE
   [F6 ATLAS  ]   AVAILABLE
   [F7 MVP PDD]   AVAILABLE
-  [F8 CODE DJ]   ARCHITECT TIER REQUIRED`,
+  [F8 CODE ORACLE]   ARCHITECT TIER REQUIRED`,
     icon: Workflow,
   },
   {
