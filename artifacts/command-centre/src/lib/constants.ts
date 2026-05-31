@@ -11,7 +11,8 @@ export const ENGINES = [
     id: 2,
     name: "F2",
     title: "ATOMIC PROMPT",
-    description: "Refine Atomic Prompts into Micro Agent (MA) Birth Packages",
+    description:
+      "Create Single purpose Molecular Agent specifications, the building blocks of Cognitive Engineering",
     explainer:
       "Rewrites the diagnosed prompt into a single, atomic, executable instruction with explicit role, intent, constraints, and acceptance criteria — the unit every downstream engine consumes.",
   },
@@ -19,7 +20,8 @@ export const ENGINES = [
     id: 3,
     name: "F3",
     title: "MA BIRTH PACKAGE",
-    description: "Grow Micro Agent (MA) Birth Packages into Micro PDDs",
+    description:
+      "Create Audit and Specification documentation for your Molecular Agent called a Micro PromptWare Design Document (MPDD)",
     explainer:
       "Streams a CELL Micro Agent Birth Package: persona, capabilities, guardrails, and the minimum context window needed for the agent to behave reproducibly. May escalate to F5 if scope exceeds a single agent.",
   },
@@ -27,7 +29,8 @@ export const ENGINES = [
     id: 4,
     name: "F4",
     title: "MICRO PDD",
-    description: "Expand Micro PDDs into full SPCs",
+    description:
+      "Build a full Ai Agent Specification (Ai DNA) by yourself called a Super Prompt Card (SPC)",
     explainer:
       "Converts the MA Birth Package into a Micro PDD — a compact, deploy-shaped Product Design Document for a single agent or feature, ready to be lifted into a full SPC.",
   },
@@ -35,7 +38,8 @@ export const ENGINES = [
     id: 5,
     name: "F5",
     title: "SPC",
-    description: "Draft 4-Part ATLAS PDDs from SPCs",
+    description:
+      "Create a Single Agent with Embedded Ethical frameworks, Industry Complaince and deep Industry knowledge called a Super Prompt Card (SPC)",
     explainer:
       "Builds a full Super Prompt Card (SPC) — the interactive, multi-section specification a senior operator would hand to a build team. Practitioner-tier and above.",
   },
@@ -43,7 +47,8 @@ export const ENGINES = [
     id: 6,
     name: "F6",
     title: "ATLAS PDD",
-    description: "Draft ATLAS PDDs from scratch or SPCs",
+    description:
+      "Draft a comprehensive Audit and Requirements document of your Super Prompt Card and also obtain a technical recommendation of how to build it",
     explainer:
       "Drafts the 4-Part ATLAS PDD (Cheat Sheet · Exec Summary · Worksheet · Implementation) — the investor- and engineer-grade document the SPC has been earning its way toward.",
   },
@@ -51,7 +56,8 @@ export const ENGINES = [
     id: 7,
     name: "F7",
     title: "MVP PDD",
-    description: "SPARTAN-compress into certified MVP PDDs",
+    description:
+      "Creat an Minimum Viable Product (MVP) requirement document and handover to your tech team",
     explainer:
       "Streams the SPARTAN compressor: math-audited rubric pass, scope/risk lock, and a public verification URL stamped onto the certified MVP PDD (PWDD for ingested / cartridge sessions).",
   },
