@@ -10,11 +10,13 @@ import videoForgeFactoryFloor from "@assets/FORGE_Factory_Floor_1779502866103.mp
 import videoIntelligenceAsset from "@assets/The_Intelligence_Asset__Beyond_the_Code_Barrier_1779539479111.mp4";
 import videoRiskToRigor from "@assets/ATANDA__Risk_to_Rigor_1779543682393.mp4";
 import videoHarnessEngineering from "@assets/Harness_Engineering_1779544662971.mp4";
+import videoEngineeringClinicalIntuition from "@assets/Engineering_Clinical_Intuition_1780237497894.mp4";
 import paperInstrumentingCognition from "@assets/Instrumenting_Cognition_1779502799785.pdf";
 import paperAtandaCommandCentre from "@assets/ATANDA_Command_Centre_1779502924595.pdf";
 import paperCognitiveMint from "@assets/The_Cognitive_Mint_1779539510121.pdf";
 import paperDeterministicVault from "@assets/The_Deterministic_Vault_1779543698477.pdf";
 import paperHarnessEngineeringBlueprint from "@assets/Harness_Engineering_Blueprint_1779544662970.pdf";
+import paperEngineeringClinicalIntuition from "@assets/Engineering_Clinical_Intuition_1780237497892.pdf";
 
 const VIDEOS = [
   {
@@ -46,6 +48,12 @@ const VIDEOS = [
     title: "Harness Engineering",
     blurb:
       "Inside the engineering of the FORGE.BONSAI HARNESS — how the engine bay is wired end-to-end.",
+  },
+  {
+    src: videoEngineeringClinicalIntuition,
+    title: "Engineering Clinical Intuition",
+    blurb:
+      "How the HARNESS encodes expert clinical intuition into reproducible, auditable cognitive assets.",
   },
 ] as const;
 
@@ -79,6 +87,12 @@ const WHITEPAPERS = [
     title: "Harness Engineering Blueprint",
     blurb:
       "The engineering blueprint behind the FORGE.BONSAI HARNESS — engines, contracts, and the production line.",
+  },
+  {
+    href: paperEngineeringClinicalIntuition,
+    title: "Engineering Clinical Intuition",
+    blurb:
+      "The doctrine for converting tacit clinical intuition into instrumented, certifiable engineering rigor.",
   },
 ] as const;
 
