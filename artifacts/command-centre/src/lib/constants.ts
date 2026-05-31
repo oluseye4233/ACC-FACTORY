@@ -37,7 +37,7 @@ export const ENGINES = [
     title: "SPC",
     description: "Draft 4-Part ATLAS PDDs from SPCs",
     explainer:
-      "Builds a full Super Prompt Cartridge — the interactive, multi-section specification a senior operator would hand to a build team. Practitioner-tier and above.",
+      "Builds a full Super Prompt Card (SPC) — the interactive, multi-section specification a senior operator would hand to a build team. Practitioner-tier and above.",
   },
   {
     id: 6,
