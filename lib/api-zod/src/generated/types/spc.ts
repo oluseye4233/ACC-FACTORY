@@ -15,5 +15,7 @@ export interface Spc {
   gro: SpcGro;
   zpos: SpcZpos;
   /** @nullable */
+  name?: string | null;
+  /** @nullable */
   artifactId?: string | null;
 }

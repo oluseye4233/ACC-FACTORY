@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessF5,
+  useRenameArtifact,
   getHarnessF5FinalizeStreamUrl,
   getListSessionArtifactsQueryKey,
   getListFeatureStateQueryKey,
@@ -10,6 +11,7 @@ import {
   ArtifactType,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
@@ -61,6 +63,7 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
   );
   const [draft, setDraft] = useState("");
   const [spc, setSpc] = useState<Spc | undefined>();
+  const [spcName, setSpcName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
@@ -79,11 +82,13 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
           currentStep: number;
           currentQuestion: string;
           spc?: Spc;
+          spcName?: string;
         };
         setTranscript(saved.transcript || []);
         setCurrentStep(saved.currentStep || 0);
         setCurrentQuestion(saved.currentQuestion || "");
         setSpc(saved.spc);
+        if (saved.spcName) setSpcName(saved.spcName);
       }
     } catch {
       /* ignore */
@@ -93,9 +98,16 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
   useEffect(() => {
     sessionStorage.setItem(
       storeKey,
-      JSON.stringify({ transcript, currentStep, currentQuestion, spc }),
+      JSON.stringify({ transcript, currentStep, currentQuestion, spc, spcName }),
     );
-  }, [transcript, currentStep, currentQuestion, spc, storeKey]);
+  }, [transcript, currentStep, currentQuestion, spc, spcName, storeKey]);
+
+  // Seed the name field from a previously-saved SPC so reloads show its name.
+  useEffect(() => {
+    if (latestArtifact?.name) {
+      setSpcName((prev) => (prev ? prev : latestArtifact.name ?? ""));
+    }
+  }, [latestArtifact?.name]);
 
   const m = useHarnessF5({
     mutation: {
@@ -120,7 +132,34 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
     },
   });
 
+  const rename = useRenameArtifact({
+    mutation: {
+      onSuccess: () => {
+        setError(null);
+        qc.invalidateQueries({ queryKey: getListSessionArtifactsQueryKey(sessionId) });
+      },
+      onError: (e) => setError(extractApiError(e).message),
+    },
+  });
+
   const busy = m.isPending || finalizing;
+
+  // The authoritative rename target is the artifact id returned by the F5
+  // finalize stream (spc.artifactId). latestArtifact comes from the artifacts
+  // query, which refetches asynchronously after a new SPC is created, so it can
+  // briefly still point at a PREVIOUS SPC — renaming that would rename the wrong
+  // artifact. Fall back to latestArtifact.id only for reloads where spc was
+  // restored without an id.
+  const targetArtifactId = spc?.artifactId ?? latestArtifact?.id;
+  const targetArtifact =
+    (artifacts ?? []).find((a) => a.id === targetArtifactId) ?? latestArtifact;
+  const targetName = targetArtifact?.name ?? null;
+
+  const saveName = () => {
+    const trimmed = spcName.trim();
+    if (!trimmed || !targetArtifactId || trimmed === (targetName ?? "")) return;
+    rename.mutate({ id: targetArtifactId, data: { name: trimmed } });
+  };
 
   // FORGE.COMMIT synthesis is the heavy LLM call; it streams over SSE so the
   // proxy doesn't abort a multi-minute generation (the 502 failure mode).
@@ -134,7 +173,12 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
     try {
       await streamSse(
         getHarnessF5FinalizeStreamUrl(),
-        { sessionId, answers, ...overrideToBody(providerOverride) },
+        {
+          sessionId,
+          answers,
+          ...(spcName.trim() ? { name: spcName.trim() } : {}),
+          ...overrideToBody(providerOverride),
+        },
         (e) => {
           if (e.event === "step") {
             const d = e.data as { label?: string };
@@ -203,15 +247,25 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
     setCurrentStep(0);
     setCurrentQuestion("Press START to receive the first FORGE.CHARTER question.");
     setSpc(undefined);
+    setSpcName("");
     setError(null);
   };
 
   const exportSpc = async () => {
     if (!spc) return;
-    const md = spc.sections.map((s) => `# ${s.title}\n\n${s.body}`).join("\n\n---\n\n");
-    await downloadZip(`spc-${sessionId.slice(0, 8)}.zip`, {
-      "spc.md": md,
-      "spc.json": JSON.stringify(spc, null, 2),
+    const displayName = spcName.trim() || spc.name || null;
+    const slug = displayName
+      ? displayName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 48) || sessionId.slice(0, 8)
+      : sessionId.slice(0, 8);
+    const heading = displayName ? `# ${displayName}\n\n` : "";
+    const body = spc.sections.map((s) => `# ${s.title}\n\n${s.body}`).join("\n\n---\n\n");
+    await downloadZip(`spc-${slug}.zip`, {
+      "spc.md": heading + body,
+      "spc.json": JSON.stringify({ ...spc, name: displayName }, null, 2),
     });
   };
 
@@ -378,6 +432,53 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
                     <Download className="h-3 w-3 mr-1" /> EXPORT
                   </Button>
                 </div>
+              )}
+            </div>
+            <div className="mb-3 space-y-1">
+              <label
+                htmlFor="f5-spc-name"
+                className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground"
+              >
+                Name your SPC
+              </label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="f5-spc-name"
+                  data-testid="f5-spc-name"
+                  value={spcName}
+                  onChange={(e) => setSpcName(e.target.value)}
+                  maxLength={120}
+                  placeholder="e.g. Atlas Onboarding Engine"
+                  disabled={busy || rename.isPending}
+                  className="font-mono text-xs bg-background/50 h-8"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && spc) {
+                      e.preventDefault();
+                      saveName();
+                    }
+                  }}
+                />
+                {spc && targetArtifactId && (
+                  <Button
+                    onClick={saveName}
+                    size="sm"
+                    variant="outline"
+                    className="font-mono text-xs shrink-0"
+                    data-testid="f5-spc-name-save"
+                    disabled={
+                      rename.isPending ||
+                      !spcName.trim() ||
+                      spcName.trim() === (targetName ?? "")
+                    }
+                  >
+                    {rename.isPending ? "SAVING…" : targetName ? "RENAME" : "SAVE NAME"}
+                  </Button>
+                )}
+              </div>
+              {!spc && (
+                <p className="font-mono text-[10px] text-muted-foreground/70">
+                  Optional — give your SPC a name before FORGE.COMMIT, or add one after.
+                </p>
               )}
             </div>
             {spc ? (

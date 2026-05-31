@@ -106,6 +106,7 @@ export interface PersistArtifactInput {
   userId: string;
   featureId: number;
   artifactType: ArtifactType;
+  name?: string | null;
   artifactContent: Record<string, unknown>;
   jcseScore?: number | null;
   certTier?: string | null;
@@ -128,6 +129,7 @@ export async function persistArtifact(
       userId: input.userId,
       featureId: input.featureId,
       artifactType: input.artifactType,
+      name: input.name ?? null,
       artifactContent: input.artifactContent,
       jcseScore: input.jcseScore ?? null,
       certTier: input.certTier ?? null,

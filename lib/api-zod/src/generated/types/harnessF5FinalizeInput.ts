@@ -10,6 +10,11 @@ import type { LlmProvider } from './llmProvider';
 
 export interface HarnessF5FinalizeInput {
   sessionId: string;
+  /**
+     * @maxLength 120
+     * @nullable
+     */
+  name?: string | null;
   answers?: HarnessF5FinalizeInputAnswers;
   provider?: LlmProvider;
 }

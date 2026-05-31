@@ -196,6 +196,7 @@ export const GetSessionResponse = zod.object({
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
   "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
+  "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -357,6 +358,7 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
   "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
+  "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -382,6 +384,43 @@ export const GetArtifactResponse = zod.object({
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
   "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
+  "name": zod.string().nullish(),
+  "artifactContent": zod.record(zod.string(), zod.unknown()),
+  "jcseScore": zod.number().nullish(),
+  "certTier": zod.string().nullish(),
+  "groState": zod.string().optional(),
+  "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "modelId": zod.string().nullish(),
+  "runDurationMs": zod.number().nullish(),
+  "runInputTokens": zod.number().nullish(),
+  "runOutputTokens": zod.number().nullish(),
+  "runAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Rename an artifact (e.g. name your SPC)
+ */
+export const RenameArtifactParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const renameArtifactBodyNameMax = 120;
+
+
+
+export const RenameArtifactBody = zod.object({
+  "name": zod.string().min(1).max(renameArtifactBodyNameMax)
+})
+
+export const RenameArtifactResponse = zod.object({
+  "id": zod.string().uuid(),
+  "sessionId": zod.string().uuid(),
+  "featureId": zod.number(),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
+  "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -552,6 +591,7 @@ export const HarnessF5Response = zod.object({
   "iqs": zod.number(),
   "gro": zod.enum(['SAFE_LIFE', 'GREY', 'RED']),
   "zpos": zod.record(zod.string(), zod.unknown()),
+  "name": zod.string().nullish(),
   "artifactId": zod.string().uuid().nullish()
 }),zod.null()]).optional()
 })
@@ -560,8 +600,13 @@ export const HarnessF5Response = zod.object({
 /**
  * @summary SPC Builder — FORGE.COMMIT synthesis (SSE stream)
  */
+export const harnessF5FinalizeStreamBodyNameMax = 120;
+
+
+
 export const HarnessF5FinalizeStreamBody = zod.object({
   "sessionId": zod.string().uuid(),
+  "name": zod.string().max(harnessF5FinalizeStreamBodyNameMax).nullish(),
   "answers": zod.record(zod.string(), zod.unknown()).optional(),
   "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
@@ -1376,6 +1421,7 @@ export const HarnessEvolveResponse = zod.object({
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
   "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
+  "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),

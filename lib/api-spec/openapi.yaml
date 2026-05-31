@@ -317,6 +317,26 @@ paths:
               schema: { $ref: "#/components/schemas/HarnessArtifact" }
         "404":
           $ref: "#/components/responses/NotFound"
+  /artifacts/{id}/name:
+    patch:
+      operationId: renameArtifact
+      tags: [artifacts]
+      summary: Rename an artifact (e.g. name your SPC)
+      parameters:
+        - $ref: "#/components/parameters/ArtifactId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RenameArtifactInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HarnessArtifact" }
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /harness/f1:
     post:
@@ -1840,6 +1860,7 @@ components:
         sessionId: { type: string, format: uuid }
         featureId: { type: integer }
         artifactType: { $ref: "#/components/schemas/ArtifactType" }
+        name: { type: ["string", "null"] }
         artifactContent: { type: object, additionalProperties: true }
         jcseScore: { type: ["integer", "null"] }
         certTier: { type: ["string", "null"] }
@@ -2016,10 +2037,17 @@ components:
       required: [sessionId]
       properties:
         sessionId: { type: string, format: uuid }
+        name: { type: ["string", "null"], maxLength: 120 }
         answers:
           type: object
           additionalProperties: true
         provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    RenameArtifactInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
 
     SpcSection:
       type: object
@@ -2041,6 +2069,7 @@ components:
         zpos:
           type: object
           additionalProperties: true
+        name: { type: ["string", "null"] }
         artifactId: { type: ["string", "null"], format: uuid }
 
     F5StepOutcome:

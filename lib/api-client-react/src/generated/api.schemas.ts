@@ -649,6 +649,8 @@ export interface HarnessArtifact {
   sessionId: string;
   featureId: number;
   artifactType: ArtifactType;
+  /** @nullable */
+  name?: string | null;
   artifactContent: HarnessArtifactArtifactContent;
   /** @nullable */
   jcseScore?: number | null;
@@ -853,8 +855,21 @@ export type HarnessF5FinalizeInputAnswers = { [key: string]: unknown };
 
 export interface HarnessF5FinalizeInput {
   sessionId: string;
+  /**
+     * @maxLength 120
+     * @nullable
+     */
+  name?: string | null;
   answers?: HarnessF5FinalizeInputAnswers;
   provider?: LlmProvider;
+}
+
+export interface RenameArtifactInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
 }
 
 export interface SpcSection {
@@ -879,6 +894,8 @@ export interface Spc {
   iqs: number;
   gro: SpcGro;
   zpos: SpcZpos;
+  /** @nullable */
+  name?: string | null;
   /** @nullable */
   artifactId?: string | null;
 }

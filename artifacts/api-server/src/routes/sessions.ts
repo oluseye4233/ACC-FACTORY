@@ -85,6 +85,7 @@ function serializeArtifact(
     sessionId: a.sessionId,
     featureId: a.featureId,
     artifactType: a.artifactType,
+    name: a.name,
     artifactContent: a.artifactContent as Record<string, unknown>,
     jcseScore: a.jcseScore,
     certTier: a.certTier,

@@ -29,6 +29,7 @@ export const harnessArtifactsTable = pgTable("harness_artifacts", {
     .references(() => usersTable.id, { onDelete: "cascade" }),
   featureId: integer("feature_id").notNull(),
   artifactType: text("artifact_type").notNull().$type<ArtifactType>(),
+  name: text("name"),
   artifactContent: jsonb("artifact_content").notNull(),
   jcseScore: integer("jcse_score"),
   certTier: text("cert_tier"),

@@ -93,6 +93,7 @@ import type {
   PromptLibraryPage,
   RateLimitedResponse,
   ReaderCodeInput,
+  RenameArtifactInput,
   SessionDetail,
   SessionInput,
   SessionUpdate,
@@ -1496,6 +1497,78 @@ export function useGetArtifact<TData = Awaited<ReturnType<typeof getArtifact>>, 
 
 
 
+
+export const getRenameArtifactUrl = (id: string,) => {
+
+
+
+
+  return `/api/artifacts/${id}/name`
+}
+
+/**
+ * @summary Rename an artifact (e.g. name your SPC)
+ */
+export const renameArtifact = async (id: string,
+    renameArtifactInput: RenameArtifactInput, options?: RequestInit): Promise<HarnessArtifact> => {
+
+  return customFetch<HarnessArtifact>(getRenameArtifactUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      renameArtifactInput,)
+  }
+);}
+
+
+
+
+export const getRenameArtifactMutationOptions = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameArtifact>>, TError,{id: string;data: BodyType<RenameArtifactInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof renameArtifact>>, TError,{id: string;data: BodyType<RenameArtifactInput>}, TContext> => {
+
+const mutationKey = ['renameArtifact'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof renameArtifact>>, {id: string;data: BodyType<RenameArtifactInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  renameArtifact(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RenameArtifactMutationResult = NonNullable<Awaited<ReturnType<typeof renameArtifact>>>
+    export type RenameArtifactMutationBody = BodyType<RenameArtifactInput>
+    export type RenameArtifactMutationError = ErrorType<NotFoundResponse>
+
+    /**
+ * @summary Rename an artifact (e.g. name your SPC)
+ */
+export const useRenameArtifact = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameArtifact>>, TError,{id: string;data: BodyType<RenameArtifactInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof renameArtifact>>,
+        TError,
+        {id: string;data: BodyType<RenameArtifactInput>},
+        TContext
+      > => {
+      return useMutation(getRenameArtifactMutationOptions(options));
+    }
 
 export const getHarnessF1Url = () => {
 

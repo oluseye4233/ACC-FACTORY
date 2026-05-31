@@ -15,6 +15,8 @@ export interface HarnessArtifact {
   sessionId: string;
   featureId: number;
   artifactType: ArtifactType;
+  /** @nullable */
+  name?: string | null;
   artifactContent: HarnessArtifactArtifactContent;
   /** @nullable */
   jcseScore?: number | null;

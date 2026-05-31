@@ -62,12 +62,15 @@ async function persistSpc(
   sessionId: string,
   userId: string,
   provider: LlmProvider,
+  name?: string | null,
 ): Promise<{ id: string }> {
+  const trimmed = name?.trim();
   const artifact = await persistArtifact({
     sessionId,
     userId,
     featureId: 5,
     artifactType: "SPC",
+    name: trimmed ? trimmed : null,
     artifactContent: spc,
     groState: spc.gro,
     provider,
@@ -175,7 +178,7 @@ export async function handleF5FinalizeStream(req: Request, res: Response): Promi
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { sessionId, answers, provider: bodyProvider } = parsed.data;
+  const { sessionId, answers, name, provider: bodyProvider } = parsed.data;
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
@@ -240,9 +243,10 @@ export async function handleF5FinalizeStream(req: Request, res: Response): Promi
   }
 
   // Persist regardless of client connection — the work is done and paid for.
-  const artifact = await persistSpc(spc, sessionId, guard.userId, provider);
+  const artifact = await persistSpc(spc, sessionId, guard.userId, provider, name);
 
   if (clientClosed) return;
-  send("complete", { ...spc, artifactId: artifact.id });
+  const persistedName = name?.trim() || null;
+  send("complete", { ...spc, name: persistedName, artifactId: artifact.id });
   res.end();
 }

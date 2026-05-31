@@ -170,6 +170,7 @@ export * from './promptLibraryItemSpcOrigin';
 export * from './promptLibraryPage';
 export * from './rateLimitedResponse';
 export * from './readerCodeInput';
+export * from './renameArtifactInput';
 export * from './selfDeployFactory';
 export * from './sessionDetail';
 export * from './sessionInput';
