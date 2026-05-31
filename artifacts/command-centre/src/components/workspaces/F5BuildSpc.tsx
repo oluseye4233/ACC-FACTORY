@@ -25,6 +25,8 @@ import {
 import { streamSse, extractApiError } from "@/lib/sse";
 import { Download, Send } from "lucide-react";
 import { PublishToSphinxButton } from "@/components/shared/PublishToSphinxButton";
+import { SpcLineage } from "@/components/shared/SpcLineage";
+import { SuggestSpcPanel } from "@/components/shared/SuggestSpcPanel";
 import { downloadZip } from "@/lib/zipExport";
 
 const FORGE_STEPS = [
@@ -501,6 +503,14 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
                       </pre>
                     </details>
                   ))}
+                  <SpcLineage
+                    artifacts={artifacts ?? []}
+                    targetArtifactId={targetArtifactId}
+                  />
+                  <SuggestSpcPanel
+                    artifactId={targetArtifactId}
+                    topic={spcName.trim() || spc.name || undefined}
+                  />
                 </div>
               </>
             ) : (

@@ -314,6 +314,162 @@ router.post(
   },
 );
 
+// ─── POST suggest synthesis SPCs from Sphinx ───────────────────────────────
+//
+// Surfaces the best synthesis candidates from the Sphinx Marketplace for the
+// SPC/session currently under construction (the "Suggest SPC" panel in F5).
+// Sphinx is the single point of sale, so this routes the ranking request
+// through the marketplace and returns candidates the user can select, buy
+// (on Sphinx), and fold back into their session. Degrades gracefully:
+//   - 404 SPHINX_NOT_CONNECTED  → user hasn't added their Sphinx API key
+//   - 503 SPHINX_NOT_CONFIGURED → marketplace not yet live on this server
+const SuggestBody = z.object({
+  artifactId: z.string().uuid().optional(),
+  topic: z.string().trim().max(200).optional(),
+  limit: z.number().int().min(1).max(20).optional(),
+});
+
+router.post(
+  "/integrations/sphinx/suggest",
+  requireAuth,
+  async (req, res): Promise<void> => {
+    const parsed = SuggestBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const { artifactId, topic, limit } = parsed.data;
+
+    // 1) Load credential.
+    const credRows = await db
+      .select()
+      .from(integrationCredentialsTable)
+      .where(
+        and(
+          eq(integrationCredentialsTable.userId, req.localUser!.id),
+          eq(integrationCredentialsTable.provider, "sphinx"),
+        ),
+      )
+      .limit(1);
+    const cred = credRows[0];
+    if (!cred) {
+      res.status(404).json({
+        error: "Sphinx is not connected. Add your API key in Account → Connected Services.",
+        code: "SPHINX_NOT_CONNECTED",
+      });
+      return;
+    }
+
+    // 2) Derive query context from the artifact under construction (best-effort).
+    let title: string | null = topic ?? null;
+    let jcseScore: number | null = null;
+    let certTier: string | null = null;
+    if (artifactId) {
+      const artRows = await db
+        .select()
+        .from(harnessArtifactsTable)
+        .where(
+          and(
+            eq(harnessArtifactsTable.id, artifactId),
+            eq(harnessArtifactsTable.userId, req.localUser!.id),
+          ),
+        )
+        .limit(1);
+      const artifact = artRows[0];
+      if (artifact) {
+        const content = artifact.artifactContent as Record<string, unknown>;
+        title =
+          topic ??
+          artifact.name ??
+          (typeof content?.title === "string" ? content.title : null) ??
+          (typeof content?.name === "string" ? content.name : null);
+        jcseScore = artifact.jcseScore;
+        certTier = artifact.certTier;
+      }
+    }
+
+    const query = (title ?? "").trim();
+    if (!query) {
+      res.status(400).json({
+        error: "A topic (or a named artifact) is required to suggest candidates.",
+        code: "SPHINX_NO_QUERY",
+      });
+      return;
+    }
+
+    // 3) Route the ranking request through the marketplace.
+    const sphinxBase = process.env.SPHINX_BASE_URL?.replace(/\/$/, "");
+    if (!sphinxBase) {
+      res.status(503).json({
+        error: "SPHINX_BASE_URL is not configured on this server.",
+        code: "SPHINX_NOT_CONFIGURED",
+      });
+      return;
+    }
+
+    let plaintextKey: string;
+    try {
+      plaintextKey = decryptApiKey(cred.keyEncrypted);
+    } catch {
+      res.status(500).json({
+        error: "Stored Sphinx key could not be decrypted. Disconnect and reconnect.",
+        code: "SPHINX_KEY_UNREADABLE",
+      });
+      return;
+    }
+
+    let sphinxRes: Response;
+    try {
+      sphinxRes = await fetch(`${sphinxBase}/api/marketplace/suggest`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${plaintextKey}`,
+        },
+        body: JSON.stringify({
+          source: "atanda-command-centre",
+          query,
+          context: { jcseScore, certTier },
+          limit: limit ?? 6,
+        }),
+      });
+    } catch (err) {
+      req.log.warn({ err }, "Sphinx suggest: network error");
+      res.status(502).json({
+        error: "Could not reach Sphinx marketplace.",
+        code: "SPHINX_UNREACHABLE",
+      });
+      return;
+    }
+
+    const sphinxBody = await sphinxRes.json().catch(() => null);
+    if (!sphinxRes.ok) {
+      req.log.warn(
+        { status: sphinxRes.status, body: sphinxBody },
+        "Sphinx suggest: rejected",
+      );
+      res.status(sphinxRes.status === 401 ? 401 : 502).json({
+        error:
+          typeof sphinxBody === "object" && sphinxBody && "error" in sphinxBody
+            ? String((sphinxBody as { error: unknown }).error)
+            : `Sphinx rejected the suggest request (HTTP ${sphinxRes.status}).`,
+        code: sphinxRes.status === 401 ? "SPHINX_BAD_KEY" : "SPHINX_REJECTED",
+        sphinxStatus: sphinxRes.status,
+      });
+      return;
+    }
+
+    await db
+      .update(integrationCredentialsTable)
+      .set({ lastUsedAt: sql`now()` })
+      .where(eq(integrationCredentialsTable.id, cred.id));
+
+    const body = (sphinxBody ?? {}) as { candidates?: unknown };
+    const candidates = Array.isArray(body.candidates) ? body.candidates : [];
+    res.json({ ok: true, query, candidates });
+  },
+);
+
 // ─── GitHub (per-user personal access token) ───────────────────────────────
 //
 // Each subscriber connects their OWN GitHub by pasting a personal access token
