@@ -445,6 +445,25 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /harness/f6-finalize:
+    post:
+      operationId: harnessF6DraftStream
+      tags: [harness]
+      summary: ATLAS PDD Drafter (SSE stream)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF6FinalizeInput" }
+      responses:
+        "200":
+          description: text/event-stream of ATLAS PDD draft events
+          content:
+            text/event-stream:
+              schema: { type: string }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /harness/f6-vdj:
     post:
       operationId: harnessF6Vdj
@@ -2037,6 +2056,16 @@ components:
             - { type: "null" }
 
     HarnessF6Input:
+      type: object
+      required: [sessionId, mode]
+      properties:
+        sessionId: { type: string, format: uuid }
+        mode: { type: string, enum: [FROM_SPC, FRESH] }
+        sourceArtifactId: { type: ["string", "null"], format: uuid }
+        brief: { type: ["string", "null"] }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    HarnessF6FinalizeInput:
       type: object
       required: [sessionId, mode]
       properties:

@@ -62,6 +62,7 @@ import type {
   HarnessF4Input,
   HarnessF5FinalizeInput,
   HarnessF5Input,
+  HarnessF6FinalizeInput,
   HarnessF6Input,
   HarnessF6VdjInput,
   HarnessF7Input,
@@ -1991,6 +1992,77 @@ export const useHarnessF6 = <TError = ErrorType<ForbiddenResponse>,
         TContext
       > => {
       return useMutation(getHarnessF6MutationOptions(options));
+    }
+
+export const getHarnessF6DraftStreamUrl = () => {
+
+
+
+
+  return `/api/harness/f6-finalize`
+}
+
+/**
+ * @summary ATLAS PDD Drafter (SSE stream)
+ */
+export const harnessF6DraftStream = async (harnessF6FinalizeInput: HarnessF6FinalizeInput, options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getHarnessF6DraftStreamUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      harnessF6FinalizeInput,)
+  }
+);}
+
+
+
+
+export const getHarnessF6DraftStreamMutationOptions = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF6DraftStream>>, TError,{data: BodyType<HarnessF6FinalizeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof harnessF6DraftStream>>, TError,{data: BodyType<HarnessF6FinalizeInput>}, TContext> => {
+
+const mutationKey = ['harnessF6DraftStream'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof harnessF6DraftStream>>, {data: BodyType<HarnessF6FinalizeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  harnessF6DraftStream(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HarnessF6DraftStreamMutationResult = NonNullable<Awaited<ReturnType<typeof harnessF6DraftStream>>>
+    export type HarnessF6DraftStreamMutationBody = BodyType<HarnessF6FinalizeInput>
+    export type HarnessF6DraftStreamMutationError = ErrorType<ForbiddenResponse>
+
+    /**
+ * @summary ATLAS PDD Drafter (SSE stream)
+ */
+export const useHarnessF6DraftStream = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF6DraftStream>>, TError,{data: BodyType<HarnessF6FinalizeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof harnessF6DraftStream>>,
+        TError,
+        {data: BodyType<HarnessF6FinalizeInput>},
+        TContext
+      > => {
+      return useMutation(getHarnessF6DraftStreamMutationOptions(options));
     }
 
 export const getHarnessF6VdjUrl = () => {

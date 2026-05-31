@@ -96,6 +96,8 @@ export * from './harnessF5FinalizeInput';
 export * from './harnessF5FinalizeInputAnswers';
 export * from './harnessF5Input';
 export * from './harnessF5InputAnswers';
+export * from './harnessF6FinalizeInput';
+export * from './harnessF6FinalizeInputMode';
 export * from './harnessF6Input';
 export * from './harnessF6InputMode';
 export * from './harnessF6VdjInput';

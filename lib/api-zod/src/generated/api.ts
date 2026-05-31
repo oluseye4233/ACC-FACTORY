@@ -588,6 +588,18 @@ export const HarnessF6Response = zod.object({
 
 
 /**
+ * @summary ATLAS PDD Drafter (SSE stream)
+ */
+export const HarnessF6DraftStreamBody = zod.object({
+  "sessionId": zod.string().uuid(),
+  "mode": zod.enum(['FROM_SPC', 'FRESH']),
+  "sourceArtifactId": zod.string().uuid().nullish(),
+  "brief": zod.string().nullish(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+})
+
+
+/**
  * @summary VIBE DJ recommendation
  */
 export const HarnessF6VdjBody = zod.object({

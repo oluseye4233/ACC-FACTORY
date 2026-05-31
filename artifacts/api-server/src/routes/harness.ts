@@ -9,7 +9,7 @@ import { handleF2 } from "../engines/f2";
 import { handleF3Stream } from "../engines/f3";
 import { handleF4 } from "../engines/f4";
 import { handleF5, handleF5FinalizeStream } from "../engines/f5";
-import { handleF6 } from "../engines/f6";
+import { handleF6, handleF6DraftStream } from "../engines/f6";
 import { handleF6Vdj } from "../engines/f6vdj";
 import { handleF7Stream } from "../engines/f7";
 import { handleF8CodeDj } from "../engines/f8codedj";
@@ -92,6 +92,10 @@ router.post(
 router.post(
   "/harness/f6",
   ...harnessRoute({ featureId: 6, tier: "PRACTITIONER", handler: handleF6 }),
+);
+router.post(
+  "/harness/f6-finalize",
+  ...harnessRoute({ featureId: 6, tier: "PRACTITIONER", handler: handleF6DraftStream }),
 );
 router.post(
   "/harness/f6-vdj",

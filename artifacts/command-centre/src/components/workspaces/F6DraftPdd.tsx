@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  useHarnessF6,
   useHarnessF6Vdj,
   useHarnessAtlasCrystallise,
+  getHarnessF6DraftStreamUrl,
   getListSessionArtifactsQueryKey,
   getListFeatureStateQueryKey,
   AtlasPdd,
@@ -32,7 +32,7 @@ import {
   overrideToBody,
   type OverrideValue,
 } from "@/components/shared/ProviderOverride";
-import { extractApiError } from "@/lib/sse";
+import { streamSse, extractApiError } from "@/lib/sse";
 import { downloadZip } from "@/lib/zipExport";
 import { Download, Layers, Sparkles } from "lucide-react";
 
@@ -86,27 +86,15 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
   const [atlasJson, setAtlasJson] = useState<AtlasPddJson | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+  const [draftPhase, setDraftPhase] = useState(-1);
   const [providerOverride, setProviderOverride] =
     useState<OverrideValue>("session");
   const [vdjProviderOverride, setVdjProviderOverride] =
     useState<OverrideValue>("session");
+  const abortRef = useRef<AbortController | null>(null);
 
-  const f6 = useHarnessF6({
-    mutation: {
-      onSuccess: (data) => {
-        setPdd(data);
-        setPddArtifactId(data.artifactId ?? null);
-        setError(null);
-        qc.invalidateQueries({ queryKey: getListSessionArtifactsQueryKey(sessionId) });
-        qc.invalidateQueries({ queryKey: getListFeatureStateQueryKey(sessionId) });
-      },
-      onError: (e) => {
-        const err = extractApiError(e);
-        if (err.status === 403) setUpgrade(true);
-        else setError(err.message);
-      },
-    },
-  });
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const vdjM = useHarnessF6Vdj({
     mutation: {
@@ -137,34 +125,64 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
     crystallise.mutate({ data: { sessionId, atlasPddArtifactId: id } });
   };
 
-  const draft = () => {
+  const draft = async () => {
     setError(null);
+    let body: Record<string, unknown>;
     if (mode === HarnessF6InputMode.FROM_SPC) {
       if (!sourceId) {
         setError("Pick an SPC source");
         return;
       }
-      f6.mutate({
-        data: {
-          sessionId,
-          mode,
-          sourceArtifactId: sourceId,
-          ...overrideToBody(providerOverride),
-        },
-      });
+      body = { sessionId, mode, sourceArtifactId: sourceId, ...overrideToBody(providerOverride) };
     } else {
       if (!brief.trim()) {
         setError("Brief required for FRESH mode");
         return;
       }
-      f6.mutate({
-        data: {
-          sessionId,
-          mode,
-          brief,
-          ...overrideToBody(providerOverride),
+      body = { sessionId, mode, brief, ...overrideToBody(providerOverride) };
+    }
+
+    // The 4-part draft is the heavy LLM call; stream it over SSE so the proxy
+    // doesn't abort a multi-minute generation (the 502 failure mode).
+    // Clear prior output so the phase bar reflects the active run, not a stale PDD.
+    setPdd(undefined);
+    setPddArtifactId(null);
+    setAtlasJson(undefined);
+    setVdj(undefined);
+    setDrafting(true);
+    setDraftPhase(-1);
+    const ac = new AbortController();
+    abortRef.current = ac;
+    try {
+      await streamSse(
+        getHarnessF6DraftStreamUrl(),
+        body,
+        (e) => {
+          if (e.event === "step") {
+            const d = e.data as { index?: number };
+            if (typeof d.index === "number") setDraftPhase(d.index);
+          } else if (e.event === "complete") {
+            const built = e.data as AtlasPdd;
+            setPdd(built);
+            setPddArtifactId(built.artifactId ?? null);
+            setDraftPhase(PHASES.length - 1);
+            qc.invalidateQueries({ queryKey: getListSessionArtifactsQueryKey(sessionId) });
+            qc.invalidateQueries({ queryKey: getListFeatureStateQueryKey(sessionId) });
+          } else if (e.event === "error") {
+            const d = e.data as { error?: string };
+            setError(d.error || "Draft failed");
+          }
         },
-      });
+        ac.signal,
+      );
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        const x = extractApiError(err);
+        if (x.status === 403) setUpgrade(true);
+        else setError(x.message);
+      }
+    } finally {
+      setDrafting(false);
     }
   };
 
@@ -250,16 +268,16 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
             <ProviderOverride
               value={providerOverride}
               onChange={setProviderOverride}
-              disabled={f6.isPending}
+              disabled={drafting}
               testId="f6-provider"
             />
             <Button
               data-testid="f6-draft"
               onClick={draft}
-              disabled={f6.isPending}
+              disabled={drafting}
               className="font-display tracking-wider"
             >
-              {f6.isPending ? "DRAFTING..." : "DRAFT PDD"}
+              {drafting ? "DRAFTING..." : "DRAFT PDD"}
             </Button>
           </div>
           {error && <div className="mt-3"><ErrorBanner message={error} /></div>}
@@ -268,13 +286,17 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
         <Card className="p-3 bg-card/50">
           <div className="flex items-center gap-2">
             {PHASES.map((p, i) => {
-              const done = !!pdd && i < PHASES.length;
-              const active = f6.isPending && !pdd;
+              const done = !!pdd ? i < PHASES.length : drafting && i <= draftPhase;
+              const active = drafting && !pdd && i === draftPhase + 1;
               return (
                 <div key={p} className="flex items-center gap-2 flex-1">
                   <div
                     className={`h-1 flex-1 rounded ${
-                      done ? "bg-primary" : active ? "bg-secondary/60" : "bg-muted"
+                      done
+                        ? "bg-primary"
+                        : active
+                          ? "bg-secondary/60 animate-pulse"
+                          : "bg-muted"
                     }`}
                   />
                   <span

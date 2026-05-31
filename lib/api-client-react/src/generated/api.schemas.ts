@@ -910,6 +910,24 @@ export interface HarnessF6Input {
   provider?: LlmProvider;
 }
 
+export type HarnessF6FinalizeInputMode = typeof HarnessF6FinalizeInputMode[keyof typeof HarnessF6FinalizeInputMode];
+
+
+export const HarnessF6FinalizeInputMode = {
+  FROM_SPC: 'FROM_SPC',
+  FRESH: 'FRESH',
+} as const;
+
+export interface HarnessF6FinalizeInput {
+  sessionId: string;
+  mode: HarnessF6FinalizeInputMode;
+  /** @nullable */
+  sourceArtifactId?: string | null;
+  /** @nullable */
+  brief?: string | null;
+  provider?: LlmProvider;
+}
+
 export interface AtlasPdd {
   cheatSheet: string;
   execSummary: string;
