@@ -21,7 +21,7 @@ export const ENGINES = [
     name: "F3",
     title: "MA BIRTH PACKAGE",
     description:
-      "Create Audit and Specification documentation for your Molecular Agent called a Micro PromptWare Design Document (MPDD)",
+      "Build a single purpose Ai Agent Specification (Ai DNA) by yourself called a Molecular Agent (MA)",
     explainer:
       "Streams a CELL Micro Agent Birth Package: persona, capabilities, guardrails, and the minimum context window needed for the agent to behave reproducibly. May escalate to F5 if scope exceeds a single agent.",
   },
@@ -30,7 +30,7 @@ export const ENGINES = [
     name: "F4",
     title: "MICRO PDD",
     description:
-      "Build a full Ai Agent Specification (Ai DNA) by yourself called a Super Prompt Card (SPC)",
+      "Create Audit and Specification documentation for your Molecular Agent called a Micro PromptWare Design Document (MPDD)",
     explainer:
       "Converts the MA Birth Package into a Micro PDD — a compact, deploy-shaped Product Design Document for a single agent or feature, ready to be lifted into a full SPC.",
   },
