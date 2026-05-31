@@ -19,7 +19,7 @@ export const ENGINES = [
   {
     id: 3,
     name: "F3",
-    title: "MA BIRTH PACKAGE",
+    title: "MOLECULAR AGENT CREATOR",
     description:
       "Build a single purpose Ai Agent Specification (Ai DNA) by yourself called a Molecular Agent (MA)",
     explainer:
