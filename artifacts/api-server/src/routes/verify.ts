@@ -4,6 +4,34 @@ import { db, harnessArtifactsTable, harnessSessionsTable } from "@workspace/db";
 
 const router: IRouter = Router();
 
+/**
+ * Extract the certified MVP product's name from an artifact's content.
+ *
+ * The HARNESS-produced MVP PDD (F7) stores its identity in the
+ * `card_identity_metadata` section, whose markdown body opens with a
+ * `**Product:** <name>` line. That is the authoritative name of the MVP being
+ * certified — the artifact row's own `name` column is usually blank and the
+ * session name is an internal label, so neither reliably identifies the product
+ * on a public certificate. Returns null when no product line can be found.
+ */
+export function extractProductName(artifactContent: unknown): string | null {
+  if (!artifactContent || typeof artifactContent !== "object") return null;
+  const sections = (artifactContent as { sections?: unknown }).sections;
+  if (!Array.isArray(sections)) return null;
+  const card = sections.find(
+    (s): s is { body?: unknown } =>
+      !!s &&
+      typeof s === "object" &&
+      (s as { key?: unknown }).key === "card_identity_metadata",
+  );
+  const body = card && typeof card.body === "string" ? card.body : null;
+  if (!body) return null;
+  const match = body.match(/\*\*Product:\*\*[ \t]*(.+)/i);
+  if (!match) return null;
+  const name = match[1]!.split("\n")[0]!.trim();
+  return name.length > 0 ? name : null;
+}
+
 router.get("/verify", async (req, res): Promise<void> => {
   const cert = typeof req.query.cert === "string" ? req.query.cert : "";
   if (!cert) {
@@ -32,10 +60,14 @@ router.get("/verify", async (req, res): Promise<void> => {
     class: typeof c.class === "string" ? c.class : null,
     crP: typeof c.crP === "number" ? c.crP : null,
     issuedAt: typeof c.issuedAt === "string" ? c.issuedAt : null,
-    // The certified MVP product's name — the artifact name the user gave it,
-    // falling back to the session name so the certificate always identifies
-    // what was certified.
-    productName: r.artifact.name?.trim() || r.sessionName || null,
+    // The certified MVP product's name. Prefer the product named inside the
+    // certified MVP PDD itself, then any explicit artifact name, then the
+    // session label — so the certificate always identifies what was certified.
+    productName:
+      extractProductName(r.artifact.artifactContent) ||
+      r.artifact.name?.trim() ||
+      r.sessionName ||
+      null,
     sessionName: r.sessionName,
     provider: r.artifact.provider ?? null,
     modelId: r.artifact.modelId ?? null,
