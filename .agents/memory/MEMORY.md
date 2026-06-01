@@ -4,6 +4,7 @@
 - [F8 GitHub push channel](github-push-channel.md) — F8 "push to GitHub/Open in Replit" reuses buildExportFiles client-side → Octokit; repl-level connection, Architect-gated, no delete_repo scope.
 - [HOST DJ → F8-HDJ engine doctrine](host-dj-engine-doctrine.md) — SHIPPED advisory side-step (no daily counter); never an SPC; server-recomputes HSE ranking; env template names-only (key+desc sanitised).
 - [LLM prompt determinism](llm-prompt-determinism.md) — HARNESS engine prompts built from DB rows need a stable order; inArray() has none, which breaks the replay-fixture cache key.
+- [Verify cert identity names](verify-cert-identity-names.md) — /verify product (SPC) name lives in the MVP PDD's card_identity_metadata section; label varies (Product: vs Product Name:, bulleted), keep distinct from session name.
 - [Sphinx Marketplace model](sphinx-marketplace-model.md) — Sphinx is the EXTERNAL single point of sale (live API pending); buy/suggest are routing seams that 503 gracefully; lineage is internal, anchored to the SPC's timestamp.
 - [Proxy 120s timeout → stream](proxy-request-timeout-streaming.md) — heavy single-shot engine finalize (F5 SPC synth, F6/F7/F8) must use SSE or it 502s past the 120s proxy ceiling.
 - [Stripe dev/prod account split](stripe-dev-prod-account-split.md) — prod = LIVE Stripe (different account) vs dev = TEST; can't comp prod tier via test checkout, use admin tier-grant + ADMIN_EMAILS.

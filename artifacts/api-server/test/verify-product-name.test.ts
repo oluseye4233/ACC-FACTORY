@@ -17,6 +17,18 @@ describe("extractProductName (MVP product identity on SPARTAN certificate)", () 
     expect(extractProductName(content)).toBe("RED PEN AI");
   });
 
+  it("handles the bulleted '**Product Name:**' label variant", () => {
+    const content = {
+      sections: [
+        {
+          key: "card_identity_metadata",
+          body: "- **Product Name:** RED PEN AI\n- **Owner:** Jason Stride (STRIDE INC)\n- **Version:** 1",
+        },
+      ],
+    };
+    expect(extractProductName(content)).toBe("RED PEN AI");
+  });
+
   it("is case-insensitive on the Product label and trims the value", () => {
     const content = {
       sections: [{ key: "card_identity_metadata", body: "**product:**   Acme Widget  \n**Owner:** X" }],

@@ -26,7 +26,9 @@ export function extractProductName(artifactContent: unknown): string | null {
   );
   const body = card && typeof card.body === "string" ? card.body : null;
   if (!body) return null;
-  const match = body.match(/\*\*Product:\*\*[ \t]*(.+)/i);
+  // The identity line varies across model outputs: "**Product:**" or
+  // "**Product Name:**", with or without a leading markdown bullet.
+  const match = body.match(/\*\*Product(?:\s+Name)?:\*\*[ \t]*(.+)/i);
   if (!match) return null;
   const name = match[1]!.split("\n")[0]!.trim();
   return name.length > 0 ? name : null;
@@ -60,13 +62,12 @@ router.get("/verify", async (req, res): Promise<void> => {
     class: typeof c.class === "string" ? c.class : null,
     crP: typeof c.crP === "number" ? c.crP : null,
     issuedAt: typeof c.issuedAt === "string" ? c.issuedAt : null,
-    // The certified MVP product's name. Prefer the product named inside the
-    // certified MVP PDD itself, then any explicit artifact name, then the
-    // session label — so the certificate always identifies what was certified.
+    // The certified MVP product's (SPC) name — the product named inside the
+    // certified MVP PDD, or any explicit artifact name. Kept distinct from the
+    // session name so the certificate can show both identifiers.
     productName:
       extractProductName(r.artifact.artifactContent) ||
       r.artifact.name?.trim() ||
-      r.sessionName ||
       null,
     sessionName: r.sessionName,
     provider: r.artifact.provider ?? null,

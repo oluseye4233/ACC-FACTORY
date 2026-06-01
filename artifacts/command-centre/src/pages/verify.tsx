@@ -88,18 +88,36 @@ export default function Verify() {
                   <ShieldCheck className="h-20 w-20 text-secondary mb-4 drop-shadow-[0_0_15px_rgba(201,162,39,0.5)]" />
                   <h2 className="font-display text-4xl text-secondary tracking-wider mb-2">VERIFIED AUTHENTIC</h2>
 
-                  {data.productName ? (
+                  {data.productName ?? data.sessionName ? (
                     <p
                       className="font-display text-2xl tracking-wide text-foreground mb-6 max-w-[300px] break-words"
                       data-testid="verify-product-name"
                     >
-                      {data.productName}
+                      {data.productName ?? data.sessionName}
                     </p>
                   ) : (
                     <div className="mb-6" />
                   )}
 
                   <div className="w-full max-w-[300px] space-y-3 text-left bg-background/50 p-4 rounded-md border border-secondary/20">
+                    <div className="flex justify-between items-center pb-2 border-b border-border/50">
+                      <span className="text-xs font-mono text-muted-foreground">SPC NAME</span>
+                      <span
+                        className="text-sm font-mono font-bold text-right max-w-[180px] break-words"
+                        data-testid="verify-spc-name"
+                      >
+                        {data.productName ?? "—"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pb-2 border-b border-border/50">
+                      <span className="text-xs font-mono text-muted-foreground">SESSION</span>
+                      <span
+                        className="text-sm font-mono font-bold text-right max-w-[180px] break-words"
+                        data-testid="verify-session-name"
+                      >
+                        {data.sessionName ?? "—"}
+                      </span>
+                    </div>
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
                       <span className="text-xs font-mono text-muted-foreground">ID</span>
                       <span className="text-sm font-mono font-bold">{data.certId}</span>
