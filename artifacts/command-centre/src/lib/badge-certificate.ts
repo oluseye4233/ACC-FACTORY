@@ -1,5 +1,3 @@
-import badgeBg from "@assets/copilot_image_1779143975171_1779147194124.jpeg";
-
 export type BadgeFormat = "png" | "jpeg" | "svg";
 
 export type StandardBadgeId = "ASPE" | "AISA" | "AISE";
@@ -14,7 +12,7 @@ export interface BadgeCertificateOptions {
   recipientEmail?: string | null;
   unlockedAt?: string | null;
   format: BadgeFormat;
-  /** When set, renders the distinct gold "Senior · Advanced Systems" style. */
+  /** When set, renders the distinct "Senior · Advanced Systems" variant. */
   senior?: {
     /** e.g. "3 PWDD-stage projects certified" or "Verified live build". */
     thresholdNote: string;
@@ -32,6 +30,15 @@ const TAGLINE = "AWARDED TO";
 const DATE_LINE = "UNLOCKED ON";
 const SENIOR_RIBBON = "SENIOR · ADVANCED SYSTEMS";
 const EVIDENCE_MAX = 180;
+
+const LOGO_URL = `${import.meta.env.BASE_URL}atanda-logo.png`;
+const LOGO_RATIO = 1.5; // atanda-logo.png is 1920×1280
+
+// Professional ink palette — black text on white.
+const INK = "#111111";
+const INK_SOFT = "rgba(17,17,17,0.72)";
+const INK_FAINT = "rgba(17,17,17,0.5)";
+const INK_LINE = "rgba(17,17,17,0.55)";
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return new Date().toISOString().slice(0, 10);
@@ -152,76 +159,68 @@ async function renderCanvas(opts: BadgeCertificateOptions): Promise<HTMLCanvasEl
   if (!ctx) throw new Error("Canvas 2D context unavailable");
 
   const isSenior = !!opts.senior;
-  // Senior gold is a richer warm gold; standard gold stays slightly muted.
-  const goldStrong = isSenior ? "#FFD24A" : "#FFE07A";
-  const goldSoft = isSenior ? "rgba(255, 210, 74, 0.95)" : "rgba(234, 200, 84, 0.85)";
-  const goldFaint = isSenior ? "rgba(255, 210, 74, 0.55)" : "rgba(234, 200, 84, 0.35)";
 
-  // Background image, full bleed with center-crop "cover" math.
-  const bg = await loadImage(badgeBg);
-  const scale = Math.max(size / bg.width, size / bg.height);
-  const drawW = bg.width * scale;
-  const drawH = bg.height * scale;
-  const dx = (size - drawW) / 2;
-  const dy = (size - drawH) / 2;
-  ctx.drawImage(bg, dx, dy, drawW, drawH);
-
-  // Dark vignette overlay so text reads. Senior leans warmer.
-  const grad = ctx.createLinearGradient(0, 0, 0, size);
-  if (isSenior) {
-    grad.addColorStop(0, "rgba(28, 18, 6, 0.65)");
-    grad.addColorStop(0.45, "rgba(14, 10, 6, 0.4)");
-    grad.addColorStop(1, "rgba(8, 6, 4, 0.9)");
-  } else {
-    grad.addColorStop(0, "rgba(8, 10, 16, 0.55)");
-    grad.addColorStop(0.45, "rgba(8, 10, 16, 0.35)");
-    grad.addColorStop(1, "rgba(8, 10, 16, 0.85)");
-  }
-  ctx.fillStyle = grad;
+  // White background.
+  ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, size, size);
 
-  // Gold border frame.
-  const border = Math.round(size * (isSenior ? 0.022 : 0.018));
-  ctx.strokeStyle = goldSoft;
+  // Black border frame.
+  const border = Math.round(size * 0.012);
+  ctx.strokeStyle = INK;
   ctx.lineWidth = border;
   ctx.strokeRect(border / 2, border / 2, size - border, size - border);
 
   // Inner thin line.
-  ctx.strokeStyle = goldFaint;
-  ctx.lineWidth = 2;
-  const inset = Math.round(size * 0.045);
+  ctx.strokeStyle = INK_LINE;
+  ctx.lineWidth = 1.5;
+  const inset = Math.round(size * 0.05);
   ctx.strokeRect(inset, inset, size - inset * 2, size - inset * 2);
 
   // Senior decorative second inner frame.
   if (isSenior) {
-    ctx.strokeStyle = "rgba(255, 210, 74, 0.25)";
+    ctx.strokeStyle = "rgba(17,17,17,0.28)";
     ctx.lineWidth = 1;
     const inset2 = inset + 14;
     ctx.strokeRect(inset2, inset2, size - inset2 * 2, size - inset2 * 2);
   }
 
-  ctx.textAlign = "center";
-  ctx.textBaseline = "alphabetic";
-  const cx = size / 2;
-
-  // Senior ribbon line at very top.
-  if (isSenior) {
-    ctx.fillStyle = goldStrong;
-    ctx.font = `700 ${Math.round(size * 0.018)}px ui-monospace, "SFMono-Regular", Menlo, monospace`;
-    ctx.fillText(SENIOR_RIBBON, cx, size * 0.085);
+  // Logo top-left (small), with issuer lines to its right.
+  const pad = Math.round(size * 0.022);
+  const logoH = Math.round(size * 0.08);
+  const logoW = Math.round(logoH * LOGO_RATIO);
+  const logoX = inset + pad;
+  const logoY = inset + pad;
+  try {
+    const logo = await loadImage(LOGO_URL);
+    ctx.drawImage(logo, logoX, logoY, logoW, logoH);
+  } catch {
+    // Logo is decorative; skip silently if it fails to load.
   }
 
-  // Top: product line.
-  ctx.fillStyle = goldSoft;
-  ctx.font = `600 ${Math.round(size * 0.022)}px ui-monospace, "SFMono-Regular", Menlo, monospace`;
-  ctx.fillText(PRODUCT_LINE, cx, size * 0.13);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  const headTextX = logoX + logoW + Math.round(pad * 0.7);
+  ctx.fillStyle = INK;
+  ctx.font = `600 ${Math.round(size * 0.018)}px ui-monospace, "SFMono-Regular", Menlo, monospace`;
+  ctx.fillText(PRODUCT_LINE, headTextX, logoY + Math.round(logoH * 0.46));
+  ctx.fillStyle = INK_SOFT;
+  ctx.font = `400 ${Math.round(size * 0.013)}px ui-monospace, monospace`;
+  ctx.fillText(ISSUER_LINE, headTextX, logoY + Math.round(logoH * 0.82));
 
-  ctx.fillStyle = "rgba(220, 220, 220, 0.55)";
-  ctx.font = `400 ${Math.round(size * 0.014)}px ui-monospace, monospace`;
-  ctx.fillText(ISSUER_LINE, cx, size * 0.16);
+  // Senior ribbon, top-right.
+  if (isSenior) {
+    ctx.textAlign = "right";
+    ctx.fillStyle = INK;
+    ctx.font = `700 ${Math.round(size * 0.016)}px ui-monospace, monospace`;
+    ctx.fillText(SENIOR_RIBBON, size - inset - pad, logoY + Math.round(logoH * 0.55));
+  }
+
+  // Centred content.
+  ctx.textAlign = "center";
+  const cx = size / 2;
 
   // Big badge code. Senior IDs are longer (AISA_PWDD / AISE_BUILD) → auto-fit.
-  ctx.fillStyle = goldStrong;
+  ctx.fillStyle = INK;
   const maxBadgeWidth = size * 0.82;
   const badgeMax = Math.round(size * (isSenior ? 0.14 : 0.22));
   const badgeMin = Math.round(size * 0.08);
@@ -237,7 +236,7 @@ async function renderCanvas(opts: BadgeCertificateOptions): Promise<HTMLCanvasEl
   ctx.fillText(opts.badgeId, cx, size * 0.42);
 
   // Badge full name underneath.
-  ctx.fillStyle = "rgba(245, 245, 245, 0.92)";
+  ctx.fillStyle = INK_SOFT;
   fitFont(
     ctx,
     opts.badgeFullName.toUpperCase(),
@@ -250,7 +249,7 @@ async function renderCanvas(opts: BadgeCertificateOptions): Promise<HTMLCanvasEl
   ctx.fillText(opts.badgeFullName.toUpperCase(), cx, size * 0.48);
 
   // Description (wrapped, italic serif).
-  ctx.fillStyle = "rgba(220, 220, 220, 0.75)";
+  ctx.fillStyle = INK_SOFT;
   ctx.font = `italic 400 ${Math.round(size * 0.02)}px Georgia, serif`;
   const descLines = wrapText(ctx, opts.description, size * 0.72);
   let lineY = size * 0.54;
@@ -261,12 +260,12 @@ async function renderCanvas(opts: BadgeCertificateOptions): Promise<HTMLCanvasEl
 
   // Senior threshold note + optional evidence excerpt sit between description and divider.
   if (isSenior && opts.senior) {
-    ctx.fillStyle = goldStrong;
+    ctx.fillStyle = INK;
     ctx.font = `700 ${Math.round(size * 0.018)}px ui-monospace, monospace`;
     ctx.fillText(opts.senior.thresholdNote.toUpperCase(), cx, size * 0.615);
 
     if (opts.senior.evidenceExcerpt) {
-      ctx.fillStyle = "rgba(235, 225, 200, 0.85)";
+      ctx.fillStyle = INK_SOFT;
       ctx.font = `italic 400 ${Math.round(size * 0.018)}px Georgia, serif`;
       const excerpt = `"${truncate(opts.senior.evidenceExcerpt, EVIDENCE_MAX)}"`;
       const exLines = wrapText(ctx, excerpt, size * 0.7);
@@ -279,7 +278,7 @@ async function renderCanvas(opts: BadgeCertificateOptions): Promise<HTMLCanvasEl
   }
 
   // Divider.
-  ctx.strokeStyle = isSenior ? "rgba(255, 210, 74, 0.7)" : "rgba(234, 200, 84, 0.6)";
+  ctx.strokeStyle = INK;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(cx - size * 0.18, size * 0.69);
@@ -287,12 +286,12 @@ async function renderCanvas(opts: BadgeCertificateOptions): Promise<HTMLCanvasEl
   ctx.stroke();
 
   // "AWARDED TO" label.
-  ctx.fillStyle = isSenior ? "rgba(255, 210, 74, 0.9)" : "rgba(234, 200, 84, 0.8)";
+  ctx.fillStyle = INK_SOFT;
   ctx.font = `600 ${Math.round(size * 0.018)}px ui-monospace, monospace`;
   ctx.fillText(TAGLINE, cx, size * 0.735);
 
   // Recipient name.
-  ctx.fillStyle = "#FFFFFF";
+  ctx.fillStyle = INK;
   const recipient = opts.recipientName.trim() || "Operator";
   fitFont(
     ctx,
@@ -307,17 +306,17 @@ async function renderCanvas(opts: BadgeCertificateOptions): Promise<HTMLCanvasEl
 
   // Optional email subline.
   if (opts.recipientEmail) {
-    ctx.fillStyle = "rgba(220, 220, 220, 0.6)";
+    ctx.fillStyle = INK_FAINT;
     ctx.font = `400 ${Math.round(size * 0.018)}px ui-monospace, monospace`;
     ctx.fillText(opts.recipientEmail, cx, size * 0.825);
   }
 
   // Verified URL (Engineer cert) printed above date.
   if (isSenior && opts.senior?.verifiedUrl) {
-    ctx.fillStyle = goldStrong;
+    ctx.fillStyle = INK;
     ctx.font = `600 ${Math.round(size * 0.014)}px ui-monospace, monospace`;
     ctx.fillText("VERIFIED LIVE URL", cx, size * 0.855);
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = INK_SOFT;
     fitFont(
       ctx,
       opts.senior.verifiedUrl,
@@ -337,15 +336,15 @@ async function renderCanvas(opts: BadgeCertificateOptions): Promise<HTMLCanvasEl
   const dateY = isSenior && opts.senior?.verifiedUrl ? size * 0.905 : size * 0.88;
   const valueY = isSenior && opts.senior?.verifiedUrl ? size * 0.935 : size * 0.915;
 
-  ctx.fillStyle = isSenior ? "rgba(255, 210, 74, 0.8)" : "rgba(234, 200, 84, 0.7)";
+  ctx.fillStyle = INK_SOFT;
   ctx.font = `600 ${Math.round(size * 0.016)}px ui-monospace, monospace`;
   ctx.fillText(DATE_LINE, cx, dateY);
 
-  ctx.fillStyle = "#FFFFFF";
+  ctx.fillStyle = INK;
   ctx.font = `600 ${Math.round(size * 0.026)}px ui-monospace, monospace`;
   ctx.fillText(unlocked, cx, valueY);
 
-  ctx.fillStyle = "rgba(220, 220, 220, 0.55)";
+  ctx.fillStyle = INK_FAINT;
   ctx.font = `400 ${Math.round(size * 0.015)}px ui-monospace, monospace`;
   ctx.textAlign = "right";
   ctx.fillText(`CERT ID  ${id}`, size - inset - 8, size - inset - 12);
@@ -385,47 +384,42 @@ function escapeXml(s: string): string {
 
 async function buildSvg(opts: BadgeCertificateOptions): Promise<string> {
   const size = CANVAS_SIZE;
-  const bgDataUrl = await fetchAsDataUrl(badgeBg);
+  const logoDataUrl = await fetchAsDataUrl(LOGO_URL);
   const unlocked = formatDate(opts.unlockedAt);
   const recipient = opts.recipientName.trim() || "Operator";
   const id = shortId(opts.badgeId, recipient, unlocked);
-  const inset = Math.round(size * 0.045);
+  const inset = Math.round(size * 0.05);
   const isSenior = !!opts.senior;
-  const border = Math.round(size * (isSenior ? 0.022 : 0.018));
-  const goldStrong = isSenior ? "#FFD24A" : "#FFE07A";
-  const goldSoft = isSenior ? "rgba(255,210,74,0.95)" : "rgba(234,200,84,0.85)";
-  const goldFaint = isSenior ? "rgba(255,210,74,0.55)" : "rgba(234,200,84,0.35)";
-  const dividerColor = isSenior ? "rgba(255,210,74,0.7)" : "rgba(234,200,84,0.6)";
+  const border = Math.round(size * 0.012);
 
-  const vignetteStops = isSenior
-    ? `<stop offset="0%" stop-color="rgba(28,18,6,0.65)"/>
-      <stop offset="45%" stop-color="rgba(14,10,6,0.4)"/>
-      <stop offset="100%" stop-color="rgba(8,6,4,0.9)"/>`
-    : `<stop offset="0%" stop-color="rgba(8,10,16,0.55)"/>
-      <stop offset="45%" stop-color="rgba(8,10,16,0.35)"/>
-      <stop offset="100%" stop-color="rgba(8,10,16,0.85)"/>`;
+  const pad = Math.round(size * 0.022);
+  const logoH = Math.round(size * 0.08);
+  const logoW = Math.round(logoH * LOGO_RATIO);
+  const logoX = inset + pad;
+  const logoY = inset + pad;
+  const headTextX = logoX + logoW + Math.round(pad * 0.7);
 
   const badgeFontPx = Math.round(size * (isSenior ? 0.14 : 0.22));
 
-  const seniorRibbon = isSenior
-    ? `<text x="50%" y="${size * 0.085}" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-weight="700" font-size="${Math.round(size * 0.018)}" fill="${goldStrong}">${escapeXml(SENIOR_RIBBON)}</text>`
+  const innerSeniorFrame = isSenior
+    ? `<rect x="${inset + 14}" y="${inset + 14}" width="${size - (inset + 14) * 2}" height="${size - (inset + 14) * 2}" fill="none" stroke="rgba(17,17,17,0.28)" stroke-width="1"/>`
     : "";
 
-  const innerSeniorFrame = isSenior
-    ? `<rect x="${inset + 14}" y="${inset + 14}" width="${size - (inset + 14) * 2}" height="${size - (inset + 14) * 2}" fill="none" stroke="rgba(255,210,74,0.25)" stroke-width="1"/>`
+  const seniorRibbon = isSenior
+    ? `<text x="${size - inset - pad}" y="${logoY + Math.round(logoH * 0.55)}" text-anchor="end" font-family="ui-monospace, Menlo, monospace" font-weight="700" font-size="${Math.round(size * 0.016)}" fill="${INK}">${escapeXml(SENIOR_RIBBON)}</text>`
     : "";
 
   const thresholdLine = isSenior && opts.senior
-    ? `<text x="50%" y="${size * 0.615}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="700" font-size="${Math.round(size * 0.018)}" fill="${goldStrong}">${escapeXml(opts.senior.thresholdNote.toUpperCase())}</text>`
+    ? `<text x="50%" y="${size * 0.615}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="700" font-size="${Math.round(size * 0.018)}" fill="${INK}">${escapeXml(opts.senior.thresholdNote.toUpperCase())}</text>`
     : "";
 
   const evidenceExcerpt = isSenior && opts.senior?.evidenceExcerpt
-    ? `<text x="50%" y="${size * 0.64}" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="${Math.round(size * 0.018)}" fill="rgba(235,225,200,0.85)">"${escapeXml(truncate(opts.senior.evidenceExcerpt, EVIDENCE_MAX))}"</text>`
+    ? `<text x="50%" y="${size * 0.64}" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="${Math.round(size * 0.018)}" fill="${INK_SOFT}">"${escapeXml(truncate(opts.senior.evidenceExcerpt, EVIDENCE_MAX))}"</text>`
     : "";
 
   const verifiedUrlBlock = isSenior && opts.senior?.verifiedUrl
-    ? `<text x="50%" y="${size * 0.855}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.014)}" fill="${goldStrong}">VERIFIED LIVE URL</text>
-  <text x="50%" y="${size * 0.88}" text-anchor="middle" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.018)}" fill="#FFFFFF">${escapeXml(opts.senior.verifiedUrl)}</text>`
+    ? `<text x="50%" y="${size * 0.855}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.014)}" fill="${INK}">VERIFIED LIVE URL</text>
+  <text x="50%" y="${size * 0.88}" text-anchor="middle" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.018)}" fill="${INK_SOFT}">${escapeXml(opts.senior.verifiedUrl)}</text>`
     : "";
 
   const hasVerifiedUrl = isSenior && !!opts.senior?.verifiedUrl;
@@ -434,33 +428,28 @@ async function buildSvg(opts: BadgeCertificateOptions): Promise<string> {
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <defs>
-    <linearGradient id="vignette" x1="0" y1="0" x2="0" y2="1">
-      ${vignetteStops}
-    </linearGradient>
-  </defs>
-  <image href="${bgDataUrl}" x="0" y="0" width="${size}" height="${size}" preserveAspectRatio="xMidYMid slice"/>
-  <rect x="0" y="0" width="${size}" height="${size}" fill="url(#vignette)"/>
-  <rect x="${border / 2}" y="${border / 2}" width="${size - border}" height="${size - border}" fill="none" stroke="${goldSoft}" stroke-width="${border}"/>
-  <rect x="${inset}" y="${inset}" width="${size - inset * 2}" height="${size - inset * 2}" fill="none" stroke="${goldFaint}" stroke-width="2"/>
+  <rect x="0" y="0" width="${size}" height="${size}" fill="#FFFFFF"/>
+  <rect x="${border / 2}" y="${border / 2}" width="${size - border}" height="${size - border}" fill="none" stroke="${INK}" stroke-width="${border}"/>
+  <rect x="${inset}" y="${inset}" width="${size - inset * 2}" height="${size - inset * 2}" fill="none" stroke="${INK_LINE}" stroke-width="1.5"/>
   ${innerSeniorFrame}
+  <image href="${logoDataUrl}" x="${logoX}" y="${logoY}" width="${logoW}" height="${logoH}" preserveAspectRatio="xMidYMid meet"/>
+  <text x="${headTextX}" y="${logoY + Math.round(logoH * 0.46)}" font-family="ui-monospace, Menlo, monospace" font-weight="600" font-size="${Math.round(size * 0.018)}" fill="${INK}">${escapeXml(PRODUCT_LINE)}</text>
+  <text x="${headTextX}" y="${logoY + Math.round(logoH * 0.82)}" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.013)}" fill="${INK_SOFT}">${escapeXml(ISSUER_LINE)}</text>
   ${seniorRibbon}
-  <text x="50%" y="${size * 0.13}" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-weight="600" font-size="${Math.round(size * 0.022)}" fill="${goldSoft}">${escapeXml(PRODUCT_LINE)}</text>
-  <text x="50%" y="${size * 0.16}" text-anchor="middle" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.014)}" fill="rgba(220,220,220,0.55)">${escapeXml(ISSUER_LINE)}</text>
-  <text x="50%" y="${size * 0.42}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="800" font-size="${badgeFontPx}" textLength="${size * 0.82}" lengthAdjust="spacingAndGlyphs" fill="${goldStrong}">${escapeXml(opts.badgeId)}</text>
-  <text x="50%" y="${size * 0.48}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.028)}" fill="rgba(245,245,245,0.92)">${escapeXml(opts.badgeFullName.toUpperCase())}</text>
-  <text x="50%" y="${size * 0.54}" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="${Math.round(size * 0.02)}" fill="rgba(220,220,220,0.75)">${escapeXml(opts.description)}</text>
+  <text x="50%" y="${size * 0.42}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="800" font-size="${badgeFontPx}" textLength="${size * 0.82}" lengthAdjust="spacingAndGlyphs" fill="${INK}">${escapeXml(opts.badgeId)}</text>
+  <text x="50%" y="${size * 0.48}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.028)}" fill="${INK_SOFT}">${escapeXml(opts.badgeFullName.toUpperCase())}</text>
+  <text x="50%" y="${size * 0.54}" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="${Math.round(size * 0.02)}" fill="${INK_SOFT}">${escapeXml(opts.description)}</text>
   ${thresholdLine}
   ${evidenceExcerpt}
-  <line x1="${size * 0.32}" y1="${size * 0.69}" x2="${size * 0.68}" y2="${size * 0.69}" stroke="${dividerColor}" stroke-width="2"/>
-  <text x="50%" y="${size * 0.735}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.018)}" fill="${isSenior ? "rgba(255,210,74,0.9)" : "rgba(234,200,84,0.8)"}">${escapeXml(TAGLINE)}</text>
-  <text x="50%" y="${size * 0.795}" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="${Math.round(size * 0.06)}" fill="#FFFFFF">${escapeXml(recipient)}</text>
-  ${opts.recipientEmail ? `<text x="50%" y="${size * 0.825}" text-anchor="middle" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.018)}" fill="rgba(220,220,220,0.6)">${escapeXml(opts.recipientEmail)}</text>` : ""}
+  <line x1="${size * 0.32}" y1="${size * 0.69}" x2="${size * 0.68}" y2="${size * 0.69}" stroke="${INK}" stroke-width="2"/>
+  <text x="50%" y="${size * 0.735}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.018)}" fill="${INK_SOFT}">${escapeXml(TAGLINE)}</text>
+  <text x="50%" y="${size * 0.795}" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="${Math.round(size * 0.06)}" fill="${INK}">${escapeXml(recipient)}</text>
+  ${opts.recipientEmail ? `<text x="50%" y="${size * 0.825}" text-anchor="middle" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.018)}" fill="${INK_FAINT}">${escapeXml(opts.recipientEmail)}</text>` : ""}
   ${verifiedUrlBlock}
-  <text x="50%" y="${dateY}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.016)}" fill="${isSenior ? "rgba(255,210,74,0.8)" : "rgba(234,200,84,0.7)"}">${escapeXml(DATE_LINE)}</text>
-  <text x="50%" y="${valueY}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.026)}" fill="#FFFFFF">${escapeXml(unlocked)}</text>
-  <text x="${size - inset - 8}" y="${size - inset - 12}" text-anchor="end" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.015)}" fill="rgba(220,220,220,0.55)">CERT ID  ${escapeXml(id)}</text>
-  <text x="${inset + 8}" y="${size - inset - 12}" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.015)}" fill="rgba(220,220,220,0.55)">atanda.command-centre</text>
+  <text x="50%" y="${dateY}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.016)}" fill="${INK_SOFT}">${escapeXml(DATE_LINE)}</text>
+  <text x="50%" y="${valueY}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.026)}" fill="${INK}">${escapeXml(unlocked)}</text>
+  <text x="${size - inset - 8}" y="${size - inset - 12}" text-anchor="end" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.015)}" fill="${INK_FAINT}">CERT ID  ${escapeXml(id)}</text>
+  <text x="${inset + 8}" y="${size - inset - 12}" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.015)}" fill="${INK_FAINT}">atanda.command-centre</text>
 </svg>`;
 }
 

@@ -43,7 +43,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Award, CheckCircle2, Download, Lock, ShieldCheck, Trophy } from "lucide-react";
-import badgeBg from "@assets/copilot_image_1779143975171_1779147194124.jpeg";
 import {
   downloadBadgeCertificate,
   type BadgeFormat,
@@ -226,67 +225,46 @@ export default function Quests() {
                 return (
                   <Card
                     key={b.badgeId}
-                    className={`bg-card overflow-hidden flex flex-col ${
-                      claimed ? "ring-2 ring-primary/60 shadow-lg shadow-primary/20" : ""
-                    }`}
+                    className={`bg-white text-black border-2 border-black rounded-md overflow-hidden flex flex-col ${
+                      claimed ? "ring-2 ring-black" : ""
+                    } ${locked ? "opacity-70" : ""}`}
                   >
-                    {/* Hero badge crest */}
-                    <div className="relative aspect-square w-full overflow-hidden border-b">
+                    {/* Header: small logo top-left + status */}
+                    <div className="flex items-start justify-between gap-3 p-4 border-b-2 border-black">
                       <img
-                        src={badgeBg}
-                        alt={`${meta.name} badge`}
-                        className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${
-                          locked ? "grayscale brightness-50" : "saturate-150"
-                        }`}
+                        src={`${import.meta.env.BASE_URL}atanda-logo.png`}
+                        alt="ATANDA"
+                        className={`h-8 w-auto ${locked ? "grayscale opacity-60" : ""}`}
                       />
-                      {/* Vignette */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/90" />
-                      {/* Status chip */}
                       <span
-                        className={`absolute top-3 right-3 text-[10px] font-mono font-bold px-2 py-1 rounded border backdrop-blur-sm ${
-                          claimed
-                            ? "bg-primary/30 text-primary-foreground border-primary/60"
-                            : b.status === "UNLOCKED"
-                            ? "bg-secondary/30 text-secondary-foreground border-secondary/60"
-                            : "bg-background/60 text-muted-foreground border-muted-foreground/30"
+                        className={`text-[10px] font-mono font-bold px-2 py-1 rounded border border-black ${
+                          claimed ? "bg-black text-white" : "bg-white text-black"
                         }`}
                       >
                         {claimed && <CheckCircle2 className="h-3 w-3 inline mr-1" />}
                         {locked && <Lock className="h-3 w-3 inline mr-1" />}
                         {b.status}
                       </span>
-                      {/* Icon corner */}
-                      <Icon
-                        className={`absolute top-3 left-3 h-7 w-7 drop-shadow-lg ${
-                          locked ? "text-muted-foreground/70" : "text-yellow-300"
-                        }`}
-                      />
-                      {/* Centerpiece label */}
-                      <div className="absolute inset-x-0 bottom-3 text-center">
-                        <div
-                          className={`font-display text-4xl tracking-[0.2em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] ${
-                            locked ? "text-muted-foreground" : "text-yellow-200"
-                          }`}
-                        >
+                    </div>
+
+                    {/* Badge identity */}
+                    <div className="flex items-center gap-3 px-4 pt-4">
+                      <Icon className="h-8 w-8 text-black shrink-0" strokeWidth={1.5} />
+                      <div className="min-w-0">
+                        <div className="font-display text-3xl tracking-[0.18em] text-black leading-none">
                           {meta.name}
                         </div>
-                        <div className="font-mono text-[9px] tracking-widest text-muted-foreground mt-0.5">
+                        <div className="font-mono text-[9px] tracking-widest text-black/70 mt-1">
                           {meta.fullName}
                         </div>
                       </div>
-                      {/* Lock overlay for locked badges */}
-                      {locked && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Lock className="h-16 w-16 text-background/80 drop-shadow-lg" strokeWidth={1.5} />
-                        </div>
-                      )}
                     </div>
 
-                    <CardHeader className="pb-3">
-                      <CardDescription className="text-xs">{meta.description}</CardDescription>
+                    <CardHeader className="pb-3 pt-3">
+                      <CardDescription className="text-xs text-black/80">{meta.description}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-1 flex flex-col">
-                      <div className="text-xs font-mono text-muted-foreground mb-3">{meta.reqText}</div>
+                      <div className="text-xs font-mono text-black/70 mb-3">{meta.reqText}</div>
                       <div className="space-y-1.5">
                         {Object.entries(b.requirements).map(([k, req]) => {
                           const cur = (b.progress[k] as number | undefined) ?? 0;
@@ -295,14 +273,14 @@ export default function Quests() {
                           return (
                             <div key={k}>
                               <div className="flex justify-between text-[10px] font-mono mb-0.5">
-                                <span className="text-muted-foreground uppercase">{k}</span>
-                                <span className={met ? "text-primary font-bold" : "text-foreground"}>
+                                <span className="text-black/60 uppercase">{k}</span>
+                                <span className={met ? "text-black font-bold" : "text-black/80"}>
                                   {cur} / {req}
                                 </span>
                               </div>
-                              <div className="h-1 bg-muted rounded">
+                              <div className="h-1 bg-black/10 rounded">
                                 <div
-                                  className={`h-full rounded transition-all ${met ? "bg-primary" : "bg-secondary"}`}
+                                  className={`h-full rounded transition-all ${met ? "bg-black" : "bg-black/40"}`}
                                   style={{ width: `${pct}%` }}
                                 />
                               </div>
@@ -311,13 +289,13 @@ export default function Quests() {
                         })}
                       </div>
                       {!locked && (
-                        <div className="mt-4 pt-3 border-t border-border/60">
+                        <div className="mt-4 pt-3 border-t border-black/20">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full font-mono text-xs gap-2"
+                                className="w-full font-mono text-xs gap-2 border-black text-black hover:bg-black hover:text-white"
                                 data-testid={`button-download-${b.badgeId.toLowerCase()}`}
                               >
                                 <Download className="h-3.5 w-3.5" />
@@ -402,17 +380,24 @@ function SeniorBadgesSection({
   };
 
   return (
-    <Card className="mb-8 bg-gradient-to-br from-yellow-500/10 via-amber-500/5 to-background border-2 border-yellow-500/40 shadow-lg shadow-yellow-500/10">
+    <Card className="mb-8 bg-white text-black border-2 border-black">
       <CardHeader>
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <div className="inline-block px-2 py-0.5 mb-2 rounded bg-yellow-500/20 text-yellow-300 font-mono text-[10px] tracking-widest border border-yellow-500/40">
-              SENIOR · ADVANCED SYSTEMS
+            <div className="flex items-center gap-3 mb-3">
+              <img
+                src={`${import.meta.env.BASE_URL}atanda-logo.png`}
+                alt="ATANDA"
+                className="h-8 w-auto"
+              />
+              <span className="inline-block px-2 py-0.5 rounded bg-black text-white font-mono text-[10px] tracking-widest">
+                SENIOR · ADVANCED SYSTEMS
+              </span>
             </div>
-            <CardTitle className="font-display tracking-wider text-xl text-yellow-200">
+            <CardTitle className="font-display tracking-wider text-xl text-black">
               SENIOR OPERATOR BADGES
             </CardTitle>
-            <CardDescription className="font-serif text-sm mt-1">
+            <CardDescription className="font-serif text-sm mt-1 text-black/70">
               Reputational tier reserved for operators who finish real
               projects at PWDD stage and ship live systems built from them.
             </CardDescription>
@@ -423,57 +408,58 @@ function SeniorBadgesSection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Architect tile */}
           <div
-            className={`relative p-5 rounded-lg border-2 ${architectEarned ? "border-yellow-400/70 bg-yellow-500/10" : "border-yellow-500/20 bg-card/40"}`}
+            className={`relative p-5 rounded-md border-2 border-black bg-white text-black ${architectEarned ? "ring-2 ring-black" : "opacity-90"}`}
             data-testid="senior-badge-architect"
-            style={{ clipPath: "polygon(8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%, 0 50%)" }}
           >
-            <div className="flex items-start gap-3">
-              <Hexagon
-                className={`h-8 w-8 ${architectEarned ? "text-yellow-300" : "text-muted-foreground"}`}
-                strokeWidth={1.5}
+            <div className="flex items-center justify-between gap-3 mb-3 pb-3 border-b-2 border-black">
+              <img
+                src={`${import.meta.env.BASE_URL}atanda-logo.png`}
+                alt="ATANDA"
+                className={`h-7 w-auto ${architectEarned ? "" : "grayscale opacity-60"}`}
               />
-              <div className="flex-1 min-w-0">
-                <div className="font-mono text-[10px] tracking-widest text-yellow-400/80">
-                  AAISA · PWDD
-                </div>
-                <div className="font-display tracking-wide text-lg leading-tight">
-                  Advanced Atomic Intelligent Systems Architect
-                </div>
-              </div>
               <span
-                className={`text-[10px] font-mono font-bold px-2 py-1 rounded border ${
-                  architectEarned
-                    ? "bg-yellow-500/30 text-yellow-100 border-yellow-400/60"
-                    : "bg-background/60 text-muted-foreground border-muted-foreground/30"
+                className={`text-[10px] font-mono font-bold px-2 py-1 rounded border border-black ${
+                  architectEarned ? "bg-black text-white" : "bg-white text-black"
                 }`}
               >
                 {architectEarned ? "EARNED" : "IN PROGRESS"}
               </span>
             </div>
-            <p className="font-serif text-xs text-muted-foreground mt-3">
+            <div className="flex items-start gap-3">
+              <Hexagon className="h-8 w-8 text-black shrink-0" strokeWidth={1.5} />
+              <div className="flex-1 min-w-0">
+                <div className="font-mono text-[10px] tracking-widest text-black/70">
+                  AAISA · PWDD
+                </div>
+                <div className="font-display tracking-wide text-lg leading-tight text-black">
+                  Advanced Atomic Intelligent Systems Architect
+                </div>
+              </div>
+            </div>
+            <p className="font-serif text-xs text-black/70 mt-3">
               Auto-awarded the moment you reach 3 completed projects at
               PWDD stage (a session with a SPARTAN-certified MVP-PDD /
               PWDD artefact).
             </p>
             <div className="mt-4">
               <div className="flex justify-between text-[11px] font-mono mb-1">
-                <span className="text-muted-foreground uppercase">PWDDs</span>
+                <span className="text-black/60 uppercase">PWDDs</span>
                 <span
-                  className={architectEarned ? "text-yellow-200 font-bold" : "text-foreground"}
+                  className={architectEarned ? "text-black font-bold" : "text-black/80"}
                   data-testid="text-architect-progress"
                 >
                   {pwdds} / {pwddTarget}
                 </span>
               </div>
-              <div className="h-1.5 bg-muted rounded">
+              <div className="h-1.5 bg-black/10 rounded">
                 <div
-                  className={`h-full rounded transition-all ${architectEarned ? "bg-yellow-400" : "bg-secondary"}`}
+                  className={`h-full rounded transition-all ${architectEarned ? "bg-black" : "bg-black/40"}`}
                   style={{ width: `${Math.min(100, (pwdds / pwddTarget) * 100)}%` }}
                 />
               </div>
             </div>
             {architectEarned && (
-              <div className="mt-4 pt-3 border-t border-yellow-500/30">
+              <div className="mt-4 pt-3 border-t border-black/20">
                 <SeniorDownloadMenu
                   recipientName={recipientName}
                   testIdPrefix="architect"
@@ -494,37 +480,40 @@ function SeniorBadgesSection({
 
           {/* Engineer tile */}
           <div
-            className={`relative p-5 rounded-lg border-2 ${engineerClaimed ? "border-yellow-400/70 bg-yellow-500/10" : "border-yellow-500/20 bg-card/40"}`}
+            className={`relative p-5 rounded-md border-2 border-black bg-white text-black ${engineerClaimed ? "ring-2 ring-black" : "opacity-90"}`}
             data-testid="senior-badge-engineer"
-            style={{ clipPath: "polygon(8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%, 0 50%)" }}
           >
-            <div className="flex items-start gap-3">
-              <Hexagon
-                className={`h-8 w-8 ${engineerClaimed ? "text-yellow-300" : "text-muted-foreground"}`}
-                strokeWidth={1.5}
+            <div className="flex items-center justify-between gap-3 mb-3 pb-3 border-b-2 border-black">
+              <img
+                src={`${import.meta.env.BASE_URL}atanda-logo.png`}
+                alt="ATANDA"
+                className={`h-7 w-auto ${engineerClaimed ? "" : "grayscale opacity-60"}`}
               />
-              <div className="flex-1 min-w-0">
-                <div className="font-mono text-[10px] tracking-widest text-yellow-400/80">
-                  AAISE · BUILD
-                </div>
-                <div className="font-display tracking-wide text-lg leading-tight">
-                  Advanced Atomic Intelligent Systems Engineer
-                </div>
-              </div>
               <span
                 className={`text-[10px] font-mono font-bold px-2 py-1 rounded border ${
                   engineerClaimed
-                    ? "bg-yellow-500/30 text-yellow-100 border-yellow-400/60"
+                    ? "bg-black text-white border-black"
                     : engineerRevoked
-                    ? "bg-destructive/30 text-destructive-foreground border-destructive/60"
-                    : "bg-background/60 text-muted-foreground border-muted-foreground/30"
+                    ? "bg-destructive/15 text-destructive border-destructive/60"
+                    : "bg-white text-black border-black"
                 }`}
                 data-testid="badge-engineer-status"
               >
                 {engineerClaimed ? "CLAIMED" : engineerRevoked ? "REVOKED" : "EVIDENCE NEEDED"}
               </span>
             </div>
-            <p className="font-serif text-xs text-muted-foreground mt-3">
+            <div className="flex items-start gap-3">
+              <Hexagon className="h-8 w-8 text-black shrink-0" strokeWidth={1.5} />
+              <div className="flex-1 min-w-0">
+                <div className="font-mono text-[10px] tracking-widest text-black/70">
+                  AAISE · BUILD
+                </div>
+                <div className="font-display tracking-wide text-lg leading-tight text-black">
+                  Advanced Atomic Intelligent Systems Engineer
+                </div>
+              </div>
+            </div>
+            <p className="font-serif text-xs text-black/70 mt-3">
               Submit a public URL to a live AI agent or application you
               built from one of your PWDDs. The URL is checked through the
               same SSRF-hardened verifier as AISE.
@@ -543,24 +532,24 @@ function SeniorBadgesSection({
               {engineerClaimed ? (
                 <div className="space-y-2 text-xs font-mono">
                   <div>
-                    <span className="text-muted-foreground">URL: </span>
+                    <span className="text-black/60">URL: </span>
                     <a
                       href={engineerEvidence.verifiedUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-yellow-200 underline break-all"
+                      className="text-black underline break-all"
                       data-testid="link-engineer-verified-url"
                     >
                       {engineerEvidence.verifiedUrl}
                     </a>
                   </div>
                   {engineerEvidence.evidenceNote && (
-                    <div className="font-serif text-foreground/90">
+                    <div className="font-serif text-black/90">
                       "{engineerEvidence.evidenceNote}"
                     </div>
                   )}
                   {engineerEvidence.verifiedAt && (
-                    <div className="text-muted-foreground">
+                    <div className="text-black/60">
                       Verified {new Date(engineerEvidence.verifiedAt).toLocaleDateString()}
                     </div>
                   )}
@@ -570,7 +559,7 @@ function SeniorBadgesSection({
               )}
             </div>
             {engineerClaimed && (
-              <div className="mt-4 pt-3 border-t border-yellow-500/30">
+              <div className="mt-4 pt-3 border-t border-black/20">
                 <SeniorDownloadMenu
                   recipientName={recipientName}
                   testIdPrefix="engineer"
@@ -691,7 +680,7 @@ function SeniorDownloadMenu({
         <Button
           variant="outline"
           size="sm"
-          className="w-full font-mono text-xs gap-2 border-yellow-500/50 text-yellow-100 hover:bg-yellow-500/15"
+          className="w-full font-mono text-xs gap-2 border-black text-black hover:bg-black hover:text-white"
           data-testid={`button-download-${testIdPrefix}`}
         >
           <Download className="h-3.5 w-3.5" />
@@ -773,7 +762,7 @@ function EngineerClaimDialog({ onClaimed }: { onClaimed: () => void }) {
         <Button
           variant="outline"
           size="sm"
-          className="w-full font-mono text-xs border-yellow-500/50 hover:bg-yellow-500/10"
+          className="w-full font-mono text-xs border-black text-black hover:bg-black hover:text-white"
           data-testid="button-engineer-submit-evidence"
         >
           SUBMIT EVIDENCE
