@@ -34,6 +34,9 @@ const EVIDENCE_MAX = 180;
 const LOGO_URL = `${import.meta.env.BASE_URL}atanda-logo.png`;
 const LOGO_RATIO = 1.5; // atanda-logo.png is 1920×1280
 
+const MARK_URL = `${import.meta.env.BASE_URL}atanda-mark.png`;
+const MARK_RATIO = 5.05; // trimmed atanda-mark.png is 1454×288
+
 // Professional ink palette — black text on white.
 const INK = "#111111";
 const INK_SOFT = "rgba(17,17,17,0.72)";
@@ -351,6 +354,18 @@ async function renderCanvas(opts: BadgeCertificateOptions): Promise<HTMLCanvasEl
   ctx.textAlign = "left";
   ctx.fillText("atanda.command-centre", inset + 8, size - inset - 12);
 
+  // Colour mark, bottom-right footer (above the CERT ID line).
+  const markW = Math.round(size * 0.16);
+  const markH = Math.round(markW / MARK_RATIO);
+  const markX = size - inset - 8 - markW;
+  const markY = size - inset - 12 - markH - Math.round(size * 0.022);
+  try {
+    const mark = await loadImage(MARK_URL);
+    ctx.drawImage(mark, markX, markY, markW, markH);
+  } catch {
+    // Mark is decorative; skip silently if it fails to load.
+  }
+
   return canvas;
 }
 
@@ -385,6 +400,7 @@ function escapeXml(s: string): string {
 async function buildSvg(opts: BadgeCertificateOptions): Promise<string> {
   const size = CANVAS_SIZE;
   const logoDataUrl = await fetchAsDataUrl(LOGO_URL);
+  const markDataUrl = await fetchAsDataUrl(MARK_URL);
   const unlocked = formatDate(opts.unlockedAt);
   const recipient = opts.recipientName.trim() || "Operator";
   const id = shortId(opts.badgeId, recipient, unlocked);
@@ -426,6 +442,11 @@ async function buildSvg(opts: BadgeCertificateOptions): Promise<string> {
   const dateY = hasVerifiedUrl ? size * 0.905 : size * 0.88;
   const valueY = hasVerifiedUrl ? size * 0.935 : size * 0.915;
 
+  const markW = Math.round(size * 0.16);
+  const markH = Math.round(markW / MARK_RATIO);
+  const markX = size - inset - 8 - markW;
+  const markY = size - inset - 12 - markH - Math.round(size * 0.022);
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
   <rect x="0" y="0" width="${size}" height="${size}" fill="#FFFFFF"/>
@@ -448,6 +469,7 @@ async function buildSvg(opts: BadgeCertificateOptions): Promise<string> {
   ${verifiedUrlBlock}
   <text x="50%" y="${dateY}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.016)}" fill="${INK_SOFT}">${escapeXml(DATE_LINE)}</text>
   <text x="50%" y="${valueY}" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="600" font-size="${Math.round(size * 0.026)}" fill="${INK}">${escapeXml(unlocked)}</text>
+  <image href="${markDataUrl}" x="${markX}" y="${markY}" width="${markW}" height="${markH}" preserveAspectRatio="xMidYMid meet"/>
   <text x="${size - inset - 8}" y="${size - inset - 12}" text-anchor="end" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.015)}" fill="${INK_FAINT}">CERT ID  ${escapeXml(id)}</text>
   <text x="${inset + 8}" y="${size - inset - 12}" font-family="ui-monospace, monospace" font-size="${Math.round(size * 0.015)}" fill="${INK_FAINT}">atanda.command-centre</text>
 </svg>`;
