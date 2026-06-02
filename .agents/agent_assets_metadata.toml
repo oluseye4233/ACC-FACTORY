@@ -216,3 +216,9 @@ id = "3EGWKYV7gmlGnb9fN1S1w"
 uri = "file://exports/ATANDA_Command_Centre_MVP-PDD_SPARTAN.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — SPARTAN-Certified MVP-PDD (Investors & Auditors)"
+
+[[outputs]]
+id = "bQxRI6bl9tCaPwGnp7CZw"
+uri = "file://exports/ATANDA_Command_Centre_Living_PDD_ATLAS.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — ATLAS Living PDD (latest)"
