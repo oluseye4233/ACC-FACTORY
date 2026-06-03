@@ -39,6 +39,11 @@ export const commandCentreSubscribersTable = pgTable("command_centre_subscribers
     scale: 2,
   }),
 
+  // F1000 soft-launch promo membership. Set true when an F1000 invite code is
+  // redeemed. Drives the $39-off Practitioner coupon at checkout and the
+  // one-click Architect on-ramp shown when the $49 AI-usage cap is reached.
+  f1000Member: boolean("f1000_member").notNull().default(false),
+
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()

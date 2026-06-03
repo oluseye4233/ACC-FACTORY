@@ -166,6 +166,14 @@ export async function requireCostBudget(
   try {
     const status = await loadCostStatus(userId, sub, tier);
     if (status.overCap) {
+      // F1000 soft-launch on-ramp: a promo Practitioner who exhausts their $49
+      // AI-usage budget is offered a one-click upgrade to Architect rather than
+      // a dead end. The frontend renders an "Upgrade to Architect" prompt off
+      // this hint; the user still confirms before any new charge.
+      const onRamp =
+        sub.f1000Member && tier === "PRACTITIONER"
+          ? { toTier: "ARCHITECT" as const, interval: "month" as const }
+          : undefined;
       res.status(402).json({
         error: "Monthly LLM cost cap reached",
         code: "COST_CAP_EXCEEDED",
@@ -173,8 +181,11 @@ export async function requireCostBudget(
         capUsd: status.capUsd,
         tierDefaultUsd: status.tierDefaultUsd,
         overrideUsd: status.overrideUsd,
-        detail:
-          "This account has hit its monthly LLM spend cap. The cap resets at the start of next month UTC. Contact an admin to raise it sooner.",
+        f1000Member: sub.f1000Member,
+        onRamp,
+        detail: onRamp
+          ? "You've used your $49 F1000 AI-usage budget. Upgrade to Architect to keep building — the cap lifts immediately."
+          : "This account has hit its monthly LLM spend cap. The cap resets at the start of next month UTC. Contact an admin to raise it sooner.",
       });
       return;
     }

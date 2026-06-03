@@ -20,6 +20,7 @@ import costRouter from "./cost";
 import notificationsRouter from "./notifications";
 import integrationsRouter from "./integrations";
 import onboardingRouter from "./onboarding";
+import f1000Router from "./f1000";
 
 const router: IRouter = Router();
 
@@ -44,5 +45,6 @@ router.use(activityRouter);
 router.use(costRouter);
 router.use(notificationsRouter);
 router.use(integrationsRouter);
+router.use(f1000Router);
 
 export default router;

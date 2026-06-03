@@ -49,6 +49,10 @@ import type {
   ErrorResponse,
   Exemplar,
   ExemplarSummary,
+  F1000ActivateResult,
+  F1000RedeemInput,
+  F1000RedeemResult,
+  F1000StatusResult,
   F5StepOutcome,
   FeatureState,
   ForbiddenResponse,
@@ -2647,6 +2651,224 @@ export function useHarnessEscalationsStream<TData = Awaited<ReturnType<typeof ha
 
 
 
+
+export const getF1000StatusUrl = () => {
+
+
+
+
+  return `/api/f1000/status`
+}
+
+/**
+ * @summary Public remaining-count for the First 1000 soft-launch offer
+ */
+export const f1000Status = async ( options?: RequestInit): Promise<F1000StatusResult> => {
+
+  return customFetch<F1000StatusResult>(getF1000StatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getF1000StatusQueryKey = () => {
+    return [
+    `/api/f1000/status`
+    ] as const;
+    }
+
+
+export const getF1000StatusQueryOptions = <TData = Awaited<ReturnType<typeof f1000Status>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof f1000Status>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getF1000StatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof f1000Status>>> = ({ signal }) => f1000Status({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof f1000Status>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type F1000StatusQueryResult = NonNullable<Awaited<ReturnType<typeof f1000Status>>>
+export type F1000StatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Public remaining-count for the First 1000 soft-launch offer
+ */
+
+export function useF1000Status<TData = Awaited<ReturnType<typeof f1000Status>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof f1000Status>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getF1000StatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getF1000ActivateUrl = () => {
+
+
+
+
+  return `/api/f1000/activate`
+}
+
+/**
+ * @summary Claim the next available F1000 invite code (public, IP rate-limited)
+ */
+export const f1000Activate = async ( options?: RequestInit): Promise<F1000ActivateResult> => {
+
+  return customFetch<F1000ActivateResult>(getF1000ActivateUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getF1000ActivateMutationOptions = <TError = ErrorType<ErrorResponse | RateLimitedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof f1000Activate>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof f1000Activate>>, TError,void, TContext> => {
+
+const mutationKey = ['f1000Activate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof f1000Activate>>, void> = () => {
+
+
+          return  f1000Activate(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type F1000ActivateMutationResult = NonNullable<Awaited<ReturnType<typeof f1000Activate>>>
+
+    export type F1000ActivateMutationError = ErrorType<ErrorResponse | RateLimitedResponse>
+
+    /**
+ * @summary Claim the next available F1000 invite code (public, IP rate-limited)
+ */
+export const useF1000Activate = <TError = ErrorType<ErrorResponse | RateLimitedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof f1000Activate>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof f1000Activate>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getF1000ActivateMutationOptions(options));
+    }
+
+export const getF1000RedeemUrl = () => {
+
+
+
+
+  return `/api/f1000/redeem`
+}
+
+/**
+ * @summary Bind an F1000 invite code to the signed-in user and unlock the offer
+ */
+export const f1000Redeem = async (f1000RedeemInput: F1000RedeemInput, options?: RequestInit): Promise<F1000RedeemResult> => {
+
+  return customFetch<F1000RedeemResult>(getF1000RedeemUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      f1000RedeemInput,)
+  }
+);}
+
+
+
+
+export const getF1000RedeemMutationOptions = <TError = ErrorType<UnauthorizedResponse | ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof f1000Redeem>>, TError,{data: BodyType<F1000RedeemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof f1000Redeem>>, TError,{data: BodyType<F1000RedeemInput>}, TContext> => {
+
+const mutationKey = ['f1000Redeem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof f1000Redeem>>, {data: BodyType<F1000RedeemInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  f1000Redeem(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type F1000RedeemMutationResult = NonNullable<Awaited<ReturnType<typeof f1000Redeem>>>
+    export type F1000RedeemMutationBody = BodyType<F1000RedeemInput>
+    export type F1000RedeemMutationError = ErrorType<UnauthorizedResponse | ErrorResponse>
+
+    /**
+ * @summary Bind an F1000 invite code to the signed-in user and unlock the offer
+ */
+export const useF1000Redeem = <TError = ErrorType<UnauthorizedResponse | ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof f1000Redeem>>, TError,{data: BodyType<F1000RedeemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof f1000Redeem>>,
+        TError,
+        {data: BodyType<F1000RedeemInput>},
+        TContext
+      > => {
+      return useMutation(getF1000RedeemMutationOptions(options));
+    }
 
 export const getBillingCheckoutUrl = () => {
 

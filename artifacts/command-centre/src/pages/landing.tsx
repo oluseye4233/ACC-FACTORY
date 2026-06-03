@@ -180,10 +180,10 @@ export default function Landing() {
                   </>
                 ) : (
                   <>
-                    <Button asChild size="lg" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
-                      <Link href="/sign-up">INITIATE SESSION</Link>
-                    </Button>
                     <Button asChild size="lg" className="relative h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto bg-gradient-to-r from-primary via-fuchsia-500 to-primary bg-[length:200%_100%] animate-[shimmer_3s_linear_infinite] shadow-[0_0_24px_rgba(168,85,247,0.55)] hover:shadow-[0_0_40px_rgba(168,85,247,0.9)] ring-2 ring-primary/60">
+                      <Link href="/f1000">★ CLAIM A FIRST-1000 SEAT</Link>
+                    </Button>
+                    <Button asChild size="lg" variant="outline" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-display tracking-wider w-full sm:w-auto">
                       <Link href="/demos">▶ EXPLORE DEMOS</Link>
                     </Button>
                   </>
@@ -195,6 +195,51 @@ export default function Landing() {
               >
                 or view pricing &amp; capabilities →
               </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* First-1000 Soft Launch */}
+        <section className="py-16 md:py-20 border-y bg-card" data-testid="landing-f1000">
+          <div className="container px-4 md:px-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 items-center max-w-5xl mx-auto">
+              <div className="space-y-5">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-mono text-primary">
+                  <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  SOFT LAUNCH · THE FIRST 1000
+                </div>
+                <h2 className="font-display text-3xl md:text-4xl tracking-wide text-foreground">
+                  CLAIM A <span className="text-primary">FOUNDING SEAT</span>
+                </h2>
+                <p className="font-serif text-base md:text-lg text-muted-foreground leading-relaxed">
+                  The first 1000 operators get free EXPLORER onboarding, then
+                  PRACTITIONER at{" "}
+                  <span className="text-foreground font-bold">$10/month</span>{" "}
+                  (normally $49) with a $49 AI-usage budget — and a one-click
+                  on-ramp to ARCHITECT the moment they outgrow it.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <Button asChild size="lg" className="font-display tracking-wider">
+                    <Link href="/f1000">CLAIM MY INVITE</Link>
+                  </Button>
+                  <Button asChild size="lg" variant="outline" className="font-display tracking-wider">
+                    <Link href="/pricing">SEE THE TIERS</Link>
+                  </Button>
+                </div>
+              </div>
+              <div className="flex flex-col items-center gap-3">
+                <div className="rounded-xl bg-white p-4 shadow-[0_0_40px_rgba(26,107,58,0.25)] border border-primary/20">
+                  <img
+                    src={`${import.meta.env.BASE_URL}f1000-qr.png`}
+                    alt="Scan to claim a First-1000 founding seat"
+                    className="h-44 w-44 md:h-52 md:w-52"
+                    data-testid="landing-f1000-qr"
+                  />
+                </div>
+                <p className="font-mono text-xs text-muted-foreground tracking-wider text-center">
+                  SCAN TO CLAIM · ONE SEAT PER OPERATOR
+                </p>
+              </div>
             </div>
           </div>
         </section>

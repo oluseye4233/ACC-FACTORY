@@ -1,6 +1,6 @@
 import express, { Router, type IRouter } from "express";
 import Stripe from "stripe";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
   db,
   commandCentreSubscribersTable,
@@ -151,6 +151,20 @@ async function applySubscription(
       currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
     })
     .where(eq(commandCentreSubscribersTable.stripeCustomerId, customerId));
+
+  // F1000 on-ramp: when a promo member moves up to Architect (or higher), lift
+  // the $49 soft-launch usage cap so their new tier's default cap applies.
+  if (tier === "ARCHITECT" || tier === "INSTITUTION") {
+    await tx
+      .update(commandCentreSubscribersTable)
+      .set({ monthlyCostCapUsdOverride: null })
+      .where(
+        and(
+          eq(commandCentreSubscribersTable.stripeCustomerId, customerId),
+          eq(commandCentreSubscribersTable.f1000Member, true),
+        ),
+      );
+  }
 }
 
 router.post(

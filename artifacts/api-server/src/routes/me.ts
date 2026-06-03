@@ -26,6 +26,7 @@ router.get("/me", requireAuth, async (req, res): Promise<void> => {
     displayName: u.displayName,
     role: u.role,
     subscriber: {
+      f1000Member: s.f1000Member,
       tier: s.tier,
       status: s.status,
       currentPeriodEnd: s.currentPeriodEnd ? s.currentPeriodEnd.toISOString() : null,
@@ -71,6 +72,7 @@ router.patch("/me/profile", requireAuth, async (req, res): Promise<void> => {
     displayName: updated!.displayName,
     role: updated!.role,
     subscriber: {
+      f1000Member: s.f1000Member,
       tier: s.tier,
       status: s.status,
       currentPeriodEnd: s.currentPeriodEnd ? s.currentPeriodEnd.toISOString() : null,

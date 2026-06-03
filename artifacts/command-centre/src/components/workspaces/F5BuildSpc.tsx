@@ -68,6 +68,7 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
   const [spcName, setSpcName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [costCap, setCostCap] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [providerOverride, setProviderOverride] =
     useState<OverrideValue>("session");
@@ -128,8 +129,10 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
       },
       onError: (e) => {
         const err = extractApiError(e);
-        if (err.status === 403) setUpgrade(true);
-        else setError(err.message);
+        if (err.status === 402 || err.status === 403) {
+          setCostCap(err.status === 402);
+          setUpgrade(true);
+        } else setError(err.message);
       },
     },
   });
@@ -201,8 +204,10 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         const x = extractApiError(err);
-        if (x.status === 403) setUpgrade(true);
-        else setError(x.message);
+        if (x.status === 402 || x.status === 403) {
+          setCostCap(x.status === 402);
+          setUpgrade(true);
+        } else setError(x.message);
       }
     } finally {
       setFinalizing(false);
@@ -524,6 +529,7 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
       <UpgradeCTA
         open={upgrade}
         onOpenChange={setUpgrade}
+        costCap={costCap}
         message="F5 SPC Builder requires Practitioner tier or an active escalation."
       />
     </WorkspaceShell>

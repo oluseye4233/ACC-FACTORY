@@ -1009,6 +1009,35 @@ export interface MvpPdd {
   artifactId?: string | null;
 }
 
+export interface F1000StatusResult {
+  /** @minimum 0 */
+  total: number;
+  /** @minimum 0 */
+  claimed: number;
+  /** @minimum 0 */
+  remaining: number;
+  open: boolean;
+}
+
+export interface F1000ActivateResult {
+  code: string;
+  /** @minimum 1 */
+  seq: number;
+  signupPath: string;
+}
+
+export interface F1000RedeemInput {
+  /** @minLength 1 */
+  code: string;
+}
+
+export interface F1000RedeemResult {
+  ok: boolean;
+  /** @minimum 1 */
+  seq: number;
+  alreadyRedeemed: boolean;
+}
+
 export type CheckoutInputInterval = typeof CheckoutInputInterval[keyof typeof CheckoutInputInterval];
 
 

@@ -80,6 +80,7 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
   const [vdjError, setVdjError] = useState<string | null>(null);
   const [hostError, setHostError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [costCap, setCostCap] = useState(false);
   const [vdjProvider, setVdjProvider] = useState<OverrideValue>("session");
   const [hostProvider, setHostProvider] = useState<OverrideValue>("session");
 
@@ -105,7 +106,10 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
       },
       onError: (e) => {
         const err = extractApiError(e);
-        if (err.status === 402 || err.status === 403) setUpgrade(true);
+        if (err.status === 402 || err.status === 403) {
+          setCostCap(err.status === 402);
+          setUpgrade(true);
+        }
         setVdjError(err.message);
       },
     },
@@ -119,7 +123,10 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
       },
       onError: (e) => {
         const err = extractApiError(e);
-        if (err.status === 402 || err.status === 403) setUpgrade(true);
+        if (err.status === 402 || err.status === 403) {
+          setCostCap(err.status === 402);
+          setUpgrade(true);
+        }
         setHostError(err.message);
       },
     },
@@ -448,6 +455,7 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
       <UpgradeCTA
         open={upgrade}
         onOpenChange={setUpgrade}
+        costCap={costCap}
         message="BUILD INSTRUCTIONS (VIBE ORACLE + HOST ORACLE) requires the relevant tier or an active escalation."
       />
     </WorkspaceShell>

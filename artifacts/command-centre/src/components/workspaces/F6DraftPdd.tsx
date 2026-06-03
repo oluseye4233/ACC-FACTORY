@@ -86,6 +86,7 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
   const [atlasJson, setAtlasJson] = useState<AtlasPddJson | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [costCap, setCostCap] = useState(false);
   const [drafting, setDrafting] = useState(false);
   const [draftPhase, setDraftPhase] = useState(-1);
   const [providerOverride, setProviderOverride] =
@@ -178,8 +179,10 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         const x = extractApiError(err);
-        if (x.status === 403) setUpgrade(true);
-        else setError(x.message);
+        if (x.status === 402 || x.status === 403) {
+          setCostCap(x.status === 402);
+          setUpgrade(true);
+        } else setError(x.message);
       }
     } finally {
       setDrafting(false);
@@ -489,6 +492,7 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
       <UpgradeCTA
         open={upgrade}
         onOpenChange={setUpgrade}
+        costCap={costCap}
         message="F6 PDD Drafter requires Practitioner tier or an active escalation."
       />
     </WorkspaceShell>

@@ -4,8 +4,31 @@ import { db, commandCentreSubscribersTable, type SubscriberTier } from "@workspa
 import { requireAuth } from "../lib/auth";
 import { BillingCheckoutBody, BillingPortalBody } from "@workspace/api-zod";
 import { getUncachableStripeClient } from "../lib/stripe";
+import type Stripe from "stripe";
 
 const router: IRouter = Router();
+
+// F1000 soft-launch: a $39-off "forever" coupon turns the $49/mo Practitioner
+// plan into $10/mo. Applied ONLY at Practitioner monthly checkout for redeemed
+// F1000 members — it is attached to that subscription's discounts, so a later
+// Architect upgrade (a separate checkout) is billed at full price.
+const F1000_COUPON_ID = "f1000_softlaunch";
+const F1000_DISCOUNT_CENTS = 3900;
+
+async function ensureF1000Coupon(stripe: Stripe): Promise<string> {
+  try {
+    await stripe.coupons.retrieve(F1000_COUPON_ID);
+  } catch {
+    await stripe.coupons.create({
+      id: F1000_COUPON_ID,
+      amount_off: F1000_DISCOUNT_CENTS,
+      currency: "usd",
+      duration: "forever",
+      name: "F1000 Soft-Launch ($39 off Practitioner)",
+    });
+  }
+  return F1000_COUPON_ID;
+}
 
 function priceIdFor(tier: SubscriberTier, interval: "month" | "year"): string | null {
   const map: Record<string, string | undefined> = {
@@ -67,12 +90,24 @@ router.post("/billing/checkout", requireAuth, async (req, res): Promise<void> =>
       .where(eq(commandCentreSubscribersTable.id, req.subscriber!.id));
   }
 
+  // F1000 promo: redeemed members get the $39-off coupon on the monthly
+  // Practitioner plan ($49 -> $10/mo). Not applied to yearly or any other tier.
+  let discounts: { coupon: string }[] | undefined;
+  if (
+    req.subscriber!.f1000Member &&
+    parsed.data.tier === "PRACTITIONER" &&
+    parsed.data.interval === "month"
+  ) {
+    discounts = [{ coupon: await ensureF1000Coupon(stripe) }];
+  }
+
   // First-time subscribers get a 30-day free trial on any paid plan.
   const alreadySubscribedBefore = Boolean(req.subscriber!.stripeSubscriptionId);
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
+    discounts,
     subscription_data: alreadySubscribedBefore
       ? undefined
       : { trial_period_days: 30 },

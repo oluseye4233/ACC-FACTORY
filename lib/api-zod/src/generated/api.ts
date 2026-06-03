@@ -866,6 +866,58 @@ export const HarnessEscalationsStreamQueryParams = zod.object({
 })
 
 
+/**
+ * @summary Public remaining-count for the First 1000 soft-launch offer
+ */
+export const f1000StatusResponseTotalMin = 0;
+
+export const f1000StatusResponseClaimedMin = 0;
+
+export const f1000StatusResponseRemainingMin = 0;
+
+
+
+export const F1000StatusResponse = zod.object({
+  "total": zod.number().min(f1000StatusResponseTotalMin),
+  "claimed": zod.number().min(f1000StatusResponseClaimedMin),
+  "remaining": zod.number().min(f1000StatusResponseRemainingMin),
+  "open": zod.boolean()
+})
+
+
+/**
+ * @summary Claim the next available F1000 invite code (public, IP rate-limited)
+ */
+
+
+
+export const F1000ActivateResponse = zod.object({
+  "code": zod.string(),
+  "seq": zod.number().min(1),
+  "signupPath": zod.string()
+})
+
+
+/**
+ * @summary Bind an F1000 invite code to the signed-in user and unlock the offer
+ */
+
+
+
+export const F1000RedeemBody = zod.object({
+  "code": zod.string().min(1)
+})
+
+
+
+
+export const F1000RedeemResponse = zod.object({
+  "ok": zod.boolean(),
+  "seq": zod.number().min(1),
+  "alreadyRedeemed": zod.boolean()
+})
+
+
 export const BillingCheckoutBody = zod.object({
   "tier": zod.enum(['EXPLORER', 'PRACTITIONER', 'ARCHITECT', 'INSTITUTION']),
   "interval": zod.enum(['month', 'year']),

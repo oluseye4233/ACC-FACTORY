@@ -99,6 +99,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
   const [activeFile, setActiveFile] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [costCap, setCostCap] = useState(false);
   const [providerOverride, setProviderOverride] =
     useState<OverrideValue>("session");
   const [pfp, setPfp] = useState<PfpReport | undefined>();
@@ -124,7 +125,10 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
       },
       onError: (e) => {
         const x = extractApiError(e);
-        if (x.status === 403) setUpgrade(true);
+        if (x.status === 402 || x.status === 403) {
+          setCostCap(x.status === 402);
+          setUpgrade(true);
+        }
         setHostError(x.message);
       },
     },
@@ -183,8 +187,10 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
       });
     } catch (err) {
       const x = extractApiError(err);
-      if (x.status === 403) setUpgrade(true);
-      else {
+      if (x.status === 402 || x.status === 403) {
+        setCostCap(x.status === 402);
+        setUpgrade(true);
+      } else {
         // Surface PFP drift-gate metadata so the operator can review before retrying.
         // The generated ApiError exposes the response body under `.data`; fall back to
         // `.payload` for any custom error wrappers.
@@ -765,6 +771,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
       <UpgradeCTA
         open={upgrade}
         onOpenChange={setUpgrade}
+        costCap={costCap}
         message="F8 Code ORACLE requires Architect tier — upgrade to scaffold a full codebase from your certified MVP PDD."
       />
     </WorkspaceShell>

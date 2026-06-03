@@ -76,6 +76,7 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
   const [result, setResult] = useState<MvpPdd | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [costCap, setCostCap] = useState(false);
   const [providerOverride, setProviderOverride] =
     useState<OverrideValue>("session");
   const abortRef = useRef<AbortController | null>(null);
@@ -147,8 +148,10 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         const x = extractApiError(err);
-        if (x.status === 403) setUpgrade(true);
-        else setError(x.message);
+        if (x.status === 402 || x.status === 403) {
+          setCostCap(x.status === 402);
+          setUpgrade(true);
+        } else setError(x.message);
       }
     } finally {
       setRunning(false);
@@ -367,6 +370,7 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
       <UpgradeCTA
         open={upgrade}
         onOpenChange={setUpgrade}
+        costCap={costCap}
         message="F7 SPARTAN Compressor requires Practitioner tier or an active escalation."
       />
     </WorkspaceShell>

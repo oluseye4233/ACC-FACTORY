@@ -22,6 +22,7 @@ tags:
   - name: prompts
   - name: badges
   - name: export
+  - name: f1000
 
 paths:
   /healthz:
@@ -635,6 +636,71 @@ paths:
           content:
             text/event-stream:
               schema: { type: string }
+
+  /f1000/status:
+    get:
+      operationId: f1000Status
+      tags: [f1000]
+      summary: Public remaining-count for the First 1000 soft-launch offer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F1000StatusResult" }
+
+  /f1000/activate:
+    post:
+      operationId: f1000Activate
+      tags: [f1000]
+      summary: Claim the next available F1000 invite code (public, IP rate-limited)
+      responses:
+        "200":
+          description: An invite code was issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F1000ActivateResult" }
+        "410":
+          description: The First 1000 offer is fully claimed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /f1000/redeem:
+    post:
+      operationId: f1000Redeem
+      tags: [f1000]
+      summary: Bind an F1000 invite code to the signed-in user and unlock the offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/F1000RedeemInput" }
+      responses:
+        "200":
+          description: Offer unlocked (or already unlocked for this user)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F1000RedeemResult" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Unknown or invalid invite code
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "409":
+          description: Code already redeemed by another account
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "410":
+          description: The First 1000 offer is fully claimed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   /billing/checkout:
     post:
@@ -2171,6 +2237,37 @@ components:
             b: { type: number }
             c: { type: number }
         artifactId: { type: ["string", "null"], format: uuid }
+
+    F1000StatusResult:
+      type: object
+      required: [total, claimed, remaining, open]
+      properties:
+        total: { type: integer, minimum: 0 }
+        claimed: { type: integer, minimum: 0 }
+        remaining: { type: integer, minimum: 0 }
+        open: { type: boolean }
+
+    F1000ActivateResult:
+      type: object
+      required: [code, seq, signupPath]
+      properties:
+        code: { type: string }
+        seq: { type: integer, minimum: 1 }
+        signupPath: { type: string }
+
+    F1000RedeemInput:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string, minLength: 1 }
+
+    F1000RedeemResult:
+      type: object
+      required: [ok, seq, alreadyRedeemed]
+      properties:
+        ok: { type: boolean }
+        seq: { type: integer, minimum: 1 }
+        alreadyRedeemed: { type: boolean }
 
     CheckoutInput:
       type: object

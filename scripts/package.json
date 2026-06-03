@@ -7,15 +7,19 @@
     "hello": "tsx ./src/hello.ts",
     "backfill-artifact-provider": "tsx ./src/backfill-artifact-provider.ts",
     "cron-tick": "tsx ./src/cron-tick.ts",
+    "seed-f1000-invites": "tsx ./src/seed-f1000-invites.ts",
+    "build-f1000-qr": "tsx ./src/build-f1000-qr.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/qrcode": "^1.5.6",
     "tsx": "catalog:"
   },
   "dependencies": {
     "@workspace/db": "workspace:*",
     "marked": "^18.0.3",
-    "pdfkit": "^0.17.2"
+    "pdfkit": "^0.17.2",
+    "qrcode": "^1.5.4"
   }
 }

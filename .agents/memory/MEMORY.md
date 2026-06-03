@@ -8,3 +8,5 @@
 - [Sphinx Marketplace model](sphinx-marketplace-model.md) — Sphinx is the EXTERNAL single point of sale (live API pending); buy/suggest are routing seams that 503 gracefully; lineage is internal, anchored to the SPC's timestamp.
 - [Proxy 120s timeout → stream](proxy-request-timeout-streaming.md) — heavy single-shot engine finalize (F5 SPC synth, F6/F7/F8) must use SSE or it 502s past the 120s proxy ceiling.
 - [Stripe dev/prod account split](stripe-dev-prod-account-split.md) — prod = LIVE Stripe (different account) vs dev = TEST; can't comp prod tier via test checkout, use admin tier-grant + ADMIN_EMAILS.
+- [UpgradeCTA gating (402 vs 403)](upgrade-cta-gating.md) — every engine workspace must open UpgradeCTA on 402||403 (402=cost cap on-ramp, 403=tier gate); drive copy from cause, button from f1000 membership.
+- [Scripts CWD under --filter](scripts-cwd-under-filter.md) — `pnpm --filter @workspace/scripts run` CWD is `scripts/`; resolve repo-root output paths from import.meta.url, not process.cwd().

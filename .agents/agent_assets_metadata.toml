@@ -222,3 +222,9 @@ id = "bQxRI6bl9tCaPwGnp7CZw"
 uri = "file://exports/ATANDA_Command_Centre_Living_PDD_ATLAS.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — ATLAS Living PDD (latest)"
+
+[[outputs]]
+id = "dz6MFviqa5crvlbbltgw-"
+uri = "file://exports/f1000-qr.png"
+type = "image"
+title = "F1000 QR — Book & landing (encodes /f1000)"

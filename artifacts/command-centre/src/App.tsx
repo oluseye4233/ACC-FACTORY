@@ -45,6 +45,8 @@ import Ascension from "@/pages/ascension";
 import AcceptInvite from "@/pages/accept-invite";
 import Activity from "@/pages/activity";
 import MeCosts from "@/pages/me-costs";
+import F1000 from "@/pages/f1000";
+import { F1000Redeemer } from "@/components/F1000Redeemer";
 import { DEMO_MODE } from "@/lib/demo-mode";
 import { DemoBanner } from "@/components/DemoBanner";
 
@@ -212,10 +214,12 @@ function ClerkProviderWithRoutes() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ClerkQueryClientCacheInvalidator />
+          <F1000Redeemer />
           <DemoBanner />
           <Switch>
             <Route path="/" component={HomeRedirect} />
             <Route path="/landing" component={Landing} />
+            <Route path="/f1000" component={F1000} />
             <Route path="/pricing" component={Pricing} />
             <Route path="/demo" component={Demo} />
             <Route path="/demos" component={DemosIndex} />
