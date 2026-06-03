@@ -13,6 +13,7 @@ import { createRequire } from "node:module";
 import { mkdirSync, createWriteStream } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createTheme, PHASE_COLOURS } from "./lib/atlas-pdf-theme.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..", "..");
@@ -21,25 +22,6 @@ const PDFDocument = exportRequire("pdfkit");
 
 const OUT_PATH = resolve(repoRoot, "docs/ATANDA_ATLAS_PDD_Investor_Edition.pdf");
 mkdirSync(dirname(OUT_PATH), { recursive: true });
-
-const NAVY = "#0b1d3a";
-const ACCENT = "#1f7a8c";
-const GREY = "#374151";
-const SOFT = "#6b7280";
-const LIGHT = "#e5e7eb";
-const GOLD = "#b8860b";
-
-// ATLAS phase colours — the canonical rainbow.
-const PHASE_COLOURS = {
-  RED: "#c0392b",
-  ORANGE: "#d35400",
-  YELLOW: "#b58900",
-  GREEN: "#1e8449",
-  BLUE: "#1f618d",
-  INDIGO: "#4a148c",
-  VIOLET: "#7d3c98",
-  WHITE: "#6b7280"
-};
 
 const doc = new PDFDocument({
   size: "LETTER",
@@ -52,125 +34,10 @@ const doc = new PDFDocument({
 });
 doc.pipe(createWriteStream(OUT_PATH));
 
-// ---------- Layout helpers ----------
-function pageGuard(reserve = 140) {
-  if (doc.y > doc.page.height - reserve) doc.addPage();
-}
-
-function hr(color = LIGHT) {
-  const y = doc.y + 6;
-  doc.save().strokeColor(color).lineWidth(1)
-    .moveTo(doc.page.margins.left, y)
-    .lineTo(doc.page.width - doc.page.margins.right, y)
-    .stroke().restore();
-  doc.moveDown(0.8);
-}
-
-function partHeader(label, title, accent) {
-  doc.addPage();
-  const x = doc.page.margins.left;
-  const w = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-  doc.save().fillColor(accent).rect(x, doc.y, w, 38).fill().restore();
-  doc.fillColor("#ffffff").font("Helvetica-Bold").fontSize(11)
-    .text(label, x + 12, doc.y - 30, { characterSpacing: 2 });
-  doc.fillColor("#ffffff").font("Helvetica-Bold").fontSize(18)
-    .text(title, x + 12, doc.y - 12);
-  doc.moveDown(2);
-}
-
-function h1(text) {
-  pageGuard(180);
-  doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(24).text(text);
-  doc.moveDown(0.3);
-}
-
-function h2(text) {
-  pageGuard(160);
-  doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(15).text(text);
-  doc.moveDown(0.25);
-}
-
-function h3(text) {
-  pageGuard(140);
-  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(11)
-    .text(text.toUpperCase(), { characterSpacing: 1 });
-  doc.moveDown(0.15);
-}
-
-function p(text) {
-  pageGuard(80);
-  doc.fillColor(GREY).font("Helvetica").fontSize(10.5).text(text, { align: "left", lineGap: 2.5 });
-  doc.moveDown(0.5);
-}
-
-function lead(text) {
-  pageGuard(120);
-  doc.fillColor(NAVY).font("Helvetica-Oblique").fontSize(12).text(text, { lineGap: 3 });
-  doc.moveDown(0.6);
-}
-
-function bullets(items) {
-  doc.fillColor(GREY).font("Helvetica").fontSize(10.5);
-  for (const item of items) {
-    pageGuard(60);
-    doc.text(`•  ${item}`, { indent: 8, lineGap: 2.5, paragraphGap: 3 });
-  }
-  doc.moveDown(0.4);
-}
-
-function kv(rows) {
-  doc.font("Helvetica").fontSize(10.5);
-  for (const [k, v] of rows) {
-    pageGuard(60);
-    doc.fillColor(NAVY).font("Helvetica-Bold").text(`${k}:  `, { continued: true, lineGap: 2.5 });
-    doc.fillColor(GREY).font("Helvetica").text(v, { lineGap: 2.5 });
-  }
-  doc.moveDown(0.5);
-}
-
-function code(block) {
-  pageGuard(120);
-  const x = doc.page.margins.left;
-  const w = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-  const text = block.trim();
-  const lines = text.split("\n").length;
-  const lineHeight = 12;
-  const padding = 10;
-  const boxHeight = lines * lineHeight + padding * 2;
-  if (doc.y + boxHeight > doc.page.height - doc.page.margins.bottom) doc.addPage();
-  const startY = doc.y;
-  doc.save().fillColor("#f3f4f6").rect(x, startY, w, boxHeight).fill().restore();
-  doc.fillColor("#1f2937").font("Courier").fontSize(9)
-    .text(text, x + padding, startY + padding, { width: w - padding * 2, lineGap: 2 });
-  doc.y = startY + boxHeight + 8;
-  doc.moveDown(0.4);
-}
-
-function phaseBlock({ colourName, header, duration, deliverables, exit, status }) {
-  pageGuard(220);
-  const colour = PHASE_COLOURS[colourName];
-  const x = doc.page.margins.left;
-  const w = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-  const startY = doc.y;
-  // Left colour bar
-  doc.save().fillColor(colour).rect(x, startY, 6, 26).fill().restore();
-  doc.fillColor(colour).font("Helvetica-Bold").fontSize(13)
-    .text(`${colourName} — ${header}`, x + 14, startY + 4);
-  doc.fillColor(SOFT).font("Helvetica-Oblique").fontSize(10)
-    .text(`Duration: ${duration}    ·    Status: ${status}`, x + 14, doc.y + 2);
-  doc.moveDown(0.6);
-  doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(10).text("Deliverables");
-  doc.fillColor(GREY).font("Helvetica").fontSize(10.5);
-  for (const d of deliverables) {
-    pageGuard(40);
-    doc.text(`•  ${d}`, { indent: 12, lineGap: 2, paragraphGap: 2 });
-  }
-  doc.moveDown(0.2);
-  doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(10).text("Exit criterion");
-  doc.fillColor(GREY).font("Helvetica").fontSize(10.5)
-    .text(exit, { indent: 12, lineGap: 2 });
-  doc.moveDown(0.8);
-}
+const {
+  pageGuard, hr, partHeader, h1, h2, h3, p, lead, bullets, kv, code, phaseBlock,
+  NAVY, ACCENT, GREY, SOFT, LIGHT, GOLD
+} = createTheme(doc);
 
 // ────────────────────────────────────────────────────────────────────────────
 // COVER PAGE
@@ -611,6 +478,57 @@ bullets([
 
 h2("Why the architecture deserves the round");
 p("Three things, all reinforced by the codebase: (1) the contract-first OpenAPI discipline means we can ship the same product against multiple front-ends without a rewrite — first React, next year mobile and CLI. (2) The vendor-neutral LLM proxy means a Claude price hike or model deprecation is a one-line change. (3) The per-engine telemetry is a flywheel: every paying user makes the next user's output measurably better, and the data is ours.");
+
+// ────────────────────────────────────────────────────────────────────────────
+// SPECIAL CHAPTER — THE F1000 SOFT-LAUNCH PROMOTION
+// ────────────────────────────────────────────────────────────────────────────
+partHeader("SPECIAL CHAPTER", "The F1000 Soft-Launch Promotion", GOLD);
+
+lead("One static QR code — printed in this book and on the landing page — turns the first 1,000 founders into a measurable, margin-safe acquisition cohort, and routes the power users among them straight into the ARCHITECT tier at the moment of peak intent.");
+
+h2("The offer");
+p("A single QR code points at /f1000. The first 1,000 visitors each claim a unique, single-use invite code (sequence 1 through 1000). After signing up, a member receives a deliberately sequenced offer designed to remove every reason not to start:");
+bullets([
+  "Free EXPLORER onboarding — they reach the workspace before they are ever asked to pay.",
+  "PRACTITIONER for $10/mo — a Stripe coupon takes $39 off the standard $49 plan. The full F1–F6 pipeline for the price of a coffee.",
+  "A $49/mo AI-usage cost cap — the member can never be surprised by compute spend; the ceiling is set per-subscriber the moment they redeem.",
+  "A one-click on-ramp to ARCHITECT ($199/mo) — surfaced automatically the instant a member reaches the $49 cap."
+]);
+
+h2("Why this is an investor-grade growth mechanic, not a discount");
+h3("It converts the methodology skeptic at an impulse price");
+p("$10 is below the deliberation threshold. A builder who would never trial a $49 tool will pay $10 to see whether the HARNESS actually turns their idea into a certified blueprint — and the EXPLORER-first sequencing means they have already felt the product work before the card is charged.");
+
+h3("The cap makes the unit economics safe at any usage");
+p("The $49 monthly usage cap is the same number as the full PRACTITIONER price. That is the entire point: even a member paying $10 who saturates their cap is revenue-neutral on compute — the company never loses money on a single F1000 seat, regardless of how heavily it is used. The discount is on price, never on margin discipline.");
+
+h3("It captures exactly the users worth keeping");
+p("Anyone who hits the $49 cap is, by definition, a power user generating real value from the methodology. They are offered ARCHITECT in one click, at the moment of peak intent, rather than via a generic upsell email weeks later. The promo is a filter that surfaces high-intent customers and routes them up-tier automatically.");
+
+h3("Scarcity creates a clean cohort");
+p("The pool is strictly capped at 1,000 seats. Scarcity drives urgency at the top of the funnel, and the fixed cohort size gives a measurable denominator: conversion, cap-hit rate, and ARCHITECT on-ramp rate are all readable against a known base of 1,000.");
+
+h2("How it works end-to-end (grounded in the shipped codebase)");
+bullets([
+  "A pre-seeded pool of 1,000 invites lives in command_centre_f1000_invites (seq 1–1000, each with an unguessable code, status available → issued → redeemed).",
+  "Public POST /api/f1000/activate hands out the next available code and marks it issued. Unredeemed issued codes recycle back to available after 48h, so abandoned scans never permanently burn a seat.",
+  "Authenticated POST /api/f1000/redeem binds the code to the user, flips subscribers.f1000Member, and writes a $49 monthly cost-cap override onto the subscriber row.",
+  "One-seat-per-user is enforced at the database layer by a partial unique index on redeemed_by_user_id — concurrent redeem requests from the same account cannot each bind a different code.",
+  "At checkout, an f1000 member buying PRACTITIONER monthly automatically gets the f1000_softlaunch Stripe coupon ($39 off) applied to the existing $49 plan.",
+  "When a member reaches the cap, the engine route returns 402 with an on-ramp hint; the portal renders a one-click \"Upgrade to Architect\" prompt. On a successful upgrade to ARCHITECT, the Stripe webhook clears the cost-cap override.",
+  "GET /api/f1000/status exposes live total / claimed / remaining counts — the public scarcity signal and the internal cohort dashboard in one endpoint."
+]);
+
+h2("Illustrative cohort economics");
+p("The figures below are illustrative funnel math, not a forecast — they show the shape of the mechanic, not a claimed result.");
+bullets([
+  "1,000 seats × $10/mo = a $10k/mo revenue floor from the cohort, with compute cost mechanically capped at $49 per seat.",
+  "Worst case — every seat saturates its cap — the cohort is compute-revenue-neutral while producing up to 1,000 certified deliverables, each with its own public verify URL (i.e. up to 1,000 organic distribution units).",
+  "The upside is the ARCHITECT on-ramp: every capped member is routed to the $199 tier at peak intent. At a 10% on-ramp conversion, the cohort adds roughly $20k/mo of incremental ARCHITECT revenue on top of the $10k floor."
+]);
+
+h2("What the promo proves to an investor");
+p("Three things, each measurable against the fixed 1,000-seat denominator: that builders will pay for the methodology at an impulse price; that the usage cap keeps unit economics safe at any level of consumption; and that a paid cohort doubles as a distribution engine because every certified output ships with a public verify URL. The F1000 promo is the GTM motion and the proof-of-economics experiment in a single QR code.");
 
 doc.moveDown(1);
 hr(ACCENT);

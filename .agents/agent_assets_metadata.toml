@@ -35,7 +35,7 @@ title = "ATANDA Post-Publish Go-Live Guide"
 id = "M6jIaufdddL-O5gAUbq9h"
 uri = "file://docs/ATANDA_ATLAS_PDD_Investor_Edition.pdf"
 type = "pdf"
-title = "ATANDA Command Centre — 4-Part ATLAS PDD (Investor Edition)"
+title = "4-Part ATLAS PDD (Investor Edition) — now with the F1000 Promo special chapter"
 
 [[outputs]]
 id = "Y_ARbkQQwJTeRmlvM-fTL"
@@ -228,3 +228,9 @@ id = "dz6MFviqa5crvlbbltgw-"
 uri = "file://exports/f1000-qr.png"
 type = "image"
 title = "F1000 QR — Book & landing (encodes /f1000)"
+
+[[outputs]]
+id = "Xeno1V_UCFBgnZC9oDoiX"
+uri = "file://docs/ATANDA_Command_Centre_MVP_PDD_SPARTAN_Certified.pdf"
+type = "pdf"
+title = "SPARTAN-Certified MVP PDD — same investor design"
