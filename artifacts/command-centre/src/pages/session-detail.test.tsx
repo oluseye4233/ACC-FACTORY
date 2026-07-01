@@ -227,3 +227,144 @@ describe("SessionDetail — F0 advisory placement", () => {
     expect(screen.getByTestId("workspace-F1TestPrompt")).toBeTruthy();
   });
 });
+
+/** Overwrite the feature-state hook for the F1→F7 linear stages. */
+const setFeatureStates = (states: Array<{ featureId: number; status: string }>) => {
+  featureStates = states;
+  useListFeatureStateMock.mockReturnValue({ data: states, isLoading: false });
+};
+
+describe("SessionDetail — locked-stage navigation gate", () => {
+  it("keeps a LOCKED stage inert when its nav item is clicked", () => {
+    // F1 available (active by default); F5 locked, everything else available.
+    setFeatureStates(
+      [1, 2, 3, 4, 5, 6, 7].map((id) => ({
+        featureId: id,
+        status: id === 5 ? "LOCKED" : "AVAILABLE",
+      })),
+    );
+    render(<SessionDetail />);
+
+    // Sanity: we start on F1.
+    expect(screen.getByTestId("workspace-F1TestPrompt")).toBeTruthy();
+
+    // The locked stage's nav button is disabled...
+    const lockedNav = screen.getByTestId("feature-nav-f5") as HTMLButtonElement;
+    expect(lockedNav.disabled).toBe(true);
+
+    // ...and clicking it does not switch the workspace to F5.
+    gotoStage("f5");
+    expect(screen.queryByTestId("workspace-F5BuildSpc")).toBeNull();
+    expect(screen.getByTestId("workspace-F1TestPrompt")).toBeTruthy();
+  });
+
+  it("does not switch away from the active stage when a locked stage is clicked", () => {
+    // F1 & F2 complete, F3 active target, F4+ locked.
+    setFeatureStates([
+      { featureId: 1, status: "COMPLETE" },
+      { featureId: 2, status: "COMPLETE" },
+      { featureId: 3, status: "AVAILABLE" },
+      { featureId: 4, status: "LOCKED" },
+      { featureId: 5, status: "LOCKED" },
+      { featureId: 6, status: "LOCKED" },
+      { featureId: 7, status: "LOCKED" },
+    ]);
+    render(<SessionDetail />);
+
+    // Move to the available F3 stage.
+    gotoStage("f3");
+    expect(screen.getByTestId("workspace-F3BuildMa")).toBeTruthy();
+
+    // Clicking the locked F4 leaves us on F3.
+    gotoStage("f4");
+    expect(screen.queryByTestId("workspace-F4MicroPdd")).toBeNull();
+    expect(screen.getByTestId("workspace-F3BuildMa")).toBeTruthy();
+  });
+});
+
+describe("SessionDetail — NEXT attention marker", () => {
+  it("marks the lowest-id AVAILABLE stage in the F1→F7 pipeline as NEXT", () => {
+    // F1 & F2 complete → F3 is the lowest AVAILABLE stage.
+    setFeatureStates([
+      { featureId: 1, status: "COMPLETE" },
+      { featureId: 2, status: "COMPLETE" },
+      { featureId: 3, status: "AVAILABLE" },
+      { featureId: 4, status: "AVAILABLE" },
+      { featureId: 5, status: "LOCKED" },
+      { featureId: 6, status: "LOCKED" },
+      { featureId: 7, status: "LOCKED" },
+    ]);
+    render(<SessionDetail />);
+
+    expect(
+      screen.getByTestId("feature-nav-f3").getAttribute("data-next"),
+    ).toBe("true");
+    // No other stage carries the marker, including the later AVAILABLE F4.
+    for (const name of ["f1", "f2", "f4", "f5", "f6", "f7", "f6-vdj", "f8", "mm"]) {
+      expect(
+        screen.getByTestId(`feature-nav-${name}`).getAttribute("data-next"),
+      ).toBeNull();
+    }
+  });
+
+  it("does not mark any stage NEXT when the active stage is the NEXT one", () => {
+    // F1 is the lowest AVAILABLE stage and is also active by default, so the
+    // attention marker is suppressed (showAttention requires !isActive).
+    setFeatureStates(
+      [1, 2, 3, 4, 5, 6, 7].map((id) => ({
+        featureId: id,
+        status: id === 1 ? "AVAILABLE" : "LOCKED",
+      })),
+    );
+    render(<SessionDetail />);
+
+    expect(
+      screen.getByTestId("feature-nav-f1").getAttribute("data-next"),
+    ).toBeNull();
+  });
+
+  it("never marks a side-step engine (F6-VDJ, F8, MM) as NEXT", () => {
+    // Lock the whole linear pipeline so no F1→F7 stage qualifies as NEXT.
+    setFeatureStates(
+      [1, 2, 3, 4, 5, 6, 7].map((id) => ({ featureId: id, status: "LOCKED" })),
+    );
+    render(<SessionDetail />);
+
+    for (const name of ["f6-vdj", "f8", "mm"]) {
+      expect(
+        screen.getByTestId(`feature-nav-${name}`).getAttribute("data-next"),
+      ).toBeNull();
+    }
+  });
+});
+
+describe("SessionDetail — side-step engines stay navigable", () => {
+  it.each([
+    ["f6-vdj", "F6VdjBuild"],
+    ["f8", "F8CodeDj"],
+    ["mm", "MathmonLayer"],
+  ])(
+    "navigates to %s regardless of feature_states",
+    (navName, workspace) => {
+      // Every linear stage locked — the side-steps must still be reachable.
+      setFeatureStates(
+        [1, 2, 3, 4, 5, 6, 7].map((id) => ({ featureId: id, status: "LOCKED" })),
+      );
+      render(<SessionDetail />);
+
+      const nav = screen.getByTestId(`feature-nav-${navName}`) as HTMLButtonElement;
+      expect(nav.disabled).toBe(false);
+
+      gotoStage(navName);
+      expect(screen.getByTestId(`workspace-${workspace}`)).toBeTruthy();
+    },
+  );
+
+  it("keeps side-steps navigable even with no feature_states at all", () => {
+    useListFeatureStateMock.mockReturnValue({ data: [], isLoading: false });
+    render(<SessionDetail />);
+
+    gotoStage("f8");
+    expect(screen.getByTestId("workspace-F8CodeDj")).toBeTruthy();
+  });
+});
