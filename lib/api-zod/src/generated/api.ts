@@ -1950,7 +1950,7 @@ export const GetF0EngagementResponse = zod.object({
   "id": zod.string().uuid(),
   "engagementId": zod.string().uuid(),
   "userId": zod.string().uuid(),
-  "service": zod.enum(['PRODUCT_VIABILITY', 'MARKET_VIABILITY', 'CAPI_POSITIONING', 'CUSTOMER_ACQUISITION', 'GO_TO_MARKET', 'FINANCIAL_PROJECTIONS', 'PRODUCT_SYNTHESIS_ADVISORY', 'OFFICER_ANALYSIS', 'COMPETITIVE_TEARDOWN', 'PRICING_STRATEGY', 'BRAND_NARRATIVE', 'INVESTOR_READINESS']),
+  "service": zod.enum(['PRODUCT_VIABILITY', 'MARKET_VIABILITY', 'CAPI_POSITIONING', 'CUSTOMER_ACQUISITION', 'GO_TO_MARKET', 'FINANCIAL_PROJECTIONS', 'PRODUCT_SYNTHESIS_ADVISORY', 'OFFICER_ANALYSIS', 'COMPETITIVE_TEARDOWN', 'PRICING_STRATEGY', 'BRAND_NARRATIVE', 'INVESTOR_READINESS', 'MATHMON_MAX', 'EVE_MAX']),
   "reportCode": zod.string(),
   "sku": zod.string().nullish(),
   "content": zod.record(zod.string(), zod.unknown()),
@@ -2037,7 +2037,7 @@ export const generateF0ReportBodyNotesMax = 2000;
 
 
 export const GenerateF0ReportBody = zod.object({
-  "service": zod.enum(['PRODUCT_VIABILITY', 'MARKET_VIABILITY', 'CAPI_POSITIONING', 'CUSTOMER_ACQUISITION', 'GO_TO_MARKET', 'FINANCIAL_PROJECTIONS', 'PRODUCT_SYNTHESIS_ADVISORY', 'OFFICER_ANALYSIS', 'COMPETITIVE_TEARDOWN', 'PRICING_STRATEGY', 'BRAND_NARRATIVE', 'INVESTOR_READINESS']),
+  "service": zod.enum(['PRODUCT_VIABILITY', 'MARKET_VIABILITY', 'CAPI_POSITIONING', 'CUSTOMER_ACQUISITION', 'GO_TO_MARKET', 'FINANCIAL_PROJECTIONS', 'PRODUCT_SYNTHESIS_ADVISORY', 'OFFICER_ANALYSIS', 'COMPETITIVE_TEARDOWN', 'PRICING_STRATEGY', 'BRAND_NARRATIVE', 'INVESTOR_READINESS', 'MATHMON_MAX', 'EVE_MAX']),
   "notes": zod.string().max(generateF0ReportBodyNotesMax).optional(),
   "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })

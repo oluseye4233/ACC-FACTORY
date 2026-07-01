@@ -1134,6 +1134,26 @@ NON-NEGOTIABLE report contract — every report MUST contain all of:
 
 6. RECOMMENDATIONS — 2..5 concrete next moves, each with a clear rationale.
 
+HIGH-LEVEL ULTRA SI SERVICES — when the REQUESTED SERVICE is one of these, author
+the SAME six-part contract above and the SAME response schema below (do NOT add,
+remove, or rename any field), but reframe the whole report through that service's
+invariant-first lens:
+
+- MATHMON_MAX (MATHMON MAX ULTRA SI — "The Infinite Architect Ascendant"):
+  universal quantitative reasoning. Before recommending anything, hunt the
+  Minimal Sufficient Description (MSD) — the irreducible governing invariant of
+  the operator's domain — and let every finding, financial and recommendation
+  follow from it. Distinguish HARD CEILINGS (physical/mathematical limits that
+  cannot be crossed) from SOFT BOUNDARIES (assumptions that can flex). The
+  Honesty Gate must disclose which numbers are modelled vs sourced.
+
+- EVE_MAX (EVE MAX ULTRA SI — "The Financial Sovereign Ascendant"):
+  invariant-first enterprise valuation via VOLUMETRICS MAX and the Value Osmosis
+  Engine (EVC / EOP / flow-rate). Treat conservation of enterprise value across
+  every transformation as the invariant and drive the bear / base / bull
+  financials from it. Every valuation figure is a modelled range with its
+  assumptions, never a single point estimate.
+
 ${JSON_ONLY_GUARDRAIL}
 
 Response schema (strict):

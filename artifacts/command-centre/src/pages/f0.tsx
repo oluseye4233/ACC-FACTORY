@@ -33,7 +33,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -50,20 +52,39 @@ import {
   Plus,
 } from "lucide-react";
 
-const F0_SERVICES: { value: string; label: string }[] = [
-  { value: "PRODUCT_VIABILITY", label: "Product Viability" },
-  { value: "MARKET_VIABILITY", label: "Market Viability" },
-  { value: "CAPI_POSITIONING", label: "CAPI Positioning" },
-  { value: "CUSTOMER_ACQUISITION", label: "Customer Acquisition" },
-  { value: "GO_TO_MARKET", label: "Go-to-Market" },
-  { value: "FINANCIAL_PROJECTIONS", label: "Financial Projections" },
-  { value: "PRODUCT_SYNTHESIS_ADVISORY", label: "Product Synthesis Advisory" },
-  { value: "OFFICER_ANALYSIS", label: "Officer Analysis" },
-  { value: "COMPETITIVE_TEARDOWN", label: "Competitive Teardown (add-on)" },
-  { value: "PRICING_STRATEGY", label: "Pricing Strategy (add-on)" },
-  { value: "BRAND_NARRATIVE", label: "Brand Narrative (add-on)" },
-  { value: "INVESTOR_READINESS", label: "Investor Readiness (add-on)" },
+const F0_SERVICE_GROUPS: { group: string; services: { value: string; label: string }[] }[] = [
+  {
+    group: "Core Services",
+    services: [
+      { value: "PRODUCT_VIABILITY", label: "Product Viability" },
+      { value: "MARKET_VIABILITY", label: "Market Viability" },
+      { value: "CAPI_POSITIONING", label: "CAPI Positioning" },
+      { value: "CUSTOMER_ACQUISITION", label: "Customer Acquisition" },
+      { value: "GO_TO_MARKET", label: "Go-to-Market" },
+      { value: "FINANCIAL_PROJECTIONS", label: "Financial Projections" },
+      { value: "PRODUCT_SYNTHESIS_ADVISORY", label: "Product Synthesis Advisory" },
+      { value: "OFFICER_ANALYSIS", label: "Officer Analysis" },
+    ],
+  },
+  {
+    group: "Boutique Add-ons",
+    services: [
+      { value: "COMPETITIVE_TEARDOWN", label: "Competitive Teardown" },
+      { value: "PRICING_STRATEGY", label: "Pricing Strategy" },
+      { value: "BRAND_NARRATIVE", label: "Brand Narrative" },
+      { value: "INVESTOR_READINESS", label: "Investor Readiness" },
+    ],
+  },
+  {
+    group: "ULTRA SI · High-Level",
+    services: [
+      { value: "MATHMON_MAX", label: "MATHMON MAX ULTRA SI" },
+      { value: "EVE_MAX", label: "EVE MAX ULTRA SI" },
+    ],
+  },
 ];
+
+const F0_SERVICES = F0_SERVICE_GROUPS.flatMap((g) => g.services);
 
 const REPORT_STEPS = [
   "DISCOVERY",
@@ -489,10 +510,17 @@ function EngagementPanel({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {F0_SERVICES.map((s) => (
-                      <SelectItem key={s.value} value={s.value} className="font-mono text-xs">
-                        {s.label}
-                      </SelectItem>
+                    {F0_SERVICE_GROUPS.map((g) => (
+                      <SelectGroup key={g.group}>
+                        <SelectLabel className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {g.group}
+                        </SelectLabel>
+                        {g.services.map((s) => (
+                          <SelectItem key={s.value} value={s.value} className="font-mono text-xs">
+                            {s.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     ))}
                   </SelectContent>
                 </Select>

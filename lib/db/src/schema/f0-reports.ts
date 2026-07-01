@@ -34,7 +34,21 @@ export const F0_BOUTIQUE_SERVICES = [
   "INVESTOR_READINESS",
 ] as const;
 
-export const F0_SERVICES = [...F0_CORE_SERVICES, ...F0_BOUTIQUE_SERVICES] as const;
+/**
+ * High-level ULTRA SI advisory services — requestable in their own F0 section.
+ * They reuse the same 9-SPC ensemble report contract as every other F0 service
+ * (same schema, SOLVA bear case, range financials, Honesty Gate) but reframe it
+ * through an invariant-first lens: MATHMON MAX for universal quantitative
+ * reasoning (Minimal Sufficient Description) and EVE MAX for invariant-first
+ * enterprise valuation (VOLUMETRICS MAX · Value Osmosis).
+ */
+export const F0_ULTRA_SI_SERVICES = ["MATHMON_MAX", "EVE_MAX"] as const;
+
+export const F0_SERVICES = [
+  ...F0_CORE_SERVICES,
+  ...F0_BOUTIQUE_SERVICES,
+  ...F0_ULTRA_SI_SERVICES,
+] as const;
 export type F0Service = (typeof F0_SERVICES)[number];
 
 export const f0ReportsTable = pgTable(

@@ -21,6 +21,8 @@ export const F0Service = {
   PRICING_STRATEGY: 'PRICING_STRATEGY',
   BRAND_NARRATIVE: 'BRAND_NARRATIVE',
   INVESTOR_READINESS: 'INVESTOR_READINESS',
+  MATHMON_MAX: 'MATHMON_MAX',
+  EVE_MAX: 'EVE_MAX',
 } as const;
 
 export type F0EngagementStatus = typeof F0EngagementStatus[keyof typeof F0EngagementStatus];

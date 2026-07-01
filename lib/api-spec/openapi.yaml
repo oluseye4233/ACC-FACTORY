@@ -1805,6 +1805,8 @@ components:
         - PRICING_STRATEGY
         - BRAND_NARRATIVE
         - INVESTOR_READINESS
+        - MATHMON_MAX
+        - EVE_MAX
 
     F0Engagement:
       type: object

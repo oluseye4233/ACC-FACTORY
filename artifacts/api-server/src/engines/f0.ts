@@ -59,7 +59,34 @@ const SERVICE_CODE: Record<F0Service, string> = {
   PRICING_STRATEGY: "F0-PS",
   BRAND_NARRATIVE: "F0-BN",
   INVESTOR_READINESS: "F0-IR",
+  MATHMON_MAX: "F0-MMX",
+  EVE_MAX: "F0-EMX",
 } as const;
+
+/**
+ * Service-specific briefs for the high-level ULTRA SI services. Appended to the
+ * report user prompt so the ensemble reframes the SAME report contract through
+ * each service's invariant-first lens without changing the response schema.
+ */
+const SERVICE_GUIDANCE: Partial<Record<F0Service, string>> = {
+  MATHMON_MAX: [
+    "MATHMON MAX ULTRA SI — The Infinite Architect Ascendant.",
+    "Universal quantitative reasoning. Before advising, hunt the Minimal",
+    "Sufficient Description (MSD): the irreducible governing invariant of the",
+    "operator's domain, and let every finding, financial and recommendation",
+    "follow from it. Distinguish HARD CEILINGS (physical/mathematical limits",
+    "that cannot be crossed) from SOFT BOUNDARIES (assumptions that can flex).",
+    "Keep quantitative claims range-honest.",
+  ].join(" "),
+  EVE_MAX: [
+    "EVE MAX ULTRA SI — The Financial Sovereign Ascendant.",
+    "Invariant-first enterprise valuation via VOLUMETRICS MAX and the Value",
+    "Osmosis Engine (EVC / EOP / flow-rate). Treat conservation of enterprise",
+    "value across every transformation as the invariant and drive the",
+    "bear/base/bull financials from it. Every valuation figure is a modelled",
+    "range with its assumptions, never a single point estimate.",
+  ].join(" "),
+};
 
 // ── ownership helpers ────────────────────────────────────────────────────────
 
@@ -316,10 +343,14 @@ export async function handleF0GenerateReportStream(req: Request, res: Response):
     return true;
   };
 
+  const guidance = SERVICE_GUIDANCE[service];
   const userPrompt = [
     `REQUESTED SERVICE: ${service}`,
+    guidance ? `SERVICE BRIEF:\n${guidance}` : null,
     engagementContext(engagement, parsed.data.notes),
-  ].join("\n\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
   const llmPromise = callLlmJson(provider, F0_REPORT_SYSTEM, userPrompt, ReportSchema, {
     sessionId: engagement.sessionId,
