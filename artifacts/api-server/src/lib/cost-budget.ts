@@ -112,6 +112,34 @@ export async function currentMonthCostForUser(userId: string): Promise<number> {
   return Number.isFinite(n) ? n : 0;
 }
 
+/**
+ * The single company-wide monthly LLM spend cap (USD). In internal-staff mode
+ * there are no per-tier subscriber caps — one ceiling protects the whole org
+ * against runaway spend. Configured via `STAFF_MONTHLY_COST_CAP_USD`
+ * (default 1000). This is the only cost gate `requireCostBudget` enforces.
+ */
+export function globalMonthlyCostCapUsd(): number {
+  const n = Number(process.env.STAFF_MONTHLY_COST_CAP_USD);
+  return Number.isFinite(n) && n > 0 ? n : 1000;
+}
+
+/**
+ * Sum of `harness_engine_runs.cost_usd` across ALL users for the current
+ * calendar month (UTC) — the org-wide spend used against the single cap.
+ */
+export async function currentMonthCostGlobal(): Promise<number> {
+  const rows = await db
+    .select({
+      total: sql<string>`COALESCE(SUM(${harnessEngineRunsTable.costUsd})::numeric, 0)`,
+    })
+    .from(harnessEngineRunsTable)
+    .where(gte(harnessEngineRunsTable.createdAt, sql`date_trunc('month', now() at time zone 'utc')`));
+  const total = rows[0]?.total;
+  if (!total) return 0;
+  const n = Number(total);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export interface CostStatus {
   usedUsd: number;
   capUsd: number;
@@ -156,45 +184,30 @@ export async function requireCostBudget(
   res: Response,
   next: NextFunction,
 ): Promise<void> {
-  const sub = req.subscriber;
   const userId = req.localUser?.id;
-  if (!sub || !userId) {
+  if (!userId) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  const tier = req.effectiveTier ?? sub.tier;
   try {
-    const status = await loadCostStatus(userId, sub, tier);
-    if (status.overCap) {
-      // F1000 soft-launch on-ramp: a promo Practitioner who exhausts their $49
-      // AI-usage budget is offered a one-click upgrade to Architect rather than
-      // a dead end. The frontend renders an "Upgrade to Architect" prompt off
-      // this hint; the user still confirms before any new charge.
-      const onRamp =
-        sub.f1000Member && tier === "PRACTITIONER"
-          ? { toTier: "ARCHITECT" as const, interval: "month" as const }
-          : undefined;
+    const usedUsd = await currentMonthCostGlobal();
+    const capUsd = globalMonthlyCostCapUsd();
+    if (usedUsd >= capUsd) {
       res.status(402).json({
         error: "Monthly LLM cost cap reached",
         code: "COST_CAP_EXCEEDED",
-        usedUsd: status.usedUsd,
-        capUsd: status.capUsd,
-        tierDefaultUsd: status.tierDefaultUsd,
-        overrideUsd: status.overrideUsd,
-        f1000Member: sub.f1000Member,
-        onRamp,
-        detail: onRamp
-          ? "You've used your $49 F1000 AI-usage budget. Upgrade to Architect to keep building — the cap lifts immediately."
-          : "This account has hit its monthly LLM spend cap. The cap resets at the start of next month UTC. Contact an admin to raise it sooner.",
+        usedUsd,
+        capUsd,
+        detail:
+          "The company-wide monthly LLM spend cap has been reached. It resets at the start of next month UTC. Contact an admin to raise STAFF_MONTHLY_COST_CAP_USD sooner.",
       });
       return;
     }
     next();
   } catch (err) {
     // Cost-budget lookup must never harden into a hard failure mode — if the
-    // SUM query fails (DB blip), log and let the request through. Rate-limit
-    // gates on the personal subscriber row still apply, so the worst case is
-    // a brief window where one engine call slips past the spend ceiling.
+    // SUM query fails (DB blip), log and let the request through. The worst
+    // case is a brief window where one engine call slips past the spend ceiling.
     req.log.warn({ err, userId }, "requireCostBudget lookup failed; allowing request");
     next();
   }

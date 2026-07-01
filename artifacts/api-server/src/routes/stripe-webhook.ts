@@ -18,6 +18,7 @@ import {
 } from "@workspace/email";
 import { getStripeWebhookSecret, getUncachableStripeClient } from "../lib/stripe";
 import { dispatchBillingFailureForCustomer } from "../lib/notification-dispatch";
+import { subscriptionsEnabled } from "../lib/feature-flags";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -171,6 +172,13 @@ router.post(
   "/",
   express.raw({ type: "application/json" }),
   async (req, res): Promise<void> => {
+    // Internal-staff mode: billing is dormant. Acknowledge webhooks with 200 so
+    // Stripe stops retrying, but do no processing. Re-enabling subscriptions
+    // (SUBSCRIPTIONS_ENABLED=true) restores full handling.
+    if (!subscriptionsEnabled()) {
+      res.json({ ok: true, skipped: true });
+      return;
+    }
     const secret = await getStripeWebhookSecret();
     if (!secret) {
       res.status(503).json({ error: "Webhook secret not configured (set STRIPE_WEBHOOK_SECRET)" });

@@ -17,26 +17,8 @@ import { handleF8Hdj } from "../engines/f8hdj";
 import { handleEvolve } from "../engines/de";
 import { handleAtlasCrystallise } from "../engines/atlas-crystallise";
 import { handlePfp } from "../engines/pfp";
-import { hasBadge } from "./badges-gate";
 
 const router: IRouter = Router();
-
-async function requireAspeBadge(
-  req: import("express").Request,
-  res: import("express").Response,
-  next: import("express").NextFunction,
-): Promise<void> {
-  const userId = req.localUser?.id;
-  if (!userId) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  if (await hasBadge(userId, "ASPE")) {
-    next();
-    return;
-  }
-  res.status(403).json({ error: "ASPE badge required", detail: "Unlock ASPE (≥3 SPCs + ≥4 MAs) to evolve." });
-}
 
 /**
  * Canonical gate stack for every HARNESS engine route.
@@ -126,7 +108,6 @@ router.post(
   ...harnessRoute({
     featureId: null,
     tier: "PRACTITIONER",
-    extra: [requireAspeBadge],
     handler: handleEvolve,
   }),
 );

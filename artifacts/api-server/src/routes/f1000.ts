@@ -7,6 +7,7 @@ import {
 } from "@workspace/db";
 import { F1000RedeemBody } from "@workspace/api-zod";
 import { requireAuth } from "../lib/auth";
+import { requireSubscriptionsEnabled } from "../lib/feature-flags";
 
 const router: IRouter = Router();
 
@@ -68,7 +69,7 @@ router.get("/f1000/status", async (_req, res): Promise<void> => {
  * then atomically claims the lowest-seq `available` row with SKIP LOCKED so two
  * concurrent scanners never get the same code.
  */
-router.post("/f1000/activate", async (req, res): Promise<void> => {
+router.post("/f1000/activate", requireSubscriptionsEnabled, async (req, res): Promise<void> => {
   if (activateRateLimited(clientIp(req))) {
     res.status(429).json({ error: "Too many invite requests. Try again shortly." });
     return;
@@ -122,7 +123,7 @@ router.post("/f1000/activate", async (req, res): Promise<void> => {
  * Bind an invite code to the signed-in user and unlock the offer. Idempotent:
  * a user who already redeemed any code just gets their existing seq back.
  */
-router.post("/f1000/redeem", requireAuth, async (req, res): Promise<void> => {
+router.post("/f1000/redeem", requireAuth, requireSubscriptionsEnabled, async (req, res): Promise<void> => {
   const parsed = F1000RedeemBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });

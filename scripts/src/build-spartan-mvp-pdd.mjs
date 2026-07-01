@@ -69,7 +69,7 @@ kv([
   ["ZPOS+5", "PRISM (97.0%) · QUANTUM (96.0%) · SYNTHESIS (96.5%)"],
   ["VIBE DJ", "Replit Agent + Workspaces (94/100 · TARANTULA-class)"],
   ["HOST DJ", "Replit Deployments — Autoscale (see Section 4)"],
-  ["Status", "SPARTAN COMPRESSION COMPLETE · CERTIFIED · FFS 100% · 24/24 SHIPPED"]
+  ["Status", "SPARTAN COMPRESSION COMPLETE · CERTIFIED · 22/24 SHIPPED · 2 DEFERRED (B)"]
 ]);
 
 doc.moveDown(0.4);
@@ -78,7 +78,7 @@ doc.fillColor(SOFT).font("Helvetica-Oblique").fontSize(9).text("— SPARTAN SPC 
 
 doc.moveDown(0.8);
 h3("Honesty legend");
-p("This is a compression of the ATLAS Living PDD, so FFS measures whether features survive the compression. All 24 features are SHIPPED in the current codebase, including F-24 (F8-HDJ / HOST DJ). Per the Honesty Gate G3, speculative ROI / cost-savings are reported as NOT CLAIMED.");
+p("This is a compression of the ATLAS Living PDD, so FFS measures whether features survive the compression. 22 of 24 features are SHIPPED and live in the current codebase; the 2 subscription features (F-02 Clerk auth, F-03 Stripe billing) are DEFERRED as a B-level upgrade — fully coded and tested but held dormant behind SUBSCRIPTIONS_ENABLED=false while the product runs as an internal staff tool (shared access code). Per the Honesty Gate G3, speculative ROI / cost-savings are reported as NOT CLAIMED.");
 
 // ────────────────────────────────────────────────────────────────────────────
 // SECTION 1 — SPARTAN COMPRESSION REPORT
@@ -93,16 +93,23 @@ API surface:     101 endpoints across 24 route files
 DB tables:       20  (one Drizzle file each, barrel re-export)
 HARNESS engines: 13 shipped (F1, F2, F3, F4, F5, F6, F6-VDJ, F7,
                      DE-SPC, F8 Code DJ, ATLAS-J, PFP, F8-HDJ / HOST DJ)
-Client pages:    26  (landing, pricing, sessions, F1-F8 workspaces, orgs,
-                     billing, quests, ascension, verify, admin, ...)
+Client pages:    active staff surface (command, sessions, F1-F8 workspaces,
+                     ingest, cartridge, quests, ascension, verify, admin);
+                     subscription/billing/org/pricing pages retained but
+                     dormant (unrouted) behind SUBSCRIPTIONS_ENABLED.
 Delivery layer:  F8 IDE export bundle (ZIP + AGENTS.md) + push-to-GitHub
-Billing SKUs:    Subscription tiers x2 cadences + per-seat team/team-lite
-                     + 2 one-time (ingestion, cartridge $499.99)`);
+Access model:    INTERNAL staff tool — one shared STAFF_ACCESS_CODE + typed
+                     name (attribution); signed session cookie. Clerk +
+                     subscription tiers deferred (see CLASS B / Section 3).
+Billing SKUs:    DEFERRED (B-level) — subscription tiers x2 cadences,
+                     per-seat team/team-lite, 2 one-time (ingestion,
+                     cartridge $499.99). Code kept dormant, reversible via
+                     SUBSCRIPTIONS_ENABLED=true.`);
 
 p("Feature Registry (all user-facing — CLASS A by definition):");
-code(`[F-01] Landing + /pricing (public marketing surface)
-[F-02] Auth (Clerk) + JIT local-user sync + effective-tier elevation
-[F-03] Subscription tier billing (Stripe Checkout + Portal + per-seat orgs)
+code(`[F-01] Staff front door — shared access code + typed name (attribution)
+[F-02] Auth (Clerk) + subscription tiers — DEFERRED (B-level, dormant)
+[F-03] Subscription tier billing (Stripe + per-seat orgs) — DEFERRED (B)
 [F-04] Session create / list / resume
 [F-05] F1 Test Your Prompt (7-pillar JCSE diagnostic)
 [F-06] F2 Build Atomic Prompt (7-pillar wizard)
@@ -140,6 +147,12 @@ CLASS B — SYNTHESISE (merged into other prompts, 0 deltas to user)
   · Cross-provider test fixtures    -> merged into test rig prompt
   · Per-user GitHub credential crypto + client -> merged into integrations
   · F8-HDJ HRP normaliser + cost/tier guard    -> merged into F8-HDJ prompt
+
+DEFERRED — B-LEVEL UPGRADE (built, dormant, one flag away)
+  · Subscriptions & billing: Clerk auth, Stripe tiers, per-seat orgs,
+    per-project credits (ingestion/cartridge), F1000. Fully coded and
+    tested; gated OFF behind SUBSCRIPTIONS_ENABLED=false so the active
+    product runs as an internal staff tool. Flip to true to re-activate.
 
 CLASS C — DEFER (Phase 7 / upgrade-triggered)
   · Two-way federated marketplace (Sphinx + ARK identity federation)
@@ -218,12 +231,12 @@ p("All features below are SHIPPED in the current codebase. The MVP column is the
 table(
   ["#", "Feature", "Production Implementation", "MVP (Merged)"],
   [
-    ["F-01", "Landing + /pricing", "command-centre landing + pricing", "MVCC-WEB-001"],
-    ["F-02", "Clerk auth + JIT + effectiveTier", "clerkProxy + ensureLocalUser + orgs", "MVCC-AUTH-001"],
-    ["F-03", "Stripe billing + per-seat orgs", "routes/billing + orgs + stripe-webhook", "MVCC-BILL-001"],
+    ["F-01", "Staff access code front door", "routes/staff-auth + lib/staff-auth", "MVCC-WEB-001"],
+    ["F-02", "Clerk auth (DEFERRED B)", "clerkProxy + ensureLocalUser (dormant)", "MVCC-AUTH-001"],
+    ["F-03", "Stripe billing + orgs (DEFERRED B)", "routes/billing + orgs + stripe-webhook (dormant)", "MVCC-BILL-001"],
     ["F-04", "Session CRUD", "routes/sessions", "MVCC-SESS-001"],
     ["F-05..F-12", "F1–F7 + F6-VDJ", "engines/f1..f7 + f6vdj", "MVCC-F1..F7"],
-    ["F-13", "DE-SPC", "engines/de + requireAspeBadge", "MVCC-DE"],
+    ["F-13", "DE-SPC", "engines/de (open to all staff)", "MVCC-DE"],
     ["F-14", "F8 Code DJ", "engines/f8codedj + drift gate", "MVCC-F8"],
     ["F-15", "ATLAS-J", "engines/atlas-crystallise", "MVCC-ATLASJ"],
     ["F-16", "PFP", "engines/pfp + latestPfpForMvp", "MVCC-PFP"],
@@ -267,7 +280,7 @@ phaseBlock({
   deliverables: [
     "MVCC-MONO-001 — pnpm monorepo skeleton + tsconfig.base + workspaces",
     "MVCC-DB-001 — Drizzle schema (all 20 tables, one file each, barrel export)",
-    "MVCC-AUTH-001 — Clerk proxy mw + ensureLocalUser + tier helper + effectiveTier",
+    "MVCC-AUTH-001 — Staff access-code front door (shared code + attribution, signed cookie); Clerk proxy retained but dormant (DEFERRED B)",
     "MVCC-API-001 — Express app + middleware order (Sentry -> Clerk proxy -> webhook raw -> cors -> json -> clerkMw -> /api)",
     "MVCC-SPEC-001 — OpenAPI + Orval codegen (Zod request schemas + RQ hooks)",
     "MVCC-OPS-001 — pino + Sentry (DSN-gated) + cron route + per-engine telemetry"
@@ -279,15 +292,15 @@ phaseBlock({
   colourName: "ORANGE",
   header: "Billing & Sessions",
   duration: "Week 2 · 5 prompts",
-  status: "SHIPPED",
+  status: "SESSIONS SHIPPED · BILLING DEFERRED (B)",
   deliverables: [
-    "MVCC-BILL-001 — Stripe Checkout + Portal + webhook (idempotency + price map)",
-    "MVCC-ORG-001 — Orgs + members + invites + per-seat checkout + effectiveTier",
-    "MVCC-CRED-001 — Ingestion + cartridge credits (skip-locked claim, release on error)",
-    "MVCC-WEB-001 — Landing + /pricing + TopNav + cartridge card",
+    "MVCC-BILL-001 — Stripe Checkout + Portal + webhook — DEFERRED (B-level, dormant behind SUBSCRIPTIONS_ENABLED)",
+    "MVCC-ORG-001 — Orgs + members + invites + per-seat checkout — DEFERRED (B-level, dormant)",
+    "MVCC-CRED-001 — Ingestion + cartridge credits — DEFERRED (B-level; claim/release bypassed when subscriptions off)",
+    "MVCC-WEB-001 — Staff access-code front door + TopNav (pricing/billing dormant)",
     "MVCC-SESS-001 — Session CRUD + feature-state unlock chain"
   ],
-  exit: "Billing, orgs, sessions, and the public web surface are live."
+  exit: "Sessions + staff front door are live; billing/orgs/credits dormant behind SUBSCRIPTIONS_ENABLED."
 });
 
 phaseBlock({
@@ -339,7 +352,7 @@ phaseBlock({
   status: "SHIPPED",
   deliverables: [
     "MVCC-TEST-001 — Vitest provider-switching rig (cached fixtures, UUID+ISO key, nightly drift)",
-    "MVCC-ACCT-001 — /api/me/delete (Stripe -> Clerk -> local cascade) + goodbye",
+    "MVCC-ACCT-001 — /api/me/delete (Stripe/Clerk cascade skipped for staff users -> local cascade) + goodbye",
     "MVCC-LAUNCH-001 — Workflows + artifact registration + /healthz + Sentry + EMAIL_FROM + PUBLIC_BASE_URL + smoke E2E"
   ],
   exit: "Tests, account delete, and launch wiring all green."
@@ -350,7 +363,7 @@ table(
   ["Phase", "Prompts", "Week", "Theme"],
   [
     ["1 RED", "6", "Week 1", "Monorepo + DB + Auth + API spine"],
-    ["2 ORANGE", "5", "Week 2", "Billing + orgs + sessions + public web"],
+    ["2 ORANGE", "5", "Week 2", "Sessions + staff front door (billing/orgs deferred B)"],
     ["3 YELLOW", "9", "Week 3", "Core HARNESS F1–F7 + badges"],
     ["4 GREEN", "5", "Week 4", "F8 + ATLAS-J + PFP + ingestion + cartridge"],
     ["5 BLUE", "4", "Week 5", "Delivery: IDE export + GitHub + F8-HDJ"],
@@ -399,7 +412,7 @@ code(`+==============================================================+
 |  MVP Output     :  32 prompts · 6 phases · 6 weeks           |
 |  IDE (VIBE DJ)  :  Replit Agent + Workspaces                 |
 |  Host (HOST DJ) :  Replit Deployments — Autoscale            |
-|  FFS            :  100%  (24/24 kept · 24/24 SHIPPED)        |
+|  FFS            :  100% kept (22/24 SHIPPED · 2 DEFERRED B)  |
 |  AVS            :   96%                                       |
 |  CIS            :   94%                                       |
 |  UIS            :   92%                                       |
@@ -407,7 +420,7 @@ code(`+==============================================================+
 |  CR_t           :   38%                                       |
 |  CR_c           :   ~0%  (same Replit infra)                 |
 |  JCSE           :   49/50  ·  Wolf  ·  Platinum              |
-|  Status         :   CERTIFIED · 24/24 SHIPPED · HOST DJ live  |
+|  Status         :   CERTIFIED · 22/24 SHIPPED · 2 DEFERRED B |
 +==============================================================+`);
 
 doc.moveDown(1);

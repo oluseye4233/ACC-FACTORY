@@ -7,7 +7,17 @@ Standing decisions that govern how new code is written here. Defer to these unle
 - **Stripe webhook receives raw body and is mounted before JSON parsers.** `/api/webhooks/stripe` is a dedicated mini-router in `app.ts` with `express.raw({type:"application/json"})` so signature verification works.
 - **Tier gating + escalation bypass.** `requireTier("PRACTITIONER")` on F5/F6/F7; if the request body has a `sessionId` with an existing `harness_escalations` row, the gate is bypassed for that session.
 - **Daily rate-limit counters live on the subscriber row** (`f{1..8}_today`). A guarded `/api/cron/reset-harness-limits` (header `x-cron-secret`) resets them.
-- **Admin role** = Clerk `publicMetadata.role === "admin"` OR the user's email is in the `ADMIN_EMAILS` env allowlist. Stored on the local `users.role` column at JIT-sync time.
+- **Admin role** = Clerk `publicMetadata.role === "admin"` OR the user's email is in the `ADMIN_EMAILS` env allowlist. Stored on the local `users.role` column at JIT-sync time. (Dormant while running as an internal staff tool — see below; every code-authenticated staff member is treated as ADMIN/INSTITUTION.)
+
+## Internal staff tool vs. subscription SaaS (SUBSCRIPTIONS_ENABLED)
+
+The active product is an **internal staff back-end ops platform**, not a public subscription SaaS. The subscription/billing model is a **deferred B-level upgrade**: fully coded and tested, but held dormant behind a single reversible flag.
+
+- **Front door = one shared access code + typed name.** `STAFF_ACCESS_CODE` (secret) gates the whole app. Staff type their name/initials for attribution only (no per-user credentials). `POST /api/auth/login` verifies the code, provisions a staff user/subscriber (`clerkUserId` prefixed `staff:`), and sets a signed `atanda_staff` session cookie. `lib/staff-auth.ts` owns the primitives; `routes/staff-auth.ts` owns the routes; frontend `lib/staff-session.tsx` + `components/AccessGate.tsx` own the client.
+- **All gates open to any code-authenticated staff.** Tier/badge gates are effectively INSTITUTION/ADMIN; the ASPE badge gate on DE-SPC (`evolve`) was removed so all engines are open.
+- **One company-wide monthly LLM cost cap.** `requireCostBudget` sums cost globally for the current UTC month against `STAFF_MONTHLY_COST_CAP_USD` (`globalMonthlyCostCapUsd`) and returns `402 COST_CAP_EXCEEDED`. Per-tier/per-subscriber caps and F1000 on-ramp are not used in this mode.
+- **`SUBSCRIPTIONS_ENABLED` (default false) keeps billing dormant, not deleted.** `feature-flags.ts` exposes `subscriptionsEnabled()` + `requireSubscriptionsEnabled`. Billing/orgs-billing/F1000 routes return 404-style disabled responses; the Stripe webhook early-returns `{ok:true,skipped:true}`; ingestion/cartridge credit claim/link/release is bypassed (credit ids nullable). Account self-delete skips the Stripe→Clerk cascade for `staff:`-prefixed users. Flip to `true` to re-activate the subscription SaaS with zero code changes.
+- **Clerk removed from the active path, left installed.** ClerkProvider/Clerk middleware are no longer on the request path; Clerk packages and dead pages (pricing/billing/orgs/f1000/demo/landing) remain in the tree but unrouted so the upgrade is a flag flip, not a re-build.
 
 ## Drift from contract-first
 

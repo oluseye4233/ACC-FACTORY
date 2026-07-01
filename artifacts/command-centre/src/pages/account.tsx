@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useClerk } from "@clerk/react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLogout } from "@/lib/staff-session";
 import { TopNav } from "@/components/layout/TopNav";
 import {
   useGetMe,
@@ -30,7 +30,7 @@ const GRANTABLE_TIERS = ["EXPLORER", "PRACTITIONER", "ARCHITECT", "INSTITUTION"]
 
 export default function Account() {
   const { data: me, isLoading } = useGetMe();
-  const { signOut } = useClerk();
+  const logout = useLogout();
   const qc = useQueryClient();
   const { toast } = useToast();
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -136,7 +136,11 @@ export default function Account() {
             description: "All your data has been removed. Signing you out.",
           });
           qc.clear();
-          await signOut({ redirectUrl: basePath || "/" });
+          logout.mutate(undefined, {
+            onSuccess: () => {
+              window.location.href = basePath || "/";
+            },
+          });
         },
         onError: (err) => {
           toast({

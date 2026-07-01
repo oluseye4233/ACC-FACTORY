@@ -17,6 +17,8 @@ import {
   type CartridgeLink,
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
+import { requireCostBudget } from "../lib/cost-budget";
+import { subscriptionsEnabled } from "../lib/feature-flags";
 import {
   claimCartridgeCredit,
   releaseCartridgeCredit,
@@ -248,6 +250,7 @@ router.get(
 router.post(
   "/cartridge",
   requireAuth,
+  requireCostBudget,
   upload.array("files", MAX_FILES),
   async (req: Request, res: Response): Promise<void> => {
     const userId = req.localUser!.id;
@@ -299,15 +302,21 @@ router.post(
     const linkInputs = parseLinks(req.body?.links);
     const files = (req.files as Express.Multer.File[] | undefined) ?? [];
 
-    // ── Step 2: claim credit atomically ──
-    const creditId = await claimCartridgeCredit(userId);
-    if (!creditId) {
-      res.status(402).json({
-        error:
-          "No cartridge credits available. Purchase an Advanced Cartridge to continue.",
-        code: "CARTRIDGE_CREDIT_REQUIRED",
-      });
-      return;
+    // ── Step 2: claim credit atomically (dormant in internal-staff mode) ──
+    // When subscriptions are disabled the credit machinery is bypassed entirely
+    // — staff build cartridges freely, but the LLM spend is still bounded by the
+    // company-wide monthly cost cap (`requireCostBudget` above).
+    let creditId: string | null = null;
+    if (subscriptionsEnabled()) {
+      creditId = await claimCartridgeCredit(userId);
+      if (!creditId) {
+        res.status(402).json({
+          error:
+            "No cartridge credits available. Purchase an Advanced Cartridge to continue.",
+          code: "CARTRIDGE_CREDIT_REQUIRED",
+        });
+        return;
+      }
     }
 
     let success = false;
@@ -441,10 +450,12 @@ router.post(
       });
       cartridgeId = persisted.id;
 
-      try {
-        await linkCreditToCartridge(creditId, persisted.id);
-      } catch (err) {
-        req.log.warn({ err, creditId, cartridgeId: persisted.id }, "Failed to link cartridge credit");
+      if (creditId) {
+        try {
+          await linkCreditToCartridge(creditId, persisted.id);
+        } catch (err) {
+          req.log.warn({ err, creditId, cartridgeId: persisted.id }, "Failed to link cartridge credit");
+        }
       }
 
       const [docs, spcs, links] = await Promise.all([
@@ -472,13 +483,13 @@ router.post(
       req.log.error({ err }, "Cartridge create failed");
       if (!res.headersSent) res.status(400).json({ error: msg });
     } finally {
-      if (!success) {
+      if (!success && creditId) {
         try {
           await releaseCartridgeCredit(creditId);
         } catch (releaseErr) {
           req.log.error({ err: releaseErr, creditId }, "Failed to release cartridge credit");
         }
-      } else if (cartridgeId) {
+      } else if (success && cartridgeId) {
         invalidateCartridgeContext(cartridgeId);
       }
     }

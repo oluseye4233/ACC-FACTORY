@@ -14,17 +14,16 @@ if (sentryDsn) {
 
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
-import { clerkMiddleware } from "@clerk/express";
-import { publishableKeyFromHost } from "@clerk/shared/keys";
-import {
-  CLERK_PROXY_PATH,
-  clerkProxyMiddleware,
-  getClerkProxyHost,
-} from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
 import stripeWebhookRouter from "./routes/stripe-webhook";
 import { logger } from "./lib/logger";
+
+// NOTE: Clerk has been lifted out of the active request path — the portal now
+// authenticates staff via a signed access-code cookie (see lib/staff-auth.ts).
+// The Clerk packages + `middlewares/clerkProxyMiddleware.ts` remain in the repo
+// (dormant) so paid subscriptions can be reinstated later without a rewrite.
 
 const app: Express = express();
 
@@ -48,22 +47,15 @@ app.use(
   }),
 );
 
-app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
-
+// Stripe webhook mounts BEFORE the body parsers so it can read the raw body for
+// signature verification (gotcha #1 — order matters).
 app.use("/api/webhooks/stripe", stripeWebhookRouter);
 
 app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
-);
+// Signed cookies carry the staff session (see lib/staff-auth.ts).
+app.use(cookieParser(process.env.SESSION_SECRET));
 
 app.use("/api", router);
 

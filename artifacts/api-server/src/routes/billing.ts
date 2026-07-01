@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
 import { db, commandCentreSubscribersTable, type SubscriberTier } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
+import { requireSubscriptionsEnabled } from "../lib/feature-flags";
 import { BillingCheckoutBody, BillingPortalBody } from "@workspace/api-zod";
 import { getUncachableStripeClient } from "../lib/stripe";
 import type Stripe from "stripe";
@@ -40,7 +41,7 @@ function priceIdFor(tier: SubscriberTier, interval: "month" | "year"): string | 
   return map[`${tier}_${interval}`] ?? null;
 }
 
-router.post("/billing/checkout", requireAuth, async (req, res): Promise<void> => {
+router.post("/billing/checkout", requireAuth, requireSubscriptionsEnabled, async (req, res): Promise<void> => {
   const parsed = BillingCheckoutBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -118,7 +119,7 @@ router.post("/billing/checkout", requireAuth, async (req, res): Promise<void> =>
   res.json({ url: session.url ?? "" });
 });
 
-router.post("/billing/ingestion/checkout", requireAuth, async (req, res): Promise<void> => {
+router.post("/billing/ingestion/checkout", requireAuth, requireSubscriptionsEnabled, async (req, res): Promise<void> => {
   const priceId = process.env.STRIPE_PRICE_INGESTION_PROJECT;
   if (!priceId) {
     res.status(503).json({
@@ -180,7 +181,7 @@ router.post("/billing/ingestion/checkout", requireAuth, async (req, res): Promis
   res.json({ url: session.url ?? "" });
 });
 
-router.post("/billing/cartridge/checkout", requireAuth, async (req, res): Promise<void> => {
+router.post("/billing/cartridge/checkout", requireAuth, requireSubscriptionsEnabled, async (req, res): Promise<void> => {
   const priceId = process.env.STRIPE_PRICE_CARTRIDGE_PROJECT;
   if (!priceId) {
     res.status(503).json({
@@ -231,7 +232,7 @@ router.post("/billing/cartridge/checkout", requireAuth, async (req, res): Promis
   res.json({ url: session.url ?? "" });
 });
 
-router.post("/billing/portal", requireAuth, async (req, res): Promise<void> => {
+router.post("/billing/portal", requireAuth, requireSubscriptionsEnabled, async (req, res): Promise<void> => {
   const parsed = BillingPortalBody.safeParse(req.body ?? {});
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });

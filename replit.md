@@ -1,6 +1,10 @@
 # ATANDA Command Centre
 
-A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an authenticated portal in front of the FORGE.BONSAI HARNESS — itself a **PDD blueprint application**, not an SPC. The HARNESS is the instruction layer: a sequence of atomic prompts (F1–F7 + F6-VDJ, plus the DE-SPC synthesiser, the ATLAS J side-step, and the PFP drift detector) that drives the LLM through a deterministic prompt → SPC → PDD → certified MVP-PDD pipeline for each user session. Public `/pricing` surface, Stripe-billed tiers, plus per-seat team subscriptions.
+A re-platform of the ATANDA Command Centre MVP onto this pnpm monorepo: an **internal staff back-end ops platform** in front of the FORGE.BONSAI HARNESS — itself a **PDD blueprint application**, not an SPC. The HARNESS is the instruction layer: a sequence of atomic prompts (F1–F7 + F6-VDJ, plus the DE-SPC synthesiser, the ATLAS J side-step, and the PFP drift detector) that drives the LLM through a deterministic prompt → SPC → PDD → certified MVP-PDD pipeline for each user session.
+
+**Access model — internal staff tool.** The front door is one shared `STAFF_ACCESS_CODE` + a typed name/initials (attribution only). Every code-authenticated staff member gets full access (all engines, all previously subscription-gated features). One company-wide monthly LLM cost cap (`STAFF_MONTHLY_COST_CAP_USD`) replaces per-tier caps.
+
+**Subscriptions are a deferred B-level upgrade, not deleted.** Clerk auth, Stripe tiers, per-seat orgs, per-project credits, and F1000 remain fully coded and tested but dormant behind `SUBSCRIPTIONS_ENABLED` (default `false`). Flip it to `true` to re-activate the public `/pricing` + Stripe-billed subscription SaaS with no code changes. See [`decisions.md`](docs/architecture/decisions.md) → "Internal staff tool vs. subscription SaaS".
 
 ## Architecture & feature detail
 

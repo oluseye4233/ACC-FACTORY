@@ -1,15 +1,17 @@
 import type { NextFunction, Request, Response } from "express";
-import { getAuth, clerkClient } from "@clerk/express";
 import { and, eq } from "drizzle-orm";
 import {
-  db,
-  usersTable,
-  commandCentreSubscribersTable,
   type Subscriber,
   type SubscriberTier,
   type User,
 } from "@workspace/db";
 import { effectiveTier, loadMembershipsForUser, type MembershipRow } from "./orgs";
+import {
+  STAFF_COOKIE,
+  ensureStaffSubscriber,
+  ensureStaffUser,
+  parseSession,
+} from "./staff-auth";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -26,59 +28,39 @@ declare global {
   }
 }
 
-const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-  .split(",")
-  .map((s) => s.trim().toLowerCase())
-  .filter(Boolean);
-
+/**
+ * Authenticate a request via the signed staff-session cookie.
+ *
+ * The subscription SaaS front door (Clerk) has been replaced by a single shared
+ * access code + typed name (see `staff-auth.ts`). Clerk files/packages remain in
+ * the repo but are no longer on the active request path. Every staffer resolves
+ * to an ADMIN, INSTITUTION-tier local user so all existing tier / rate-limit /
+ * admin gates pass unchanged.
+ */
 export async function requireAuth(
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> {
-  const auth = getAuth(req);
-  const clerkUserId = auth?.userId;
-  if (!clerkUserId) {
+  const session = parseSession(req.signedCookies?.[STAFF_COOKIE]);
+  if (!session) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  req.clerkUserId = clerkUserId;
 
   let local: User;
+  let sub: Subscriber;
   try {
-    local = await ensureLocalUser(clerkUserId);
+    local = await ensureStaffUser(session.handle, session.name);
+    sub = await ensureStaffSubscriber(local.id);
   } catch (err) {
-    if (err instanceof ClerkIdentityNotFoundError) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    req.log.error({ err, clerkUserId }, "ensureLocalUser failed");
+    req.log.error({ err, handle: session.handle }, "staff identity upsert failed");
     res.status(503).json({ error: "Identity service temporarily unavailable" });
     return;
   }
-  // Admin allowlist is authoritative on every request: promote an existing
-  // user whose email is in ADMIN_EMAILS but whose stored role predates the
-  // allowlist (role is otherwise only set at first JIT-sync). Only ever
-  // promotes — never demotes — to stay conservative.
-  if (
-    local.role !== "ADMIN" &&
-    local.email &&
-    adminEmails.includes(local.email.toLowerCase())
-  ) {
-    try {
-      const [promoted] = await db
-        .update(usersTable)
-        .set({ role: "ADMIN" })
-        .where(eq(usersTable.id, local.id))
-        .returning();
-      if (promoted) local = promoted;
-    } catch (err) {
-      req.log.warn({ err, userId: local.id }, "admin role re-sync failed");
-    }
-  }
-  req.localUser = local;
 
-  const sub = await ensureSubscriber(local.id);
+  req.clerkUserId = local.clerkUserId;
+  req.localUser = local;
   req.subscriber = sub;
 
   // Org tier elevation — best-effort. On lookup failure, fall back to the
@@ -93,95 +75,6 @@ export async function requireAuth(
     req.effectiveTier = sub.tier;
   }
   next();
-}
-
-class ClerkIdentityNotFoundError extends Error {}
-
-async function ensureLocalUser(clerkUserId: string): Promise<User> {
-  const existing = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.clerkUserId, clerkUserId))
-    .limit(1);
-  if (existing.length > 0) return existing[0]!;
-
-  // First-time sync: REQUIRE a confirmed Clerk identity before creating a local shell.
-  // A stale/replayed token whose Clerk user has been deleted must NOT be able to JIT-create
-  // a fresh local account.
-  let email: string | null = null;
-  let displayName: string | null = null;
-  let role = "USER";
-  try {
-    const clerkUser = await clerkClient.users.getUser(clerkUserId);
-    email = clerkUser.primaryEmailAddress?.emailAddress ?? null;
-    displayName =
-      [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ").trim() ||
-      clerkUser.username ||
-      null;
-    const metaRole = (clerkUser.publicMetadata as Record<string, unknown> | null)?.role;
-    if (typeof metaRole === "string" && metaRole.toUpperCase() === "ADMIN") {
-      role = "ADMIN";
-    } else if (email && adminEmails.includes(email.toLowerCase())) {
-      role = "ADMIN";
-    }
-  } catch (err) {
-    const status = (err as { status?: number; statusCode?: number }).status
-      ?? (err as { status?: number; statusCode?: number }).statusCode;
-    if (status === 404) {
-      throw new ClerkIdentityNotFoundError(`clerk user ${clerkUserId} not found`);
-    }
-    // Any other error (Clerk outage etc.) is also unsafe to silently fall through on
-    // first-time provisioning — the only way we'd know what email/role belongs to this
-    // user is via Clerk.
-    throw new Error(`clerk getUser failed during first JIT sync: ${(err as Error).message}`);
-  }
-
-  const [created] = await db
-    .insert(usersTable)
-    .values({ clerkUserId, email, displayName, role })
-    .onConflictDoNothing({ target: usersTable.clerkUserId })
-    .returning();
-  if (created) {
-    // Best-effort welcome email on first JIT-sync — never block auth on email failures.
-    if (email) {
-      void (async () => {
-        try {
-          const { sendWelcome } = await import("@workspace/email");
-          await sendWelcome({ to: email, displayName });
-        } catch {
-          // swallow — email is best-effort
-        }
-      })();
-    }
-    return created;
-  }
-  const reread = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.clerkUserId, clerkUserId))
-    .limit(1);
-  return reread[0]!;
-}
-
-async function ensureSubscriber(userId: string): Promise<Subscriber> {
-  const existing = await db
-    .select()
-    .from(commandCentreSubscribersTable)
-    .where(eq(commandCentreSubscribersTable.userId, userId))
-    .limit(1);
-  if (existing.length > 0) return existing[0]!;
-  const [created] = await db
-    .insert(commandCentreSubscribersTable)
-    .values({ userId, tier: "EXPLORER", status: "inactive" })
-    .onConflictDoNothing({ target: commandCentreSubscribersTable.userId })
-    .returning();
-  if (created) return created;
-  const reread = await db
-    .select()
-    .from(commandCentreSubscribersTable)
-    .where(eq(commandCentreSubscribersTable.userId, userId))
-    .limit(1);
-  return reread[0]!;
 }
 
 export function requireAdmin(

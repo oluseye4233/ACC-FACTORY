@@ -21,10 +21,12 @@ import notificationsRouter from "./notifications";
 import integrationsRouter from "./integrations";
 import onboardingRouter from "./onboarding";
 import f1000Router from "./f1000";
+import staffAuthRouter from "./staff-auth";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(staffAuthRouter);
 router.use(meRouter);
 router.use(onboardingRouter);
 router.use(promptsRouter);

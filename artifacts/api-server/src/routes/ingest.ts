@@ -12,6 +12,8 @@ import {
   type SourceDocKind,
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
+import { requireCostBudget } from "../lib/cost-budget";
+import { subscriptionsEnabled } from "../lib/feature-flags";
 import {
   claimIngestionCredit,
   getIngestionCreditsSummary,
@@ -168,21 +170,28 @@ router.get(
 router.post(
   "/ingest",
   requireAuth,
+  requireCostBudget,
   upload.single("file"),
   async (req: Request, res: Response): Promise<void> => {
     const userId = req.localUser!.id;
 
-    // Per-project billing: claim one available ingestion credit BEFORE we
-    // spend any LLM tokens. On any downstream failure we release the credit
-    // back to `available` so a fluke doesn't burn the user's purchase.
-    const creditId = await claimIngestionCredit(userId);
-    if (!creditId) {
-      res.status(402).json({
-        error:
-          "No ingestion credits available. Purchase a project credit to ingest a document.",
-        code: "INGESTION_CREDIT_REQUIRED",
-      });
-      return;
+    // Per-project billing (dormant in internal-staff mode): claim one available
+    // ingestion credit BEFORE we spend any LLM tokens. On any downstream failure
+    // we release the credit back to `available` so a fluke doesn't burn the
+    // purchase. When subscriptions are disabled the credit machinery is bypassed
+    // entirely — staff ingest freely, but the LLM spend is still bounded by the
+    // company-wide monthly cost cap (`requireCostBudget` above).
+    let creditId: string | null = null;
+    if (subscriptionsEnabled()) {
+      creditId = await claimIngestionCredit(userId);
+      if (!creditId) {
+        res.status(402).json({
+          error:
+            "No ingestion credits available. Purchase a project credit to ingest a document.",
+          code: "INGESTION_CREDIT_REQUIRED",
+        });
+        return;
+      }
     }
 
     let success = false;
@@ -300,10 +309,12 @@ router.post(
       // Permanently bind the claimed credit to the document it paid for.
       // Best-effort: a failure here doesn't roll back the ingestion (the
       // credit is already marked consumed, just unlinked).
-      try {
-        await linkCreditToDocument(creditId, row!.id);
-      } catch (linkErr) {
-        req.log.warn({ err: linkErr, creditId, documentId: row!.id }, "Failed to link ingestion credit to document");
+      if (creditId) {
+        try {
+          await linkCreditToDocument(creditId, row!.id);
+        } catch (linkErr) {
+          req.log.warn({ err: linkErr, creditId, documentId: row!.id }, "Failed to link ingestion credit to document");
+        }
       }
 
       success = true;
@@ -318,7 +329,7 @@ router.post(
       // inside the try block (invalid input, too-short text, normalisation
       // failure, etc.). The user is only charged when an ingestion_document
       // row is persisted.
-      if (!success) {
+      if (!success && creditId) {
         try {
           await releaseIngestionCredit(creditId);
         } catch (releaseErr) {

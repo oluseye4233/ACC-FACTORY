@@ -12,6 +12,7 @@ import {
   type OrgMemberRole,
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
+import { requireSubscriptionsEnabled } from "../lib/feature-flags";
 import { memberRole, ownerCount } from "../lib/orgs";
 import { getUncachableStripeClient } from "../lib/stripe";
 
@@ -534,7 +535,7 @@ router.post("/invites/:token/accept", requireAuth, async (req, res): Promise<voi
   res.json({ ok: true, organizationId: invite.organizationId });
 });
 
-router.post("/orgs/:id/billing/checkout", requireAuth, async (req, res): Promise<void> => {
+router.post("/orgs/:id/billing/checkout", requireAuth, requireSubscriptionsEnabled, async (req, res): Promise<void> => {
   const id = String(req.params.id);
   const role = await requireMembership(res, req.localUser!.id, id, "owner");
   if (!role) return;
@@ -611,7 +612,7 @@ router.post("/orgs/:id/billing/checkout", requireAuth, async (req, res): Promise
   res.json({ url: session.url ?? "" });
 });
 
-router.post("/orgs/:id/billing/portal", requireAuth, async (req, res): Promise<void> => {
+router.post("/orgs/:id/billing/portal", requireAuth, requireSubscriptionsEnabled, async (req, res): Promise<void> => {
   const id = String(req.params.id);
   const role = await requireMembership(res, req.localUser!.id, id, "owner");
   if (!role) return;
@@ -645,7 +646,7 @@ router.post("/orgs/:id/billing/portal", requireAuth, async (req, res): Promise<v
   res.json({ url: portal.url });
 });
 
-router.post("/orgs/:id/billing/seats", requireAuth, async (req, res): Promise<void> => {
+router.post("/orgs/:id/billing/seats", requireAuth, requireSubscriptionsEnabled, async (req, res): Promise<void> => {
   const id = String(req.params.id);
   const role = await requireMembership(res, req.localUser!.id, id, "owner");
   if (!role) return;

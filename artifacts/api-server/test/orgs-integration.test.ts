@@ -51,6 +51,12 @@ vi.mock("../src/lib/stripe", () => {
 });
 
 // ---------- Test fixtures ----------
+// Subscriptions/billing are a deferred B-level feature, dormant by default in
+// internal-staff mode (SUBSCRIPTIONS_ENABLED unset/false → Stripe webhook and
+// billing routes skip). This suite exercises that billing path, so it opts the
+// feature back ON explicitly, verifying the dormant code still works when the
+// flag is flipped.
+process.env.SUBSCRIPTIONS_ENABLED = "true";
 const TEAM_PRICE = "price_test_team_seat_monthly_orgs_integration";
 process.env.STRIPE_PRICE_TEAM_SEAT_MONTHLY = TEAM_PRICE;
 

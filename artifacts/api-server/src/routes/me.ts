@@ -11,6 +11,7 @@ import {
   commandCentreSubscribersTable,
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
+import { STAFF_CLERK_PREFIX } from "../lib/staff-auth";
 import { UpdateMyProfileBody, DeleteMyAccountBody } from "@workspace/api-zod";
 import { getUncachableStripeClient, isStripeConfigured } from "../lib/stripe";
 
@@ -272,8 +273,12 @@ router.post("/me/delete", requireAuth, async (req, res): Promise<void> => {
   }
 
   // 2) Delete Clerk identity. If this fails, abort — do not delete local rows.
+  //    Staff users (internal-ops mode) have a synthetic `staff:<handle>` id and
+  //    no Clerk record — skip the identity-provider call entirely for them.
   try {
-    await clerkClient.users.deleteUser(clerkUserId);
+    if (!clerkUserId.startsWith(STAFF_CLERK_PREFIX)) {
+      await clerkClient.users.deleteUser(clerkUserId);
+    }
   } catch (err) {
     req.log.error({ err, clerkUserId }, "clerk deleteUser failed during account delete");
     res.status(502).json({ error: "Identity provider could not delete your account. Try again." });
