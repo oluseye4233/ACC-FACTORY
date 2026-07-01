@@ -12,6 +12,7 @@ import {
   harnessEngineRunsTable,
   mathmonIntakesTable,
   mathmonMapsTable,
+  type MathmonMap,
   type Subscriber,
   type User,
 } from "@workspace/db";
@@ -178,6 +179,105 @@ function parseSseEvent(body: string, event: string): unknown | null {
     }
   }
   return null;
+}
+
+interface IntakeReport {
+  measurableVariables: Array<{ name: string; unit: string; description: string }>;
+  constraintCategories: Array<{ category: string; detail: string }>;
+  optimisationTargets: Array<{ target: string; direction: "MAXIMISE" | "MINIMISE"; metric: string }>;
+  summary: string;
+}
+
+// A well-posed intake, varied only by `summary` so each test hashes to a
+// distinct LLM-fixture key (the key is derived from the request prompt).
+function baseReport(summary: string): IntakeReport {
+  return {
+    measurableVariables: [
+      { name: "throughput", unit: "req/s", description: "Requests served per second." },
+    ],
+    constraintCategories: [{ category: "latency", detail: "p99 under 200ms." }],
+    optimisationTargets: [
+      { target: "throughput", direction: "MAXIMISE", metric: "req/s" },
+    ],
+    summary,
+  };
+}
+
+// Mirrors the section key the MAP handler appends the disclaimer to.
+const ECONOMIC_SECTION_KEY = "economic_projections";
+
+interface MapSection {
+  key: string;
+  title: string;
+  body: string;
+}
+
+interface MapComplete {
+  mathCoherence: number;
+  applicability: number;
+  predictiveReliability: number;
+  mathmonScore: number;
+  disclaimer: string;
+  sections: MapSection[];
+}
+
+// Seed an intake, wire the matching LLM fixture, drive the MAP SSE handler once,
+// and return the parsed `complete` event plus the persisted row. Callers own the
+// fixtures lifecycle (seedFixtures / cleanup); this helper cleans up its own
+// LLM fixture and server.
+async function runMap(
+  fx: Fixtures,
+  report: IntakeReport,
+  mapOutput: unknown,
+): Promise<{ complete: MapComplete; row: MathmonMap }> {
+  await db.insert(mathmonIntakesTable).values({
+    sessionId: fx.sessionId,
+    userId: fx.user.id,
+    report,
+    provider: "claude",
+    modelId: PROVIDER_MODELS.claude,
+  });
+  // jsonb may reorder keys; rebuild the prompt from the round-tripped report so
+  // the hash matches exactly what the MAP handler will request.
+  const intake = await loadLatestIntake(fx.sessionId, fx.user.id);
+  if (!intake) throw new Error("runMap: intake read-back failed");
+  const userPrompt = `Build the Mathematical Applicability Profile from this MATHMON Intake Report:\n${JSON.stringify(intake.report, null, 2)}`;
+  const key = writeClaudeFixture(MAP_SYSTEM, userPrompt, mapOutput);
+
+  const app = buildApp(fx.user, fx.subscriber, "/api/harness/map", requireCostBudget, handleMapStream);
+  const srv = await startServer(app);
+  try {
+    const res = await fetch(`${srv.url}/api/harness/map`, {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "text/event-stream" },
+      body: JSON.stringify({ sessionId: fx.sessionId, provider: "claude" }),
+    });
+    const body = await res.text();
+    expect(parseSseEvent(body, "error"), `unexpected SSE error: ${body.slice(0, 400)}`).toBeNull();
+    const complete = parseSseEvent(body, "complete") as MapComplete | null;
+    expect(complete, `no complete event: ${body.slice(0, 400)}`).not.toBeNull();
+
+    const rows = await db
+      .select()
+      .from(mathmonMapsTable)
+      .where(
+        and(
+          eq(mathmonMapsTable.sessionId, fx.sessionId),
+          eq(mathmonMapsTable.userId, fx.user.id),
+        ),
+      )
+      .orderBy(desc(mathmonMapsTable.createdAt))
+      .limit(1);
+    expect(rows.length).toBe(1);
+    return { complete: complete!, row: rows[0]! };
+  } finally {
+    removeFixture(key);
+    await srv.close();
+  }
+}
+
+function persistedSections(row: MathmonMap): MapSection[] {
+  return (row.map as { sections: MapSection[] }).sections;
 }
 
 describe("F0.5 (MATHMON Intake) — POST /api/harness/f05", () => {
@@ -459,6 +559,131 @@ describe("MAP (Mathematical Applicability Profile) — POST /api/harness/map", (
     } finally {
       removeFixture(key);
       await srv.close();
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("appends the disclaimer ONLY to economic_projections — non-projection sections are left untouched", async () => {
+    const fx = await seedFixtures();
+    try {
+      const mapOutput = {
+        sections: [
+          { key: "governing_equations", title: "Governing equations", body: "y = kx." },
+          { key: "simulations", title: "Simulations", body: "Monte Carlo over demand." },
+          { key: "optimisation_goals", title: "Optimisation goals", body: "Maximise throughput." },
+          { key: "risk_models", title: "Risk models", body: "Worst-case p99 blowout." },
+          {
+            key: "economic_projections",
+            title: "Economic projections",
+            body: "Revenue modelled at $10k–$40k/mo (range only).",
+          },
+          { key: "performance_metrics", title: "Performance metrics", body: "Throughput 5k–9k req/s." },
+        ],
+        mathCoherence: 80,
+        applicability: 70,
+        predictiveReliability: 60,
+      };
+      const { complete, row } = await runMap(
+        fx,
+        baseReport("Non-projection sections untouched."),
+        mapOutput,
+      );
+
+      // Every non-economic section body is byte-for-byte the model's output —
+      // no disclaimer text leaks in.
+      for (const s of complete.sections) {
+        if (s.key === ECONOMIC_SECTION_KEY) {
+          expect(s.body.endsWith(FORGE_VERIFIED_DISCLAIMER)).toBe(true);
+        } else {
+          expect(s.body.includes(FORGE_VERIFIED_DISCLAIMER)).toBe(false);
+        }
+      }
+
+      // Persisted row agrees: exactly one section carries the disclaimer, and it
+      // is the economic projections section.
+      const persisted = persistedSections(row);
+      const carrying = persisted.filter((s) => s.body.includes(FORGE_VERIFIED_DISCLAIMER));
+      expect(carrying.length).toBe(1);
+      expect(carrying[0]!.key).toBe(ECONOMIC_SECTION_KEY);
+    } finally {
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("a MAP with no economic_projections section carries no disclaimer text on any section", async () => {
+    const fx = await seedFixtures();
+    try {
+      const mapOutput = {
+        sections: [
+          { key: "governing_equations", title: "Governing equations", body: "y = kx." },
+          { key: "simulations", title: "Simulations", body: "Discrete-event queueing model." },
+          { key: "performance_metrics", title: "Performance metrics", body: "Latency budget p99." },
+        ],
+        mathCoherence: 55,
+        applicability: 40,
+        predictiveReliability: 33,
+      };
+      const { complete, row } = await runMap(
+        fx,
+        baseReport("No economic projections section."),
+        mapOutput,
+      );
+
+      // No returned section body contains the disclaimer.
+      for (const s of complete.sections) {
+        expect(s.body.includes(FORGE_VERIFIED_DISCLAIMER)).toBe(false);
+      }
+      // Persisted sections likewise carry no stray disclaimer text.
+      for (const s of persistedSections(row)) {
+        expect(s.body.includes(FORGE_VERIFIED_DISCLAIMER)).toBe(false);
+      }
+
+      // The top-level `disclaimer` column is the mandatory embedded FORGE
+      // VERIFIED notice surfaced wherever status is shown — it is by design
+      // always populated and is NOT a per-section append.
+      expect(row.disclaimer).toBe(FORGE_VERIFIED_DISCLAIMER);
+    } finally {
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("the disclaimer enforces the range-not-single-figure rule on economic projections", async () => {
+    // The disclaimer text itself carries the range rule it exists to enforce.
+    expect(FORGE_VERIFIED_DISCLAIMER).toContain("modelled ranges, not guarantees");
+
+    const fx = await seedFixtures();
+    try {
+      // The model returns a SINGLE point figure, violating the range-only prompt
+      // rule. The server-appended disclaimer must still supply the
+      // range-not-guarantee clarification so the surfaced projection is never a
+      // bare single figure presented as a guarantee.
+      const mapOutput = {
+        sections: [
+          { key: "governing_equations", title: "Governing equations", body: "y = kx." },
+          {
+            key: "economic_projections",
+            title: "Economic projections",
+            body: "Revenue will be exactly $30,000/mo.",
+          },
+        ],
+        mathCoherence: 60,
+        applicability: 50,
+        predictiveReliability: 40,
+      };
+      const { complete } = await runMap(
+        fx,
+        baseReport("Single-figure economic projection."),
+        mapOutput,
+      );
+
+      const econ = complete.sections.find((s) => s.key === ECONOMIC_SECTION_KEY);
+      expect(econ).toBeDefined();
+      // The model's single figure is preserved, but the range-not-guarantee
+      // clause is appended so it can never stand alone as a guaranteed number.
+      expect(econ!.body).toContain("$30,000/mo");
+      expect(econ!.body.endsWith(FORGE_VERIFIED_DISCLAIMER)).toBe(true);
+      expect(econ!.body).toContain("modelled ranges, not guarantees");
+    } finally {
       await cleanup(fx.user.id);
     }
   });
