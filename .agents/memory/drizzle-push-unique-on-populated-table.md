@@ -52,3 +52,22 @@ stay clean.
 **`out` must be a RELATIVE path** in `drizzle.config.ts` (e.g. `./migrations`).
 An absolute `path.join(__dirname, …)` makes `generate`/`migrate` build a broken
 `.//home/...` path (ENOENT); only `pull` tolerates the absolute form.
+
+**The two automatic apply points must BOTH avoid `push`.** (1) Post-merge → dev:
+`scripts/post-merge.sh` must run `pnpm --filter @workspace/db run migrate`, NOT
+`push`. Post-merge closes stdin, so a `push` truncate prompt gets EOF and fails —
+this is the concrete cause of silent dev drift (dev was found ~2 migrations behind:
+missing mathmon_* tables, harness_artifacts.sku +constraint, users.creator_hash,
+plus the f0_* tables). (2) Publish → prod: prod schema is applied ONLY by Replit's
+Publish flow (diffs the current dev DB vs prod, applies additive SQL
+non-interactively — it is NOT `drizzle-kit push`, so no truncate prompt). Agent
+must never run DDL against prod or add a deploy-build/startup DDL hook; the fix for
+a stale prod is "get dev current, then re-Publish". `executeSql(environment:
+"production")` is read-only — use it only to VERIFY prod, never to mutate it.
+
+**Committed migrations can silently under-cover the schema.** Even after `migrate`
+succeeds, run `generate` once more — if it emits a new file, tables were added to
+`src/schema/*` (and index.ts) without a migration ever being generated. Inspect the
+new file: all-CREATE/ADD (no DROP churn) = genuine missing tables, commit + migrate
+it; DROP/CREATE INDEX or DROP/ADD FK on matching objects = spurious introspection
+churn, strip it.
