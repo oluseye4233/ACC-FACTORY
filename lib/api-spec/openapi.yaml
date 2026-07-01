@@ -1443,6 +1443,316 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
 
+  # ── F0 · Business Intelligence Consulting Layer (Domain 23) ────────────────
+  /f0/dashboard:
+    get:
+      operationId: getF0Dashboard
+      tags: [f0]
+      summary: F0 advisory dashboard — engagements, retainers, and dormant accrued totals
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0Dashboard" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /f0/engagements:
+    get:
+      operationId: listF0Engagements
+      tags: [f0]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/F0Engagement" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createF0Engagement
+      tags: [f0]
+      summary: Open an F0 engagement (starts in DISCOVERY)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateF0EngagementInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0Engagement" }
+
+  /f0/engagements/{id}:
+    get:
+      operationId: getF0Engagement
+      tags: [f0]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0EngagementDetail" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /f0/engagements/{id}/discovery/generate:
+    post:
+      operationId: generateF0Discovery
+      tags: [f0]
+      summary: SOCRATES — generate the 7-question discovery session for an engagement
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GenerateF0DiscoveryInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0Engagement" }
+        "402":
+          description: Company-wide monthly LLM cost cap reached
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /f0/engagements/{id}/discovery:
+    put:
+      operationId: recordF0Discovery
+      tags: [f0]
+      summary: Record the operator's answers to the SOCRATES discovery questions
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RecordF0DiscoveryInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0Engagement" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /f0/engagements/{id}/reports:
+    post:
+      operationId: generateF0Report
+      tags: [f0]
+      summary: Generate a 9-SPC ensemble advisory report (SSE stream)
+      description: >-
+        Streams the ensemble report for one service. Requires the discovery
+        transcript to be recorded first. Emits SSE events; the final `complete`
+        event carries the persisted report including its report code, SOLVA bear
+        case, range-based financials, and the non-suppressible Honesty Gate.
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GenerateF0ReportInput" }
+      responses:
+        "200":
+          description: text/event-stream of report progress and the final report
+          content:
+            text/event-stream:
+              schema: { type: string }
+        "402":
+          description: Company-wide monthly LLM cost cap reached
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "409":
+          description: Discovery transcript not yet recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /f0/engagements/{id}/challenge:
+    post:
+      operationId: generateF0Challenge
+      tags: [f0]
+      summary: SOCRATES close — "what would make you NOT proceed?" (closes engagement)
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GenerateF0ChallengeInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0Engagement" }
+        "402":
+          description: Company-wide monthly LLM cost cap reached
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /f0/retainers:
+    get:
+      operationId: listF0Retainers
+      tags: [f0]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/F0Retainer" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createF0Retainer
+      tags: [f0]
+      summary: Activate F0 Retainer Mode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateF0RetainerInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0Retainer" }
+
+  /f0/retainers/{id}:
+    get:
+      operationId: getF0Retainer
+      tags: [f0]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0RetainerDetail" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /f0/retainers/{id}/tasks:
+    post:
+      operationId: createF0RetainerTask
+      tags: [f0]
+      summary: Propose a retainer task (enters the catalog as PROPOSED)
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateF0RetainerTaskInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0RetainerTask" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /f0/retainers/{id}/tasks/{taskId}:
+    put:
+      operationId: updateF0RetainerTask
+      tags: [f0]
+      summary: Approve / decline / complete a retainer task
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - name: taskId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateF0RetainerTaskInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0RetainerTask" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /f0/retainers/{id}/commentary:
+    post:
+      operationId: generateF0Commentary
+      tags: [f0]
+      summary: Stage-by-stage F1–F9 advisory commentary
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GenerateF0CommentaryInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0Commentary" }
+        "402":
+          description: Company-wide monthly LLM cost cap reached
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /f0/retainers/{id}/monitoring:
+    post:
+      operationId: generateF0Monitoring
+      tags: [f0]
+      summary: Weekly CAPI monitoring brief with event alerts
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GenerateF0MonitoringInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0Monitoring" }
+        "402":
+          description: Company-wide monthly LLM cost cap reached
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
   parameters:
     SessionId:
@@ -1479,6 +1789,231 @@ components:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   schemas:
+    # ── F0 · Business Intelligence Consulting Layer (Domain 23) ──────────────
+    F0Service:
+      type: string
+      enum:
+        - PRODUCT_VIABILITY
+        - MARKET_VIABILITY
+        - CAPI_POSITIONING
+        - CUSTOMER_ACQUISITION
+        - GO_TO_MARKET
+        - FINANCIAL_PROJECTIONS
+        - PRODUCT_SYNTHESIS_ADVISORY
+        - OFFICER_ANALYSIS
+        - COMPETITIVE_TEARDOWN
+        - PRICING_STRATEGY
+        - BRAND_NARRATIVE
+        - INVESTOR_READINESS
+
+    F0Engagement:
+      type: object
+      required: [id, userId, title, status, createdAt, updatedAt]
+      properties:
+        id:        { type: string, format: uuid }
+        userId:    { type: string, format: uuid }
+        title:     { type: string }
+        status:    { type: string, enum: [DISCOVERY, ACTIVE, CLOSED] }
+        sessionId:  { type: string, format: uuid, nullable: true }
+        artifactId: { type: string, format: uuid, nullable: true }
+        discoveryTranscript: { nullable: true }
+        challengeResponse:   { nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    F0Report:
+      type: object
+      required: [id, engagementId, userId, service, reportCode, content, createdAt]
+      properties:
+        id:           { type: string, format: uuid }
+        engagementId: { type: string, format: uuid }
+        userId:       { type: string, format: uuid }
+        service:      { $ref: "#/components/schemas/F0Service" }
+        reportCode:   { type: string }
+        sku:          { type: string, nullable: true }
+        content:      { type: object, additionalProperties: true }
+        accruedCostUsd: { type: string }
+        createdAt:    { type: string, format: date-time }
+
+    F0EngagementDetail:
+      type: object
+      required: [engagement, reports]
+      properties:
+        engagement: { $ref: "#/components/schemas/F0Engagement" }
+        reports:
+          type: array
+          items: { $ref: "#/components/schemas/F0Report" }
+
+    F0Retainer:
+      type: object
+      required: [id, userId, title, status, createdAt, updatedAt]
+      properties:
+        id:        { type: string, format: uuid }
+        userId:    { type: string, format: uuid }
+        title:     { type: string }
+        status:    { type: string, enum: [ACTIVE, PAUSED, ENDED] }
+        sessionId: { type: string, format: uuid, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    F0RetainerTask:
+      type: object
+      required: [id, retainerId, userId, title, detail, status, estCostUsd, createdAt, updatedAt]
+      properties:
+        id:         { type: string, format: uuid }
+        retainerId: { type: string, format: uuid }
+        userId:     { type: string, format: uuid }
+        title:      { type: string }
+        detail:     { type: string }
+        status:     { type: string, enum: [PROPOSED, APPROVED, DECLINED, COMPLETED] }
+        stage:      { type: string, nullable: true }
+        estCostUsd: { type: string }
+        createdAt:  { type: string, format: date-time }
+        updatedAt:  { type: string, format: date-time }
+
+    F0RetainerDetail:
+      type: object
+      required: [retainer, tasks]
+      properties:
+        retainer: { $ref: "#/components/schemas/F0Retainer" }
+        tasks:
+          type: array
+          items: { $ref: "#/components/schemas/F0RetainerTask" }
+
+    F0Dashboard:
+      type: object
+      required: [engagements, retainers, totals]
+      properties:
+        engagements:
+          type: array
+          items: { $ref: "#/components/schemas/F0Engagement" }
+        retainers:
+          type: array
+          items: { $ref: "#/components/schemas/F0Retainer" }
+        totals:
+          type: object
+          required: [engagementCount, reportCount, accruedReportCostUsd, accruedTaskCostUsd]
+          properties:
+            engagementCount:      { type: integer }
+            reportCount:          { type: integer }
+            accruedReportCostUsd: { type: string }
+            accruedTaskCostUsd:   { type: string }
+
+    F0Commentary:
+      type: object
+      required: [stage, read, strengths, watchouts, oneThingToFix]
+      properties:
+        stage:         { type: string }
+        read:          { type: string }
+        strengths:     { type: array, items: { type: string } }
+        watchouts:     { type: array, items: { type: string } }
+        oneThingToFix: { type: string }
+
+    F0Monitoring:
+      type: object
+      required: [capiPosture, movements, eventAlerts, weeklyCounsel]
+      properties:
+        capiPosture: { type: string }
+        movements:
+          type: array
+          items:
+            type: object
+            required: [summary, significance]
+            properties:
+              summary:      { type: string }
+              significance: { type: string, enum: [LOW, MEDIUM, HIGH] }
+        eventAlerts:
+          type: array
+          items:
+            type: object
+            required: [alert, urgency, recommendedAction]
+            properties:
+              alert:             { type: string }
+              urgency:           { type: string, enum: [WATCH, ACT_SOON, ACT_NOW] }
+              recommendedAction: { type: string }
+        weeklyCounsel: { type: string }
+
+    CreateF0EngagementInput:
+      type: object
+      required: [title]
+      properties:
+        title:      { type: string, minLength: 1, maxLength: 200 }
+        sessionId:  { type: string, format: uuid }
+        artifactId: { type: string, format: uuid }
+
+    GenerateF0DiscoveryInput:
+      type: object
+      properties:
+        notes:    { type: string, maxLength: 2000 }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    RecordF0DiscoveryInput:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          minItems: 1
+          maxItems: 7
+          items:
+            type: object
+            required: [id, answer]
+            properties:
+              id:     { type: string }
+              answer: { type: string, maxLength: 4000 }
+
+    GenerateF0ReportInput:
+      type: object
+      required: [service]
+      properties:
+        service:  { $ref: "#/components/schemas/F0Service" }
+        notes:    { type: string, maxLength: 2000 }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    GenerateF0ChallengeInput:
+      type: object
+      properties:
+        notes:    { type: string, maxLength: 2000 }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    CreateF0RetainerInput:
+      type: object
+      required: [title]
+      properties:
+        title:     { type: string, minLength: 1, maxLength: 200 }
+        sessionId: { type: string, format: uuid }
+
+    CreateF0RetainerTaskInput:
+      type: object
+      required: [title]
+      properties:
+        title:      { type: string, minLength: 1, maxLength: 200 }
+        detail:     { type: string, maxLength: 2000 }
+        stage:      { type: string, maxLength: 8 }
+        estCostUsd: { type: number, minimum: 0 }
+
+    UpdateF0RetainerTaskInput:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [PROPOSED, APPROVED, DECLINED, COMPLETED] }
+
+    GenerateF0CommentaryInput:
+      type: object
+      required: [stage]
+      properties:
+        stage:      { type: string, maxLength: 8 }
+        sessionId:  { type: string, format: uuid }
+        artifactId: { type: string, format: uuid }
+        notes:      { type: string, maxLength: 2000 }
+        provider:   { $ref: "#/components/schemas/LlmProvider" }
+
+    GenerateF0MonitoringInput:
+      type: object
+      properties:
+        signals:  { type: string, maxLength: 4000 }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+
     HealthStatus:
       type: object
       required: [status]

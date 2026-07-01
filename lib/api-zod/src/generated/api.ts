@@ -1866,3 +1866,376 @@ export const ImportJstFromArkResponse = zod.object({
 })
 
 
+/**
+ * @summary F0 advisory dashboard — engagements, retainers, and dormant accrued totals
+ */
+export const GetF0DashboardResponse = zod.object({
+  "engagements": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "title": zod.string(),
+  "status": zod.enum(['DISCOVERY', 'ACTIVE', 'CLOSED']),
+  "sessionId": zod.string().uuid().nullish(),
+  "artifactId": zod.string().uuid().nullish(),
+  "discoveryTranscript": zod.unknown().nullish(),
+  "challengeResponse": zod.unknown().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})),
+  "retainers": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "title": zod.string(),
+  "status": zod.enum(['ACTIVE', 'PAUSED', 'ENDED']),
+  "sessionId": zod.string().uuid().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})),
+  "totals": zod.object({
+  "engagementCount": zod.number(),
+  "reportCount": zod.number(),
+  "accruedReportCostUsd": zod.string(),
+  "accruedTaskCostUsd": zod.string()
+})
+})
+
+
+export const ListF0EngagementsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "title": zod.string(),
+  "status": zod.enum(['DISCOVERY', 'ACTIVE', 'CLOSED']),
+  "sessionId": zod.string().uuid().nullish(),
+  "artifactId": zod.string().uuid().nullish(),
+  "discoveryTranscript": zod.unknown().nullish(),
+  "challengeResponse": zod.unknown().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListF0EngagementsResponse = zod.array(ListF0EngagementsResponseItem)
+
+
+/**
+ * @summary Open an F0 engagement (starts in DISCOVERY)
+ */
+export const createF0EngagementBodyTitleMax = 200;
+
+
+
+export const CreateF0EngagementBody = zod.object({
+  "title": zod.string().min(1).max(createF0EngagementBodyTitleMax),
+  "sessionId": zod.string().uuid().optional(),
+  "artifactId": zod.string().uuid().optional()
+})
+
+
+export const GetF0EngagementParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetF0EngagementResponse = zod.object({
+  "engagement": zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "title": zod.string(),
+  "status": zod.enum(['DISCOVERY', 'ACTIVE', 'CLOSED']),
+  "sessionId": zod.string().uuid().nullish(),
+  "artifactId": zod.string().uuid().nullish(),
+  "discoveryTranscript": zod.unknown().nullish(),
+  "challengeResponse": zod.unknown().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),
+  "reports": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "engagementId": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "service": zod.enum(['PRODUCT_VIABILITY', 'MARKET_VIABILITY', 'CAPI_POSITIONING', 'CUSTOMER_ACQUISITION', 'GO_TO_MARKET', 'FINANCIAL_PROJECTIONS', 'PRODUCT_SYNTHESIS_ADVISORY', 'OFFICER_ANALYSIS', 'COMPETITIVE_TEARDOWN', 'PRICING_STRATEGY', 'BRAND_NARRATIVE', 'INVESTOR_READINESS']),
+  "reportCode": zod.string(),
+  "sku": zod.string().nullish(),
+  "content": zod.record(zod.string(), zod.unknown()),
+  "accruedCostUsd": zod.string().optional(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary SOCRATES — generate the 7-question discovery session for an engagement
+ */
+export const GenerateF0DiscoveryParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const generateF0DiscoveryBodyNotesMax = 2000;
+
+
+
+export const GenerateF0DiscoveryBody = zod.object({
+  "notes": zod.string().max(generateF0DiscoveryBodyNotesMax).optional(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+})
+
+export const GenerateF0DiscoveryResponse = zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "title": zod.string(),
+  "status": zod.enum(['DISCOVERY', 'ACTIVE', 'CLOSED']),
+  "sessionId": zod.string().uuid().nullish(),
+  "artifactId": zod.string().uuid().nullish(),
+  "discoveryTranscript": zod.unknown().nullish(),
+  "challengeResponse": zod.unknown().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Record the operator's answers to the SOCRATES discovery questions
+ */
+export const RecordF0DiscoveryParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const recordF0DiscoveryBodyAnswersItemAnswerMax = 4000;
+
+export const recordF0DiscoveryBodyAnswersMax = 7;
+
+
+
+export const RecordF0DiscoveryBody = zod.object({
+  "answers": zod.array(zod.object({
+  "id": zod.string(),
+  "answer": zod.string().max(recordF0DiscoveryBodyAnswersItemAnswerMax)
+})).min(1).max(recordF0DiscoveryBodyAnswersMax)
+})
+
+export const RecordF0DiscoveryResponse = zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "title": zod.string(),
+  "status": zod.enum(['DISCOVERY', 'ACTIVE', 'CLOSED']),
+  "sessionId": zod.string().uuid().nullish(),
+  "artifactId": zod.string().uuid().nullish(),
+  "discoveryTranscript": zod.unknown().nullish(),
+  "challengeResponse": zod.unknown().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * Streams the ensemble report for one service. Requires the discovery transcript to be recorded first. Emits SSE events; the final `complete` event carries the persisted report including its report code, SOLVA bear case, range-based financials, and the non-suppressible Honesty Gate.
+ * @summary Generate a 9-SPC ensemble advisory report (SSE stream)
+ */
+export const GenerateF0ReportParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const generateF0ReportBodyNotesMax = 2000;
+
+
+
+export const GenerateF0ReportBody = zod.object({
+  "service": zod.enum(['PRODUCT_VIABILITY', 'MARKET_VIABILITY', 'CAPI_POSITIONING', 'CUSTOMER_ACQUISITION', 'GO_TO_MARKET', 'FINANCIAL_PROJECTIONS', 'PRODUCT_SYNTHESIS_ADVISORY', 'OFFICER_ANALYSIS', 'COMPETITIVE_TEARDOWN', 'PRICING_STRATEGY', 'BRAND_NARRATIVE', 'INVESTOR_READINESS']),
+  "notes": zod.string().max(generateF0ReportBodyNotesMax).optional(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+})
+
+
+/**
+ * @summary SOCRATES close — "what would make you NOT proceed?" (closes engagement)
+ */
+export const GenerateF0ChallengeParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const generateF0ChallengeBodyNotesMax = 2000;
+
+
+
+export const GenerateF0ChallengeBody = zod.object({
+  "notes": zod.string().max(generateF0ChallengeBodyNotesMax).optional(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+})
+
+export const GenerateF0ChallengeResponse = zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "title": zod.string(),
+  "status": zod.enum(['DISCOVERY', 'ACTIVE', 'CLOSED']),
+  "sessionId": zod.string().uuid().nullish(),
+  "artifactId": zod.string().uuid().nullish(),
+  "discoveryTranscript": zod.unknown().nullish(),
+  "challengeResponse": zod.unknown().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+export const ListF0RetainersResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "title": zod.string(),
+  "status": zod.enum(['ACTIVE', 'PAUSED', 'ENDED']),
+  "sessionId": zod.string().uuid().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListF0RetainersResponse = zod.array(ListF0RetainersResponseItem)
+
+
+/**
+ * @summary Activate F0 Retainer Mode
+ */
+export const createF0RetainerBodyTitleMax = 200;
+
+
+
+export const CreateF0RetainerBody = zod.object({
+  "title": zod.string().min(1).max(createF0RetainerBodyTitleMax),
+  "sessionId": zod.string().uuid().optional()
+})
+
+
+export const GetF0RetainerParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetF0RetainerResponse = zod.object({
+  "retainer": zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "title": zod.string(),
+  "status": zod.enum(['ACTIVE', 'PAUSED', 'ENDED']),
+  "sessionId": zod.string().uuid().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),
+  "tasks": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "retainerId": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "title": zod.string(),
+  "detail": zod.string(),
+  "status": zod.enum(['PROPOSED', 'APPROVED', 'DECLINED', 'COMPLETED']),
+  "stage": zod.string().nullish(),
+  "estCostUsd": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Propose a retainer task (enters the catalog as PROPOSED)
+ */
+export const CreateF0RetainerTaskParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const createF0RetainerTaskBodyTitleMax = 200;
+
+export const createF0RetainerTaskBodyDetailMax = 2000;
+
+export const createF0RetainerTaskBodyStageMax = 8;
+
+export const createF0RetainerTaskBodyEstCostUsdMin = 0;
+
+
+
+export const CreateF0RetainerTaskBody = zod.object({
+  "title": zod.string().min(1).max(createF0RetainerTaskBodyTitleMax),
+  "detail": zod.string().max(createF0RetainerTaskBodyDetailMax).optional(),
+  "stage": zod.string().max(createF0RetainerTaskBodyStageMax).optional(),
+  "estCostUsd": zod.number().min(createF0RetainerTaskBodyEstCostUsdMin).optional()
+})
+
+
+/**
+ * @summary Approve / decline / complete a retainer task
+ */
+export const UpdateF0RetainerTaskParams = zod.object({
+  "id": zod.coerce.string().uuid(),
+  "taskId": zod.coerce.string().uuid()
+})
+
+export const UpdateF0RetainerTaskBody = zod.object({
+  "status": zod.enum(['PROPOSED', 'APPROVED', 'DECLINED', 'COMPLETED'])
+})
+
+export const UpdateF0RetainerTaskResponse = zod.object({
+  "id": zod.string().uuid(),
+  "retainerId": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "title": zod.string(),
+  "detail": zod.string(),
+  "status": zod.enum(['PROPOSED', 'APPROVED', 'DECLINED', 'COMPLETED']),
+  "stage": zod.string().nullish(),
+  "estCostUsd": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Stage-by-stage F1–F9 advisory commentary
+ */
+export const GenerateF0CommentaryParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const generateF0CommentaryBodyStageMax = 8;
+
+export const generateF0CommentaryBodyNotesMax = 2000;
+
+
+
+export const GenerateF0CommentaryBody = zod.object({
+  "stage": zod.string().max(generateF0CommentaryBodyStageMax),
+  "sessionId": zod.string().uuid().optional(),
+  "artifactId": zod.string().uuid().optional(),
+  "notes": zod.string().max(generateF0CommentaryBodyNotesMax).optional(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+})
+
+export const GenerateF0CommentaryResponse = zod.object({
+  "stage": zod.string(),
+  "read": zod.string(),
+  "strengths": zod.array(zod.string()),
+  "watchouts": zod.array(zod.string()),
+  "oneThingToFix": zod.string()
+})
+
+
+/**
+ * @summary Weekly CAPI monitoring brief with event alerts
+ */
+export const GenerateF0MonitoringParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const generateF0MonitoringBodySignalsMax = 4000;
+
+
+
+export const GenerateF0MonitoringBody = zod.object({
+  "signals": zod.string().max(generateF0MonitoringBodySignalsMax).optional(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+})
+
+export const GenerateF0MonitoringResponse = zod.object({
+  "capiPosture": zod.string(),
+  "movements": zod.array(zod.object({
+  "summary": zod.string(),
+  "significance": zod.enum(['LOW', 'MEDIUM', 'HIGH'])
+})),
+  "eventAlerts": zod.array(zod.object({
+  "alert": zod.string(),
+  "urgency": zod.enum(['WATCH', 'ACT_SOON', 'ACT_NOW']),
+  "recommendedAction": zod.string()
+})),
+  "weeklyCounsel": zod.string()
+})
+
+

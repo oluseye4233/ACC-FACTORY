@@ -42,6 +42,9 @@ import type {
   CheckoutSession,
   CodebaseBundle,
   ContextCraftBadge,
+  CreateF0EngagementInput,
+  CreateF0RetainerInput,
+  CreateF0RetainerTaskInput,
   DeepHealth,
   DeleteAccountInput,
   DeleteAccountResult,
@@ -49,6 +52,14 @@ import type {
   ErrorResponse,
   Exemplar,
   ExemplarSummary,
+  F0Commentary,
+  F0Dashboard,
+  F0Engagement,
+  F0EngagementDetail,
+  F0Monitoring,
+  F0Retainer,
+  F0RetainerDetail,
+  F0RetainerTask,
   F1000ActivateResult,
   F1000RedeemInput,
   F1000RedeemResult,
@@ -56,6 +67,11 @@ import type {
   F5StepOutcome,
   FeatureState,
   ForbiddenResponse,
+  GenerateF0ChallengeInput,
+  GenerateF0CommentaryInput,
+  GenerateF0DiscoveryInput,
+  GenerateF0MonitoringInput,
+  GenerateF0ReportInput,
   HarnessArtifact,
   HarnessAtlasCrystalliseInput,
   HarnessEscalationsStreamParams,
@@ -106,12 +122,14 @@ import type {
   PromptLibraryPage,
   RateLimitedResponse,
   ReaderCodeInput,
+  RecordF0DiscoveryInput,
   RenameArtifactInput,
   SessionDetail,
   SessionInput,
   SessionUpdate,
   StripeWebhookPayload,
   UnauthorizedResponse,
+  UpdateF0RetainerTaskInput,
   UpdateProfileInput,
   UsageReport,
   VdjRecommendation,
@@ -5761,5 +5779,1087 @@ export const useImportJstFromArk = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getImportJstFromArkMutationOptions(options));
+    }
+
+export const getGetF0DashboardUrl = () => {
+
+
+
+
+  return `/api/f0/dashboard`
+}
+
+/**
+ * @summary F0 advisory dashboard — engagements, retainers, and dormant accrued totals
+ */
+export const getF0Dashboard = async ( options?: RequestInit): Promise<F0Dashboard> => {
+
+  return customFetch<F0Dashboard>(getGetF0DashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetF0DashboardQueryKey = () => {
+    return [
+    `/api/f0/dashboard`
+    ] as const;
+    }
+
+
+export const getGetF0DashboardQueryOptions = <TData = Awaited<ReturnType<typeof getF0Dashboard>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF0Dashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetF0DashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getF0Dashboard>>> = ({ signal }) => getF0Dashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getF0Dashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetF0DashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getF0Dashboard>>>
+export type GetF0DashboardQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary F0 advisory dashboard — engagements, retainers, and dormant accrued totals
+ */
+
+export function useGetF0Dashboard<TData = Awaited<ReturnType<typeof getF0Dashboard>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF0Dashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetF0DashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListF0EngagementsUrl = () => {
+
+
+
+
+  return `/api/f0/engagements`
+}
+
+export const listF0Engagements = async ( options?: RequestInit): Promise<F0Engagement[]> => {
+
+  return customFetch<F0Engagement[]>(getListF0EngagementsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListF0EngagementsQueryKey = () => {
+    return [
+    `/api/f0/engagements`
+    ] as const;
+    }
+
+
+export const getListF0EngagementsQueryOptions = <TData = Awaited<ReturnType<typeof listF0Engagements>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF0Engagements>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListF0EngagementsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listF0Engagements>>> = ({ signal }) => listF0Engagements({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listF0Engagements>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListF0EngagementsQueryResult = NonNullable<Awaited<ReturnType<typeof listF0Engagements>>>
+export type ListF0EngagementsQueryError = ErrorType<UnauthorizedResponse>
+
+
+
+export function useListF0Engagements<TData = Awaited<ReturnType<typeof listF0Engagements>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF0Engagements>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListF0EngagementsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateF0EngagementUrl = () => {
+
+
+
+
+  return `/api/f0/engagements`
+}
+
+/**
+ * @summary Open an F0 engagement (starts in DISCOVERY)
+ */
+export const createF0Engagement = async (createF0EngagementInput: CreateF0EngagementInput, options?: RequestInit): Promise<F0Engagement> => {
+
+  return customFetch<F0Engagement>(getCreateF0EngagementUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createF0EngagementInput,)
+  }
+);}
+
+
+
+
+export const getCreateF0EngagementMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF0Engagement>>, TError,{data: BodyType<CreateF0EngagementInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createF0Engagement>>, TError,{data: BodyType<CreateF0EngagementInput>}, TContext> => {
+
+const mutationKey = ['createF0Engagement'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createF0Engagement>>, {data: BodyType<CreateF0EngagementInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createF0Engagement(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateF0EngagementMutationResult = NonNullable<Awaited<ReturnType<typeof createF0Engagement>>>
+    export type CreateF0EngagementMutationBody = BodyType<CreateF0EngagementInput>
+    export type CreateF0EngagementMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Open an F0 engagement (starts in DISCOVERY)
+ */
+export const useCreateF0Engagement = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF0Engagement>>, TError,{data: BodyType<CreateF0EngagementInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createF0Engagement>>,
+        TError,
+        {data: BodyType<CreateF0EngagementInput>},
+        TContext
+      > => {
+      return useMutation(getCreateF0EngagementMutationOptions(options));
+    }
+
+export const getGetF0EngagementUrl = (id: string,) => {
+
+
+
+
+  return `/api/f0/engagements/${id}`
+}
+
+export const getF0Engagement = async (id: string, options?: RequestInit): Promise<F0EngagementDetail> => {
+
+  return customFetch<F0EngagementDetail>(getGetF0EngagementUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetF0EngagementQueryKey = (id: string,) => {
+    return [
+    `/api/f0/engagements/${id}`
+    ] as const;
+    }
+
+
+export const getGetF0EngagementQueryOptions = <TData = Awaited<ReturnType<typeof getF0Engagement>>, TError = ErrorType<NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF0Engagement>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetF0EngagementQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getF0Engagement>>> = ({ signal }) => getF0Engagement(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getF0Engagement>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetF0EngagementQueryResult = NonNullable<Awaited<ReturnType<typeof getF0Engagement>>>
+export type GetF0EngagementQueryError = ErrorType<NotFoundResponse>
+
+
+
+export function useGetF0Engagement<TData = Awaited<ReturnType<typeof getF0Engagement>>, TError = ErrorType<NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF0Engagement>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetF0EngagementQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGenerateF0DiscoveryUrl = (id: string,) => {
+
+
+
+
+  return `/api/f0/engagements/${id}/discovery/generate`
+}
+
+/**
+ * @summary SOCRATES — generate the 7-question discovery session for an engagement
+ */
+export const generateF0Discovery = async (id: string,
+    generateF0DiscoveryInput?: GenerateF0DiscoveryInput, options?: RequestInit): Promise<F0Engagement> => {
+
+  return customFetch<F0Engagement>(getGenerateF0DiscoveryUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      generateF0DiscoveryInput,)
+  }
+);}
+
+
+
+
+export const getGenerateF0DiscoveryMutationOptions = <TError = ErrorType<ErrorResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateF0Discovery>>, TError,{id: string;data?: BodyType<GenerateF0DiscoveryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateF0Discovery>>, TError,{id: string;data?: BodyType<GenerateF0DiscoveryInput>}, TContext> => {
+
+const mutationKey = ['generateF0Discovery'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateF0Discovery>>, {id: string;data?: BodyType<GenerateF0DiscoveryInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  generateF0Discovery(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateF0DiscoveryMutationResult = NonNullable<Awaited<ReturnType<typeof generateF0Discovery>>>
+    export type GenerateF0DiscoveryMutationBody = BodyType<GenerateF0DiscoveryInput> | undefined
+    export type GenerateF0DiscoveryMutationError = ErrorType<ErrorResponse | NotFoundResponse>
+
+    /**
+ * @summary SOCRATES — generate the 7-question discovery session for an engagement
+ */
+export const useGenerateF0Discovery = <TError = ErrorType<ErrorResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateF0Discovery>>, TError,{id: string;data?: BodyType<GenerateF0DiscoveryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateF0Discovery>>,
+        TError,
+        {id: string;data?: BodyType<GenerateF0DiscoveryInput>},
+        TContext
+      > => {
+      return useMutation(getGenerateF0DiscoveryMutationOptions(options));
+    }
+
+export const getRecordF0DiscoveryUrl = (id: string,) => {
+
+
+
+
+  return `/api/f0/engagements/${id}/discovery`
+}
+
+/**
+ * @summary Record the operator's answers to the SOCRATES discovery questions
+ */
+export const recordF0Discovery = async (id: string,
+    recordF0DiscoveryInput: RecordF0DiscoveryInput, options?: RequestInit): Promise<F0Engagement> => {
+
+  return customFetch<F0Engagement>(getRecordF0DiscoveryUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      recordF0DiscoveryInput,)
+  }
+);}
+
+
+
+
+export const getRecordF0DiscoveryMutationOptions = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordF0Discovery>>, TError,{id: string;data: BodyType<RecordF0DiscoveryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordF0Discovery>>, TError,{id: string;data: BodyType<RecordF0DiscoveryInput>}, TContext> => {
+
+const mutationKey = ['recordF0Discovery'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordF0Discovery>>, {id: string;data: BodyType<RecordF0DiscoveryInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  recordF0Discovery(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordF0DiscoveryMutationResult = NonNullable<Awaited<ReturnType<typeof recordF0Discovery>>>
+    export type RecordF0DiscoveryMutationBody = BodyType<RecordF0DiscoveryInput>
+    export type RecordF0DiscoveryMutationError = ErrorType<NotFoundResponse>
+
+    /**
+ * @summary Record the operator's answers to the SOCRATES discovery questions
+ */
+export const useRecordF0Discovery = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordF0Discovery>>, TError,{id: string;data: BodyType<RecordF0DiscoveryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordF0Discovery>>,
+        TError,
+        {id: string;data: BodyType<RecordF0DiscoveryInput>},
+        TContext
+      > => {
+      return useMutation(getRecordF0DiscoveryMutationOptions(options));
+    }
+
+export const getGenerateF0ReportUrl = (id: string,) => {
+
+
+
+
+  return `/api/f0/engagements/${id}/reports`
+}
+
+/**
+ * Streams the ensemble report for one service. Requires the discovery transcript to be recorded first. Emits SSE events; the final `complete` event carries the persisted report including its report code, SOLVA bear case, range-based financials, and the non-suppressible Honesty Gate.
+ * @summary Generate a 9-SPC ensemble advisory report (SSE stream)
+ */
+export const generateF0Report = async (id: string,
+    generateF0ReportInput: GenerateF0ReportInput, options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getGenerateF0ReportUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      generateF0ReportInput,)
+  }
+);}
+
+
+
+
+export const getGenerateF0ReportMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateF0Report>>, TError,{id: string;data: BodyType<GenerateF0ReportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateF0Report>>, TError,{id: string;data: BodyType<GenerateF0ReportInput>}, TContext> => {
+
+const mutationKey = ['generateF0Report'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateF0Report>>, {id: string;data: BodyType<GenerateF0ReportInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  generateF0Report(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateF0ReportMutationResult = NonNullable<Awaited<ReturnType<typeof generateF0Report>>>
+    export type GenerateF0ReportMutationBody = BodyType<GenerateF0ReportInput>
+    export type GenerateF0ReportMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Generate a 9-SPC ensemble advisory report (SSE stream)
+ */
+export const useGenerateF0Report = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateF0Report>>, TError,{id: string;data: BodyType<GenerateF0ReportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateF0Report>>,
+        TError,
+        {id: string;data: BodyType<GenerateF0ReportInput>},
+        TContext
+      > => {
+      return useMutation(getGenerateF0ReportMutationOptions(options));
+    }
+
+export const getGenerateF0ChallengeUrl = (id: string,) => {
+
+
+
+
+  return `/api/f0/engagements/${id}/challenge`
+}
+
+/**
+ * @summary SOCRATES close — "what would make you NOT proceed?" (closes engagement)
+ */
+export const generateF0Challenge = async (id: string,
+    generateF0ChallengeInput?: GenerateF0ChallengeInput, options?: RequestInit): Promise<F0Engagement> => {
+
+  return customFetch<F0Engagement>(getGenerateF0ChallengeUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      generateF0ChallengeInput,)
+  }
+);}
+
+
+
+
+export const getGenerateF0ChallengeMutationOptions = <TError = ErrorType<ErrorResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateF0Challenge>>, TError,{id: string;data?: BodyType<GenerateF0ChallengeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateF0Challenge>>, TError,{id: string;data?: BodyType<GenerateF0ChallengeInput>}, TContext> => {
+
+const mutationKey = ['generateF0Challenge'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateF0Challenge>>, {id: string;data?: BodyType<GenerateF0ChallengeInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  generateF0Challenge(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateF0ChallengeMutationResult = NonNullable<Awaited<ReturnType<typeof generateF0Challenge>>>
+    export type GenerateF0ChallengeMutationBody = BodyType<GenerateF0ChallengeInput> | undefined
+    export type GenerateF0ChallengeMutationError = ErrorType<ErrorResponse | NotFoundResponse>
+
+    /**
+ * @summary SOCRATES close — "what would make you NOT proceed?" (closes engagement)
+ */
+export const useGenerateF0Challenge = <TError = ErrorType<ErrorResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateF0Challenge>>, TError,{id: string;data?: BodyType<GenerateF0ChallengeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateF0Challenge>>,
+        TError,
+        {id: string;data?: BodyType<GenerateF0ChallengeInput>},
+        TContext
+      > => {
+      return useMutation(getGenerateF0ChallengeMutationOptions(options));
+    }
+
+export const getListF0RetainersUrl = () => {
+
+
+
+
+  return `/api/f0/retainers`
+}
+
+export const listF0Retainers = async ( options?: RequestInit): Promise<F0Retainer[]> => {
+
+  return customFetch<F0Retainer[]>(getListF0RetainersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListF0RetainersQueryKey = () => {
+    return [
+    `/api/f0/retainers`
+    ] as const;
+    }
+
+
+export const getListF0RetainersQueryOptions = <TData = Awaited<ReturnType<typeof listF0Retainers>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF0Retainers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListF0RetainersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listF0Retainers>>> = ({ signal }) => listF0Retainers({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listF0Retainers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListF0RetainersQueryResult = NonNullable<Awaited<ReturnType<typeof listF0Retainers>>>
+export type ListF0RetainersQueryError = ErrorType<UnauthorizedResponse>
+
+
+
+export function useListF0Retainers<TData = Awaited<ReturnType<typeof listF0Retainers>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF0Retainers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListF0RetainersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateF0RetainerUrl = () => {
+
+
+
+
+  return `/api/f0/retainers`
+}
+
+/**
+ * @summary Activate F0 Retainer Mode
+ */
+export const createF0Retainer = async (createF0RetainerInput: CreateF0RetainerInput, options?: RequestInit): Promise<F0Retainer> => {
+
+  return customFetch<F0Retainer>(getCreateF0RetainerUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createF0RetainerInput,)
+  }
+);}
+
+
+
+
+export const getCreateF0RetainerMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF0Retainer>>, TError,{data: BodyType<CreateF0RetainerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createF0Retainer>>, TError,{data: BodyType<CreateF0RetainerInput>}, TContext> => {
+
+const mutationKey = ['createF0Retainer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createF0Retainer>>, {data: BodyType<CreateF0RetainerInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createF0Retainer(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateF0RetainerMutationResult = NonNullable<Awaited<ReturnType<typeof createF0Retainer>>>
+    export type CreateF0RetainerMutationBody = BodyType<CreateF0RetainerInput>
+    export type CreateF0RetainerMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Activate F0 Retainer Mode
+ */
+export const useCreateF0Retainer = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF0Retainer>>, TError,{data: BodyType<CreateF0RetainerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createF0Retainer>>,
+        TError,
+        {data: BodyType<CreateF0RetainerInput>},
+        TContext
+      > => {
+      return useMutation(getCreateF0RetainerMutationOptions(options));
+    }
+
+export const getGetF0RetainerUrl = (id: string,) => {
+
+
+
+
+  return `/api/f0/retainers/${id}`
+}
+
+export const getF0Retainer = async (id: string, options?: RequestInit): Promise<F0RetainerDetail> => {
+
+  return customFetch<F0RetainerDetail>(getGetF0RetainerUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetF0RetainerQueryKey = (id: string,) => {
+    return [
+    `/api/f0/retainers/${id}`
+    ] as const;
+    }
+
+
+export const getGetF0RetainerQueryOptions = <TData = Awaited<ReturnType<typeof getF0Retainer>>, TError = ErrorType<NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF0Retainer>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetF0RetainerQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getF0Retainer>>> = ({ signal }) => getF0Retainer(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getF0Retainer>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetF0RetainerQueryResult = NonNullable<Awaited<ReturnType<typeof getF0Retainer>>>
+export type GetF0RetainerQueryError = ErrorType<NotFoundResponse>
+
+
+
+export function useGetF0Retainer<TData = Awaited<ReturnType<typeof getF0Retainer>>, TError = ErrorType<NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF0Retainer>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetF0RetainerQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateF0RetainerTaskUrl = (id: string,) => {
+
+
+
+
+  return `/api/f0/retainers/${id}/tasks`
+}
+
+/**
+ * @summary Propose a retainer task (enters the catalog as PROPOSED)
+ */
+export const createF0RetainerTask = async (id: string,
+    createF0RetainerTaskInput: CreateF0RetainerTaskInput, options?: RequestInit): Promise<F0RetainerTask> => {
+
+  return customFetch<F0RetainerTask>(getCreateF0RetainerTaskUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createF0RetainerTaskInput,)
+  }
+);}
+
+
+
+
+export const getCreateF0RetainerTaskMutationOptions = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF0RetainerTask>>, TError,{id: string;data: BodyType<CreateF0RetainerTaskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createF0RetainerTask>>, TError,{id: string;data: BodyType<CreateF0RetainerTaskInput>}, TContext> => {
+
+const mutationKey = ['createF0RetainerTask'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createF0RetainerTask>>, {id: string;data: BodyType<CreateF0RetainerTaskInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createF0RetainerTask(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateF0RetainerTaskMutationResult = NonNullable<Awaited<ReturnType<typeof createF0RetainerTask>>>
+    export type CreateF0RetainerTaskMutationBody = BodyType<CreateF0RetainerTaskInput>
+    export type CreateF0RetainerTaskMutationError = ErrorType<NotFoundResponse>
+
+    /**
+ * @summary Propose a retainer task (enters the catalog as PROPOSED)
+ */
+export const useCreateF0RetainerTask = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF0RetainerTask>>, TError,{id: string;data: BodyType<CreateF0RetainerTaskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createF0RetainerTask>>,
+        TError,
+        {id: string;data: BodyType<CreateF0RetainerTaskInput>},
+        TContext
+      > => {
+      return useMutation(getCreateF0RetainerTaskMutationOptions(options));
+    }
+
+export const getUpdateF0RetainerTaskUrl = (id: string,
+    taskId: string,) => {
+
+
+
+
+  return `/api/f0/retainers/${id}/tasks/${taskId}`
+}
+
+/**
+ * @summary Approve / decline / complete a retainer task
+ */
+export const updateF0RetainerTask = async (id: string,
+    taskId: string,
+    updateF0RetainerTaskInput: UpdateF0RetainerTaskInput, options?: RequestInit): Promise<F0RetainerTask> => {
+
+  return customFetch<F0RetainerTask>(getUpdateF0RetainerTaskUrl(id,taskId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateF0RetainerTaskInput,)
+  }
+);}
+
+
+
+
+export const getUpdateF0RetainerTaskMutationOptions = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateF0RetainerTask>>, TError,{id: string;taskId: string;data: BodyType<UpdateF0RetainerTaskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateF0RetainerTask>>, TError,{id: string;taskId: string;data: BodyType<UpdateF0RetainerTaskInput>}, TContext> => {
+
+const mutationKey = ['updateF0RetainerTask'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateF0RetainerTask>>, {id: string;taskId: string;data: BodyType<UpdateF0RetainerTaskInput>}> = (props) => {
+          const {id,taskId,data} = props ?? {};
+
+          return  updateF0RetainerTask(id,taskId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateF0RetainerTaskMutationResult = NonNullable<Awaited<ReturnType<typeof updateF0RetainerTask>>>
+    export type UpdateF0RetainerTaskMutationBody = BodyType<UpdateF0RetainerTaskInput>
+    export type UpdateF0RetainerTaskMutationError = ErrorType<NotFoundResponse>
+
+    /**
+ * @summary Approve / decline / complete a retainer task
+ */
+export const useUpdateF0RetainerTask = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateF0RetainerTask>>, TError,{id: string;taskId: string;data: BodyType<UpdateF0RetainerTaskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateF0RetainerTask>>,
+        TError,
+        {id: string;taskId: string;data: BodyType<UpdateF0RetainerTaskInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateF0RetainerTaskMutationOptions(options));
+    }
+
+export const getGenerateF0CommentaryUrl = (id: string,) => {
+
+
+
+
+  return `/api/f0/retainers/${id}/commentary`
+}
+
+/**
+ * @summary Stage-by-stage F1–F9 advisory commentary
+ */
+export const generateF0Commentary = async (id: string,
+    generateF0CommentaryInput: GenerateF0CommentaryInput, options?: RequestInit): Promise<F0Commentary> => {
+
+  return customFetch<F0Commentary>(getGenerateF0CommentaryUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      generateF0CommentaryInput,)
+  }
+);}
+
+
+
+
+export const getGenerateF0CommentaryMutationOptions = <TError = ErrorType<ErrorResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateF0Commentary>>, TError,{id: string;data: BodyType<GenerateF0CommentaryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateF0Commentary>>, TError,{id: string;data: BodyType<GenerateF0CommentaryInput>}, TContext> => {
+
+const mutationKey = ['generateF0Commentary'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateF0Commentary>>, {id: string;data: BodyType<GenerateF0CommentaryInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  generateF0Commentary(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateF0CommentaryMutationResult = NonNullable<Awaited<ReturnType<typeof generateF0Commentary>>>
+    export type GenerateF0CommentaryMutationBody = BodyType<GenerateF0CommentaryInput>
+    export type GenerateF0CommentaryMutationError = ErrorType<ErrorResponse | NotFoundResponse>
+
+    /**
+ * @summary Stage-by-stage F1–F9 advisory commentary
+ */
+export const useGenerateF0Commentary = <TError = ErrorType<ErrorResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateF0Commentary>>, TError,{id: string;data: BodyType<GenerateF0CommentaryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateF0Commentary>>,
+        TError,
+        {id: string;data: BodyType<GenerateF0CommentaryInput>},
+        TContext
+      > => {
+      return useMutation(getGenerateF0CommentaryMutationOptions(options));
+    }
+
+export const getGenerateF0MonitoringUrl = (id: string,) => {
+
+
+
+
+  return `/api/f0/retainers/${id}/monitoring`
+}
+
+/**
+ * @summary Weekly CAPI monitoring brief with event alerts
+ */
+export const generateF0Monitoring = async (id: string,
+    generateF0MonitoringInput?: GenerateF0MonitoringInput, options?: RequestInit): Promise<F0Monitoring> => {
+
+  return customFetch<F0Monitoring>(getGenerateF0MonitoringUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      generateF0MonitoringInput,)
+  }
+);}
+
+
+
+
+export const getGenerateF0MonitoringMutationOptions = <TError = ErrorType<ErrorResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateF0Monitoring>>, TError,{id: string;data?: BodyType<GenerateF0MonitoringInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateF0Monitoring>>, TError,{id: string;data?: BodyType<GenerateF0MonitoringInput>}, TContext> => {
+
+const mutationKey = ['generateF0Monitoring'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateF0Monitoring>>, {id: string;data?: BodyType<GenerateF0MonitoringInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  generateF0Monitoring(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateF0MonitoringMutationResult = NonNullable<Awaited<ReturnType<typeof generateF0Monitoring>>>
+    export type GenerateF0MonitoringMutationBody = BodyType<GenerateF0MonitoringInput> | undefined
+    export type GenerateF0MonitoringMutationError = ErrorType<ErrorResponse | NotFoundResponse>
+
+    /**
+ * @summary Weekly CAPI monitoring brief with event alerts
+ */
+export const useGenerateF0Monitoring = <TError = ErrorType<ErrorResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateF0Monitoring>>, TError,{id: string;data?: BodyType<GenerateF0MonitoringInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateF0Monitoring>>,
+        TError,
+        {id: string;data?: BodyType<GenerateF0MonitoringInput>},
+        TContext
+      > => {
+      return useMutation(getGenerateF0MonitoringMutationOptions(options));
     }
 

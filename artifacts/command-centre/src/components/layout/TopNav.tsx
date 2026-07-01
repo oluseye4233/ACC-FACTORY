@@ -16,6 +16,7 @@ const STAFF_LINKS: Array<{ href: string; label: string }> = [
   { href: "/sessions", label: "Sessions" },
   { href: "/ingest", label: "Ingest" },
   { href: "/cartridge", label: "Cartridge" },
+  { href: "/f0", label: "F0 Advisory" },
   { href: "/prompts", label: "Prompts" },
   { href: "/quests", label: "Quests" },
   { href: "/ascension", label: "Ascension" },

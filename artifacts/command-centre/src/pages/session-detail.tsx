@@ -11,6 +11,7 @@ import {
 } from "@workspace/api-client-react";
 import { ENGINES } from "@/lib/constants";
 import { IngestionBanner } from "@/components/shared/IngestionBanner";
+import { F0AdvisoryPrompt } from "@/components/shared/F0AdvisoryPrompt";
 import { FeatureNavItem } from "@/components/shared/FeatureNavItem";
 import { ArtifactTray } from "@/components/shared/ArtifactTray";
 import { EscalationModal } from "@/components/shared/EscalationModal";
@@ -313,6 +314,23 @@ export default function SessionDetail() {
             
             {isIngested && ingestion && (
               <IngestionBanner ingestion={ingestion} isF7={activeEngineId === 7} />
+            )}
+
+            {/* F0 advisory nudge — before F1 (frame the idea) */}
+            {activeEngineId === 1 && (
+              <F0AdvisoryPrompt
+                dismissKey={`${id}:pre-f1`}
+                headline="Before you run F1 — want an advisory read?"
+                body="F0 Business Intelligence can pressure-test viability, positioning, and the numbers before you commit the idea to the production floor."
+              />
+            )}
+            {/* F0 advisory nudge — after F7/F8 (pressure-test before shipping) */}
+            {(activeEngineId === 7 || activeEngineId === 9) && (
+              <F0AdvisoryPrompt
+                dismissKey={`${id}:post-f${activeEngineId}`}
+                headline="Certified — pressure-test before you ship?"
+                body="Commission an F0 SOLVA bear-case and range-based financials to stress the certified spec against the market before go-to-market."
+              />
             )}
 
             {/* STAGE 3 WORKSPACES */}

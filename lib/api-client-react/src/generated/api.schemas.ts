@@ -5,6 +5,279 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+export type F0Service = typeof F0Service[keyof typeof F0Service];
+
+
+export const F0Service = {
+  PRODUCT_VIABILITY: 'PRODUCT_VIABILITY',
+  MARKET_VIABILITY: 'MARKET_VIABILITY',
+  CAPI_POSITIONING: 'CAPI_POSITIONING',
+  CUSTOMER_ACQUISITION: 'CUSTOMER_ACQUISITION',
+  GO_TO_MARKET: 'GO_TO_MARKET',
+  FINANCIAL_PROJECTIONS: 'FINANCIAL_PROJECTIONS',
+  PRODUCT_SYNTHESIS_ADVISORY: 'PRODUCT_SYNTHESIS_ADVISORY',
+  OFFICER_ANALYSIS: 'OFFICER_ANALYSIS',
+  COMPETITIVE_TEARDOWN: 'COMPETITIVE_TEARDOWN',
+  PRICING_STRATEGY: 'PRICING_STRATEGY',
+  BRAND_NARRATIVE: 'BRAND_NARRATIVE',
+  INVESTOR_READINESS: 'INVESTOR_READINESS',
+} as const;
+
+export type F0EngagementStatus = typeof F0EngagementStatus[keyof typeof F0EngagementStatus];
+
+
+export const F0EngagementStatus = {
+  DISCOVERY: 'DISCOVERY',
+  ACTIVE: 'ACTIVE',
+  CLOSED: 'CLOSED',
+} as const;
+
+export interface F0Engagement {
+  id: string;
+  userId: string;
+  title: string;
+  status: F0EngagementStatus;
+  sessionId?: string | null;
+  artifactId?: string | null;
+  discoveryTranscript?: unknown | null;
+  challengeResponse?: unknown | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type F0ReportContent = { [key: string]: unknown };
+
+export interface F0Report {
+  id: string;
+  engagementId: string;
+  userId: string;
+  service: F0Service;
+  reportCode: string;
+  sku?: string | null;
+  content: F0ReportContent;
+  accruedCostUsd?: string;
+  createdAt: string;
+}
+
+export interface F0EngagementDetail {
+  engagement: F0Engagement;
+  reports: F0Report[];
+}
+
+export type F0RetainerStatus = typeof F0RetainerStatus[keyof typeof F0RetainerStatus];
+
+
+export const F0RetainerStatus = {
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  ENDED: 'ENDED',
+} as const;
+
+export interface F0Retainer {
+  id: string;
+  userId: string;
+  title: string;
+  status: F0RetainerStatus;
+  sessionId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type F0RetainerTaskStatus = typeof F0RetainerTaskStatus[keyof typeof F0RetainerTaskStatus];
+
+
+export const F0RetainerTaskStatus = {
+  PROPOSED: 'PROPOSED',
+  APPROVED: 'APPROVED',
+  DECLINED: 'DECLINED',
+  COMPLETED: 'COMPLETED',
+} as const;
+
+export interface F0RetainerTask {
+  id: string;
+  retainerId: string;
+  userId: string;
+  title: string;
+  detail: string;
+  status: F0RetainerTaskStatus;
+  stage?: string | null;
+  estCostUsd: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface F0RetainerDetail {
+  retainer: F0Retainer;
+  tasks: F0RetainerTask[];
+}
+
+export type F0DashboardTotals = {
+  engagementCount: number;
+  reportCount: number;
+  accruedReportCostUsd: string;
+  accruedTaskCostUsd: string;
+};
+
+export interface F0Dashboard {
+  engagements: F0Engagement[];
+  retainers: F0Retainer[];
+  totals: F0DashboardTotals;
+}
+
+export interface F0Commentary {
+  stage: string;
+  read: string;
+  strengths: string[];
+  watchouts: string[];
+  oneThingToFix: string;
+}
+
+export type F0MonitoringMovementsItemSignificance = typeof F0MonitoringMovementsItemSignificance[keyof typeof F0MonitoringMovementsItemSignificance];
+
+
+export const F0MonitoringMovementsItemSignificance = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+} as const;
+
+export type F0MonitoringMovementsItem = {
+  summary: string;
+  significance: F0MonitoringMovementsItemSignificance;
+};
+
+export type F0MonitoringEventAlertsItemUrgency = typeof F0MonitoringEventAlertsItemUrgency[keyof typeof F0MonitoringEventAlertsItemUrgency];
+
+
+export const F0MonitoringEventAlertsItemUrgency = {
+  WATCH: 'WATCH',
+  ACT_SOON: 'ACT_SOON',
+  ACT_NOW: 'ACT_NOW',
+} as const;
+
+export type F0MonitoringEventAlertsItem = {
+  alert: string;
+  urgency: F0MonitoringEventAlertsItemUrgency;
+  recommendedAction: string;
+};
+
+export interface F0Monitoring {
+  capiPosture: string;
+  movements: F0MonitoringMovementsItem[];
+  eventAlerts: F0MonitoringEventAlertsItem[];
+  weeklyCounsel: string;
+}
+
+export interface CreateF0EngagementInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title: string;
+  sessionId?: string;
+  artifactId?: string;
+}
+
+/**
+ * LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude
+providers (`openai`, `gemini`) require PRACTITIONER tier or higher.
+
+ */
+export type LlmProvider = typeof LlmProvider[keyof typeof LlmProvider];
+
+
+export const LlmProvider = {
+  claude: 'claude',
+  openai: 'openai',
+  gemini: 'gemini',
+} as const;
+
+export interface GenerateF0DiscoveryInput {
+  /** @maxLength 2000 */
+  notes?: string;
+  provider?: LlmProvider;
+}
+
+export type RecordF0DiscoveryInputAnswersItem = {
+  id: string;
+  /** @maxLength 4000 */
+  answer: string;
+};
+
+export interface RecordF0DiscoveryInput {
+  /**
+     * @minItems 1
+     * @maxItems 7
+     */
+  answers: RecordF0DiscoveryInputAnswersItem[];
+}
+
+export interface GenerateF0ReportInput {
+  service: F0Service;
+  /** @maxLength 2000 */
+  notes?: string;
+  provider?: LlmProvider;
+}
+
+export interface GenerateF0ChallengeInput {
+  /** @maxLength 2000 */
+  notes?: string;
+  provider?: LlmProvider;
+}
+
+export interface CreateF0RetainerInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title: string;
+  sessionId?: string;
+}
+
+export interface CreateF0RetainerTaskInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title: string;
+  /** @maxLength 2000 */
+  detail?: string;
+  /** @maxLength 8 */
+  stage?: string;
+  /** @minimum 0 */
+  estCostUsd?: number;
+}
+
+export type UpdateF0RetainerTaskInputStatus = typeof UpdateF0RetainerTaskInputStatus[keyof typeof UpdateF0RetainerTaskInputStatus];
+
+
+export const UpdateF0RetainerTaskInputStatus = {
+  PROPOSED: 'PROPOSED',
+  APPROVED: 'APPROVED',
+  DECLINED: 'DECLINED',
+  COMPLETED: 'COMPLETED',
+} as const;
+
+export interface UpdateF0RetainerTaskInput {
+  status: UpdateF0RetainerTaskInputStatus;
+}
+
+export interface GenerateF0CommentaryInput {
+  /** @maxLength 8 */
+  stage: string;
+  sessionId?: string;
+  artifactId?: string;
+  /** @maxLength 2000 */
+  notes?: string;
+  provider?: LlmProvider;
+}
+
+export interface GenerateF0MonitoringInput {
+  /** @maxLength 4000 */
+  signals?: string;
+  provider?: LlmProvider;
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -125,20 +398,6 @@ export interface CodebaseManifest {
   buildCommand?: string | null;
   deployTarget: string;
 }
-
-/**
- * LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude
-providers (`openai`, `gemini`) require PRACTITIONER tier or higher.
-
- */
-export type LlmProvider = typeof LlmProvider[keyof typeof LlmProvider];
-
-
-export const LlmProvider = {
-  claude: 'claude',
-  openai: 'openai',
-  gemini: 'gemini',
-} as const;
 
 export interface HarnessF8Input {
   sessionId: string;

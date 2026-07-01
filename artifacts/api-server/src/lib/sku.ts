@@ -149,6 +149,21 @@ export async function issueSku(
   return formatSku({ productType, sector, creatorHash, seq, version: options?.version });
 }
 
+/**
+ * Mint an advisory SKU for an F0 report that has no anchoring artifact SKU
+ * (F0-021). The F0 report code must always anchor to a SKU, but boutique
+ * engagements can advise on an idea before any SPC / MVP-PDD has been
+ * published, so we mint a stable advisory-catalog SKU (product type `F0A`)
+ * keyed to the creator. Collision-safe under concurrent report generation.
+ */
+export async function issueAdvisorySku(userId: string): Promise<string> {
+  const productType = "F0A";
+  const sector = DEFAULT_SECTOR;
+  const creatorHash = await getOrCreateCreatorHash(userId);
+  const seq = await nextSequence(creatorHash, productType, sector);
+  return formatSku({ productType, sector, creatorHash, seq });
+}
+
 /** Compact UTC timestamp (`YYYYMMDDHHmmss`) for the F0 report-code suffix. */
 function compactTimestamp(at: Date): string {
   const p = (n: number, w = 2) => String(n).padStart(w, "0");

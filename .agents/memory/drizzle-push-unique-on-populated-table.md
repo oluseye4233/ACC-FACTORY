@@ -13,6 +13,13 @@ skip this** — the truncate suggestion runs before the force path.
 safe to add as-is: Postgres treats NULLs as distinct, so existing null rows
 never violate uniqueness.
 
+**One blocked constraint aborts the WHOLE push.** The truncate prompt fires
+even when the unique *column itself* doesn't exist yet (drizzle plans add-column
++ add-unique as one step). Because push is all-or-nothing, that single prompt
+leaves *every other* pending change unapplied too — so seemingly unrelated tests
+fail on missing columns (e.g. `column "creator_hash" does not exist`). Fix the
+blocking constraint via pool first, then a normal `push` syncs the rest.
+
 **Workaround:** apply the DDL directly instead of via push — run the exact
 `ALTER TABLE … ADD CONSTRAINT <name> UNIQUE (col)` (plus new columns/tables)
 through the `pool` from `@workspace/db`, using drizzle's own constraint naming

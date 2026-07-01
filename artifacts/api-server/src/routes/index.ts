@@ -21,6 +21,7 @@ import notificationsRouter from "./notifications";
 import integrationsRouter from "./integrations";
 import onboardingRouter from "./onboarding";
 import f1000Router from "./f1000";
+import f0Router from "./f0";
 import staffAuthRouter from "./staff-auth";
 import magnetRouter from "./magnet";
 
@@ -50,5 +51,6 @@ router.use(costRouter);
 router.use(notificationsRouter);
 router.use(integrationsRouter);
 router.use(f1000Router);
+router.use(f0Router);
 
 export default router;

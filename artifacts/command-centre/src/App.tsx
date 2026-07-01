@@ -27,6 +27,7 @@ import Quests from "@/pages/quests";
 import Account from "@/pages/account";
 import Ingest from "@/pages/ingest";
 import Cartridge from "@/pages/cartridge";
+import F0Dashboard from "@/pages/f0";
 import AdminBadges from "@/pages/admin-badges";
 import Ascension from "@/pages/ascension";
 import Activity from "@/pages/activity";
@@ -80,6 +81,7 @@ function AuthenticatedRoutes() {
       <Route path="/session/new" component={SessionNew} />
       <Route path="/ingest" component={Ingest} />
       <Route path="/cartridge" component={Cartridge} />
+      <Route path="/f0" component={F0Dashboard} />
       <Route path="/session/:id" component={SessionDetail} />
       <Route path="/prompts" component={Prompts} />
       <Route path="/quests" component={Quests} />
