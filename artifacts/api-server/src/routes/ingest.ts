@@ -162,6 +162,15 @@ router.get(
   "/ingestion-credits",
   requireAuth,
   async (req: Request, res: Response): Promise<void> => {
+    // Ingestion project credits are deferred behind SUBSCRIPTIONS_ENABLED —
+    // in internal-staff mode there is no per-project charge, so report a
+    // dormant (zeroed) balance rather than the raw ledger. The frontend hides
+    // the credit UI in this mode; this keeps the API contract honest for any
+    // caller and re-activates automatically when subscriptions are revived.
+    if (!subscriptionsEnabled()) {
+      res.json({ available: 0, consumed: 0, total: 0 });
+      return;
+    }
     const summary = await getIngestionCreditsSummary(req.localUser!.id);
     res.json(summary);
   },

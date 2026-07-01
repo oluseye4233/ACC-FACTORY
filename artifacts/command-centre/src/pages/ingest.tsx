@@ -74,7 +74,12 @@ export default function Ingest() {
   const [editedTitle, setEditedTitle] = useState("");
 
   const startSession = useStartSessionFromIngestion();
-  const credits = useGetIngestionCredits();
+  const credits = useGetIngestionCredits({
+    query: {
+      enabled: BILLING_ENABLED,
+      queryKey: getGetIngestionCreditsQueryKey(),
+    },
+  });
   const buyCredit = useBillingIngestionCheckout();
   const available = credits.data?.available ?? 0;
 
@@ -240,7 +245,8 @@ export default function Ingest() {
         </section>
 
         <section className="container px-4 md:px-6 py-8 md:py-12 max-w-4xl space-y-6">
-          {/* Credit balance + purchase CTA */}
+          {/* Credit balance + purchase CTA — deferred with subscriptions */}
+          {BILLING_ENABLED && (
           <Card
             className={
               available > 0
@@ -289,12 +295,11 @@ export default function Ingest() {
                   ? "OPENING CHECKOUT…"
                   : available > 0
                     ? "BUY ANOTHER"
-                    : !BILLING_ENABLED
-                      ? "REQUEST ACCESS"
-                      : "BUY A PROJECT CREDIT"}
+                    : "BUY A PROJECT CREDIT"}
               </Button>
             </CardContent>
           </Card>
+          )}
 
           {/* Step 1: source */}
           <Card className={ingestion ? "opacity-70" : ""}>

@@ -13,6 +13,7 @@ const PrefsBody = z.object({
   digestEnabled: z.boolean().optional(),
   billingAlertsEnabled: z.boolean().optional(),
   highCostAlertsEnabled: z.boolean().optional(),
+  retainerAlertsEnabled: z.boolean().optional(),
   highCostThresholdUsd: z.number().min(0.01).max(10000).optional(),
 });
 
@@ -32,6 +33,7 @@ router.get("/me/notification-preferences", requireAuth, async (req, res): Promis
     digestEnabled: prefs.digestEnabled,
     billingAlertsEnabled: prefs.billingAlertsEnabled,
     highCostAlertsEnabled: prefs.highCostAlertsEnabled,
+    retainerAlertsEnabled: prefs.retainerAlertsEnabled,
     highCostThresholdUsd: Number(prefs.highCostThresholdUsd),
     lastDigestSentAt: prefs.lastDigestSentAt?.toISOString() ?? null,
   });
@@ -59,6 +61,8 @@ router.patch("/me/notification-preferences", requireAuth, async (req, res): Prom
     updates.billingAlertsEnabled = parsed.data.billingAlertsEnabled;
   if (parsed.data.highCostAlertsEnabled !== undefined)
     updates.highCostAlertsEnabled = parsed.data.highCostAlertsEnabled;
+  if (parsed.data.retainerAlertsEnabled !== undefined)
+    updates.retainerAlertsEnabled = parsed.data.retainerAlertsEnabled;
   if (parsed.data.highCostThresholdUsd !== undefined)
     updates.highCostThresholdUsd = parsed.data.highCostThresholdUsd.toFixed(2);
   if (Object.keys(updates).length > 0) {
@@ -83,6 +87,7 @@ router.patch("/me/notification-preferences", requireAuth, async (req, res): Prom
     digestEnabled: fresh.digestEnabled,
     billingAlertsEnabled: fresh.billingAlertsEnabled,
     highCostAlertsEnabled: fresh.highCostAlertsEnabled,
+    retainerAlertsEnabled: fresh.retainerAlertsEnabled,
     highCostThresholdUsd: Number(fresh.highCostThresholdUsd),
     lastDigestSentAt: fresh.lastDigestSentAt?.toISOString() ?? null,
   });
@@ -106,6 +111,7 @@ router.get("/notifications/unsubscribe/:token", async (req, res): Promise<void> 
       digestEnabled: false,
       billingAlertsEnabled: false,
       highCostAlertsEnabled: false,
+      retainerAlertsEnabled: false,
     })
     .where(eq(notificationPreferencesTable.unsubscribeToken, token))
     .returning({ id: notificationPreferencesTable.id });

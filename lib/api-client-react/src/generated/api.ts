@@ -57,6 +57,8 @@ import type {
   F0Engagement,
   F0EngagementDetail,
   F0Monitoring,
+  F0MonitoringAck,
+  F0MonitoringSweepResult,
   F0Retainer,
   F0RetainerDetail,
   F0RetainerTask,
@@ -4344,6 +4346,76 @@ export const useCronResetHarnessLimits = <TError = ErrorType<UnauthorizedRespons
       return useMutation(getCronResetHarnessLimitsMutationOptions(options));
     }
 
+export const getCronRunF0MonitoringUrl = () => {
+
+
+
+
+  return `/api/cron/run-f0-monitoring`
+}
+
+/**
+ * @summary Run weekly F0 CAPI monitoring across active retainers (requires CRON_SECRET header)
+ */
+export const cronRunF0Monitoring = async ( options?: RequestInit): Promise<F0MonitoringSweepResult> => {
+
+  return customFetch<F0MonitoringSweepResult>(getCronRunF0MonitoringUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCronRunF0MonitoringMutationOptions = <TError = ErrorType<UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cronRunF0Monitoring>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cronRunF0Monitoring>>, TError,void, TContext> => {
+
+const mutationKey = ['cronRunF0Monitoring'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cronRunF0Monitoring>>, void> = () => {
+
+
+          return  cronRunF0Monitoring(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CronRunF0MonitoringMutationResult = NonNullable<Awaited<ReturnType<typeof cronRunF0Monitoring>>>
+
+    export type CronRunF0MonitoringMutationError = ErrorType<UnauthorizedResponse>
+
+    /**
+ * @summary Run weekly F0 CAPI monitoring across active retainers (requires CRON_SECRET header)
+ */
+export const useCronRunF0Monitoring = <TError = ErrorType<UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cronRunF0Monitoring>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cronRunF0Monitoring>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCronRunF0MonitoringMutationOptions(options));
+    }
+
 export const getListExemplarsUrl = () => {
 
 
@@ -6861,5 +6933,77 @@ export const useGenerateF0Monitoring = <TError = ErrorType<ErrorResponse | NotFo
         TContext
       > => {
       return useMutation(getGenerateF0MonitoringMutationOptions(options));
+    }
+
+export const getAcknowledgeF0MonitoringAlertUrl = (id: string,
+    runId: string,) => {
+
+
+
+
+  return `/api/f0/retainers/${id}/monitoring/${runId}/acknowledge`
+}
+
+/**
+ * @summary Acknowledge (clear) an open monitoring alert for a retainer
+ */
+export const acknowledgeF0MonitoringAlert = async (id: string,
+    runId: string, options?: RequestInit): Promise<F0MonitoringAck> => {
+
+  return customFetch<F0MonitoringAck>(getAcknowledgeF0MonitoringAlertUrl(id,runId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getAcknowledgeF0MonitoringAlertMutationOptions = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acknowledgeF0MonitoringAlert>>, TError,{id: string;runId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acknowledgeF0MonitoringAlert>>, TError,{id: string;runId: string}, TContext> => {
+
+const mutationKey = ['acknowledgeF0MonitoringAlert'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acknowledgeF0MonitoringAlert>>, {id: string;runId: string}> = (props) => {
+          const {id,runId} = props ?? {};
+
+          return  acknowledgeF0MonitoringAlert(id,runId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcknowledgeF0MonitoringAlertMutationResult = NonNullable<Awaited<ReturnType<typeof acknowledgeF0MonitoringAlert>>>
+
+    export type AcknowledgeF0MonitoringAlertMutationError = ErrorType<NotFoundResponse>
+
+    /**
+ * @summary Acknowledge (clear) an open monitoring alert for a retainer
+ */
+export const useAcknowledgeF0MonitoringAlert = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acknowledgeF0MonitoringAlert>>, TError,{id: string;runId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof acknowledgeF0MonitoringAlert>>,
+        TError,
+        {id: string;runId: string},
+        TContext
+      > => {
+      return useMutation(getAcknowledgeF0MonitoringAlertMutationOptions(options));
     }
 

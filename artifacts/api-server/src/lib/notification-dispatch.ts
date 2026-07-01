@@ -12,7 +12,9 @@ import {
   sendBillingFailureAlert,
   sendHighCostRunAlert,
   sendOrgActivityDigest,
+  sendRetainerMonitoringAlert,
   type DigestRow,
+  type RetainerAlertItem,
 } from "@workspace/email";
 import {
   activityUrl,
@@ -20,6 +22,7 @@ import {
   getOrCreatePreferences,
   ownerAdminContactsForOrg,
   ownerAdminContactsForStripeCustomer,
+  publicBaseUrl,
   safeFire,
   unsubscribeUrl,
 } from "./notifications";
@@ -116,6 +119,49 @@ export async function dispatchBillingFailureForCustomer(args: {
     }
   } catch (err) {
     logger.warn({ err }, "dispatchBillingFailureForCustomer failed");
+  }
+}
+
+/**
+ * Dispatch a weekly-monitoring breach alert to a retainer owner. Retainers are
+ * per-user (not org-scoped), so this emails the owner directly, gated on their
+ * personal-scope `retainerAlertsEnabled` preference. Returns true when an email
+ * was actually sent (used by the cron sweep to stamp `notifiedAt`).
+ */
+export async function dispatchRetainerMonitoringAlert(args: {
+  userId: string;
+  retainerTitle: string;
+  capiPosture: string;
+  highestUrgency: string;
+  alerts: RetainerAlertItem[];
+  weeklyCounsel: string;
+  occurredAt: Date;
+}): Promise<boolean> {
+  try {
+    const rows = await db
+      .select({ email: usersTable.email })
+      .from(usersTable)
+      .where(eq(usersTable.id, args.userId))
+      .limit(1);
+    const email = rows[0]?.email;
+    if (!email) return false;
+    const prefs = await getOrCreatePreferences(args.userId, null);
+    if (!prefs.retainerAlertsEnabled) return false;
+    await sendRetainerMonitoringAlert({
+      to: email,
+      retainerTitle: args.retainerTitle,
+      capiPosture: args.capiPosture,
+      highestUrgency: args.highestUrgency,
+      alerts: args.alerts,
+      weeklyCounsel: args.weeklyCounsel,
+      occurredAt: args.occurredAt,
+      dashboardUrl: `${publicBaseUrl()}/f0`,
+      unsubscribeUrl: unsubscribeUrl(prefs.unsubscribeToken),
+    });
+    return true;
+  } catch (err) {
+    logger.warn({ err, userId: args.userId }, "dispatchRetainerMonitoringAlert failed");
+    return false;
   }
 }
 

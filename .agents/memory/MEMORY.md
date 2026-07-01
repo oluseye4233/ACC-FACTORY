@@ -14,3 +14,6 @@
 - [UpgradeCTA gating (402 vs 403)](upgrade-cta-gating.md) — every engine workspace must open UpgradeCTA on 402||403 (402=cost cap on-ramp, 403=tier gate); drive copy from cause, button from f1000 membership.
 - [Scripts CWD under --filter](scripts-cwd-under-filter.md) — `pnpm --filter @workspace/scripts run` CWD is `scripts/`; resolve repo-root output paths from import.meta.url, not process.cwd().
 - [drizzle DB sync = generate + migrate](drizzle-push-unique-on-populated-table.md) — push truncates on unique/NOT NULL over populated tables; repo now syncs via generate+migrate (baseline 0000 marked applied), out path must be relative.
+- [DB migrations vs push](db-migrations-vs-push.md) — schema changes need a committed drizzle migration (run generate), not just push; deploys replay migrations.
+- [Billing feature deferral](billing-feature-deferral.md) — deferring project credits behind the sub flag must gate enforcement + checkout + summary endpoint + frontend (card, fetch, AND the available<1 action gate), else staff get blocked.
+- [Migration collision on rebase](migration-rebase-collision.md) — a duplicate/superset migration must be dropped + regenerated as a delta; empty __drizzle_migrations on push-built dev DB is reconciled by inserting rows (never truncate).

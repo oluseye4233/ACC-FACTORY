@@ -13,6 +13,7 @@ import {
   useUpdateF0RetainerTask,
   useGenerateF0Commentary,
   useGenerateF0Monitoring,
+  useAcknowledgeF0MonitoringAlert,
   getGenerateF0ReportUrl,
   getGetF0DashboardQueryKey,
   getGetF0EngagementQueryKey,
@@ -23,6 +24,7 @@ import {
   type F0RetainerTask,
   type F0Commentary,
   type F0Monitoring,
+  type F0MonitoringDashboard,
 } from "@workspace/api-client-react";
 import { TopNav } from "@/components/layout/TopNav";
 import { Footer } from "@/components/layout/Footer";
@@ -50,6 +52,9 @@ import {
   Radar,
   ClipboardList,
   Plus,
+  Clock,
+  BellRing,
+  Check,
 } from "lucide-react";
 
 const F0_SERVICE_GROUPS: { group: string; services: { value: string; label: string }[] }[] = [
@@ -153,6 +158,11 @@ export default function F0Dashboard() {
         ) : (
           <>
             <TotalsStrip totals={dash?.totals} />
+
+            <MonitoringBanner
+              monitoring={dash?.monitoring}
+              onOpenRetainer={(id) => setRetainerId(id)}
+            />
 
             <div className="grid lg:grid-cols-2 gap-6 mt-6">
               {/* Engagements column */}
@@ -297,6 +307,112 @@ function TotalsStrip({
         </Card>
       ))}
     </div>
+  );
+}
+
+function formatRunAt(iso: string | null | undefined): string {
+  if (!iso) return "Never";
+  const d = new Date(iso);
+  const diffMs = Date.now() - d.getTime();
+  const day = 24 * 60 * 60 * 1000;
+  const rel =
+    diffMs < 60_000
+      ? "just now"
+      : diffMs < 60 * 60_000
+        ? `${Math.floor(diffMs / 60_000)}m ago`
+        : diffMs < day
+          ? `${Math.floor(diffMs / (60 * 60_000))}h ago`
+          : `${Math.floor(diffMs / day)}d ago`;
+  return `${d.toLocaleString()} · ${rel}`;
+}
+
+function MonitoringBanner({
+  monitoring,
+  onOpenRetainer,
+}: {
+  monitoring?: F0MonitoringDashboard;
+  onOpenRetainer: (retainerId: string) => void;
+}) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const acknowledge = useAcknowledgeF0MonitoringAlert();
+  const openAlerts = monitoring?.openAlerts ?? [];
+
+  const ack = async (retainerId: string, runId: string) => {
+    try {
+      await acknowledge.mutateAsync({ id: retainerId, runId });
+      qc.invalidateQueries({ queryKey: getGetF0DashboardQueryKey() });
+    } catch (err) {
+      const x = extractApiError(err);
+      toast({ title: "Error", description: x.message, variant: "destructive" });
+    }
+  };
+
+  return (
+    <Card className="p-4 bg-card/50 mt-3" data-testid="monitoring-banner">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Radar className="h-4 w-4 text-primary" />
+          <h2 className="font-display text-sm tracking-wider uppercase">Weekly CAPI Monitoring</h2>
+        </div>
+        <div className="flex items-center gap-4 font-mono text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1" data-testid="text-monitoring-last-run">
+            <Clock className="h-3 w-3" /> Last run: {formatRunAt(monitoring?.lastRunAt)}
+          </span>
+          <span
+            className={`flex items-center gap-1 ${
+              (monitoring?.openAlertCount ?? 0) > 0 ? "text-destructive font-bold" : ""
+            }`}
+            data-testid="text-monitoring-open-alerts"
+          >
+            <BellRing className="h-3 w-3" /> {monitoring?.openAlertCount ?? 0} open alert
+            {(monitoring?.openAlertCount ?? 0) === 1 ? "" : "s"}
+          </span>
+        </div>
+      </div>
+
+      {openAlerts.length > 0 && (
+        <ul className="mt-3 space-y-2">
+          {openAlerts.map((a) => (
+            <li
+              key={a.id}
+              data-testid={`open-alert-${a.id}`}
+              className="flex flex-wrap items-center justify-between gap-2 border-l-2 border-destructive bg-background/30 rounded px-3 py-2 font-mono text-[11px]"
+            >
+              <div className="min-w-0">
+                <button
+                  onClick={() => onOpenRetainer(a.retainerId)}
+                  className="font-bold text-secondary hover:underline"
+                  data-testid={`open-alert-retainer-${a.id}`}
+                >
+                  {a.retainerTitle}
+                </button>
+                <span className="ml-2">
+                  {a.highestUrgency && (
+                    <span className="font-bold text-destructive">[{a.highestUrgency}]</span>
+                  )}{" "}
+                  {a.alertCount} alert{a.alertCount === 1 ? "" : "s"}
+                  {a.capiPosture ? ` · ${a.capiPosture}` : ""}
+                </span>
+                <span className="ml-2 text-muted-foreground">
+                  {a.source === "cron" ? "auto" : "manual"} · {formatRunAt(a.ranAt)}
+                </span>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="font-mono text-[10px] h-7 shrink-0"
+                disabled={acknowledge.isPending}
+                onClick={() => ack(a.retainerId, a.id)}
+                data-testid={`button-acknowledge-${a.id}`}
+              >
+                <Check className="h-3 w-3 mr-1" /> ACK
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }
 
@@ -826,6 +942,7 @@ function RetainerPanel({ retainerId, onClose }: { retainerId: string; onClose: (
         data: { signals: signals || undefined },
       });
       setMonitoring(res);
+      refetch();
     } catch (err) {
       handleErr(err);
     }

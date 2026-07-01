@@ -7,10 +7,12 @@
  */
 import type { F0DashboardTotals } from './f0DashboardTotals';
 import type { F0Engagement } from './f0Engagement';
+import type { F0MonitoringDashboard } from './f0MonitoringDashboard';
 import type { F0Retainer } from './f0Retainer';
 
 export interface F0Dashboard {
   engagements: F0Engagement[];
   retainers: F0Retainer[];
   totals: F0DashboardTotals;
+  monitoring: F0MonitoringDashboard;
 }

@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, commandCentreSubscribersTable } from "@workspace/db";
 import { runWeeklyDigest } from "../lib/notification-dispatch";
+import { runF0MonitoringSweep } from "../engines/f0";
 
 const router: IRouter = Router();
 
@@ -38,6 +39,12 @@ router.post("/cron/reset-harness-limits", async (req, res): Promise<void> => {
 router.post("/cron/send-weekly-digest", async (req, res): Promise<void> => {
   if (!requireCronSecret(req, res)) return;
   const result = await runWeeklyDigest();
+  res.json({ ok: true, ...result });
+});
+
+router.post("/cron/run-f0-monitoring", async (req, res): Promise<void> => {
+  if (!requireCronSecret(req, res)) return;
+  const result = await runF0MonitoringSweep();
   res.json({ ok: true, ...result });
 });
 

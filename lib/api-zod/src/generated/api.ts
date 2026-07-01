@@ -1366,6 +1366,20 @@ export const CronResetHarnessLimitsResponse = zod.object({
 
 
 /**
+ * @summary Run weekly F0 CAPI monitoring across active retainers (requires CRON_SECRET header)
+ */
+export const CronRunF0MonitoringResponse = zod.object({
+  "ok": zod.boolean(),
+  "retainersConsidered": zod.number(),
+  "runsExecuted": zod.number(),
+  "breaches": zod.number(),
+  "alertsSent": zod.number(),
+  "skippedRecent": zod.number(),
+  "costCapReached": zod.boolean()
+})
+
+
+/**
  * @summary List canonical and hand-authored SPC / PDD exemplars
  */
 export const ListExemplarsResponseItem = zod.object({
@@ -1896,6 +1910,24 @@ export const GetF0DashboardResponse = zod.object({
   "reportCount": zod.number(),
   "accruedReportCostUsd": zod.string(),
   "accruedTaskCostUsd": zod.string()
+}),
+  "monitoring": zod.object({
+  "lastRunAt": zod.coerce.date().nullable().describe('Most recent monitoring run across all of the caller\'s retainers.'),
+  "openAlertCount": zod.number(),
+  "openAlerts": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "retainerId": zod.string().uuid(),
+  "retainerTitle": zod.string(),
+  "highestUrgency": zod.enum(['WATCH', 'ACT_SOON', 'ACT_NOW']).nullish(),
+  "capiPosture": zod.string().nullish(),
+  "alertCount": zod.number(),
+  "source": zod.enum(['manual', 'cron']),
+  "ranAt": zod.coerce.date()
+})),
+  "byRetainer": zod.array(zod.object({
+  "retainerId": zod.string().uuid(),
+  "lastRunAt": zod.coerce.date()
+}))
 })
 })
 
@@ -2236,6 +2268,20 @@ export const GenerateF0MonitoringResponse = zod.object({
   "recommendedAction": zod.string()
 })),
   "weeklyCounsel": zod.string()
+})
+
+
+/**
+ * @summary Acknowledge (clear) an open monitoring alert for a retainer
+ */
+export const AcknowledgeF0MonitoringAlertParams = zod.object({
+  "id": zod.coerce.string().uuid(),
+  "runId": zod.coerce.string().uuid()
+})
+
+export const AcknowledgeF0MonitoringAlertResponse = zod.object({
+  "id": zod.string().uuid(),
+  "acknowledgedAt": zod.coerce.date()
 })
 
 

@@ -24,6 +24,7 @@
 const TARGETS: Record<string, string> = {
   "weekly-digest": "/api/cron/send-weekly-digest",
   "reset-harness-limits": "/api/cron/reset-harness-limits",
+  "run-f0-monitoring": "/api/cron/run-f0-monitoring",
 };
 
 function envOrDie(name: string): string {

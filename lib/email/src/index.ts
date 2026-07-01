@@ -348,6 +348,62 @@ Unsubscribe: ${args.unsubscribeUrl}`;
   });
 }
 
+export interface RetainerAlertItem {
+  urgency: string;
+  alert: string;
+  recommendedAction: string;
+}
+
+export function sendRetainerMonitoringAlert(args: {
+  to: string;
+  retainerTitle: string;
+  capiPosture: string;
+  highestUrgency: string;
+  alerts: RetainerAlertItem[];
+  weeklyCounsel: string;
+  occurredAt: Date;
+  dashboardUrl: string;
+  unsubscribeUrl: string;
+}): Promise<EmailResult> {
+  const rows = args.alerts
+    .map(
+      (a) =>
+        `      <strong>[${a.urgency}]</strong> ${a.alert}<br/><span style="color:#888;">→ ${a.recommendedAction}</span>`,
+    )
+    .join("<br/><br/>");
+  const body = `<p>Weekly CAPI monitoring for <strong>${args.retainerTitle}</strong> flagged a breach requiring attention.</p>
+    <p style="font-family:monospace;background:#0d0d0d;padding:12px;border:1px solid #262626;">
+      CAPI posture: ${args.capiPosture}<br/>
+      Highest urgency: ${args.highestUrgency}<br/>
+      When: ${args.occurredAt.toISOString()}
+    </p>
+    <p style="font-family:monospace;background:#0d0d0d;padding:12px;border:1px solid #262626;">
+${rows}
+    </p>
+    <p>${args.weeklyCounsel}</p>
+    <p><a href="${args.dashboardUrl}" style="color:#1A6B3A;">Open F0 dashboard →</a></p>
+    <p style="margin-top:24px;font-size:11px;color:#888;">
+      <a href="${args.unsubscribeUrl}" style="color:#888;">Unsubscribe from these alerts</a>.
+    </p>`;
+  const text = `Weekly CAPI monitoring for ${args.retainerTitle} flagged a breach.
+CAPI posture: ${args.capiPosture}
+Highest urgency: ${args.highestUrgency}
+When: ${args.occurredAt.toISOString()}
+
+${args.alerts.map((a) => `[${a.urgency}] ${a.alert}\n  -> ${a.recommendedAction}`).join("\n\n")}
+
+${args.weeklyCounsel}
+
+Dashboard: ${args.dashboardUrl}
+Unsubscribe: ${args.unsubscribeUrl}`;
+  return send({
+    to: args.to,
+    subject: `RETAINER ALERT · ${args.highestUrgency} · ${args.retainerTitle}`,
+    html: wrap("RETAINER MONITORING ALERT", body),
+    text,
+  });
+}
+
 export function sendAccountDeleted(args: {
   to: string;
 }): Promise<EmailResult> {

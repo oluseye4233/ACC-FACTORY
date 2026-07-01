@@ -34,6 +34,7 @@ export const notificationPreferencesTable = pgTable(
     digestEnabled: boolean("digest_enabled").notNull().default(true),
     billingAlertsEnabled: boolean("billing_alerts_enabled").notNull().default(true),
     highCostAlertsEnabled: boolean("high_cost_alerts_enabled").notNull().default(false),
+    retainerAlertsEnabled: boolean("retainer_alerts_enabled").notNull().default(true),
     highCostThresholdUsd: numeric("high_cost_threshold_usd", { precision: 8, scale: 2 })
       .notNull()
       .default("1.00"),

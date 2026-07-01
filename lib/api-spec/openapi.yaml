@@ -1073,6 +1073,20 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /cron/run-f0-monitoring:
+    post:
+      operationId: cronRunF0Monitoring
+      tags: [cron]
+      summary: Run weekly F0 CAPI monitoring across active retainers (requires CRON_SECRET header)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0MonitoringSweepResult" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /exemplars:
     get:
       operationId: listExemplars
@@ -1753,6 +1767,26 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /f0/retainers/{id}/monitoring/{runId}/acknowledge:
+    post:
+      operationId: acknowledgeF0MonitoringAlert
+      tags: [f0]
+      summary: Acknowledge (clear) an open monitoring alert for a retainer
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - name: runId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F0MonitoringAck" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
   parameters:
     SessionId:
@@ -1884,7 +1918,7 @@ components:
 
     F0Dashboard:
       type: object
-      required: [engagements, retainers, totals]
+      required: [engagements, retainers, totals, monitoring]
       properties:
         engagements:
           type: array
@@ -1900,6 +1934,63 @@ components:
             reportCount:          { type: integer }
             accruedReportCostUsd: { type: string }
             accruedTaskCostUsd:   { type: string }
+        monitoring:
+          $ref: "#/components/schemas/F0MonitoringDashboard"
+
+    F0MonitoringDashboard:
+      type: object
+      required: [lastRunAt, openAlertCount, openAlerts, byRetainer]
+      properties:
+        lastRunAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Most recent monitoring run across all of the caller's retainers.
+        openAlertCount: { type: integer }
+        openAlerts:
+          type: array
+          items: { $ref: "#/components/schemas/F0OpenAlert" }
+        byRetainer:
+          type: array
+          items:
+            type: object
+            required: [retainerId, lastRunAt]
+            properties:
+              retainerId: { type: string, format: uuid }
+              lastRunAt:  { type: string, format: date-time }
+
+    F0OpenAlert:
+      type: object
+      required: [id, retainerId, retainerTitle, alertCount, source, ranAt]
+      properties:
+        id:             { type: string, format: uuid }
+        retainerId:     { type: string, format: uuid }
+        retainerTitle:  { type: string }
+        highestUrgency: { type: string, enum: [WATCH, ACT_SOON, ACT_NOW], nullable: true }
+        capiPosture:    { type: string, nullable: true }
+        alertCount:     { type: integer }
+        source:         { type: string, enum: [manual, cron] }
+        ranAt:          { type: string, format: date-time }
+
+    F0MonitoringAck:
+      type: object
+      required: [id, acknowledgedAt]
+      properties:
+        id:             { type: string, format: uuid }
+        acknowledgedAt: { type: string, format: date-time }
+
+    F0MonitoringSweepResult:
+      type: object
+      required:
+        [ok, retainersConsidered, runsExecuted, breaches, alertsSent, skippedRecent, costCapReached]
+      properties:
+        ok:                  { type: boolean }
+        retainersConsidered: { type: integer }
+        runsExecuted:        { type: integer }
+        breaches:            { type: integer }
+        alertsSent:          { type: integer }
+        skippedRecent:       { type: integer }
+        costCapReached:      { type: boolean }
 
     F0Commentary:
       type: object

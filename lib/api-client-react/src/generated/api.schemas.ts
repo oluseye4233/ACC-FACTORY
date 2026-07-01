@@ -120,10 +120,67 @@ export type F0DashboardTotals = {
   accruedTaskCostUsd: string;
 };
 
+export type F0OpenAlertHighestUrgency = typeof F0OpenAlertHighestUrgency[keyof typeof F0OpenAlertHighestUrgency] | null;
+
+
+export const F0OpenAlertHighestUrgency = {
+  WATCH: 'WATCH',
+  ACT_SOON: 'ACT_SOON',
+  ACT_NOW: 'ACT_NOW',
+} as const;
+
+export type F0OpenAlertSource = typeof F0OpenAlertSource[keyof typeof F0OpenAlertSource];
+
+
+export const F0OpenAlertSource = {
+  manual: 'manual',
+  cron: 'cron',
+} as const;
+
+export interface F0OpenAlert {
+  id: string;
+  retainerId: string;
+  retainerTitle: string;
+  highestUrgency?: F0OpenAlertHighestUrgency;
+  capiPosture?: string | null;
+  alertCount: number;
+  source: F0OpenAlertSource;
+  ranAt: string;
+}
+
+export type F0MonitoringDashboardByRetainerItem = {
+  retainerId: string;
+  lastRunAt: string;
+};
+
+export interface F0MonitoringDashboard {
+  /** Most recent monitoring run across all of the caller's retainers. */
+  lastRunAt: string | null;
+  openAlertCount: number;
+  openAlerts: F0OpenAlert[];
+  byRetainer: F0MonitoringDashboardByRetainerItem[];
+}
+
 export interface F0Dashboard {
   engagements: F0Engagement[];
   retainers: F0Retainer[];
   totals: F0DashboardTotals;
+  monitoring: F0MonitoringDashboard;
+}
+
+export interface F0MonitoringAck {
+  id: string;
+  acknowledgedAt: string;
+}
+
+export interface F0MonitoringSweepResult {
+  ok: boolean;
+  retainersConsidered: number;
+  runsExecuted: number;
+  breaches: number;
+  alertsSent: number;
+  skippedRecent: number;
+  costCapReached: boolean;
 }
 
 export interface F0Commentary {

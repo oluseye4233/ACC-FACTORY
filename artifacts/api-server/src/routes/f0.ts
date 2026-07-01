@@ -3,6 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import {
   db,
   f0EngagementsTable,
+  f0MonitoringRunsTable,
   f0ReportsTable,
   f0RetainersTable,
   f0RetainerTasksTable,
@@ -57,29 +58,66 @@ function f0LlmRoute(handler: RequestHandler): RequestHandler[] {
 
 router.get("/f0/dashboard", requireAuth, async (req, res): Promise<void> => {
   const userId = req.localUser!.id;
-  const [engagements, retainers, reportAgg, taskAgg] = await Promise.all([
-    db
-      .select()
-      .from(f0EngagementsTable)
-      .where(eq(f0EngagementsTable.userId, userId))
-      .orderBy(desc(f0EngagementsTable.createdAt)),
-    db
-      .select()
-      .from(f0RetainersTable)
-      .where(eq(f0RetainersTable.userId, userId))
-      .orderBy(desc(f0RetainersTable.createdAt)),
-    db
-      .select({
-        count: sql<number>`count(*)::int`,
-        accrued: sql<string>`coalesce(sum(${f0ReportsTable.accruedCostUsd}), 0)::text`,
-      })
-      .from(f0ReportsTable)
-      .where(eq(f0ReportsTable.userId, userId)),
-    db
-      .select({ accrued: sql<string>`coalesce(sum(${f0RetainerTasksTable.estCostUsd}), 0)::text` })
-      .from(f0RetainerTasksTable)
-      .where(eq(f0RetainerTasksTable.userId, userId)),
-  ]);
+  const [engagements, retainers, reportAgg, taskAgg, lastRunAgg, openAlertRows] =
+    await Promise.all([
+      db
+        .select()
+        .from(f0EngagementsTable)
+        .where(eq(f0EngagementsTable.userId, userId))
+        .orderBy(desc(f0EngagementsTable.createdAt)),
+      db
+        .select()
+        .from(f0RetainersTable)
+        .where(eq(f0RetainersTable.userId, userId))
+        .orderBy(desc(f0RetainersTable.createdAt)),
+      db
+        .select({
+          count: sql<number>`count(*)::int`,
+          accrued: sql<string>`coalesce(sum(${f0ReportsTable.accruedCostUsd}), 0)::text`,
+        })
+        .from(f0ReportsTable)
+        .where(eq(f0ReportsTable.userId, userId)),
+      db
+        .select({ accrued: sql<string>`coalesce(sum(${f0RetainerTasksTable.estCostUsd}), 0)::text` })
+        .from(f0RetainerTasksTable)
+        .where(eq(f0RetainerTasksTable.userId, userId)),
+      db
+        .select({ lastRunAt: sql<string | null>`max(${f0MonitoringRunsTable.createdAt})` })
+        .from(f0MonitoringRunsTable)
+        .where(eq(f0MonitoringRunsTable.userId, userId)),
+      db
+        .select({
+          id: f0MonitoringRunsTable.id,
+          retainerId: f0MonitoringRunsTable.retainerId,
+          retainerTitle: f0RetainersTable.title,
+          highestUrgency: f0MonitoringRunsTable.highestUrgency,
+          capiPosture: sql<string>`(${f0MonitoringRunsTable.content} ->> 'capiPosture')`,
+          alertCount: sql<number>`coalesce(jsonb_array_length(${f0MonitoringRunsTable.content} -> 'eventAlerts'), 0)::int`,
+          source: f0MonitoringRunsTable.source,
+          ranAt: f0MonitoringRunsTable.createdAt,
+        })
+        .from(f0MonitoringRunsTable)
+        .innerJoin(f0RetainersTable, eq(f0RetainersTable.id, f0MonitoringRunsTable.retainerId))
+        .where(
+          and(
+            eq(f0MonitoringRunsTable.userId, userId),
+            eq(f0MonitoringRunsTable.breached, true),
+            sql`${f0MonitoringRunsTable.acknowledgedAt} is null`,
+          ),
+        )
+        .orderBy(desc(f0MonitoringRunsTable.createdAt)),
+    ]);
+
+  // Latest monitoring run per retainer (for the per-retainer "last run" chip).
+  const lastRunByRetainer = await db
+    .select({
+      retainerId: f0MonitoringRunsTable.retainerId,
+      lastRunAt: sql<string>`max(${f0MonitoringRunsTable.createdAt})`,
+    })
+    .from(f0MonitoringRunsTable)
+    .where(eq(f0MonitoringRunsTable.userId, userId))
+    .groupBy(f0MonitoringRunsTable.retainerId);
+
   res.json({
     engagements,
     retainers,
@@ -88,6 +126,26 @@ router.get("/f0/dashboard", requireAuth, async (req, res): Promise<void> => {
       reportCount: reportAgg[0]?.count ?? 0,
       accruedReportCostUsd: reportAgg[0]?.accrued ?? "0",
       accruedTaskCostUsd: taskAgg[0]?.accrued ?? "0",
+    },
+    monitoring: {
+      lastRunAt: lastRunAgg[0]?.lastRunAt
+        ? new Date(lastRunAgg[0].lastRunAt).toISOString()
+        : null,
+      openAlertCount: openAlertRows.length,
+      openAlerts: openAlertRows.map((a) => ({
+        id: a.id,
+        retainerId: a.retainerId,
+        retainerTitle: a.retainerTitle,
+        highestUrgency: a.highestUrgency,
+        capiPosture: a.capiPosture,
+        alertCount: a.alertCount,
+        source: a.source,
+        ranAt: (a.ranAt as Date).toISOString(),
+      })),
+      byRetainer: lastRunByRetainer.map((r) => ({
+        retainerId: r.retainerId,
+        lastRunAt: new Date(r.lastRunAt).toISOString(),
+      })),
     },
   });
 });
@@ -311,5 +369,39 @@ router.put("/f0/retainers/:id/tasks/:taskId", requireAuth, async (req, res): Pro
 
 router.post("/f0/retainers/:id/commentary", ...f0LlmRoute(handleF0GenerateCommentary));
 router.post("/f0/retainers/:id/monitoring", ...f0LlmRoute(handleF0GenerateMonitoring));
+
+// Acknowledge (clear) an open monitoring alert. No LLM call → no cost gate.
+router.post(
+  "/f0/retainers/:id/monitoring/:runId/acknowledge",
+  requireAuth,
+  async (req, res): Promise<void> => {
+    const guard = await ownedRetainerOr404(req, String(req.params.id));
+    if (!guard.ok) {
+      res.status(guard.status).json({ error: guard.error });
+      return;
+    }
+    const rows = await db
+      .update(f0MonitoringRunsTable)
+      .set({ acknowledgedAt: new Date() })
+      .where(
+        and(
+          eq(f0MonitoringRunsTable.id, String(req.params.runId)),
+          eq(f0MonitoringRunsTable.retainerId, guard.retainer.id),
+        ),
+      )
+      .returning({
+        id: f0MonitoringRunsTable.id,
+        acknowledgedAt: f0MonitoringRunsTable.acknowledgedAt,
+      });
+    if (!rows[0]) {
+      res.status(404).json({ error: "Monitoring run not found" });
+      return;
+    }
+    res.json({
+      id: rows[0].id,
+      acknowledgedAt: (rows[0].acknowledgedAt as Date).toISOString(),
+    });
+  },
+);
 
 export default router;

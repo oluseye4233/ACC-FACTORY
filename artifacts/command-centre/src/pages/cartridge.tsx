@@ -84,7 +84,12 @@ export default function Cartridge() {
   const [cartridge, setCartridge] = useState<CartridgePackage | null>(null);
 
   const startSession = useStartSessionFromCartridge();
-  const credits = useGetCartridgeCredits();
+  const credits = useGetCartridgeCredits({
+    query: {
+      enabled: BILLING_ENABLED,
+      queryKey: getGetCartridgeCreditsQueryKey(),
+    },
+  });
   const buyCredit = useBillingCartridgeCheckout();
   const available = credits.data?.available ?? 0;
 
@@ -153,7 +158,7 @@ export default function Cartridge() {
       });
       return;
     }
-    if (available < 1) {
+    if (BILLING_ENABLED && available < 1) {
       toast({
         title: "No cartridge credit",
         description: "Purchase an Advanced Cartridge to continue.",
@@ -271,7 +276,8 @@ export default function Cartridge() {
         </section>
 
         <section className="container px-4 md:px-6 py-8 md:py-12 max-w-4xl space-y-6">
-          {/* Credit balance + purchase CTA */}
+          {/* Credit balance + purchase CTA — deferred with subscriptions */}
+          {BILLING_ENABLED && (
           <Card
             className={
               available > 0
@@ -320,12 +326,11 @@ export default function Cartridge() {
                   ? "OPENING CHECKOUT…"
                   : available > 0
                     ? "BUY ANOTHER"
-                    : !BILLING_ENABLED
-                      ? "REQUEST ACCESS"
-                      : "BUY A CARTRIDGE CREDIT"}
+                    : "BUY A CARTRIDGE CREDIT"}
               </Button>
             </CardContent>
           </Card>
+          )}
 
           {/* Step 1: SCOPE */}
           <Card
@@ -693,12 +698,12 @@ export default function Cartridge() {
                     !scopeReady ||
                     submitting ||
                     Boolean(cartridge) ||
-                    available < 1
+                    (BILLING_ENABLED && available < 1)
                   }
                   className="font-display tracking-wider w-full sm:w-auto"
                   data-testid="button-build-cartridge"
                   title={
-                    available < 1
+                    BILLING_ENABLED && available < 1
                       ? "Purchase a cartridge credit to continue"
                       : !scopeReady
                         ? "Define Project Scope first"

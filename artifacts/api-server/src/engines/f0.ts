@@ -4,9 +4,13 @@ import { and, desc, eq } from "drizzle-orm";
 import {
   db,
   f0EngagementsTable,
+  f0MonitoringRunsTable,
   f0ReportsTable,
   f0RetainersTable,
   harnessArtifactsTable,
+  type F0MonitoringRun,
+  type F0MonitoringUrgency,
+  type F0MonitoringSource,
   type F0Engagement,
   type F0Retainer,
   type F0Service,
@@ -33,6 +37,9 @@ import {
   ProviderNotConfiguredError,
 } from "./shared";
 import { issueF0ReportCode, issueAdvisorySku } from "../lib/sku";
+import { currentMonthCostGlobal, globalMonthlyCostCapUsd } from "../lib/cost-budget";
+import { dispatchRetainerMonitoringAlert } from "../lib/notification-dispatch";
+import { logger } from "../lib/logger";
 
 // F0 telemetry engine IDs, kept distinct from the production floor (F1..F7=1..7,
 // F6-VDJ=8, F8 Code DJ=9, ATLAS J=10, PFP=11, Host DJ=12). F0 is an advisory
@@ -524,6 +531,74 @@ const MonitoringSchema = z.object({
   weeklyCounsel: z.string(),
 });
 
+type MonitoringOutput = z.infer<typeof MonitoringSchema>;
+
+const URGENCY_RANK: Record<F0MonitoringUrgency, number> = {
+  WATCH: 1,
+  ACT_SOON: 2,
+  ACT_NOW: 3,
+};
+
+/**
+ * A monitoring run is a BREACH when it carries at least one event alert with
+ * urgency ACT_SOON or ACT_NOW. Returns the breach flag plus the highest urgency
+ * seen (null when there are no alerts). This is the single source of truth used
+ * by both the on-demand route and the weekly cron sweep.
+ */
+export function evaluateMonitoringBreach(out: MonitoringOutput): {
+  breached: boolean;
+  highestUrgency: F0MonitoringUrgency | null;
+} {
+  let highest: F0MonitoringUrgency | null = null;
+  for (const a of out.eventAlerts) {
+    if (highest === null || URGENCY_RANK[a.urgency] > URGENCY_RANK[highest]) {
+      highest = a.urgency;
+    }
+  }
+  const breached = highest === "ACT_SOON" || highest === "ACT_NOW";
+  return { breached, highestUrgency: highest };
+}
+
+/** Run the monitoring LLM call for a retainer. Records a harness_engine_runs row. */
+async function generateRetainerMonitoring(
+  retainer: Pick<F0Retainer, "id" | "title" | "userId" | "sessionId">,
+  signals: string | undefined,
+  provider: Parameters<typeof callLlmJson>[0],
+): Promise<MonitoringOutput> {
+  const userPrompt = [
+    `RETAINER: ${retainer.title}`,
+    signals
+      ? `OPERATOR-SUPPLIED SIGNALS (past week):\n${signals}`
+      : "OPERATOR-SUPPLIED SIGNALS (past week): (none)",
+  ].join("\n\n");
+  return callLlmJson(provider, F0_MONITORING_SYSTEM, userPrompt, MonitoringSchema, {
+    sessionId: retainer.sessionId,
+    userId: retainer.userId,
+    engineId: F0_ENGINE.MONITORING,
+  });
+}
+
+/** Persist a monitoring run (with breach evaluation) and return the stored row. */
+async function persistMonitoringRun(
+  retainer: Pick<F0Retainer, "id" | "userId">,
+  out: MonitoringOutput,
+  source: F0MonitoringSource,
+): Promise<F0MonitoringRun> {
+  const { breached, highestUrgency } = evaluateMonitoringBreach(out);
+  const [row] = await db
+    .insert(f0MonitoringRunsTable)
+    .values({
+      retainerId: retainer.id,
+      userId: retainer.userId,
+      content: out,
+      source,
+      breached,
+      highestUrgency,
+    })
+    .returning();
+  return row!;
+}
+
 export async function handleF0GenerateMonitoring(req: Request, res: Response): Promise<void> {
   const parsed = GenerateF0MonitoringBody.safeParse(req.body ?? {});
   if (!parsed.success) {
@@ -542,27 +617,140 @@ export async function handleF0GenerateMonitoring(req: Request, res: Response): P
     if (sendProviderTierError(res, err)) return;
     throw err;
   }
-  const userPrompt = [
-    `RETAINER: ${guard.retainer.title}`,
-    parsed.data.signals
-      ? `OPERATOR-SUPPLIED SIGNALS (past week):\n${parsed.data.signals}`
-      : "OPERATOR-SUPPLIED SIGNALS (past week): (none)",
-  ].join("\n\n");
 
-  let out: z.infer<typeof MonitoringSchema>;
+  let out: MonitoringOutput;
   try {
-    out = await callLlmJson(provider, F0_MONITORING_SYSTEM, userPrompt, MonitoringSchema, {
-      sessionId: guard.retainer.sessionId,
-      userId: guard.retainer.userId,
-      engineId: F0_ENGINE.MONITORING,
-    });
+    out = await generateRetainerMonitoring(guard.retainer, parsed.data.signals, provider);
   } catch (err) {
     if (sendProviderTierError(res, err)) return;
     req.log.error({ err }, "F0 monitoring generation failed");
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });
     return;
   }
+
+  // Persist the run so it surfaces on the dashboard (last-run time + open
+  // alerts). On-demand breaches become open alerts but do NOT email the owner —
+  // they are looking at the result already; only cron-driven breaches push mail.
+  try {
+    await persistMonitoringRun(guard.retainer, out, "manual");
+  } catch (err) {
+    req.log.warn({ err }, "F0 monitoring run persistence failed");
+  }
   res.json(out);
+}
+
+/**
+ * Weekly cron sweep: run CAPI monitoring for every ACTIVE retainer, persist the
+ * run, and email the owner on a breach. Skips retainers already swept within the
+ * last 6 days (so an extra tick can't double-run), and halts LLM spend the
+ * moment the company-wide monthly cost cap is reached.
+ */
+export async function runF0MonitoringSweep(now: Date = new Date()): Promise<{
+  retainersConsidered: number;
+  runsExecuted: number;
+  breaches: number;
+  alertsSent: number;
+  skippedRecent: number;
+  costCapReached: boolean;
+}> {
+  const reRunCutoff = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
+  const retainers = await db
+    .select()
+    .from(f0RetainersTable)
+    .where(eq(f0RetainersTable.status, "ACTIVE"))
+    .orderBy(f0RetainersTable.createdAt);
+
+  let runsExecuted = 0;
+  let breaches = 0;
+  let alertsSent = 0;
+  let skippedRecent = 0;
+  let costCapReached = false;
+
+  const capUsd = globalMonthlyCostCapUsd();
+  for (const retainer of retainers) {
+    // Re-run guard: skip if a cron run already exists inside the window.
+    const recent = await db
+      .select({ id: f0MonitoringRunsTable.id })
+      .from(f0MonitoringRunsTable)
+      .where(
+        and(
+          eq(f0MonitoringRunsTable.retainerId, retainer.id),
+          eq(f0MonitoringRunsTable.source, "cron"),
+        ),
+      )
+      .orderBy(desc(f0MonitoringRunsTable.createdAt))
+      .limit(1);
+    if (recent[0]) {
+      const lastRows = await db
+        .select({ createdAt: f0MonitoringRunsTable.createdAt })
+        .from(f0MonitoringRunsTable)
+        .where(eq(f0MonitoringRunsTable.id, recent[0].id))
+        .limit(1);
+      const last = lastRows[0]?.createdAt as Date | undefined;
+      if (last && last > reRunCutoff) {
+        skippedRecent++;
+        continue;
+      }
+    }
+
+    // Cost-cap guard: never start another LLM call once the cap is hit.
+    if (Number.isFinite(capUsd)) {
+      const used = await currentMonthCostGlobal();
+      if (used >= capUsd) {
+        costCapReached = true;
+        logger.warn(
+          { used, capUsd },
+          "F0 monitoring sweep halted: company-wide monthly cost cap reached",
+        );
+        break;
+      }
+    }
+
+    let out: MonitoringOutput;
+    try {
+      out = await generateRetainerMonitoring(retainer, undefined, "claude");
+    } catch (err) {
+      logger.warn({ err, retainerId: retainer.id }, "F0 monitoring sweep: generation failed");
+      continue;
+    }
+    runsExecuted++;
+
+    let run: F0MonitoringRun;
+    try {
+      run = await persistMonitoringRun(retainer, out, "cron");
+    } catch (err) {
+      logger.warn({ err, retainerId: retainer.id }, "F0 monitoring sweep: persistence failed");
+      continue;
+    }
+
+    if (!run.breached) continue;
+    breaches++;
+    const sent = await dispatchRetainerMonitoringAlert({
+      userId: retainer.userId,
+      retainerTitle: retainer.title,
+      capiPosture: out.capiPosture,
+      highestUrgency: run.highestUrgency ?? "ACT_SOON",
+      alerts: out.eventAlerts.filter((a) => a.urgency === "ACT_SOON" || a.urgency === "ACT_NOW"),
+      weeklyCounsel: out.weeklyCounsel,
+      occurredAt: run.createdAt as Date,
+    });
+    if (sent) {
+      alertsSent++;
+      await db
+        .update(f0MonitoringRunsTable)
+        .set({ notifiedAt: new Date() })
+        .where(eq(f0MonitoringRunsTable.id, run.id));
+    }
+  }
+
+  return {
+    retainersConsidered: retainers.length,
+    runsExecuted,
+    breaches,
+    alertsSent,
+    skippedRecent,
+    costCapReached,
+  };
 }
 
 export { ReportSchema as F0ReportContentSchema };
