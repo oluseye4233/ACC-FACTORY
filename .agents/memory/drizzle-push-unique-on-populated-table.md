@@ -24,6 +24,11 @@ leaves *every other* pending change unapplied too — so seemingly unrelated tes
 fail on missing columns (e.g. `column "creator_hash" does not exist`). Fix the
 blocking constraint via pool first, then a normal `push` syncs the rest.
 
+**Must be a CONSTRAINT, not an INDEX.** `.unique()` in the schema maps to a
+UNIQUE *constraint*; a `CREATE UNIQUE INDEX <same_name>` does NOT satisfy the
+diff — drizzle still plans the constraint and re-prompts to truncate. Use
+`ALTER TABLE … ADD CONSTRAINT <name> UNIQUE (col)`.
+
 **Workaround:** apply the DDL directly instead of via push — run the exact
 `ALTER TABLE … ADD CONSTRAINT <name> UNIQUE (col)` (plus new columns/tables)
 through the `pool` from `@workspace/db`, using drizzle's own constraint naming
