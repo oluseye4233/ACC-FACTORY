@@ -1,17 +1,21 @@
 ---
-name: drizzle-kit push — unique constraint on a populated table
-description: Why `pnpm --filter @workspace/db run push` (and push-force) can hang/fail non-interactively, and the safe workaround.
+name: drizzle DB sync — generate + migrate, not push
+description: Why this repo syncs the DB with drizzle-kit generate + migrate (never push), and how the existing-DB baseline was adopted.
 ---
 
-Adding a `.unique()` column/constraint to an already-populated table makes
-`drizzle-kit push` emit an interactive "Do you want to truncate <table>?"
-prompt. In this non-TTY agent environment that throws
-`Interactive prompts require a TTY terminal`. **`--force` (push-force) does NOT
-skip this** — the truncate suggestion runs before the force path.
+`drizzle-kit push` prompts "Do you want to truncate <table>?" whenever a
+`.unique()` or NOT NULL is added to an already-populated table. In a non-TTY
+environment that throws `Interactive prompts require a TTY terminal`; `--force`
+only "helps" by truncating (data loss). push therefore cannot safely apply such
+a change, so pushes got skipped and the dev/test DB silently drifted from
+`lib/db/src/schema/*` (missing columns/tables → test failures).
 
-**Never answer "yes"/truncate.** For a NULLABLE unique column the constraint is
-safe to add as-is: Postgres treats NULLs as distinct, so existing null rows
-never violate uniqueness.
+**Canonical sync is now `generate` + `migrate`** (scripts in `lib/db/package.json`,
+`out: ./migrations`). `generate` writes a SQL migration from the schema-vs-snapshot
+diff; `migrate` applies pending migrations non-interactively and never truncates —
+adding a nullable unique constraint is just `ALTER TABLE … ADD CONSTRAINT … UNIQUE`.
+Commit `migrations/*.sql` + `migrations/meta/*` with the schema change. Keep `push`
+only for throwaway prototyping against an empty DB.
 
 **One blocked constraint aborts the WHOLE push.** The truncate prompt fires
 even when the unique *column itself* doesn't exist yet (drizzle plans add-column
@@ -28,3 +32,23 @@ later `push` sees the schema as already-matching and stays a no-op. Easiest to
 run via a throwaway `scripts/src/_tmp.ts` executed with
 `pnpm --filter @workspace/scripts exec tsx ./src/_tmp.ts` (tsx lives in scripts;
 root/other-package code_execution can't resolve `@workspace/db`).
+
+**Adopting migrations on a pre-existing (push-built) DB:**
+`drizzle-kit pull` introspects the live DB into baseline `0000` + snapshot, then
+`generate` produces the diff as the next migration. Mark `0000` already-applied by
+inserting a row into `drizzle.__drizzle_migrations` with `created_at` = the entry's
+`when` (folderMillis from `meta/_journal.json`) — the migrator's skip logic only
+compares `created_at`, so this makes `migrate` run only the newer diffs. A fresh
+empty DB instead runs every migration from `0000`.
+
+**pull→generate churn is spurious.** Introspection represents existing indexes/FKs
+differently than the code does, so the first `generate` emits DROP/CREATE INDEX and
+DROP/ADD FK for objects that already match. Verify against the live DB (`pg_indexes`,
+`pg_constraint`) and strip that churn from the diff SQL, keeping only the genuinely
+additive statements. The `meta/*_snapshot.json` stays canonical (generate reads only
+snapshots, never the .sql), so hand-editing the .sql body is safe and future diffs
+stay clean.
+
+**`out` must be a RELATIVE path** in `drizzle.config.ts` (e.g. `./migrations`).
+An absolute `path.join(__dirname, …)` makes `generate`/`migrate` build a broken
+`.//home/...` path (ENOENT); only `pull` tolerates the absolute form.
