@@ -85,6 +85,16 @@ export function ArtifactTray({ artifacts, onSelect }: ArtifactTrayProps) {
                 </span>
               </div>
 
+              {artifact.sku ? (
+                <span
+                  className="font-mono text-[10px] text-muted-foreground/90 tracking-tight break-all"
+                  title="Universal SKU"
+                  data-testid={`artifact-sku-${artifact.id}`}
+                >
+                  {artifact.sku}
+                </span>
+              ) : null}
+
               <div className="flex items-center gap-2 mt-1">
                 {artifact.jcseScore !== null && artifact.jcseScore !== undefined && (
                   <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">

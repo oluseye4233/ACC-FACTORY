@@ -19,6 +19,8 @@ export interface HarnessArtifact {
   name?: string | null;
   artifactContent: HarnessArtifactArtifactContent;
   /** @nullable */
+  sku?: string | null;
+  /** @nullable */
   jcseScore?: number | null;
   /** @nullable */
   certTier?: string | null;

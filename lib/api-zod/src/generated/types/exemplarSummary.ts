@@ -16,6 +16,7 @@ export interface ExemplarSummary {
   jcse: number | null;
   /** @nullable */
   certClass: string | null;
+  sku: string;
   source: ExemplarSummarySource;
   kind: ExemplarSummaryKind;
   /**

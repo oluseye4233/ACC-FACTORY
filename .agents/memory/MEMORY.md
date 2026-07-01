@@ -13,3 +13,4 @@
 - [Stripe dev/prod account split](stripe-dev-prod-account-split.md) — prod = LIVE Stripe (different account) vs dev = TEST; can't comp prod tier via test checkout, use admin tier-grant + ADMIN_EMAILS.
 - [UpgradeCTA gating (402 vs 403)](upgrade-cta-gating.md) — every engine workspace must open UpgradeCTA on 402||403 (402=cost cap on-ramp, 403=tier gate); drive copy from cause, button from f1000 membership.
 - [Scripts CWD under --filter](scripts-cwd-under-filter.md) — `pnpm --filter @workspace/scripts run` CWD is `scripts/`; resolve repo-root output paths from import.meta.url, not process.cwd().
+- [drizzle push unique on populated table](drizzle-push-unique-on-populated-table.md) — adding .unique() to a filled table triggers a TTY truncate prompt (even with --force); apply DDL via pool instead, never truncate.

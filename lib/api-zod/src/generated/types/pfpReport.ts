@@ -11,6 +11,11 @@ import type { PfpReportVerdict } from './pfpReportVerdict';
 
 export interface PfpReport {
   artifactId: string;
+  /**
+     * F0 advisory report code assigned at report-generation time, formatted [CODE]-[SKU]-[TIMESTAMP] and anchored to the owning MVP PDD's SKU. Null when the source MVP PDD has no SKU yet.
+     * @nullable
+     */
+  f0ReportCode?: string | null;
   verdict: PfpReportVerdict;
   /**
      * @minimum 0

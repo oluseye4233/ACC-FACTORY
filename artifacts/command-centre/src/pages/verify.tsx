@@ -122,6 +122,17 @@ export default function Verify() {
                       <span className="text-xs font-mono text-muted-foreground">ID</span>
                       <span className="text-sm font-mono font-bold">{data.certId}</span>
                     </div>
+                    {data.sku ? (
+                      <div className="flex justify-between items-center gap-2 pb-2 border-b border-border/50">
+                        <span className="text-xs font-mono text-muted-foreground">SKU</span>
+                        <span
+                          className="text-xs font-mono font-bold text-right break-all"
+                          data-testid="verify-sku"
+                        >
+                          {data.sku}
+                        </span>
+                      </div>
+                    ) : null}
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
                       <span className="text-xs font-mono text-muted-foreground">CLASS</span>
                       <CertTierChip tier={data.class || "NONE"} />

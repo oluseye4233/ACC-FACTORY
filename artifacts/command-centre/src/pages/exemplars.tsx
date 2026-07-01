@@ -53,6 +53,12 @@ function List() {
                       <span className="text-primary/80">DISC</span> · {ex.disc}
                     </div>
                   )}
+                  <div
+                    className="font-mono text-[10px] text-muted-foreground/80 tracking-tight break-all"
+                    title="Universal SKU"
+                  >
+                    {ex.sku}
+                  </div>
                   <div className="flex items-end justify-between gap-4">
                     <div className="flex gap-3 text-xs font-mono text-muted-foreground">
                       {ex.jcse !== null && <span>JCSE {ex.jcse}/50</span>}
@@ -98,6 +104,12 @@ function Detail({ id }: { id: string }) {
                   {data.jcse !== null && <span>· JCSE {data.jcse}/50</span>}
                   {data.certClass && <span>· {data.certClass}</span>}
                   <span>· {data.source.replace("_", "-")}</span>
+                </div>
+                <div
+                  className="mt-1 font-mono text-[11px] text-muted-foreground/90 tracking-tight break-all"
+                  title="Universal SKU"
+                >
+                  {data.sku}
                 </div>
                 {data.disc && (
                   <div className="mt-2 inline-flex items-start gap-2 text-[11px] font-mono text-muted-foreground/90 max-w-2xl">

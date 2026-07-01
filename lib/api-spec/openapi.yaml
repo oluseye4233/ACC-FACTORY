@@ -1753,6 +1753,9 @@ components:
       required: [artifactId, verdict, fci, summary, findings, counts]
       properties:
         artifactId: { type: string, format: uuid }
+        f0ReportCode:
+          type: ["string", "null"]
+          description: F0 advisory report code assigned at report-generation time, formatted [CODE]-[SKU]-[TIMESTAMP] and anchored to the owning MVP PDD's SKU. Null when the source MVP PDD has no SKU yet.
         verdict:    { type: string, enum: [pass, pass_with_notes, fail] }
         fci:        { type: integer, minimum: 0, maximum: 100 }
         summary:    { type: string }
@@ -1996,6 +1999,7 @@ components:
         artifactType: { $ref: "#/components/schemas/ArtifactType" }
         name: { type: ["string", "null"] }
         artifactContent: { type: object, additionalProperties: true }
+        sku: { type: ["string", "null"] }
         jcseScore: { type: ["integer", "null"] }
         certTier: { type: ["string", "null"] }
         groState: { type: string }
@@ -2558,6 +2562,7 @@ components:
         class: { type: ["string", "null"] }
         crP: { type: ["number", "null"] }
         issuedAt: { type: ["string", "null"], format: date-time }
+        sku: { type: ["string", "null"] }
         productName: { type: ["string", "null"] }
         sessionName: { type: ["string", "null"] }
         provider: { type: ["string", "null"] }
@@ -2565,13 +2570,14 @@ components:
 
     ExemplarSummary:
       type: object
-      required: [id, title, tagline, jcse, certClass, source, kind, disc]
+      required: [id, title, tagline, jcse, certClass, source, kind, sku, disc]
       properties:
         id: { type: string }
         title: { type: string }
         tagline: { type: string }
         jcse: { type: ["integer", "null"] }
         certClass: { type: ["string", "null"] }
+        sku: { type: string }
         source:
           type: string
           enum: [canonical, hand_authored, generated]

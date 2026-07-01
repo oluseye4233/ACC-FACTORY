@@ -6,6 +6,7 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "backfill-artifact-provider": "tsx ./src/backfill-artifact-provider.ts",
+    "backfill-skus": "tsx ./src/backfill-skus.ts",
     "cron-tick": "tsx ./src/cron-tick.ts",
     "seed-f1000-invites": "tsx ./src/seed-f1000-invites.ts",
     "build-f1000-qr": "tsx ./src/build-f1000-qr.ts",

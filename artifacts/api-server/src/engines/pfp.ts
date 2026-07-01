@@ -11,6 +11,7 @@ import {
   resolveProvider,
   sendProviderTierError,
 } from "./shared";
+import { issueF0ReportCode } from "../lib/sku";
 
 const FINDING_CODES = [
   "SPEC_DRIFT",
@@ -152,7 +153,30 @@ export async function handlePfp(req: Request, res: Response): Promise<void> {
     provider,
   });
 
-  res.json({ artifactId: artifact.id, ...out });
+  // F0-021: assign an advisory report code at report-generation time, anchored
+  // to the owning MVP PDD's SKU. Best-effort — the report is already persisted,
+  // so a registry hiccup must not lose it (the code can be re-minted later).
+  let f0ReportCode: string | null = null;
+  if (mvp.sku) {
+    try {
+      const rec = await issueF0ReportCode({
+        userId: guard.userId,
+        sku: mvp.sku,
+        code: "PFP",
+        artifactId: artifact.id,
+      });
+      f0ReportCode = rec.reportCode;
+    } catch (err) {
+      req.log.warn({ err }, "F0 report-code issuance failed for PFP report");
+    }
+  } else {
+    req.log.warn(
+      { mvpPddArtifactId },
+      "PFP report generated for an MVP PDD with no SKU; skipping F0 report code",
+    );
+  }
+
+  res.json({ artifactId: artifact.id, f0ReportCode, ...out });
 }
 
 /**

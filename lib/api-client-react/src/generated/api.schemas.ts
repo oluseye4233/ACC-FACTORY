@@ -414,6 +414,11 @@ export type PfpReportCounts = {
 
 export interface PfpReport {
   artifactId: string;
+  /**
+     * F0 advisory report code assigned at report-generation time, formatted [CODE]-[SKU]-[TIMESTAMP] and anchored to the owning MVP PDD's SKU. Null when the source MVP PDD has no SKU yet.
+     * @nullable
+     */
+  f0ReportCode?: string | null;
   verdict: PfpReportVerdict;
   /**
      * @minimum 0
@@ -652,6 +657,8 @@ export interface HarnessArtifact {
   /** @nullable */
   name?: string | null;
   artifactContent: HarnessArtifactArtifactContent;
+  /** @nullable */
+  sku?: string | null;
   /** @nullable */
   jcseScore?: number | null;
   /** @nullable */
@@ -1267,6 +1274,8 @@ export interface VerifyResult {
   /** @nullable */
   issuedAt?: string | null;
   /** @nullable */
+  sku?: string | null;
+  /** @nullable */
   productName?: string | null;
   /** @nullable */
   sessionName?: string | null;
@@ -1301,6 +1310,7 @@ export interface ExemplarSummary {
   jcse: number | null;
   /** @nullable */
   certClass: string | null;
+  sku: string;
   source: ExemplarSummarySource;
   kind: ExemplarSummaryKind;
   /**

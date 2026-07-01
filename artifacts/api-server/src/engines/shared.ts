@@ -29,6 +29,7 @@ import type { Request, Response } from "express";
 import { computeCostUsd } from "../lib/pricing";
 import { logger } from "../lib/logger";
 import { maybeDispatchHighCostAlerts } from "../lib/notification-dispatch";
+import { tryIssueSku } from "../lib/sku";
 
 // Provider-specific default models.
 export const PROVIDER_MODELS: Record<LlmProvider, string> = {
@@ -126,6 +127,11 @@ export async function persistArtifact(
   const provider = input.provider ?? null;
   const modelId =
     input.modelId ?? (provider ? PROVIDER_MODELS[provider] ?? null : null);
+  // Universal SKU Catalog (D24 · SKU-002): mint a canonical SKU for publishable
+  // artifact types (SPC, MVP_PDD) at persist time — this is the publish event.
+  // Non-eligible intermediate artifacts get null. Best-effort so a transient
+  // catalog error can never lose completed, paid-for engine work.
+  const sku = await tryIssueSku(input.userId, input.artifactType);
   const [row] = await db
     .insert(harnessArtifactsTable)
     .values({
@@ -135,6 +141,7 @@ export async function persistArtifact(
       artifactType: input.artifactType,
       name: input.name ?? null,
       artifactContent: input.artifactContent,
+      sku,
       jcseScore: input.jcseScore ?? null,
       certTier: input.certTier ?? null,
       groState: input.groState ?? "SAFE_LIFE",

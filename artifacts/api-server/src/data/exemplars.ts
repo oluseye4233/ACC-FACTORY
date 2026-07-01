@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { DEFAULT_SECTOR, PLATFORM_CREATOR_HASH, formatSku } from "../lib/sku";
 
 export type ExemplarSummary = {
   id: string;
@@ -9,6 +10,13 @@ export type ExemplarSummary = {
   certClass: string | null;
   source: "canonical" | "hand_authored" | "generated";
   kind: "SPC" | "PDD";
+  /**
+   * Canonical Universal SKU (D24) for the exemplar listing. These are library
+   * showcase entries owned by the platform, so they are minted under the stable
+   * platform creator hash with a deterministic per-type display sequence rather
+   * than the live sku_sequences counter.
+   */
+  sku: string;
   /**
    * DISC personality profile (Dominance / Influence / Steadiness / Conscientiousness).
    * Every SPC has a unique DISC fingerprint that shapes how its persona behaves under load.
@@ -21,9 +29,10 @@ export type Exemplar = ExemplarSummary & {
   body: string;
 };
 
+type RawEntry = Omit<ExemplarSummary, "sku"> & { filename: string };
 type Entry = ExemplarSummary & { filename: string };
 
-const ENTRIES: Entry[] = [
+const RAW_ENTRIES: RawEntry[] = [
   {
     id: "sphinx-ultra-si",
     title: "SPHINX ULTRA SI",
@@ -148,6 +157,26 @@ const ENTRIES: Entry[] = [
     filename: "ATANDA_COMMAND_CENTRE_SPC_v1.md",
   },
 ];
+
+// Mint a deterministic canonical SKU per exemplar. Sequence numbers advance per
+// product type (SPC / PDD) in declaration order, under the stable platform
+// creator hash, so the library shows real, well-formed SKUs that never touch or
+// collide with the live sku_sequences counter that serves creator publishes.
+const SKU_TYPE_BY_KIND: Record<ExemplarSummary["kind"], string> = { SPC: "SPC", PDD: "PDD" };
+const ENTRIES: Entry[] = (() => {
+  const seqByType: Record<string, number> = {};
+  return RAW_ENTRIES.map((entry) => {
+    const productType = SKU_TYPE_BY_KIND[entry.kind];
+    const seq = (seqByType[productType] = (seqByType[productType] ?? 0) + 1);
+    const sku = formatSku({
+      productType,
+      sector: DEFAULT_SECTOR,
+      creatorHash: PLATFORM_CREATOR_HASH,
+      seq,
+    });
+    return { ...entry, sku };
+  });
+})();
 
 function findAssetsDir(): string {
   const candidates: string[] = [];

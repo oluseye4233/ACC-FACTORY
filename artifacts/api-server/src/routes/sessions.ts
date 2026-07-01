@@ -87,6 +87,7 @@ function serializeArtifact(
     artifactType: a.artifactType,
     name: a.name,
     artifactContent: a.artifactContent as Record<string, unknown>,
+    sku: a.sku,
     jcseScore: a.jcseScore,
     certTier: a.certTier,
     groState: a.groState,

@@ -31,6 +31,12 @@ export const harnessArtifactsTable = pgTable("harness_artifacts", {
   artifactType: text("artifact_type").notNull().$type<ArtifactType>(),
   name: text("name"),
   artifactContent: jsonb("artifact_content").notNull(),
+  // Universal SKU Catalog (D24 · SKU-002). Canonical identity issued at publish
+  // for SKU-eligible artifact types (SPC, MVP_PDD). Format:
+  //   ARK-[TYPE:3]-[SECTOR:3]-[CREATORHASH:6]-[SEQ:4]-V[VER]
+  // Nullable: intermediate artifact types never carry a SKU, and pre-existing
+  // eligible rows are backfilled. Unique across the catalog.
+  sku: text("sku").unique(),
   jcseScore: integer("jcse_score"),
   certTier: text("cert_tier"),
   groState: text("gro_state").notNull().default("SAFE_LIFE"),

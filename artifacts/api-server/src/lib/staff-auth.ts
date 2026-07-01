@@ -7,6 +7,7 @@ import {
   type Subscriber,
   type User,
 } from "@workspace/db";
+import { computeCreatorHash } from "./sku";
 
 /**
  * Internal-staff access model.
@@ -90,9 +91,13 @@ export function parseSession(raw: unknown): StaffSession | null {
  */
 export async function ensureStaffUser(handle: string, name: string): Promise<User> {
   const clerkUserId = `${STAFF_CLERK_PREFIX}${handle}`;
+  // SKU-001: mint the stable creator hash once, on first provision. It is set
+  // only in the INSERT branch — the onConflict path never rewrites it — so a
+  // staffer's catalog identity stays stable across every login.
+  const creatorHash = computeCreatorHash(clerkUserId, null);
   const [row] = await db
     .insert(usersTable)
-    .values({ clerkUserId, email: null, displayName: name, role: "ADMIN" })
+    .values({ clerkUserId, email: null, displayName: name, role: "ADMIN", creatorHash })
     .onConflictDoUpdate({
       target: usersTable.clerkUserId,
       set: { displayName: name, role: "ADMIN" },

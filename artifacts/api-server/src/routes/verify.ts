@@ -62,6 +62,8 @@ router.get("/verify", async (req, res): Promise<void> => {
     class: typeof c.class === "string" ? c.class : null,
     crP: typeof c.crP === "number" ? c.crP : null,
     issuedAt: typeof c.issuedAt === "string" ? c.issuedAt : null,
+    // The canonical Universal SKU (D24) issued to this certified artifact.
+    sku: r.artifact.sku ?? null,
     // The certified MVP product's (SPC) name — the product named inside the
     // certified MVP PDD, or any explicit artifact name. Kept distinct from the
     // session name so the certificate can show both identifiers.
