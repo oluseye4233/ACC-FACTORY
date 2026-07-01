@@ -19,12 +19,14 @@ import pinoHttp from "pino-http";
 import router from "./routes";
 import stripeWebhookRouter from "./routes/stripe-webhook";
 import { logger } from "./lib/logger";
-import { assertAccessCodeConfigured } from "./lib/staff-auth";
+import { assertBootCriticalConfig } from "./lib/boot-config";
 
-// Fail fast if the shared staff access code is missing. In production this
-// throws and refuses to boot; in development it logs a single warning so local
-// runs aren't blocked.
-assertAccessCodeConfigured(logger);
+// Fail fast if any boot-critical setting is missing (STAFF_ACCESS_CODE,
+// SESSION_SECRET, DATABASE_URL — see lib/boot-config.ts for the full list). In
+// production this throws and refuses to boot so a misconfigured deploy fails
+// loudly instead of coming up broken; in development it logs a single warning so
+// local runs aren't blocked.
+assertBootCriticalConfig(logger);
 
 // NOTE: Clerk has been lifted out of the active request path — the portal now
 // authenticates staff via a signed access-code cookie (see lib/staff-auth.ts).
