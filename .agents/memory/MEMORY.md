@@ -6,7 +6,6 @@
 - [HOST DJ → F8-HDJ engine doctrine](host-dj-engine-doctrine.md) — SHIPPED advisory side-step (no daily counter); never an SPC; server-recomputes HSE ranking; env template names-only (key+desc sanitised).
 - [LLM prompt determinism](llm-prompt-determinism.md) — HARNESS engine prompts built from DB rows need a stable order; inArray() has none, which breaks the replay-fixture cache key.
 - [SUBSCRIPTIONS_ENABLED flag](subscriptions-enabled-flag.md) — dormant billing behind reversible env flag read at call-time; tests exercising billing must set it "true" at module scope before app import.
-- [Cost cap covers all LLM callsites](cost-cap-all-llm-callsites.md) — requireCostBudget must gate EVERY callLlmJson route (ingest/cartridge too), not just F-engines; pre-session calls capped but not yet ledger-recorded.
 - [Investor-PDD PDF theme](investor-pdd-pdf-theme.md) — all investor-grade PDDs share one pdfkit design via scripts/src/lib/atlas-pdf-theme.mjs createTheme(doc); new docs must use it to stay uniform.
 - [Verify cert identity names](verify-cert-identity-names.md) — /verify product (SPC) name lives in the MVP PDD's card_identity_metadata section; label varies (Product: vs Product Name:, bulleted), keep distinct from session name.
 - [Sphinx Marketplace model](sphinx-marketplace-model.md) — Sphinx is the EXTERNAL single point of sale (live API pending); buy/suggest are routing seams that 503 gracefully; lineage is internal, anchored to the SPC's timestamp.

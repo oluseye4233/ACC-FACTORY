@@ -51,9 +51,11 @@ function activateRateLimited(ip: string): boolean {
 }
 
 /**
- * Public counter for the landing page banner. Cheap aggregate; no auth.
+ * Public counter for the landing page banner. Cheap aggregate; no auth, but
+ * dormant with the rest of the F1000 promo behind SUBSCRIPTIONS_ENABLED —
+ * returns 503 SUBSCRIPTIONS_DISABLED in internal-staff mode.
  */
-router.get("/f1000/status", async (_req, res): Promise<void> => {
+router.get("/f1000/status", requireSubscriptionsEnabled, async (_req, res): Promise<void> => {
   const rows = await db
     .select({
       redeemed: sql<string>`COUNT(*) FILTER (WHERE ${f1000InvitesTable.status} = 'redeemed')`,
