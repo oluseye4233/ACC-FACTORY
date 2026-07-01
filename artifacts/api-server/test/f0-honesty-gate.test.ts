@@ -124,7 +124,25 @@ interface Fixtures {
 
 const ARTIFACT_SKU = "ARK-SPC-GEN-abc123-0001-V1";
 
-async function seed(): Promise<Fixtures> {
+// A completed SOCRATES discovery: 7 questions + at least one recorded answer.
+function completedTranscript(): Record<string, unknown> {
+  return {
+    intro: "Discovery intro",
+    questions: Array.from({ length: 7 }, (_, i) => ({
+      id: `q${i + 1}`,
+      prompt: `Question ${i + 1}?`,
+      why: `Because ${i + 1}`,
+    })),
+    answers: [{ id: "q1", answer: "An answer" }],
+  };
+}
+
+// `undefined` = seed with the default completed transcript; `null` = no
+// discovery transcript at all; any object = an explicit (possibly incomplete)
+// transcript.
+async function seed(
+  transcriptOverride?: Record<string, unknown> | null,
+): Promise<Fixtures> {
   const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const [user] = await db
     .insert(usersTable)
@@ -165,17 +183,12 @@ async function seed(): Promise<Fixtures> {
     .returning();
   if (!artifact) throw new Error("seed: artifact insert failed");
 
-  // A completed SOCRATES discovery: 7 questions + at least one recorded answer,
-  // so the DISCOVERY_REQUIRED precondition passes and we reach the gate.
-  const transcript = {
-    intro: "Discovery intro",
-    questions: Array.from({ length: 7 }, (_, i) => ({
-      id: `q${i + 1}`,
-      prompt: `Question ${i + 1}?`,
-      why: `Because ${i + 1}`,
-    })),
-    answers: [{ id: "q1", answer: "An answer" }],
-  };
+  // By default seed a completed SOCRATES discovery (7 questions + at least one
+  // recorded answer) so the DISCOVERY_REQUIRED precondition passes and we reach
+  // the gate. Callers can pass `null` for no transcript, or an explicit
+  // (possibly incomplete) transcript to exercise the precondition itself.
+  const transcript =
+    transcriptOverride === undefined ? completedTranscript() : transcriptOverride;
 
   const [engagement] = await db
     .insert(f0EngagementsTable)
@@ -389,6 +402,100 @@ describe("F0 Honesty Gate — non-suppressible on every report", () => {
       expect(code.reportCode).toBe(row.reportCode);
     } finally {
       await srv.close();
+      await cleanup(fx.user.id);
+    }
+  });
+});
+
+describe("F0 discovery precondition — no report before SOCRATES is complete", () => {
+  beforeEach(() => {
+    // A valid report body: proves any rejection is the discovery precondition
+    // firing before the LLM, not a downstream Honesty-Gate schema failure.
+    llm.responseText = JSON.stringify(validReport());
+  });
+
+  // Posts a report request and returns the HTTP status plus the parsed JSON
+  // body. Used for the precondition path, which rejects with a plain 409 JSON
+  // body before any SSE stream opens.
+  async function postReportJson(
+    url: string,
+    engagementId: string,
+  ): Promise<{ status: number; body: Record<string, unknown> }> {
+    const res = await fetch(`${url}/api/f0/engagements/${engagementId}/reports`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ service: "PRODUCT_VIABILITY", provider: "claude" }),
+    });
+    const text = await res.text();
+    let body: Record<string, unknown> = {};
+    try {
+      body = JSON.parse(text) as Record<string, unknown>;
+    } catch {
+      // non-JSON (e.g. SSE) — leave body empty so callers can assert on it
+    }
+    return { status: res.status, body };
+  }
+
+  // Drives the handler and asserts it rejected with 409 DISCOVERY_REQUIRED and
+  // wrote nothing to f0_reports / f0_report_codes.
+  async function expectDiscoveryRejected(fx: Fixtures): Promise<void> {
+    const srv = await startServer(buildApp(fx.user, fx.subscriber));
+    try {
+      const res = await postReportJson(srv.url, fx.engagementId);
+      expect(res.status).toBe(409);
+      expect(res.body.error).toBe("DISCOVERY_REQUIRED");
+
+      const reports = await db
+        .select()
+        .from(f0ReportsTable)
+        .where(eq(f0ReportsTable.userId, fx.user.id));
+      expect(reports.length).toBe(0);
+      const codes = await db
+        .select()
+        .from(f0ReportCodesTable)
+        .where(eq(f0ReportCodesTable.userId, fx.user.id));
+      expect(codes.length).toBe(0);
+    } finally {
+      await srv.close();
+    }
+  }
+
+  test("rejects with 409 DISCOVERY_REQUIRED when there is no discovery transcript", async () => {
+    const fx = await seed(null);
+    try {
+      await expectDiscoveryRejected(fx);
+    } finally {
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("rejects when questions are missing", async () => {
+    const fx = await seed({ intro: "Discovery intro", answers: [{ id: "q1", answer: "An answer" }] });
+    try {
+      await expectDiscoveryRejected(fx);
+    } finally {
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("rejects when questions are incomplete (fewer than 7)", async () => {
+    const partial = completedTranscript();
+    (partial.questions as unknown[]).length = 6;
+    const fx = await seed(partial);
+    try {
+      await expectDiscoveryRejected(fx);
+    } finally {
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("rejects when there are zero answers even though all 7 questions exist", async () => {
+    const noAnswers = completedTranscript();
+    noAnswers.answers = [];
+    const fx = await seed(noAnswers);
+    try {
+      await expectDiscoveryRejected(fx);
+    } finally {
       await cleanup(fx.user.id);
     }
   });
