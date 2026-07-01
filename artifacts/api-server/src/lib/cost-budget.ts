@@ -189,6 +189,32 @@ export async function requireCostBudget(
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
+  return enforceGlobalCostBudget(req, res, next, userId);
+}
+
+/**
+ * Anonymous variant of {@link requireCostBudget} for the pre-auth acquisition
+ * magnets (D25). The magnet routes call the LLM without a signed-in user, so the
+ * per-user 401 guard would reject every request. This gate enforces the SAME
+ * company-wide monthly spend cap (the magnet's LLM spend is recorded into
+ * `harness_engine_runs`, so it counts toward the global SUM) without requiring a
+ * local user. Mount AFTER the per-IP rate limiter, matching the ordering rule
+ * for `requireCostBudget`.
+ */
+export async function requireGlobalCostBudget(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  return enforceGlobalCostBudget(req, res, next, null);
+}
+
+async function enforceGlobalCostBudget(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  userId: string | null,
+): Promise<void> {
   try {
     const usedUsd = await currentMonthCostGlobal();
     const capUsd = globalMonthlyCostCapUsd();

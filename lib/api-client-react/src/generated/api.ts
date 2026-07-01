@@ -83,6 +83,11 @@ import type {
   JstInput,
   JstSummary,
   ListMyPromptsParams,
+  MagnetCalculatorInput,
+  MagnetCalculatorResult,
+  MagnetConversionInput,
+  MagnetTestKitInput,
+  MagnetTestKitResult,
   MeResponse,
   MicroPdd,
   MyDataExport,
@@ -1643,6 +1648,223 @@ export const useHarnessF1 = <TError = ErrorType<RateLimitedResponse>,
         TContext
       > => {
       return useMutation(getHarnessF1MutationOptions(options));
+    }
+
+export const getMagnetTestKitUrl = () => {
+
+
+
+
+  return `/api/magnet/test-kit`
+}
+
+/**
+ * Public, pre-auth acquisition magnet. Runs a single lightweight inference and returns a quality BAND only (LITE-PASS / LITE-REVIEW / LITE-FAIL). The raw numeric score is computed and bucketed server-side and is never returned. Rate limited to 5 requests/hour per IP/email. Ephemeral: the submitted text is not persisted.
+
+ * @summary Anonymous Agent Test Kit — returns a coarse quality band only
+ */
+export const magnetTestKit = async (magnetTestKitInput: MagnetTestKitInput, options?: RequestInit): Promise<MagnetTestKitResult> => {
+
+  return customFetch<MagnetTestKitResult>(getMagnetTestKitUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      magnetTestKitInput,)
+  }
+);}
+
+
+
+
+export const getMagnetTestKitMutationOptions = <TError = ErrorType<RateLimitedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof magnetTestKit>>, TError,{data: BodyType<MagnetTestKitInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof magnetTestKit>>, TError,{data: BodyType<MagnetTestKitInput>}, TContext> => {
+
+const mutationKey = ['magnetTestKit'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof magnetTestKit>>, {data: BodyType<MagnetTestKitInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  magnetTestKit(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MagnetTestKitMutationResult = NonNullable<Awaited<ReturnType<typeof magnetTestKit>>>
+    export type MagnetTestKitMutationBody = BodyType<MagnetTestKitInput>
+    export type MagnetTestKitMutationError = ErrorType<RateLimitedResponse>
+
+    /**
+ * @summary Anonymous Agent Test Kit — returns a coarse quality band only
+ */
+export const useMagnetTestKit = <TError = ErrorType<RateLimitedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof magnetTestKit>>, TError,{data: BodyType<MagnetTestKitInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof magnetTestKit>>,
+        TError,
+        {data: BodyType<MagnetTestKitInput>},
+        TContext
+      > => {
+      return useMutation(getMagnetTestKitMutationOptions(options));
+    }
+
+export const getMagnetCalculatorUrl = () => {
+
+
+
+
+  return `/api/magnet/calculator`
+}
+
+/**
+ * Public, pre-auth acquisition magnet. Runs a single lightweight inference and returns a compression-savings RANGE (low–high %), never a single precise percentage. Signal counts are bucketed into the range server-side. Rate limited to 5 requests/hour per IP/email. Ephemeral: the submitted text is not persisted.
+
+ * @summary Anonymous Savings Calculator — returns a compression-savings range only
+ */
+export const magnetCalculator = async (magnetCalculatorInput: MagnetCalculatorInput, options?: RequestInit): Promise<MagnetCalculatorResult> => {
+
+  return customFetch<MagnetCalculatorResult>(getMagnetCalculatorUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      magnetCalculatorInput,)
+  }
+);}
+
+
+
+
+export const getMagnetCalculatorMutationOptions = <TError = ErrorType<RateLimitedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof magnetCalculator>>, TError,{data: BodyType<MagnetCalculatorInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof magnetCalculator>>, TError,{data: BodyType<MagnetCalculatorInput>}, TContext> => {
+
+const mutationKey = ['magnetCalculator'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof magnetCalculator>>, {data: BodyType<MagnetCalculatorInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  magnetCalculator(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MagnetCalculatorMutationResult = NonNullable<Awaited<ReturnType<typeof magnetCalculator>>>
+    export type MagnetCalculatorMutationBody = BodyType<MagnetCalculatorInput>
+    export type MagnetCalculatorMutationError = ErrorType<RateLimitedResponse>
+
+    /**
+ * @summary Anonymous Savings Calculator — returns a compression-savings range only
+ */
+export const useMagnetCalculator = <TError = ErrorType<RateLimitedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof magnetCalculator>>, TError,{data: BodyType<MagnetCalculatorInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof magnetCalculator>>,
+        TError,
+        {data: BodyType<MagnetCalculatorInput>},
+        TContext
+      > => {
+      return useMutation(getMagnetCalculatorMutationOptions(options));
+    }
+
+export const getMagnetConversionUrl = () => {
+
+
+
+
+  return `/api/magnet/conversion`
+}
+
+/**
+ * @summary Record that a magnet visitor clicked through to the front door
+ */
+export const magnetConversion = async (magnetConversionInput: MagnetConversionInput, options?: RequestInit): Promise<Ok> => {
+
+  return customFetch<Ok>(getMagnetConversionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      magnetConversionInput,)
+  }
+);}
+
+
+
+
+export const getMagnetConversionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof magnetConversion>>, TError,{data: BodyType<MagnetConversionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof magnetConversion>>, TError,{data: BodyType<MagnetConversionInput>}, TContext> => {
+
+const mutationKey = ['magnetConversion'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof magnetConversion>>, {data: BodyType<MagnetConversionInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  magnetConversion(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MagnetConversionMutationResult = NonNullable<Awaited<ReturnType<typeof magnetConversion>>>
+    export type MagnetConversionMutationBody = BodyType<MagnetConversionInput>
+    export type MagnetConversionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Record that a magnet visitor clicked through to the front door
+ */
+export const useMagnetConversion = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof magnetConversion>>, TError,{data: BodyType<MagnetConversionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof magnetConversion>>,
+        TError,
+        {data: BodyType<MagnetConversionInput>},
+        TContext
+      > => {
+      return useMutation(getMagnetConversionMutationOptions(options));
     }
 
 export const getHarnessF2Url = () => {

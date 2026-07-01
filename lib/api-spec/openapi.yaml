@@ -23,6 +23,7 @@ tags:
   - name: badges
   - name: export
   - name: f1000
+  - name: magnet
 
 paths:
   /healthz:
@@ -357,6 +358,73 @@ paths:
               schema: { $ref: "#/components/schemas/PromptDiagnostic" }
         "429":
           $ref: "#/components/responses/RateLimited"
+
+  /magnet/test-kit:
+    post:
+      operationId: magnetTestKit
+      tags: [magnet]
+      summary: Anonymous Agent Test Kit — returns a coarse quality band only
+      description: >
+        Public, pre-auth acquisition magnet. Runs a single lightweight inference
+        and returns a quality BAND only (LITE-PASS / LITE-REVIEW / LITE-FAIL).
+        The raw numeric score is computed and bucketed server-side and is never
+        returned. Rate limited to 5 requests/hour per IP/email. Ephemeral: the
+        submitted text is not persisted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MagnetTestKitInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MagnetTestKitResult" }
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /magnet/calculator:
+    post:
+      operationId: magnetCalculator
+      tags: [magnet]
+      summary: Anonymous Savings Calculator — returns a compression-savings range only
+      description: >
+        Public, pre-auth acquisition magnet. Runs a single lightweight inference
+        and returns a compression-savings RANGE (low–high %), never a single
+        precise percentage. Signal counts are bucketed into the range
+        server-side. Rate limited to 5 requests/hour per IP/email. Ephemeral: the
+        submitted text is not persisted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MagnetCalculatorInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MagnetCalculatorResult" }
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /magnet/conversion:
+    post:
+      operationId: magnetConversion
+      tags: [magnet]
+      summary: Record that a magnet visitor clicked through to the front door
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MagnetConversionInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
 
   /harness/f2:
     post:
@@ -2005,6 +2073,61 @@ components:
         jcse: { $ref: "#/components/schemas/JcseBreakdown" }
         certTier: { $ref: "#/components/schemas/CertTier" }
         artifactId: { type: ["string", "null"], format: uuid }
+
+    MagnetTestKitInput:
+      type: object
+      required: [prompt]
+      properties:
+        prompt: { type: string, minLength: 10, maxLength: 20000 }
+        email: { type: ["string", "null"], format: email }
+
+    MagnetTestKitResult:
+      type: object
+      required: [magnetSessionId, band, headline, strengths, fixes, dimensions]
+      properties:
+        magnetSessionId: { type: string, format: uuid }
+        band: { type: string, enum: [LITE-PASS, LITE-REVIEW, LITE-FAIL] }
+        headline: { type: string }
+        strengths:
+          type: array
+          items: { type: string }
+        fixes:
+          type: array
+          items: { type: string }
+        dimensions:
+          type: array
+          description: Per-dimension qualitative notes. Numeric scores are never returned.
+          items:
+            type: object
+            required: [name, note]
+            properties:
+              name: { type: string }
+              note: { type: string }
+
+    MagnetCalculatorInput:
+      type: object
+      required: [artifact]
+      properties:
+        artifact: { type: string, minLength: 10, maxLength: 20000 }
+        email: { type: ["string", "null"], format: email }
+
+    MagnetCalculatorResult:
+      type: object
+      required:
+        [magnetSessionId, savingsLowPct, savingsHighPct, compressionClass, headline, rationale]
+      properties:
+        magnetSessionId: { type: string, format: uuid }
+        savingsLowPct: { type: integer }
+        savingsHighPct: { type: integer }
+        compressionClass: { type: string, enum: [LOW, MEDIUM, HIGH, EXTREME] }
+        headline: { type: string }
+        rationale: { type: string }
+
+    MagnetConversionInput:
+      type: object
+      required: [magnetSessionId]
+      properties:
+        magnetSessionId: { type: string, format: uuid }
 
     HarnessF1Input:
       type: object

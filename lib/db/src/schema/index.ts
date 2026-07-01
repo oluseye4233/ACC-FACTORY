@@ -10,6 +10,7 @@ export * from "./harness-escalations";
 export * from "./pricing-content";
 export * from "./stripe-webhook-events";
 export * from "./harness-engine-runs";
+export * from "./magnet-sessions";
 export * from "./command-centre-badges";
 export * from "./cartridge";
 export * from "./badge-revocations";

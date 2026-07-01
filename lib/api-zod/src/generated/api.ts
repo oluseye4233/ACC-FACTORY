@@ -484,6 +484,71 @@ export const HarnessF1Response = zod.object({
 
 
 /**
+ * Public, pre-auth acquisition magnet. Runs a single lightweight inference and returns a quality BAND only (LITE-PASS / LITE-REVIEW / LITE-FAIL). The raw numeric score is computed and bucketed server-side and is never returned. Rate limited to 5 requests/hour per IP/email. Ephemeral: the submitted text is not persisted.
+
+ * @summary Anonymous Agent Test Kit — returns a coarse quality band only
+ */
+export const magnetTestKitBodyPromptMin = 10;
+export const magnetTestKitBodyPromptMax = 20000;
+
+
+
+export const MagnetTestKitBody = zod.object({
+  "prompt": zod.string().min(magnetTestKitBodyPromptMin).max(magnetTestKitBodyPromptMax),
+  "email": zod.string().email().nullish()
+})
+
+export const MagnetTestKitResponse = zod.object({
+  "magnetSessionId": zod.string().uuid(),
+  "band": zod.enum(['LITE-PASS', 'LITE-REVIEW', 'LITE-FAIL']),
+  "headline": zod.string(),
+  "strengths": zod.array(zod.string()),
+  "fixes": zod.array(zod.string()),
+  "dimensions": zod.array(zod.object({
+  "name": zod.string(),
+  "note": zod.string()
+})).describe('Per-dimension qualitative notes. Numeric scores are never returned.')
+})
+
+
+/**
+ * Public, pre-auth acquisition magnet. Runs a single lightweight inference and returns a compression-savings RANGE (low–high %), never a single precise percentage. Signal counts are bucketed into the range server-side. Rate limited to 5 requests/hour per IP/email. Ephemeral: the submitted text is not persisted.
+
+ * @summary Anonymous Savings Calculator — returns a compression-savings range only
+ */
+export const magnetCalculatorBodyArtifactMin = 10;
+export const magnetCalculatorBodyArtifactMax = 20000;
+
+
+
+export const MagnetCalculatorBody = zod.object({
+  "artifact": zod.string().min(magnetCalculatorBodyArtifactMin).max(magnetCalculatorBodyArtifactMax),
+  "email": zod.string().email().nullish()
+})
+
+export const MagnetCalculatorResponse = zod.object({
+  "magnetSessionId": zod.string().uuid(),
+  "savingsLowPct": zod.number(),
+  "savingsHighPct": zod.number(),
+  "compressionClass": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'EXTREME']),
+  "headline": zod.string(),
+  "rationale": zod.string()
+})
+
+
+/**
+ * @summary Record that a magnet visitor clicked through to the front door
+ */
+export const MagnetConversionBody = zod.object({
+  "magnetSessionId": zod.string().uuid()
+})
+
+export const MagnetConversionResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+/**
  * @summary Atomic Prompt Builder certification
  */
 export const HarnessF2Body = zod.object({

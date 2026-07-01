@@ -760,6 +760,73 @@ export interface AtomicPrompt {
   artifactId?: string | null;
 }
 
+export interface MagnetTestKitInput {
+  /**
+     * @minLength 10
+     * @maxLength 20000
+     */
+  prompt: string;
+  /** @nullable */
+  email?: string | null;
+}
+
+export type MagnetTestKitResultBand = typeof MagnetTestKitResultBand[keyof typeof MagnetTestKitResultBand];
+
+
+export const MagnetTestKitResultBand = {
+  'LITE-PASS': 'LITE-PASS',
+  'LITE-REVIEW': 'LITE-REVIEW',
+  'LITE-FAIL': 'LITE-FAIL',
+} as const;
+
+export type MagnetTestKitResultDimensionsItem = {
+  name: string;
+  note: string;
+};
+
+export interface MagnetTestKitResult {
+  magnetSessionId: string;
+  band: MagnetTestKitResultBand;
+  headline: string;
+  strengths: string[];
+  fixes: string[];
+  /** Per-dimension qualitative notes. Numeric scores are never returned. */
+  dimensions: MagnetTestKitResultDimensionsItem[];
+}
+
+export interface MagnetCalculatorInput {
+  /**
+     * @minLength 10
+     * @maxLength 20000
+     */
+  artifact: string;
+  /** @nullable */
+  email?: string | null;
+}
+
+export type MagnetCalculatorResultCompressionClass = typeof MagnetCalculatorResultCompressionClass[keyof typeof MagnetCalculatorResultCompressionClass];
+
+
+export const MagnetCalculatorResultCompressionClass = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  EXTREME: 'EXTREME',
+} as const;
+
+export interface MagnetCalculatorResult {
+  magnetSessionId: string;
+  savingsLowPct: number;
+  savingsHighPct: number;
+  compressionClass: MagnetCalculatorResultCompressionClass;
+  headline: string;
+  rationale: string;
+}
+
+export interface MagnetConversionInput {
+  magnetSessionId: string;
+}
+
 export interface HarnessF1Input {
   sessionId: string;
   /** @minLength 10 */

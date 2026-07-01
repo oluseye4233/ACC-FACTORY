@@ -31,6 +31,8 @@ import AdminBadges from "@/pages/admin-badges";
 import Ascension from "@/pages/ascension";
 import Activity from "@/pages/activity";
 import MeCosts from "@/pages/me-costs";
+import TestYourAgent from "@/pages/test-your-agent";
+import CalculateYourSavings from "@/pages/calculate-your-savings";
 import { AccessGate } from "@/components/AccessGate";
 import {
   StaffSessionProvider,
@@ -59,6 +61,8 @@ function PublicRoutes() {
   return (
     <Switch>
       <Route path="/verify" component={Verify} />
+      <Route path="/test-your-agent" component={TestYourAgent} />
+      <Route path="/calculate-your-savings" component={CalculateYourSavings} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -69,6 +73,8 @@ function AuthenticatedRoutes() {
     <Switch>
       <Route path="/" component={() => <Redirect to="/command" />} />
       <Route path="/verify" component={Verify} />
+      <Route path="/test-your-agent" component={TestYourAgent} />
+      <Route path="/calculate-your-savings" component={CalculateYourSavings} />
       <Route path="/command" component={Command} />
       <Route path="/sessions" component={Sessions} />
       <Route path="/session/new" component={SessionNew} />
@@ -98,8 +104,14 @@ function Gate() {
   const session = data ?? { authenticated: false };
 
   if (!session.authenticated) {
-    // Verification pages are public even when signed out.
-    if (window.location.pathname.replace(basePath, "").startsWith("/verify")) {
+    // Verification pages and the anonymous acquisition-magnet tools are public
+    // even when signed out.
+    const publicPath = window.location.pathname.replace(basePath, "");
+    if (
+      publicPath.startsWith("/verify") ||
+      publicPath.startsWith("/test-your-agent") ||
+      publicPath.startsWith("/calculate-your-savings")
+    ) {
       return <PublicRoutes />;
     }
     // A failed lookup is treated the same as signed-out: show the front door.
