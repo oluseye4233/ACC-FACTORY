@@ -47,7 +47,9 @@ vi.mock("@workspace/api-client-react", () => ({
 // Chrome / side panels — not relevant to the F0 placement logic.
 vi.mock("@/components/layout/TopNav", () => ({ TopNav: () => <div /> }));
 vi.mock("@/components/shared/IngestionBanner", () => ({
-  IngestionBanner: () => <div data-testid="ingestion-banner" />,
+  IngestionBanner: ({ isF7 }: { isF7: boolean }) => (
+    <div data-testid="ingestion-banner" data-is-f7={isF7 ? "true" : "false"} />
+  ),
 }));
 vi.mock("@/components/shared/ArtifactTray", () => ({
   ArtifactTray: () => <div />,
@@ -366,5 +368,92 @@ describe("SessionDetail — side-step engines stay navigable", () => {
 
     gotoStage("f8");
     expect(screen.getByTestId("workspace-F8CodeDj")).toBeTruthy();
+  });
+});
+
+const BANNER = "ingestion-banner";
+
+/** Point useGetSession at an ingested (vs manual) session. */
+const setSessionOrigin = (origin: "manual" | "ingested") => {
+  useGetSessionMock.mockReturnValue({
+    data: {
+      session: {
+        id: "session-1-abcdef",
+        sessionName: "Test Session",
+        status: "ACTIVE",
+        origin,
+        preferredModelProvider: "anthropic",
+        userId: "user-1",
+        orgId: null,
+        orgVisible: false,
+      },
+    },
+    isLoading: false,
+    isError: false,
+  });
+};
+
+/** Point useGetSessionIngestion at present (vs absent) ingestion data. */
+const setIngestion = (present: boolean) => {
+  useGetSessionIngestionMock.mockReturnValue({
+    data: present
+      ? {
+          id: "ing-1",
+          sessionId: "session-1",
+          sourceDocKind: "product_design_document",
+          originalFilename: "brief.pdf",
+          detectedTitle: "Brief",
+          summary: "A summary.",
+          seedPrompt: "Seed prompt text.",
+        }
+      : undefined,
+  });
+};
+
+describe("SessionDetail — IngestionBanner wiring", () => {
+  it("does not render for a manual session", () => {
+    setSessionOrigin("manual");
+    setIngestion(true);
+    render(<SessionDetail />);
+    expect(screen.queryByTestId(BANNER)).toBeNull();
+  });
+
+  it("does not render for an ingested session with no ingestion data yet", () => {
+    setSessionOrigin("ingested");
+    setIngestion(false);
+    render(<SessionDetail />);
+    expect(screen.queryByTestId(BANNER)).toBeNull();
+  });
+
+  it("renders when the session origin is 'ingested' and ingestion data is present", () => {
+    setSessionOrigin("ingested");
+    setIngestion(true);
+    render(<SessionDetail />);
+    expect(screen.getByTestId(BANNER)).toBeTruthy();
+  });
+
+  it("passes isF7=false at the F1 stage", () => {
+    setSessionOrigin("ingested");
+    setIngestion(true);
+    render(<SessionDetail />);
+    expect(screen.getByTestId(BANNER).getAttribute("data-is-f7")).toBe("false");
+  });
+
+  it("flips isF7 true only at the F7 stage", () => {
+    setSessionOrigin("ingested");
+    setIngestion(true);
+    render(<SessionDetail />);
+
+    // Non-F7 stages keep isF7 false (linear + side-step stages).
+    for (const nav of ["f2", "f5", "f6", "f6-vdj", "f8", "mm"]) {
+      gotoStage(nav);
+      expect(screen.getByTestId(BANNER).getAttribute("data-is-f7")).toBe(
+        "false",
+      );
+    }
+
+    // Only F7 flips it true.
+    gotoStage("f7");
+    expect(screen.getByTestId(BANNER).getAttribute("data-is-f7")).toBe("true");
   });
 });
