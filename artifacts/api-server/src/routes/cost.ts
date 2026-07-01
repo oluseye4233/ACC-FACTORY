@@ -26,7 +26,9 @@ interface RecentRun {
   id: string;
   ts: string;
   engineId: number;
-  sessionId: string;
+  // Nullable: session-less pre-session runs (ingestion / cartridge) have no
+  // harness session but still appear in the cost rollup.
+  sessionId: string | null;
   provider: string;
   modelId: string;
   inputTokens: number;

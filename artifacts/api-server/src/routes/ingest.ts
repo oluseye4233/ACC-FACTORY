@@ -278,6 +278,10 @@ router.post(
           NORMALIZATION_SYSTEM_PROMPT,
           userMsg,
           NormalizationSchema,
+          // Session-less run (no harness session yet). engineId 20 = ingestion
+          // normalisation. Passing a ctx records the spend so it counts toward
+          // the company-wide monthly cost cap enforced by requireCostBudget.
+          { sessionId: null, userId, engineId: 20 },
         );
       } catch (err) {
         if (sendProviderTierError(res, err)) return;

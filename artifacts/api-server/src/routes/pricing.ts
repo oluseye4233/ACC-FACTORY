@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db, pricingContentTable } from "@workspace/db";
 import { PutPricingBody } from "@workspace/api-zod";
 import { requireAuth, requireAdmin } from "../lib/auth";
+import { requireSubscriptionsEnabled } from "../lib/feature-flags";
 
 const router: IRouter = Router();
 const KEY = "pricing.default";
@@ -97,7 +98,7 @@ const DEFAULT_PRICING = {
   updatedAt: null,
 };
 
-router.get("/pricing", async (_req, res): Promise<void> => {
+router.get("/pricing", requireSubscriptionsEnabled, async (_req, res): Promise<void> => {
   const rows = await db
     .select()
     .from(pricingContentTable)
@@ -118,6 +119,7 @@ router.put(
   "/admin/pricing",
   requireAuth,
   requireAdmin,
+  requireSubscriptionsEnabled,
   async (req, res): Promise<void> => {
     const parsed = PutPricingBody.safeParse(req.body);
     if (!parsed.success) {

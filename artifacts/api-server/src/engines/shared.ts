@@ -44,7 +44,11 @@ export type CertTier = "BRONZE" | "SILVER" | "GOLD" | "PLATINUM" | "NONE";
 
 /** Per-call telemetry context. Populating this triggers a `harness_engine_runs` row. */
 export interface RunContext {
-  sessionId: string;
+  // Nullable to support session-less LLM spend: ingestion and cartridge
+  // normalisation call the model BEFORE any harness session exists. Engine runs
+  // always pass a real session id; pre-session runs pass null so their cost is
+  // still recorded and counted by the company-wide monthly cost cap.
+  sessionId: string | null;
   userId: string;
   engineId: number;
 }
@@ -211,14 +215,17 @@ async function recordRun(
     });
     // Fire-and-forget: notify org owners/admins subscribed to high-cost
     // alerts. Crashes are swallowed inside the dispatcher so telemetry stays
-    // best-effort.
-    void maybeDispatchHighCostAlerts({
-      sessionId: ctx.sessionId,
-      userId: ctx.userId,
-      engineId: ctx.engineId,
-      costUsd: cost,
-      occurredAt: new Date(),
-    });
+    // best-effort. Skipped for session-less runs (ingestion / cartridge) — the
+    // alert is anchored to a harness session, which those runs don't have.
+    if (ctx.sessionId) {
+      void maybeDispatchHighCostAlerts({
+        sessionId: ctx.sessionId,
+        userId: ctx.userId,
+        engineId: ctx.engineId,
+        costUsd: cost,
+        occurredAt: new Date(),
+      });
+    }
   } catch (err) {
     logger.warn({ err }, "Failed to record harness_engine_runs row");
   }

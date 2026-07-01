@@ -6,9 +6,13 @@ export const harnessEngineRunsTable = pgTable(
   "harness_engine_runs",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    sessionId: uuid("session_id")
-      .notNull()
-      .references(() => harnessSessionsTable.id, { onDelete: "cascade" }),
+    // Nullable: engine runs reference their harness session, but pre-session
+    // LLM spend (ingestion / cartridge normalisation, which run before any
+    // session exists) records with a null session id so its cost is still
+    // tallied by the company-wide monthly cost cap.
+    sessionId: uuid("session_id").references(() => harnessSessionsTable.id, {
+      onDelete: "cascade",
+    }),
     userId: uuid("user_id")
       .notNull()
       .references(() => usersTable.id, { onDelete: "cascade" }),

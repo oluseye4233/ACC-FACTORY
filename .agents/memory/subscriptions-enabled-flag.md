@@ -14,12 +14,13 @@ early-return / no-op when the flag is off.
 subscription SaaS must stay revivable with a single env flip, no code changes.
 
 **How to apply:**
-- `subscriptionsEnabled()` (`lib/feature-flags.ts`) reads `process.env` at **call
-  time**, not at import. So any test that exercises a billing/webhook/tier-elevation
-  path must set `process.env.SUBSCRIPTIONS_ENABLED = "true"` at **module scope, before
-  the app import** (same place tests set `STRIPE_PRICE_*`). Otherwise the path
-  early-returns and assertions like "org becomes active after webhook" fail.
-- Only `orgs-integration.test.ts` currently drives that path; if you add a new billing
-  test, opt the flag on the same way.
+- The flag helper reads `process.env` at **call time**, not at import. A test that
+  drives a billing/webhook/tier-elevation path must set
+  `process.env.SUBSCRIPTIONS_ENABLED = "true"` at **module scope, before the app/router
+  import** (same place tests set `STRIPE_PRICE_*`). Otherwise the path early-returns and
+  assertions like "org becomes active after webhook" fail.
+- Call-time reads also mean a single test file can flip the flag off then on across
+  cases (e.g. `/pricing` 503-then-200) without re-importing — just restore the prior
+  value in an `afterEach` so it doesn't leak to sibling suites.
 - To re-activate the real subscription SaaS in prod: set the flag to `true` — no code
   changes required.

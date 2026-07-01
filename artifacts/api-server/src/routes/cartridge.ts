@@ -364,6 +364,10 @@ router.post(
             SUMMARY_SYSTEM,
             `FILENAME: ${f.originalname}\n\n--- DOCUMENT TEXT ---\n${truncated}`,
             DocSummarySchema,
+            // Session-less run (cartridge is built before any harness session).
+            // engineId 21 = cartridge doc-summary. Passing a ctx records the
+            // spend so it counts toward the company-wide monthly cost cap.
+            { sessionId: null, userId, engineId: 21 },
           );
           summary = out.summary;
         } catch (err) {
