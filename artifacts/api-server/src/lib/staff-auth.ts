@@ -40,6 +40,38 @@ export function accessCodeConfigured(): boolean {
   return typeof process.env.STAFF_ACCESS_CODE === "string" && process.env.STAFF_ACCESS_CODE.length > 0;
 }
 
+/**
+ * Startup guard for the shared staff access code.
+ *
+ * The entire portal is gated by `STAFF_ACCESS_CODE`; if it is unset the server
+ * still boots but every login silently returns 503 `STAFF_ACCESS_NOT_CONFIGURED`
+ * — a misconfigured deploy looks "up" while nobody can actually log in. This
+ * surfaces the problem at boot instead of at first login.
+ *
+ * In production (`NODE_ENV === "production"`) a missing code is fatal: we log a
+ * clear error and throw so the process refuses to start. In every other
+ * environment we keep the soft behaviour (a single warning) so local runs and
+ * tests aren't blocked.
+ *
+ * @param log - optional structured logger; a warn/error method is used when present.
+ */
+export function assertAccessCodeConfigured(log?: {
+  warn: (...args: unknown[]) => void;
+  error: (...args: unknown[]) => void;
+}): void {
+  if (accessCodeConfigured()) return;
+
+  const message =
+    "STAFF_ACCESS_CODE is not set — the staff portal is unusable: every login will return 503 STAFF_ACCESS_NOT_CONFIGURED.";
+
+  if (process.env.NODE_ENV === "production") {
+    if (log) log.error(message);
+    throw new Error(message);
+  }
+
+  if (log) log.warn(message);
+}
+
 /** Constant-time comparison of a submitted code against `STAFF_ACCESS_CODE`. */
 export function verifyAccessCode(submitted: string): boolean {
   const expected = process.env.STAFF_ACCESS_CODE;

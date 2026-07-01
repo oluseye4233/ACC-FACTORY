@@ -19,6 +19,12 @@ import pinoHttp from "pino-http";
 import router from "./routes";
 import stripeWebhookRouter from "./routes/stripe-webhook";
 import { logger } from "./lib/logger";
+import { assertAccessCodeConfigured } from "./lib/staff-auth";
+
+// Fail fast if the shared staff access code is missing. In production this
+// throws and refuses to boot; in development it logs a single warning so local
+// runs aren't blocked.
+assertAccessCodeConfigured(logger);
 
 // NOTE: Clerk has been lifted out of the active request path — the portal now
 // authenticates staff via a signed access-code cookie (see lib/staff-auth.ts).
