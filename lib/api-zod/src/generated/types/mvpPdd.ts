@@ -13,6 +13,11 @@ export interface MvpPdd {
   sections: SpcSection[];
   cert: SpartanCert;
   donut?: MvpPddDonut;
+  forgeVerified?: boolean;
+  /** @nullable */
+  mathmonScore?: number | null;
+  /** @nullable */
+  disclaimer?: string | null;
   /** @nullable */
   artifactId?: string | null;
 }

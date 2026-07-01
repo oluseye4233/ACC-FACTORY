@@ -9,6 +9,16 @@ import {
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { loadMembershipsForUser } from "../lib/orgs";
+import {
+  computeForgeVerified,
+  computeMathmonScore,
+  FORGE_VERIFIED_DISCLAIMER,
+} from "../lib/mathmon";
+import {
+  loadLatestIntake,
+  loadLatestMap,
+  sessionMaxJcse,
+} from "../lib/mathmon-store";
 import { CreateSessionBody, UpdateSessionBody } from "@workspace/api-zod";
 import type { Response } from "express";
 
@@ -92,6 +102,8 @@ function serializeArtifact(
     certTier: a.certTier,
     groState: a.groState,
     spartanCert: (a.spartanCert ?? null) as Record<string, unknown> | null,
+    mathmonScore: a.mathmonScore,
+    forgeVerified: a.forgeVerified,
     provider: a.provider,
     modelId: a.modelId,
     runDurationMs: run ? run.durationMs : null,
@@ -325,6 +337,59 @@ router.get("/sessions/:id/artifacts", requireAuth, async (req, res): Promise<voi
     .orderBy(desc(harnessArtifactsTable.createdAt));
   const runMap = await loadArtifactRunMap(id, rows);
   res.json(rows.map((a) => serializeArtifact(a, runMap.get(a.id) ?? null)));
+});
+
+router.get("/sessions/:id/mathmon", requireAuth, async (req, res): Promise<void> => {
+  const id = String(req.params.id);
+  const session = await readableSession(id, req.localUser!.id);
+  if (!session) {
+    res.status(404).json({ error: "Session not found" });
+    return;
+  }
+  const [intake, map, sessionJcse] = await Promise.all([
+    loadLatestIntake(id, session.userId),
+    loadLatestMap(id, session.userId),
+    sessionMaxJcse(id),
+  ]);
+  const mathmonScore = map
+    ? computeMathmonScore({
+        mathCoherence: map.mathCoherence,
+        applicability: map.applicability,
+        predictiveReliability: map.predictiveReliability,
+      })
+    : null;
+  const forgeVerified = computeForgeVerified(sessionJcse, mathmonScore);
+  res.json({
+    intake: intake
+      ? {
+          id: intake.id,
+          sessionId: intake.sessionId,
+          report: intake.report,
+          provider: intake.provider,
+          modelId: intake.modelId,
+          createdAt: intake.createdAt.toISOString(),
+        }
+      : null,
+    map: map
+      ? {
+          id: map.id,
+          sessionId: map.sessionId,
+          sections: (map.map as { sections?: unknown }).sections ?? [],
+          mathCoherence: map.mathCoherence,
+          applicability: map.applicability,
+          predictiveReliability: map.predictiveReliability,
+          mathmonScore: mathmonScore ?? 0,
+          disclaimer: map.disclaimer,
+          provider: map.provider,
+          modelId: map.modelId,
+          createdAt: map.createdAt.toISOString(),
+        }
+      : null,
+    forgeVerified,
+    mathmonScore,
+    sessionJcse,
+    disclaimer: FORGE_VERIFIED_DISCLAIMER,
+  });
 });
 
 export default router;

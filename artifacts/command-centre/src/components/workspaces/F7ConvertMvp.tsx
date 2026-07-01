@@ -171,8 +171,15 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
       `- **Cert ID:** ${result.cert.certId}\n` +
       `- **Class:** ${result.cert.class}\n` +
       `- **CR_p:** ${result.cert.crP.toFixed(2)}\n` +
-      `- **Issued:** ${new Date(result.cert.issuedAt).toISOString()}\n\n` +
-      `## Public verification URL\n\n${verifyUrl}\n`;
+      `- **Issued:** ${new Date(result.cert.issuedAt).toISOString()}\n` +
+      `- **FORGE VERIFIED:** ${result.forgeVerified ? "YES" : "NO"}\n` +
+      (typeof result.mathmonScore === "number"
+        ? `- **MATHMON score:** ${result.mathmonScore}\n`
+        : "") +
+      `\n## Public verification URL\n\n${verifyUrl}\n` +
+      (result.forgeVerified && result.disclaimer
+        ? `\n## Disclaimer\n\n${result.disclaimer}\n`
+        : "");
     await downloadZip(`mvp-pdd-${sessionId.slice(0, 8)}.zip`, files);
   };
 
@@ -267,6 +274,31 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
               <div className="font-mono text-[10px] text-muted-foreground mt-1">
                 CR_p · {result.cert.crP.toFixed(2)}
               </div>
+              {result.forgeVerified ? (
+                <div
+                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-secondary/60 bg-secondary/10 text-secondary"
+                  data-testid="f7-forge-verified"
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span className="font-display text-[11px] tracking-widest">
+                    FORGE VERIFIED
+                  </span>
+                  {typeof result.mathmonScore === "number" ? (
+                    <span className="font-mono text-[10px] opacity-80">
+                      MM {result.mathmonScore}
+                    </span>
+                  ) : null}
+                </div>
+              ) : (
+                <div
+                  className="mt-3 font-mono text-[10px] text-muted-foreground"
+                  data-testid="f7-not-forge-verified"
+                >
+                  {typeof result.mathmonScore === "number"
+                    ? `MATHMON ${result.mathmonScore} · not FORGE VERIFIED`
+                    : "MATHMON not profiled · not FORGE VERIFIED"}
+                </div>
+              )}
               {latestArtifact?.provider && (
                 <div className="mt-3">
                   <GeneratedBy

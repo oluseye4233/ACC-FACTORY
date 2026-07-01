@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { sql } from "drizzle-orm";
 import { db, harnessArtifactsTable, harnessSessionsTable } from "@workspace/db";
+import { FORGE_VERIFIED_DISCLAIMER } from "../lib/mathmon";
 
 const router: IRouter = Router();
 
@@ -74,6 +75,11 @@ router.get("/verify", async (req, res): Promise<void> => {
     sessionName: r.sessionName,
     provider: r.artifact.provider ?? null,
     modelId: r.artifact.modelId ?? null,
+    // MATHMON / FORGE VERIFIED gate (D26). Read straight off the certified
+    // artifact row — the gate was decided once, server-side, at F7 time.
+    forgeVerified: r.artifact.forgeVerified,
+    mathmonScore: r.artifact.mathmonScore ?? null,
+    disclaimer: r.artifact.forgeVerified ? FORGE_VERIFIED_DISCLAIMER : null,
   });
 });
 

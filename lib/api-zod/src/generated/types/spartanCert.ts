@@ -12,4 +12,11 @@ export interface SpartanCert {
   class: SpartanCertClass;
   crP: number;
   issuedAt: Date;
+  forgeVerified?: boolean;
+  /** @nullable */
+  mathmonScore?: number | null;
+  /** @nullable */
+  jcse?: number | null;
+  /** @nullable */
+  disclaimer?: string | null;
 }

@@ -11,6 +11,8 @@ import { handleF4 } from "../engines/f4";
 import { handleF5, handleF5FinalizeStream } from "../engines/f5";
 import { handleF6, handleF6DraftStream } from "../engines/f6";
 import { handleF6Vdj } from "../engines/f6vdj";
+import { handleF05 } from "../engines/f05";
+import { handleMapStream } from "../engines/map";
 import { handleF7Stream } from "../engines/f7";
 import { handleF8CodeDj } from "../engines/f8codedj";
 import { handleF8Hdj } from "../engines/f8hdj";
@@ -82,6 +84,17 @@ router.post(
 router.post(
   "/harness/f6-vdj",
   ...harnessRoute({ featureId: null, tier: "PRACTITIONER", handler: handleF6Vdj }),
+);
+// MATHMON layer (D26) — live for all staff, no tier gate. featureId:null keeps
+// it off the per-day ledger; requireCostBudget still applies (harnessRoute
+// always appends it last, after any rateLimit).
+router.post(
+  "/harness/f05",
+  ...harnessRoute({ featureId: null, handler: handleF05 }),
+);
+router.post(
+  "/harness/map",
+  ...harnessRoute({ featureId: null, handler: handleMapStream }),
 );
 router.post(
   "/harness/f7",

@@ -35,6 +35,7 @@ import { F6DraftPdd } from "@/components/workspaces/F6DraftPdd";
 import { F7ConvertMvp } from "@/components/workspaces/F7ConvertMvp";
 import { F6VdjBuild } from "@/components/workspaces/F6VdjBuild";
 import { F8CodeDj } from "@/components/workspaces/F8CodeDj";
+import { MathmonLayer } from "@/components/workspaces/MathmonLayer";
 import { ProviderSelector } from "@/components/shared/ProviderSelector";
 import { SessionOrgVisibility } from "@/components/shared/SessionOrgVisibility";
 
@@ -326,6 +327,7 @@ export default function SessionDetail() {
                 {activeEngineId === 7 && <F7ConvertMvp sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 8 && <F6VdjBuild sessionId={id} artifacts={artifacts || []} />}
                 {activeEngineId === 9 && <F8CodeDj sessionId={id} artifacts={artifacts || []} />}
+                {activeEngineId === 10 && <MathmonLayer sessionId={id} artifacts={artifacts || []} />}
               </>
             )}
           </div>

@@ -26,4 +26,9 @@ export interface VerifyResult {
   provider?: string | null;
   /** @nullable */
   modelId?: string | null;
+  forgeVerified?: boolean;
+  /** @nullable */
+  mathmonScore?: number | null;
+  /** @nullable */
+  disclaimer?: string | null;
 }

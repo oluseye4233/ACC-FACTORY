@@ -17,6 +17,12 @@ import {
   ProviderRequiresTierError,
   ProviderNotConfiguredError,
 } from "./shared";
+import {
+  computeMathmonScore,
+  computeForgeVerified,
+  FORGE_VERIFIED_DISCLAIMER,
+} from "../lib/mathmon";
+import { loadLatestMap, sessionMaxJcse } from "../lib/mathmon-store";
 
 const SPARTAN_STEPS = [
   { id: "SCAN", label: "SCAN — enumerate sections, count tokens" },
@@ -116,11 +122,33 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
     return;
   }
 
+  // ─── MM-FV · FORGE VERIFIED gate (D26) ──────────────────────────────────
+  // Recompute the composite MATHMON score server-side from the session's MAP
+  // sub-scores (never the model's self-report), read the session JCSE, and apply
+  // the absolute gate: forgeVerified = (jcse ≥ 45 AND mathmon ≥ 70). Written
+  // once, here, onto the certified MVP PDD.
+  const [map, sessionJcse] = await Promise.all([
+    loadLatestMap(sessionId, guard.userId),
+    sessionMaxJcse(sessionId),
+  ]);
+  const mathmonScore = map
+    ? computeMathmonScore({
+        mathCoherence: map.mathCoherence,
+        applicability: map.applicability,
+        predictiveReliability: map.predictiveReliability,
+      })
+    : null;
+  const forgeVerified = computeForgeVerified(sessionJcse, mathmonScore);
+
   const cert = {
     certId: generateCertId(),
     class: out.class,
     crP: out.crP,
     issuedAt: new Date().toISOString(),
+    forgeVerified,
+    mathmonScore,
+    jcse: sessionJcse,
+    ...(forgeVerified ? { disclaimer: FORGE_VERIFIED_DISCLAIMER } : {}),
   };
   // Persist regardless of client connection — work is done, cert is paid for.
   const artifact = await persistArtifact({
@@ -130,6 +158,8 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
     artifactType: "MVP_PDD",
     artifactContent: { sections: out.sections, donut: out.donut },
     spartanCert: cert,
+    mathmonScore,
+    forgeVerified,
     provider,
   });
   await advanceFeatureState(sessionId, 7);
@@ -158,6 +188,9 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
     sections: out.sections,
     donut: out.donut,
     cert,
+    forgeVerified,
+    mathmonScore,
+    disclaimer: forgeVerified ? FORGE_VERIFIED_DISCLAIMER : null,
     artifactId: artifact.id,
   });
   res.end();

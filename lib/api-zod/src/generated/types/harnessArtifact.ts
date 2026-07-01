@@ -28,6 +28,9 @@ export interface HarnessArtifact {
   /** @nullable */
   spartanCert?: HarnessArtifactSpartanCert;
   /** @nullable */
+  mathmonScore?: number | null;
+  forgeVerified?: boolean;
+  /** @nullable */
   provider?: HarnessArtifactProvider;
   /** @nullable */
   modelId?: string | null;

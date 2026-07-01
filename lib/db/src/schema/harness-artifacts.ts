@@ -1,4 +1,4 @@
-import { integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { harnessSessionsTable } from "./harness-sessions";
@@ -41,6 +41,14 @@ export const harnessArtifactsTable = pgTable("harness_artifacts", {
   certTier: text("cert_tier"),
   groState: text("gro_state").notNull().default("SAFE_LIFE"),
   spartanCert: jsonb("spartan_cert"),
+  // MATHMON / FORGE VERIFIED gate (D26 · MM-FV). Set once at F7 certification.
+  // mathmonScore is the server-recomputed composite from the session's MAP
+  // (mathCoherence×0.40 + applicability×0.35 + predictiveReliability×0.25),
+  // never the model's self-report. forgeVerified is the absolute gate result:
+  // (sessionJcse ≥ 45 AND mathmonScore ≥ 70). Both are null/false on artifacts
+  // that never ran the gate.
+  mathmonScore: integer("mathmon_score"),
+  forgeVerified: boolean("forge_verified").notNull().default(false),
   spcOrigin: text("spc_origin").notNull().default("artisanal").$type<"artisanal" | "digitally_evolved">(),
   provider: text("provider"),
   modelId: text("model_id"),

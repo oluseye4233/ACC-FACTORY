@@ -305,6 +305,22 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/HarnessArtifact" }
 
+  /sessions/{id}/mathmon:
+    get:
+      operationId: getSessionMathmon
+      tags: [harness]
+      summary: MATHMON state for a session (intake + MAP + FORGE VERIFIED gate)
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MathmonState" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /artifacts/{id}:
     get:
       operationId: getArtifact
@@ -574,6 +590,48 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /harness/f05:
+    post:
+      operationId: harnessF05
+      tags: [harness]
+      summary: MATHMON Applicability Layer — intake report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF05Input" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MathmonIntake" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /harness/map:
+    post:
+      operationId: harnessMapStream
+      tags: [harness]
+      summary: Mathematical Applicability Profile builder (SSE stream)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessMapInput" }
+      responses:
+        "200":
+          description: text/event-stream of MAP generation events
+          content:
+            text/event-stream:
+              schema: { type: string }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /harness/f7:
     post:
@@ -2004,6 +2062,8 @@ components:
         certTier: { type: ["string", "null"] }
         groState: { type: string }
         spartanCert: { type: ["object", "null"], additionalProperties: true }
+        mathmonScore: { type: ["integer", "null"] }
+        forgeVerified: { type: boolean }
         provider: { type: ["string", "null"], enum: [claude, openai, gemini, null] }
         modelId: { type: ["string", "null"] }
         runDurationMs: { type: ["integer", "null"] }
@@ -2347,6 +2407,10 @@ components:
         class: { type: string, enum: [A, B, C, NONE] }
         crP: { type: number }
         issuedAt: { type: string, format: date-time }
+        forgeVerified: { type: boolean }
+        mathmonScore: { type: ["integer", "null"] }
+        jcse: { type: ["integer", "null"] }
+        disclaimer: { type: ["string", "null"] }
 
     MvpPdd:
       type: object
@@ -2363,7 +2427,104 @@ components:
             a: { type: number }
             b: { type: number }
             c: { type: number }
+        forgeVerified: { type: boolean }
+        mathmonScore: { type: ["integer", "null"] }
+        disclaimer: { type: ["string", "null"] }
         artifactId: { type: ["string", "null"], format: uuid }
+
+    HarnessF05Input:
+      type: object
+      required: [sessionId]
+      properties:
+        sessionId: { type: string, format: uuid }
+        brief: { type: ["string", "null"] }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    MathmonIntakeReport:
+      type: object
+      required: [measurableVariables, constraintCategories, optimisationTargets, summary]
+      properties:
+        measurableVariables:
+          type: array
+          items:
+            type: object
+            required: [name, unit, description]
+            properties:
+              name: { type: string }
+              unit: { type: string }
+              description: { type: string }
+        constraintCategories:
+          type: array
+          items:
+            type: object
+            required: [category, detail]
+            properties:
+              category: { type: string }
+              detail: { type: string }
+        optimisationTargets:
+          type: array
+          items:
+            type: object
+            required: [target, direction, metric]
+            properties:
+              target: { type: string }
+              direction: { type: string, enum: [MAXIMISE, MINIMISE] }
+              metric: { type: string }
+        summary: { type: string }
+
+    MathmonIntake:
+      type: object
+      required: [id, sessionId, report, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
+        report: { $ref: "#/components/schemas/MathmonIntakeReport" }
+        provider: { type: ["string", "null"] }
+        modelId: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+
+    HarnessMapInput:
+      type: object
+      required: [sessionId]
+      properties:
+        sessionId: { type: string, format: uuid }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    MathmonMap:
+      type: object
+      required:
+        [id, sessionId, sections, mathCoherence, applicability, predictiveReliability, mathmonScore, disclaimer, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
+        sections:
+          type: array
+          items: { $ref: "#/components/schemas/SpcSection" }
+        mathCoherence: { type: integer }
+        applicability: { type: integer }
+        predictiveReliability: { type: integer }
+        mathmonScore: { type: integer }
+        disclaimer: { type: string }
+        provider: { type: ["string", "null"] }
+        modelId: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+
+    MathmonState:
+      type: object
+      required: [intake, map, forgeVerified, mathmonScore, sessionJcse]
+      properties:
+        intake:
+          oneOf:
+            - { $ref: "#/components/schemas/MathmonIntake" }
+            - { type: "null" }
+        map:
+          oneOf:
+            - { $ref: "#/components/schemas/MathmonMap" }
+            - { type: "null" }
+        forgeVerified: { type: boolean }
+        mathmonScore: { type: ["integer", "null"] }
+        sessionJcse: { type: ["integer", "null"] }
+        disclaimer: { type: string }
 
     F1000StatusResult:
       type: object
@@ -2567,6 +2728,9 @@ components:
         sessionName: { type: ["string", "null"] }
         provider: { type: ["string", "null"] }
         modelId: { type: ["string", "null"] }
+        forgeVerified: { type: boolean }
+        mathmonScore: { type: ["integer", "null"] }
+        disclaimer: { type: ["string", "null"] }
 
     ExemplarSummary:
       type: object

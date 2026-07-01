@@ -119,6 +119,9 @@ export interface PersistArtifactInput {
   spartanCert?: Record<string, unknown> | null;
   provider?: LlmProvider | null;
   modelId?: string | null;
+  // MATHMON / FORGE VERIFIED gate (D26). Set only by the F7 certification path.
+  mathmonScore?: number | null;
+  forgeVerified?: boolean;
 }
 
 export async function persistArtifact(
@@ -146,6 +149,8 @@ export async function persistArtifact(
       certTier: input.certTier ?? null,
       groState: input.groState ?? "SAFE_LIFE",
       spartanCert: input.spartanCert ?? null,
+      mathmonScore: input.mathmonScore ?? null,
+      forgeVerified: input.forgeVerified ?? false,
       provider,
       modelId,
     })

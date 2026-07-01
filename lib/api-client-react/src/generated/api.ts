@@ -60,6 +60,7 @@ import type {
   HarnessAtlasCrystalliseInput,
   HarnessEscalationsStreamParams,
   HarnessEvolveInput,
+  HarnessF05Input,
   HarnessF1Input,
   HarnessF2Input,
   HarnessF3Input,
@@ -72,6 +73,7 @@ import type {
   HarnessF7Input,
   HarnessF8HdjInput,
   HarnessF8Input,
+  HarnessMapInput,
   HarnessPfpInput,
   HarnessSession,
   HealthStatus,
@@ -88,6 +90,8 @@ import type {
   MagnetConversionInput,
   MagnetTestKitInput,
   MagnetTestKitResult,
+  MathmonIntake,
+  MathmonState,
   MeResponse,
   MicroPdd,
   MyDataExport,
@@ -1436,6 +1440,83 @@ export function useListSessionArtifacts<TData = Awaited<ReturnType<typeof listSe
 
 
 
+export const getGetSessionMathmonUrl = (id: string,) => {
+
+
+
+
+  return `/api/sessions/${id}/mathmon`
+}
+
+/**
+ * @summary MATHMON state for a session (intake + MAP + FORGE VERIFIED gate)
+ */
+export const getSessionMathmon = async (id: string, options?: RequestInit): Promise<MathmonState> => {
+
+  return customFetch<MathmonState>(getGetSessionMathmonUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSessionMathmonQueryKey = (id: string,) => {
+    return [
+    `/api/sessions/${id}/mathmon`
+    ] as const;
+    }
+
+
+export const getGetSessionMathmonQueryOptions = <TData = Awaited<ReturnType<typeof getSessionMathmon>>, TError = ErrorType<NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSessionMathmon>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSessionMathmonQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSessionMathmon>>> = ({ signal }) => getSessionMathmon(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSessionMathmon>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSessionMathmonQueryResult = NonNullable<Awaited<ReturnType<typeof getSessionMathmon>>>
+export type GetSessionMathmonQueryError = ErrorType<NotFoundResponse>
+
+
+/**
+ * @summary MATHMON state for a session (intake + MAP + FORGE VERIFIED gate)
+ */
+
+export function useGetSessionMathmon<TData = Awaited<ReturnType<typeof getSessionMathmon>>, TError = ErrorType<NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSessionMathmon>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSessionMathmonQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getGetArtifactUrl = (id: string,) => {
 
 
@@ -2433,6 +2514,148 @@ export const useHarnessF6Vdj = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getHarnessF6VdjMutationOptions(options));
+    }
+
+export const getHarnessF05Url = () => {
+
+
+
+
+  return `/api/harness/f05`
+}
+
+/**
+ * @summary MATHMON Applicability Layer — intake report
+ */
+export const harnessF05 = async (harnessF05Input: HarnessF05Input, options?: RequestInit): Promise<MathmonIntake> => {
+
+  return customFetch<MathmonIntake>(getHarnessF05Url(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      harnessF05Input,)
+  }
+);}
+
+
+
+
+export const getHarnessF05MutationOptions = <TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF05>>, TError,{data: BodyType<HarnessF05Input>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof harnessF05>>, TError,{data: BodyType<HarnessF05Input>}, TContext> => {
+
+const mutationKey = ['harnessF05'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof harnessF05>>, {data: BodyType<HarnessF05Input>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  harnessF05(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HarnessF05MutationResult = NonNullable<Awaited<ReturnType<typeof harnessF05>>>
+    export type HarnessF05MutationBody = BodyType<HarnessF05Input>
+    export type HarnessF05MutationError = ErrorType<ForbiddenResponse | NotFoundResponse>
+
+    /**
+ * @summary MATHMON Applicability Layer — intake report
+ */
+export const useHarnessF05 = <TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF05>>, TError,{data: BodyType<HarnessF05Input>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof harnessF05>>,
+        TError,
+        {data: BodyType<HarnessF05Input>},
+        TContext
+      > => {
+      return useMutation(getHarnessF05MutationOptions(options));
+    }
+
+export const getHarnessMapStreamUrl = () => {
+
+
+
+
+  return `/api/harness/map`
+}
+
+/**
+ * @summary Mathematical Applicability Profile builder (SSE stream)
+ */
+export const harnessMapStream = async (harnessMapInput: HarnessMapInput, options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getHarnessMapStreamUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      harnessMapInput,)
+  }
+);}
+
+
+
+
+export const getHarnessMapStreamMutationOptions = <TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessMapStream>>, TError,{data: BodyType<HarnessMapInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof harnessMapStream>>, TError,{data: BodyType<HarnessMapInput>}, TContext> => {
+
+const mutationKey = ['harnessMapStream'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof harnessMapStream>>, {data: BodyType<HarnessMapInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  harnessMapStream(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HarnessMapStreamMutationResult = NonNullable<Awaited<ReturnType<typeof harnessMapStream>>>
+    export type HarnessMapStreamMutationBody = BodyType<HarnessMapInput>
+    export type HarnessMapStreamMutationError = ErrorType<ForbiddenResponse | NotFoundResponse>
+
+    /**
+ * @summary Mathematical Applicability Profile builder (SSE stream)
+ */
+export const useHarnessMapStream = <TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessMapStream>>, TError,{data: BodyType<HarnessMapInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof harnessMapStream>>,
+        TError,
+        {data: BodyType<HarnessMapInput>},
+        TContext
+      > => {
+      return useMutation(getHarnessMapStreamMutationOptions(options));
     }
 
 export const getHarnessF7StreamUrl = () => {

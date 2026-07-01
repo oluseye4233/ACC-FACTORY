@@ -78,4 +78,13 @@ export const ENGINES = [
     explainer:
       "Architect-tier only. Consumes a SPARTAN-certified MVP PDD / PWDD and emits a CODEBASE_BUNDLE — up to 12 files plus a manifest, scaffolded against your chosen platform. Refuses any uncertified input.",
   },
+  {
+    id: 10,
+    name: "MM",
+    title: "MATHMON LAYER",
+    description:
+      "Profile a session's measurable variables (F0.5) and build its Mathematical Applicability Profile (MAP) to compute the MATHMON score behind the FORGE VERIFIED gate.",
+    explainer:
+      "Math-verification side-step. F0.5 intake extracts measurable variables, constraints, and optimisation targets; the MAP scores math coherence, applicability, and predictive reliability into a single MATHMON score. FORGE VERIFIED requires JCSE ≥ 45 AND MATHMON ≥ 70 at F7. Advisory — does not block the F1 → F7 sequence.",
+  },
 ];

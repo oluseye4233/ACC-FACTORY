@@ -203,6 +203,8 @@ export const GetSessionResponse = zod.object({
   "certTier": zod.string().nullish(),
   "groState": zod.string().optional(),
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "mathmonScore": zod.number().nullish(),
+  "forgeVerified": zod.boolean().optional(),
   "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
   "runDurationMs": zod.number().nullish(),
@@ -366,6 +368,8 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "certTier": zod.string().nullish(),
   "groState": zod.string().optional(),
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "mathmonScore": zod.number().nullish(),
+  "forgeVerified": zod.boolean().optional(),
   "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
   "runDurationMs": zod.number().nullish(),
@@ -375,6 +379,62 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "createdAt": zod.coerce.date()
 })
 export const ListSessionArtifactsResponse = zod.array(ListSessionArtifactsResponseItem)
+
+
+/**
+ * @summary MATHMON state for a session (intake + MAP + FORGE VERIFIED gate)
+ */
+export const GetSessionMathmonParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetSessionMathmonResponse = zod.object({
+  "intake": zod.union([zod.object({
+  "id": zod.string().uuid(),
+  "sessionId": zod.string().uuid(),
+  "report": zod.object({
+  "measurableVariables": zod.array(zod.object({
+  "name": zod.string(),
+  "unit": zod.string(),
+  "description": zod.string()
+})),
+  "constraintCategories": zod.array(zod.object({
+  "category": zod.string(),
+  "detail": zod.string()
+})),
+  "optimisationTargets": zod.array(zod.object({
+  "target": zod.string(),
+  "direction": zod.enum(['MAXIMISE', 'MINIMISE']),
+  "metric": zod.string()
+})),
+  "summary": zod.string()
+}),
+  "provider": zod.string().nullish(),
+  "modelId": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]),
+  "map": zod.union([zod.object({
+  "id": zod.string().uuid(),
+  "sessionId": zod.string().uuid(),
+  "sections": zod.array(zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "body": zod.string()
+})),
+  "mathCoherence": zod.number(),
+  "applicability": zod.number(),
+  "predictiveReliability": zod.number(),
+  "mathmonScore": zod.number(),
+  "disclaimer": zod.string(),
+  "provider": zod.string().nullish(),
+  "modelId": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]),
+  "forgeVerified": zod.boolean(),
+  "mathmonScore": zod.number().nullable(),
+  "sessionJcse": zod.number().nullable(),
+  "disclaimer": zod.string().optional()
+})
 
 
 export const GetArtifactParams = zod.object({
@@ -393,6 +453,8 @@ export const GetArtifactResponse = zod.object({
   "certTier": zod.string().nullish(),
   "groState": zod.string().optional(),
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "mathmonScore": zod.number().nullish(),
+  "forgeVerified": zod.boolean().optional(),
   "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
   "runDurationMs": zod.number().nullish(),
@@ -430,6 +492,8 @@ export const RenameArtifactResponse = zod.object({
   "certTier": zod.string().nullish(),
   "groState": zod.string().optional(),
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "mathmonScore": zod.number().nullish(),
+  "forgeVerified": zod.boolean().optional(),
   "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
   "runDurationMs": zod.number().nullish(),
@@ -730,6 +794,50 @@ export const HarnessF6VdjResponse = zod.object({
   "name": zod.string(),
   "fit": zod.number()
 })).optional()
+})
+
+
+/**
+ * @summary MATHMON Applicability Layer — intake report
+ */
+export const HarnessF05Body = zod.object({
+  "sessionId": zod.string().uuid(),
+  "brief": zod.string().nullish(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+})
+
+export const HarnessF05Response = zod.object({
+  "id": zod.string().uuid(),
+  "sessionId": zod.string().uuid(),
+  "report": zod.object({
+  "measurableVariables": zod.array(zod.object({
+  "name": zod.string(),
+  "unit": zod.string(),
+  "description": zod.string()
+})),
+  "constraintCategories": zod.array(zod.object({
+  "category": zod.string(),
+  "detail": zod.string()
+})),
+  "optimisationTargets": zod.array(zod.object({
+  "target": zod.string(),
+  "direction": zod.enum(['MAXIMISE', 'MINIMISE']),
+  "metric": zod.string()
+})),
+  "summary": zod.string()
+}),
+  "provider": zod.string().nullish(),
+  "modelId": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Mathematical Applicability Profile builder (SSE stream)
+ */
+export const HarnessMapStreamBody = zod.object({
+  "sessionId": zod.string().uuid(),
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
 })
 
 
@@ -1552,6 +1660,8 @@ export const HarnessEvolveResponse = zod.object({
   "certTier": zod.string().nullish(),
   "groState": zod.string().optional(),
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "mathmonScore": zod.number().nullish(),
+  "forgeVerified": zod.boolean().optional(),
   "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
   "runDurationMs": zod.number().nullish(),
@@ -1576,7 +1686,10 @@ export const VerifyCertificateResponse = zod.object({
   "productName": zod.string().nullish(),
   "sessionName": zod.string().nullish(),
   "provider": zod.string().nullish(),
-  "modelId": zod.string().nullish()
+  "modelId": zod.string().nullish(),
+  "forgeVerified": zod.boolean().optional(),
+  "mathmonScore": zod.number().nullish(),
+  "disclaimer": zod.string().nullish()
 })
 
 

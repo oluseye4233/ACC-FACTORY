@@ -99,6 +99,21 @@ export default function Verify() {
                     <div className="mb-6" />
                   )}
 
+                  {data.forgeVerified ? (
+                    <div
+                      className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full border border-secondary/60 bg-secondary/10 text-secondary"
+                      data-testid="verify-forge-verified"
+                    >
+                      <BadgeCheck className="h-4 w-4" />
+                      <span className="font-display text-sm tracking-widest">FORGE VERIFIED</span>
+                      {typeof data.mathmonScore === "number" ? (
+                        <span className="font-mono text-xs opacity-80">
+                          MM {data.mathmonScore}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
+
                   <div className="w-full max-w-[300px] space-y-3 text-left bg-background/50 p-4 rounded-md border border-secondary/20">
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
                       <span className="text-xs font-mono text-muted-foreground">SPC NAME</span>
@@ -157,6 +172,15 @@ export default function Verify() {
                       </div>
                     ) : null}
                   </div>
+
+                  {data.forgeVerified && data.disclaimer ? (
+                    <p
+                      className="mt-4 max-w-[300px] text-[10px] leading-relaxed font-mono text-muted-foreground"
+                      data-testid="verify-forge-disclaimer"
+                    >
+                      {data.disclaimer}
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
             </div>

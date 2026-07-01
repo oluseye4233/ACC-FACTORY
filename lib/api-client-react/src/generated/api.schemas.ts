@@ -667,6 +667,9 @@ export interface HarnessArtifact {
   /** @nullable */
   spartanCert?: HarnessArtifactSpartanCert;
   /** @nullable */
+  mathmonScore?: number | null;
+  forgeVerified?: boolean;
+  /** @nullable */
   provider?: HarnessArtifactProvider;
   /** @nullable */
   modelId?: string | null;
@@ -1067,6 +1070,13 @@ export interface SpartanCert {
   class: SpartanCertClass;
   crP: number;
   issuedAt: string;
+  forgeVerified?: boolean;
+  /** @nullable */
+  mathmonScore?: number | null;
+  /** @nullable */
+  jcse?: number | null;
+  /** @nullable */
+  disclaimer?: string | null;
 }
 
 export type MvpPddDonut = {
@@ -1079,8 +1089,95 @@ export interface MvpPdd {
   sections: SpcSection[];
   cert: SpartanCert;
   donut?: MvpPddDonut;
+  forgeVerified?: boolean;
+  /** @nullable */
+  mathmonScore?: number | null;
+  /** @nullable */
+  disclaimer?: string | null;
   /** @nullable */
   artifactId?: string | null;
+}
+
+export interface HarnessF05Input {
+  sessionId: string;
+  /** @nullable */
+  brief?: string | null;
+  provider?: LlmProvider;
+}
+
+export type MathmonIntakeReportMeasurableVariablesItem = {
+  name: string;
+  unit: string;
+  description: string;
+};
+
+export type MathmonIntakeReportConstraintCategoriesItem = {
+  category: string;
+  detail: string;
+};
+
+export type MathmonIntakeReportOptimisationTargetsItemDirection = typeof MathmonIntakeReportOptimisationTargetsItemDirection[keyof typeof MathmonIntakeReportOptimisationTargetsItemDirection];
+
+
+export const MathmonIntakeReportOptimisationTargetsItemDirection = {
+  MAXIMISE: 'MAXIMISE',
+  MINIMISE: 'MINIMISE',
+} as const;
+
+export type MathmonIntakeReportOptimisationTargetsItem = {
+  target: string;
+  direction: MathmonIntakeReportOptimisationTargetsItemDirection;
+  metric: string;
+};
+
+export interface MathmonIntakeReport {
+  measurableVariables: MathmonIntakeReportMeasurableVariablesItem[];
+  constraintCategories: MathmonIntakeReportConstraintCategoriesItem[];
+  optimisationTargets: MathmonIntakeReportOptimisationTargetsItem[];
+  summary: string;
+}
+
+export interface MathmonIntake {
+  id: string;
+  sessionId: string;
+  report: MathmonIntakeReport;
+  /** @nullable */
+  provider?: string | null;
+  /** @nullable */
+  modelId?: string | null;
+  createdAt: string;
+}
+
+export interface HarnessMapInput {
+  sessionId: string;
+  provider?: LlmProvider;
+}
+
+export interface MathmonMap {
+  id: string;
+  sessionId: string;
+  sections: SpcSection[];
+  mathCoherence: number;
+  applicability: number;
+  predictiveReliability: number;
+  mathmonScore: number;
+  disclaimer: string;
+  /** @nullable */
+  provider?: string | null;
+  /** @nullable */
+  modelId?: string | null;
+  createdAt: string;
+}
+
+export interface MathmonState {
+  intake: MathmonIntake | null;
+  map: MathmonMap | null;
+  forgeVerified: boolean;
+  /** @nullable */
+  mathmonScore: number | null;
+  /** @nullable */
+  sessionJcse: number | null;
+  disclaimer?: string;
 }
 
 export interface F1000StatusResult {
@@ -1283,6 +1380,11 @@ export interface VerifyResult {
   provider?: string | null;
   /** @nullable */
   modelId?: string | null;
+  forgeVerified?: boolean;
+  /** @nullable */
+  mathmonScore?: number | null;
+  /** @nullable */
+  disclaimer?: string | null;
 }
 
 export type ExemplarSummarySource = typeof ExemplarSummarySource[keyof typeof ExemplarSummarySource];
