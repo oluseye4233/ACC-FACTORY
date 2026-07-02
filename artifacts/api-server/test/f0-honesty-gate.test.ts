@@ -124,7 +124,9 @@ interface Fixtures {
 
 const ARTIFACT_SKU = "ARK-SPC-GEN-abc123-0001-V1";
 
-// A completed SOCRATES discovery: 7 questions + at least one recorded answer.
+// A completed SOCRATES discovery: 7 questions, each with a substantive recorded
+// answer. Full coverage (an answer per question id) is what the discovery
+// precondition now requires.
 function completedTranscript(): Record<string, unknown> {
   return {
     intro: "Discovery intro",
@@ -133,7 +135,10 @@ function completedTranscript(): Record<string, unknown> {
       prompt: `Question ${i + 1}?`,
       why: `Because ${i + 1}`,
     })),
-    answers: [{ id: "q1", answer: "An answer" }],
+    answers: Array.from({ length: 7 }, (_, i) => ({
+      id: `q${i + 1}`,
+      answer: `Answer ${i + 1}`,
+    })),
   };
 }
 
@@ -496,6 +501,75 @@ describe("F0 discovery precondition — no report before SOCRATES is complete", 
     try {
       await expectDiscoveryRejected(fx);
     } finally {
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("rejects the 'one answer, six blanks' case (only 1 of 7 questions answered)", async () => {
+    const oneAnswer = completedTranscript();
+    oneAnswer.answers = [{ id: "q1", answer: "The only answer" }];
+    const fx = await seed(oneAnswer);
+    try {
+      await expectDiscoveryRejected(fx);
+    } finally {
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("rejects when coverage is partial (6 of 7 questions answered)", async () => {
+    const partialCoverage = completedTranscript();
+    (partialCoverage.answers as unknown[]).length = 6;
+    const fx = await seed(partialCoverage);
+    try {
+      await expectDiscoveryRejected(fx);
+    } finally {
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("rejects when every question has a row but some answers are blank/whitespace", async () => {
+    const blankAnswers = completedTranscript();
+    const answers = blankAnswers.answers as Array<{ id: string; answer: string }>;
+    answers[3]!.answer = "   ";
+    answers[5]!.answer = "";
+    const fx = await seed(blankAnswers);
+    try {
+      await expectDiscoveryRejected(fx);
+    } finally {
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("rejects when 7 answers exist but they duplicate ids, leaving questions uncovered", async () => {
+    const duplicated = completedTranscript();
+    duplicated.answers = Array.from({ length: 7 }, () => ({ id: "q1", answer: "dup" }));
+    const fx = await seed(duplicated);
+    try {
+      await expectDiscoveryRejected(fx);
+    } finally {
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("accepts when every one of the 7 questions has a substantive answer", async () => {
+    // Full coverage must reach the LLM stream (SSE 200), not the 409 gate. The
+    // canned body is schema-valid, so a `complete` event proves the precondition
+    // let it through.
+    const fx = await seed(completedTranscript());
+    const srv = await startServer(buildApp(fx.user, fx.subscriber));
+    try {
+      const res = await postReport(srv.url, fx.engagementId, {
+        service: "PRODUCT_VIABILITY",
+        provider: "claude",
+      });
+      expect(res.status).toBe(200);
+      expect(res.events.find((e) => e.event === "error")).toBeUndefined();
+      expect(
+        res.events.find((e) => e.event === "complete"),
+        JSON.stringify(res.events).slice(0, 400),
+      ).toBeDefined();
+    } finally {
+      await srv.close();
       await cleanup(fx.user.id);
     }
   });

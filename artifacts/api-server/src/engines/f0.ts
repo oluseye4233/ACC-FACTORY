@@ -312,17 +312,31 @@ export async function handleF0GenerateReportStream(req: Request, res: Response):
   // closes the bypass where ad-hoc answers could be posted without ever running
   // discovery — every engagement genuinely opens with SOCRATES.
   const transcript = engagement.discoveryTranscript as
-    | { questions?: unknown[]; answers?: unknown[] }
+    | { questions?: Array<{ id?: unknown }>; answers?: Array<{ id?: unknown; answer?: unknown }> }
     | null
     | undefined;
-  const hasQuestions =
-    !!transcript && Array.isArray(transcript.questions) && transcript.questions.length === 7;
-  const hasAnswers =
-    !!transcript && Array.isArray(transcript.answers) && transcript.answers.length > 0;
-  if (!hasQuestions || !hasAnswers) {
+  const questions =
+    !!transcript && Array.isArray(transcript.questions) ? transcript.questions : [];
+  const answers = !!transcript && Array.isArray(transcript.answers) ? transcript.answers : [];
+  const hasQuestions = questions.length === 7;
+  // Discovery is only genuinely complete when every one of the 7 questions has a
+  // non-empty answer. Checking `answers.length > 0` was too weak: a single stray
+  // answer against six blank questions would pass. We build the set of question
+  // ids that carry a substantive (non-whitespace) answer and require it to cover
+  // all 7, closing the "one answer, six blanks" bypass.
+  const questionIds = questions.map((q) => String(q.id));
+  const answeredIds = new Set(
+    answers
+      .filter((a) => typeof a.answer === "string" && a.answer.trim().length > 0)
+      .map((a) => String(a.id)),
+  );
+  const hasFullCoverage =
+    hasQuestions && questionIds.every((id) => answeredIds.has(id));
+  if (!hasQuestions || !hasFullCoverage) {
     res.status(409).json({
       error: "DISCOVERY_REQUIRED",
-      detail: "Complete the SOCRATES discovery (generate the 7 questions, then record answers) before generating a report.",
+      detail:
+        "Complete the SOCRATES discovery (generate the 7 questions, then record an answer for every one) before generating a report.",
     });
     return;
   }
