@@ -88,3 +88,6 @@ STRIPE_PRICE_ARCHITECT_YEARLY = "price_1TYGhg4vTID2utsVN6PLnFCn"
 ADMIN_EMAILS = "oamusaagv@gmail.com"
 SUBSCRIPTIONS_ENABLED = "false"
 STAFF_MONTHLY_COST_CAP_USD = "1000"
+
+[userenv.production]
+PUBLIC_BASE_URL = "https://command-centre-plan.replit.app"

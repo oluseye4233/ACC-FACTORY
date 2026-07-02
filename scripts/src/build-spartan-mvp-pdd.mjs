@@ -61,15 +61,15 @@ kv([
 
 h3("Certification header");
 kv([
-  ["Compression ID", "SPRT-AC-CC-CURRENT-2026-005"],
-  ["Source", "ATANDA Command Centre live codebase (May 2026)"],
+  ["Compression ID", "SPRT-AC-CC-CURRENT-2026-006"],
+  ["Source", "ATANDA Command Centre live codebase (July 2026)"],
   ["Source PDD ref", "ATANDA_Command_Centre_Living_PDD_ATLAS (JNGL-ACC-PDD-CUR-2026-001)"],
-  ["Supersedes", "SPRT-AC-CC-CURRENT-2026-004"],
+  ["Supersedes", "SPRT-AC-CC-CURRENT-2026-005"],
   ["Compressor", "SPARTAN SPC v1.0 · JCSE 49/50 · Wolf · PLATINUM"],
   ["ZPOS+5", "PRISM (97.0%) · QUANTUM (96.0%) · SYNTHESIS (96.5%)"],
   ["VIBE DJ", "Replit Agent + Workspaces (94/100 · TARANTULA-class)"],
   ["HOST DJ", "Replit Deployments — Autoscale (see Section 4)"],
-  ["Status", "SPARTAN COMPRESSION COMPLETE · CERTIFIED · 22/24 SHIPPED · 2 DEFERRED (B)"]
+  ["Status", "SPARTAN COMPRESSION COMPLETE · CERTIFIED · 26/28 SHIPPED · 2 DEFERRED (B)"]
 ]);
 
 doc.moveDown(0.4);
@@ -78,7 +78,7 @@ doc.fillColor(SOFT).font("Helvetica-Oblique").fontSize(9).text("— SPARTAN SPC 
 
 doc.moveDown(0.8);
 h3("Honesty legend");
-p("This is a compression of the ATLAS Living PDD, so FFS measures whether features survive the compression. 22 of 24 features are SHIPPED and live in the current codebase; the 2 subscription features (F-02 Clerk auth, F-03 Stripe billing) are DEFERRED as a B-level upgrade — fully coded and tested but held dormant behind SUBSCRIPTIONS_ENABLED=false while the product runs as an internal staff tool (shared access code). Per the Honesty Gate G3, speculative ROI / cost-savings are reported as NOT CLAIMED.");
+p("This is a compression of the ATLAS Living PDD, so FFS measures whether features survive the compression. 26 of 28 features are SHIPPED and live in the current codebase; the 2 subscription features (F-02 Clerk auth, F-03 Stripe billing) are DEFERRED as a B-level upgrade — fully coded and tested but held dormant behind SUBSCRIPTIONS_ENABLED=false while the product runs as an internal staff tool (shared access code). Per the Honesty Gate G3, speculative ROI / cost-savings are reported as NOT CLAIMED.");
 
 // ────────────────────────────────────────────────────────────────────────────
 // SECTION 1 — SPARTAN COMPRESSION REPORT
@@ -89,14 +89,24 @@ h3("Step 1 — SCAN · Source Manifest");
 code(`Source:          ATANDA Command Centre live codebase
 Repo shape:      pnpm monorepo (Node 24 · TypeScript 5.9)
 Artifacts:       3   (api-server, command-centre web, mockup-sandbox)
-API surface:     101 endpoints across 24 route files
-DB tables:       20  (one Drizzle file each, barrel re-export)
-HARNESS engines: 13 shipped (F1, F2, F3, F4, F5, F6, F6-VDJ, F7,
-                     DE-SPC, F8 Code DJ, ATLAS-J, PFP, F8-HDJ / HOST DJ)
+API surface:     135 endpoints across 28 route files
+DB tables:       31  (one Drizzle file each, barrel re-export)
+HARNESS engines: 18 shipped (F1, F2, F3, F4, F5, F6, F6-VDJ, F7,
+                     DE-SPC, F8 Code DJ, ATLAS-J, PFP, F8-HDJ / HOST DJ,
+                     F0 advisory, F0.5 MATHMON, MAP, Magnet Calculator,
+                     Magnet Test Kit)
 Client pages:    active staff surface (command, sessions, F1-F8 workspaces,
-                     ingest, cartridge, quests, ascension, verify, admin);
+                     ingest, cartridge, quests, ascension, verify, admin,
+                     F0 advisory dashboard) + public magnet funnel
+                     (calculate-your-savings, test-your-agent);
                      subscription/billing/org/pricing pages retained but
                      dormant (unrouted) behind SUBSCRIPTIONS_ENABLED.
+Scheduled ops:   3 cron targets via scripts cron-tick + Replit Scheduled
+                     Deployments, gated by CRON_SECRET:
+                     reset-harness-limits (daily 00:00 UTC),
+                     send-weekly-digest (Mon 09:00 UTC),
+                     run-f0-monitoring (Mon 08:00 UTC — weekly retainer
+                     sweep, persists f0_monitoring_runs, emails breaches).
 Delivery layer:  F8 IDE export bundle (ZIP + AGENTS.md) + push-to-GitHub
 Access model:    INTERNAL staff tool — one shared STAFF_ACCESS_CODE + typed
                      name (attribution); signed session cookie. Clerk +
@@ -130,12 +140,19 @@ code(`[F-01] Staff front door — shared access code + typed name (attribution)
 [F-21] Daily rate-limit reset cron + per-engine telemetry + cost dashboard/cap
 [F-22] F8 IDE export bundle (ZIP + AGENTS.md, per-IDE adapters)
 [F-23] F8 push-to-GitHub (per-user PAT/OAuth, repo picker, seed, PR)
-[F-24] F8-HDJ HOST DJ — hosting decision + deployment journey engine`);
+[F-24] F8-HDJ HOST DJ — hosting decision + deployment journey engine
+[F-25] F0 advisory suite — engagements, SOCRATES discovery, ensemble
+       reports (SSE), retainers + commentary, weekly CAPI monitoring
+       sweep with breach alert emails (cron run-f0-monitoring)
+[F-26] F0.5 MATHMON intake — mathematical-rigor applicability profiling
+[F-27] MAP — Mathematical Applicability Profile (SSE, FORGE VERIFIED gate)
+[F-28] Magnet funnel — public savings calculator + agent test kit
+       (anonymous, IP rate-limited, global cost budget)`);
 
 h3("Step 2 — PROFILE · Classification Results");
-code(`TOTAL FEATURES CLASSIFIED: 24
+code(`TOTAL FEATURES CLASSIFIED: 28
 
-CLASS A — PRESERVE (24 features · 100%)
+CLASS A — PRESERVE (28 features · 100%)
   Every user-facing capability above. FFS target = 100%.
 
 CLASS B — SYNTHESISE (merged into other prompts, 0 deltas to user)
@@ -147,6 +164,8 @@ CLASS B — SYNTHESISE (merged into other prompts, 0 deltas to user)
   · Cross-provider test fixtures    -> merged into test rig prompt
   · Per-user GitHub credential crypto + client -> merged into integrations
   · F8-HDJ HRP normaliser + cost/tier guard    -> merged into F8-HDJ prompt
+  · F0 sweep 6-day skip window + cost-cap halt -> merged into F0 cron prompt
+  · Magnet IP rate-limit + global cost budget  -> merged into magnet routes
 
 DEFERRED — B-LEVEL UPGRADE (built, dormant, one flag away)
   · Subscriptions & billing: Clerk auth, Stripe tiers, per-seat orgs,
@@ -195,6 +214,12 @@ code(`Merge log (CLASS B -> CLASS A absorption):
   · F8-HDJ folds the HRP normaliser, HSE matrix, DJG journey, and SDF emitter
     into one engine prompt; reuses the harness route middleware chain and
     persistArtifact(HOSTING_PLAN).
+  · cron/run-f0-monitoring sweeps every ACTIVE F0 retainer weekly, skips
+    retainers swept within 6 days, halts LLM spend at the monthly cost cap,
+    persists f0_monitoring_runs, and emails owners on ACT_SOON/ACT_NOW
+    breaches (gated on retainerAlertsEnabled).
+  · Magnet routes share one anonymous path: magnetRateLimit (5/hr per IP)
+    + requireGlobalCostBudget; sessions logged to magnet_sessions.
 
 Containment check: no CLASS A feature lost. FFS = 100%.`);
 
@@ -204,7 +229,7 @@ QUANTUM   (technical token reduction)    applied · 96.0% retention
 SYNTHESIS (structured-output prompts)    applied · 96.5% retention
 
 Net token delta on system prompts vs ATLAS Living PDD: -38%
-Net feature delta:                                       0 losses (24/24 kept)`);
+Net feature delta:                                       0 losses (28/28 kept)`);
 
 h3("Step 7 — PACKAGE · Quality Gate Results");
 table(
@@ -214,7 +239,7 @@ table(
     ["AVS — Architecture Viability", "\u2265 90%", "96%", "PASS"],
     ["CIS — Compression Integrity", "\u2265 90%", "94%", "PASS"],
     ["UIS — Upgrade Integrity", "\u2265 85%", "92%", "PASS"],
-    ["CR_p — Prompt-count reduction", "\u2265 60%", "67% (98 \u2192 32)", "PASS"],
+    ["CR_p — Prompt-count reduction", "\u2265 60%", "67% (110 \u2192 36)", "PASS"],
     ["CR_t — Token reduction", "\u2265 30%", "38%", "PASS"],
     ["CR_c — Cost-of-infra delta", "\u2264 +10%", "~0% (same Replit)", "PASS"]
   ],
@@ -226,7 +251,7 @@ table(
 // ────────────────────────────────────────────────────────────────────────────
 partHeader("SECTION 2", "Architecture Reduction — Stack Collapse Map", PHASE_COLOURS.GREEN);
 
-h3("2.1 What stays — all 24 features survive the compression (FFS = 100%)");
+h3("2.1 What stays — all 28 features survive the compression (FFS = 100%)");
 p("All features below are SHIPPED in the current codebase. The MVP column is the compressed prompt id, not a separate claim of merge.");
 table(
   ["#", "Feature", "Production Implementation", "MVP (Merged)"],
@@ -247,7 +272,11 @@ table(
     ["F-21", "Cron + telemetry + cost cap", "routes/cron + harness_engine_runs + cost-budget", "MVCC-OPS"],
     ["F-22", "F8 IDE export bundle", "command-centre/lib/codeDjExport.ts", "MVCC-EXPORT"],
     ["F-23", "F8 push-to-GitHub", "routes/integrations + lib/github + PushToGitHubButton", "MVCC-GITHUB"],
-    ["F-24", "F8-HDJ HOST DJ", "engines/f8hdj + routes/harness + HOST DJ card", "MVCC-HDJ"]
+    ["F-24", "F8-HDJ HOST DJ", "engines/f8hdj + routes/harness + HOST DJ card", "MVCC-HDJ"],
+    ["F-25", "F0 advisory suite + monitoring", "engines/f0 + routes/f0 + cron run-f0-monitoring", "MVCC-F0"],
+    ["F-26", "F0.5 MATHMON intake", "engines/f05 + MathmonLayer", "MVCC-MATHMON"],
+    ["F-27", "MAP profile (SSE)", "engines/map + routes/harness", "MVCC-MAP"],
+    ["F-28", "Magnet funnel (public)", "engines/magnet-* + magnet routes + 2 public pages", "MVCC-MAGNET"]
   ],
   [0.1, 0.26, 0.42, 0.22]
 );
@@ -270,7 +299,7 @@ table(
 // ────────────────────────────────────────────────────────────────────────────
 // SECTION 3 — COMPRESSED MVP WORKSHEET
 // ────────────────────────────────────────────────────────────────────────────
-partHeader("SECTION 3", "Compressed MVP Worksheet — 32 Prompts · 6 Phases", PHASE_COLOURS.YELLOW);
+partHeader("SECTION 3", "Compressed MVP Worksheet — 36 Prompts · 7 Phases", PHASE_COLOURS.YELLOW);
 
 phaseBlock({
   colourName: "RED",
@@ -358,6 +387,20 @@ phaseBlock({
   exit: "Tests, account delete, and launch wiring all green."
 });
 
+phaseBlock({
+  colourName: "VIOLET",
+  header: "Advisory + Funnel",
+  duration: "Week 7 · 4 prompts",
+  status: "SHIPPED",
+  deliverables: [
+    "MVCC-F0 — F0 advisory suite: engagements + SOCRATES discovery + ensemble reports (SSE) + retainers + weekly CAPI monitoring sweep (cron run-f0-monitoring: 6-day skip window, cost-cap halt, breach emails, f0_monitoring_runs)",
+    "MVCC-MATHMON — F0.5 MATHMON intake (applicability profiling, mathmon_intakes)",
+    "MVCC-MAP — MAP Mathematical Applicability Profile (SSE, server-recomputed sub-scores, FORGE VERIFIED gate)",
+    "MVCC-MAGNET — Public magnet funnel: savings calculator + agent test kit (magnetRateLimit 5/hr per IP + requireGlobalCostBudget, magnet_sessions)"
+  ],
+  exit: "Advisory layer + top-of-funnel magnets live; scheduled ops verified (3 cron targets via cron-tick, CRON_SECRET-gated)."
+});
+
 h3("Worksheet summary");
 table(
   ["Phase", "Prompts", "Week", "Theme"],
@@ -368,7 +411,8 @@ table(
     ["4 GREEN", "5", "Week 4", "F8 + ATLAS-J + PFP + ingestion + cartridge"],
     ["5 BLUE", "4", "Week 5", "Delivery: IDE export + GitHub + F8-HDJ"],
     ["6 INDIGO", "3", "Week 6", "Tests + account delete + launch"],
-    ["Total", "32", "6 weeks", "FFS 100% · single dev · Replit Agent"]
+    ["7 VIOLET", "4", "Week 7", "F0 advisory + MATHMON/MAP + magnet funnel + scheduled ops"],
+    ["Total", "36", "7 weeks", "FFS 100% · single dev · Replit Agent"]
   ],
   [0.18, 0.14, 0.16, 0.52]
 );
@@ -406,21 +450,21 @@ partHeader("SECTION 5", "SPARTAN FORGE Certification Block", GOLD);
 code(`+==============================================================+
 |                  SPARTAN FORGE CERTIFICATION                 |
 +==============================================================+
-|  Compression ID :  SPRT-AC-CC-CURRENT-2026-005               |
+|  Compression ID :  SPRT-AC-CC-CURRENT-2026-006               |
 |  Source         :  ATANDA Command Centre live codebase       |
 |  Source PDD ref :  ATANDA_Command_Centre_Living_PDD_ATLAS     |
-|  MVP Output     :  32 prompts · 6 phases · 6 weeks           |
+|  MVP Output     :  36 prompts · 7 phases · 7 weeks           |
 |  IDE (VIBE DJ)  :  Replit Agent + Workspaces                 |
 |  Host (HOST DJ) :  Replit Deployments — Autoscale            |
-|  FFS            :  100% kept (22/24 SHIPPED · 2 DEFERRED B)  |
+|  FFS            :  100% kept (26/28 SHIPPED · 2 DEFERRED B)  |
 |  AVS            :   96%                                       |
 |  CIS            :   94%                                       |
 |  UIS            :   92%                                       |
-|  CR_p           :   67%  (98 -> 32 prompts)                  |
+|  CR_p           :   67%  (110 -> 36 prompts)                 |
 |  CR_t           :   38%                                       |
 |  CR_c           :   ~0%  (same Replit infra)                 |
 |  JCSE           :   49/50  ·  Wolf  ·  Platinum              |
-|  Status         :   CERTIFIED · 22/24 SHIPPED · 2 DEFERRED B |
+|  Status         :   CERTIFIED · 26/28 SHIPPED · 2 DEFERRED B |
 +==============================================================+`);
 
 doc.moveDown(1);

@@ -4,17 +4,25 @@
  *
  * Designed to be run from a Replit Scheduled Deployment (or any external
  * scheduler). Hits the cron-secret-gated endpoints on the deployed API
- * server. Defaults to the weekly digest; pass `--reset` to also tick the
- * daily harness rate-limit reset.
+ * server. Pass one or more targets as CLI args, e.g.:
+ *
+ *   pnpm --filter @workspace/scripts run cron-tick -- reset-harness-limits
+ *
+ * Schedules (one Scheduled Deployment per target):
+ *   - reset-harness-limits   daily 00:00 UTC (without it every user locks
+ *                            at their daily engine cap after 24h)
+ *   - weekly-digest          weekly, Mondays 09:00 UTC
+ *   - run-f0-monitoring      weekly, Mondays 08:00 UTC
  *
  * Required env:
  *   - CRON_SECRET            shared secret matching the API server
  *   - PUBLIC_BASE_URL        e.g. https://command-centre.replit.app
  *
  * Optional env:
- *   - CRON_TARGETS           comma-separated list of targets to run:
- *                            "weekly-digest", "reset-harness-limits".
- *                            Defaults to "weekly-digest".
+ *   - CRON_TARGETS           comma-separated list of targets to run
+ *                            (used when no CLI args are given):
+ *                            "weekly-digest", "reset-harness-limits",
+ *                            "run-f0-monitoring". Defaults to "weekly-digest".
  *   - CRON_TIMEOUT_MS        per-request timeout, default 60000
  *
  * Exit code is non-zero if any request fails so the scheduled deployment
