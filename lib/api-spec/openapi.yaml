@@ -2053,7 +2053,7 @@ components:
             required: [id, answer]
             properties:
               id:     { type: string }
-              answer: { type: string, maxLength: 4000 }
+              answer: { type: string, minLength: 1, maxLength: 4000 }
 
     GenerateF0ReportInput:
       type: object

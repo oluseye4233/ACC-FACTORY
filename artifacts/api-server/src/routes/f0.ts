@@ -220,7 +220,7 @@ router.get("/f0/engagements/:id", requireAuth, async (req, res): Promise<void> =
   res.json({ engagement: guard.engagement, reports });
 });
 
-router.put("/f0/engagements/:id/discovery", requireAuth, async (req, res): Promise<void> => {
+export const handleF0RecordDiscovery: RequestHandler = async (req, res): Promise<void> => {
   const parsed = RecordF0DiscoveryBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -257,16 +257,40 @@ router.put("/f0/engagements/:id/discovery", requireAuth, async (req, res): Promi
     });
     return;
   }
+  // Blank/whitespace answers are refused at the record step (mirroring the
+  // report gate's non-whitespace rule in engines/f0.ts). Persisting empty
+  // strings let operators save incomplete discovery and only hit the gate later
+  // at report time — reject them here so the transcript never carries blanks.
+  const blankIds = parsed.data.answers
+    .filter((a) => a.answer.trim().length === 0)
+    .map((a) => a.id);
+  if (blankIds.length > 0) {
+    res.status(400).json({
+      error: "BLANK_ANSWER",
+      detail: `Answers must not be empty or whitespace-only: ${blankIds.join(", ")}`,
+    });
+    return;
+  }
   const transcript = { ...existing, answers: parsed.data.answers };
-  // Recording answers advances the engagement out of DISCOVERY.
-  const nextStatus = guard.engagement.status === "DISCOVERY" ? "ACTIVE" : guard.engagement.status;
+  // Recording answers advances the engagement out of DISCOVERY only once all 7
+  // questions carry a substantive answer — full coverage is what the report gate
+  // requires, so partial saves stay in DISCOVERY rather than falsely reading as
+  // ACTIVE. (Answers are guaranteed non-blank by the check above.)
+  const answeredIds = new Set(parsed.data.answers.map((a) => a.id));
+  const hasFullCoverage = questions.every((q) => answeredIds.has(String(q.id)));
+  const nextStatus =
+    guard.engagement.status === "DISCOVERY" && hasFullCoverage
+      ? "ACTIVE"
+      : guard.engagement.status;
   const rows = await db
     .update(f0EngagementsTable)
     .set({ discoveryTranscript: transcript, status: nextStatus })
     .where(eq(f0EngagementsTable.id, guard.engagement.id))
     .returning();
   res.json(rows[0]);
-});
+};
+
+router.put("/f0/engagements/:id/discovery", requireAuth, handleF0RecordDiscovery);
 
 router.post("/f0/engagements/:id/discovery/generate", ...f0LlmRoute(handleF0GenerateDiscovery));
 router.post("/f0/engagements/:id/reports", ...f0LlmRoute(handleF0GenerateReportStream));

@@ -2038,7 +2038,7 @@ export const recordF0DiscoveryBodyAnswersMax = 7;
 export const RecordF0DiscoveryBody = zod.object({
   "answers": zod.array(zod.object({
   "id": zod.string(),
-  "answer": zod.string().max(recordF0DiscoveryBodyAnswersItemAnswerMax)
+  "answer": zod.string().min(1).max(recordF0DiscoveryBodyAnswersItemAnswerMax)
 })).min(1).max(recordF0DiscoveryBodyAnswersMax)
 })
 

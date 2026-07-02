@@ -8,6 +8,9 @@
 
 export type RecordF0DiscoveryInputAnswersItem = {
   id: string;
-  /** @maxLength 4000 */
+  /**
+     * @minLength 1
+     * @maxLength 4000
+     */
   answer: string;
 };
