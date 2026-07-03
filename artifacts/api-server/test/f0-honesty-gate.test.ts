@@ -218,6 +218,69 @@ async function seed(
   };
 }
 
+// A variant of `seed` for the early-stage boutique case: the engagement advises
+// on an idea before any SPC / MVP-PDD exists, so it has NO linked artifact
+// (`artifactId` is null). The report handler must then mint a fresh advisory SKU
+// and anchor the report code to it.
+async function seedNoArtifact(): Promise<Omit<Fixtures, "artifactId" | "sku">> {
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const [user] = await db
+    .insert(usersTable)
+    .values({
+      clerkUserId: `test_clerk_f0_gate_noart_${stamp}`,
+      email: `f0-gate-noart-${stamp}@example.test`,
+      displayName: "F0 Gate No-Artifact Test",
+    })
+    .returning();
+  if (!user) throw new Error("seedNoArtifact: user insert failed");
+
+  const [subscriber] = await db
+    .insert(commandCentreSubscribersTable)
+    .values({ userId: user.id, tier: "PRACTITIONER", status: "active" })
+    .returning();
+  if (!subscriber) throw new Error("seedNoArtifact: subscriber insert failed");
+
+  const [session] = await db
+    .insert(harnessSessionsTable)
+    .values({
+      userId: user.id,
+      sessionName: `f0-gate-noart ${stamp}`,
+      preferredModelProvider: "claude",
+    })
+    .returning();
+  if (!session) throw new Error("seedNoArtifact: session insert failed");
+
+  const transcript = {
+    intro: "Discovery intro",
+    questions: Array.from({ length: 7 }, (_, i) => ({
+      id: `q${i + 1}`,
+      prompt: `Question ${i + 1}?`,
+      why: `Because ${i + 1}`,
+    })),
+    answers: [{ id: "q1", answer: "An answer" }],
+  };
+
+  const [engagement] = await db
+    .insert(f0EngagementsTable)
+    .values({
+      userId: user.id,
+      title: "Early-stage engagement (no artifact)",
+      status: "DISCOVERY",
+      sessionId: session.id,
+      artifactId: null,
+      discoveryTranscript: transcript,
+    })
+    .returning();
+  if (!engagement) throw new Error("seedNoArtifact: engagement insert failed");
+
+  return {
+    user,
+    subscriber,
+    sessionId: session.id,
+    engagementId: engagement.id,
+  };
+}
+
 async function cleanup(userId: string): Promise<void> {
   await db.delete(usersTable).where(eq(usersTable.id, userId));
 }
@@ -404,6 +467,51 @@ describe("F0 Honesty Gate — non-suppressible on every report", () => {
       expect(code.code).toBe("F0-PV");
       expect(code.sku).toBe(fx.sku);
       expect(code.artifactId).toBe(fx.artifactId);
+      expect(code.reportCode).toBe(row.reportCode);
+    } finally {
+      await srv.close();
+      await cleanup(fx.user.id);
+    }
+  });
+
+  test("an engagement with no linked artifact mints a fresh advisory SKU and anchors the code to it", async () => {
+    llm.responseText = JSON.stringify(validReport());
+
+    const fx = await seedNoArtifact();
+    const srv = await startServer(buildApp(fx.user, fx.subscriber));
+    try {
+      const res = await postReport(srv.url, fx.engagementId, {
+        service: "PRODUCT_VIABILITY",
+        provider: "claude",
+      });
+      const complete = res.events.find((e) => e.event === "complete");
+      expect(res.events.find((e) => e.event === "error")).toBeUndefined();
+      expect(complete, JSON.stringify(res.events).slice(0, 400)).toBeDefined();
+
+      // With no artifact to anchor to, the handler mints a fresh advisory SKU
+      // (product type F0A) and the report persists against it.
+      const reports = await db
+        .select()
+        .from(f0ReportsTable)
+        .where(eq(f0ReportsTable.userId, fx.user.id));
+      expect(reports.length).toBe(1);
+      const row = reports[0]!;
+      expect(row.service).toBe("PRODUCT_VIABILITY");
+      expect(row.sku).toMatch(/^ARK-F0A-GEN-[0-9a-f]{6}-\d{4}-V1$/);
+      expect(row.reportCode).toBe(`F0-PV-${row.sku}-${row.reportCode.split("-").pop()}`);
+      expect(row.reportCode).toMatch(new RegExp(`^F0-PV-${row.sku}-\\d{14}$`));
+
+      // The report-code registry row anchors to the same advisory SKU, with a
+      // null artifactId since there is no owning listing.
+      const codes = await db
+        .select()
+        .from(f0ReportCodesTable)
+        .where(eq(f0ReportCodesTable.userId, fx.user.id));
+      expect(codes.length).toBe(1);
+      const code = codes[0]!;
+      expect(code.code).toBe("F0-PV");
+      expect(code.sku).toBe(row.sku);
+      expect(code.artifactId).toBeNull();
       expect(code.reportCode).toBe(row.reportCode);
     } finally {
       await srv.close();
