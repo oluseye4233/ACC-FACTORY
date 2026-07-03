@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, commandCentreSubscribersTable } from "@workspace/db";
 import { runWeeklyDigest } from "../lib/notification-dispatch";
 import { runF0MonitoringSweep } from "../engines/f0";
+import { runCostCapAlertSweepOnce } from "../lib/cost-cap-sweeper";
 
 const router: IRouter = Router();
 
@@ -46,6 +47,19 @@ router.post("/cron/run-f0-monitoring", async (req, res): Promise<void> => {
   if (!requireCronSecret(req, res)) return;
   const result = await runF0MonitoringSweep();
   res.json({ ok: true, ...result });
+});
+
+// Cost-cap alert sweep on demand. Production runs on autoscale: with zero
+// traffic the instance scales down and the in-process 15-minute sweeper
+// (src/lib/cost-cap-sweeper.ts) cannot fire. An external Scheduled Deployment
+// tick hits this endpoint every 15–30 minutes so threshold detection stays
+// time-bounded even when the app is fully asleep. Safe to coexist with the
+// in-process sweep: exactly-once is guaranteed by the UNIQUE
+// (month, threshold_percent) stamp in cost_cap_notifications.
+router.post("/cron/sweep-cost-cap-alerts", async (req, res): Promise<void> => {
+  if (!requireCronSecret(req, res)) return;
+  await runCostCapAlertSweepOnce();
+  res.json({ ok: true });
 });
 
 export default router;

@@ -11,7 +11,9 @@
  *  3. Failures are log-and-continue: a throwing spend lookup must resolve
  *     without rejecting, and the next tick recovers.
  */
-import { describe, test, expect, beforeEach, vi } from "vitest";
+import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
+import express from "express";
+import type { Server } from "node:http";
 
 // ---------- Mock the pino singleton ----------
 // The failure-path test trips logger.warn ON PURPOSE; capturing it keeps the
@@ -122,6 +124,69 @@ describe("runCostCapAlertSweepOnce", () => {
     release();
     await first;
     expect(dispatchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("POST /api/cron/sweep-cost-cap-alerts", () => {
+  // Production is an autoscale deployment: with zero traffic the instance
+  // scales down and the in-process interval above cannot fire. This endpoint
+  // is the external Scheduled-Deployment tick that keeps threshold detection
+  // time-bounded even when the app is asleep. Exactly-once coexistence with
+  // the in-process sweep is the dispatcher's UNIQUE stamp (covered in
+  // cost-cap-alerts.test.ts); here we verify the gate + wiring.
+  const CRON_SECRET = `test-cron-secret-${Date.now()}`;
+  let server: Server;
+  let baseUrl: string;
+  let prevCronSecret: string | undefined;
+
+  beforeAll(async () => {
+    prevCronSecret = process.env.CRON_SECRET;
+    process.env.CRON_SECRET = CRON_SECRET;
+    const { default: cronRouter } = await import("../src/routes/cron");
+    const app = express();
+    app.use("/api", cronRouter);
+    await new Promise<void>((resolve) => {
+      server = app.listen(0, "127.0.0.1", resolve);
+    });
+    const addr = server.address();
+    if (addr === null || typeof addr === "string") throw new Error("no server address");
+    baseUrl = `http://127.0.0.1:${addr.port}`;
+  });
+
+  afterAll(async () => {
+    if (prevCronSecret === undefined) delete process.env.CRON_SECRET;
+    else process.env.CRON_SECRET = prevCronSecret;
+    await new Promise<void>((resolve, reject) => {
+      server.close((err) => (err ? reject(err) : resolve()));
+    });
+  });
+
+  test("rejects a missing or wrong secret without sweeping", async () => {
+    const noSecret = await fetch(`${baseUrl}/api/cron/sweep-cost-cap-alerts`, {
+      method: "POST",
+    });
+    expect(noSecret.status).toBe(401);
+
+    const wrongSecret = await fetch(`${baseUrl}/api/cron/sweep-cost-cap-alerts`, {
+      method: "POST",
+      headers: { "x-cron-secret": "nope" },
+    });
+    expect(wrongSecret.status).toBe(401);
+    expect(dispatchMock).not.toHaveBeenCalled();
+  });
+
+  test("with the secret, runs one sweep against live spend + cap and acks", async () => {
+    costGlobalMock.mockResolvedValueOnce(963.21);
+    capMock.mockReturnValueOnce(1000);
+
+    const res = await fetch(`${baseUrl}/api/cron/sweep-cost-cap-alerts`, {
+      method: "POST",
+      headers: { "x-cron-secret": CRON_SECRET },
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
+    expect(dispatchMock).toHaveBeenCalledTimes(1);
+    expect(dispatchMock).toHaveBeenCalledWith(963.21, 1000);
   });
 });
 

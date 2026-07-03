@@ -79,7 +79,7 @@ These are set in the **Deploy** panel's secrets, not committed. Grouped by neces
 ### Ops / required for correct production behaviour
 - `PUBLIC_BASE_URL` — used to build the public `/verify?certId=…` URL in cert emails and
   the GitHub OAuth callback URL.
-- `CRON_SECRET` — gates the two cron endpoints. **Without `reset-harness-limits` every
+- `CRON_SECRET` — gates the cron endpoints. **Without `reset-harness-limits` every
   tier holder locks at their daily cap after 24h.**
 - `ADMIN_EMAILS` — admin allowlist (cost-cap overrides, org/activity admin).
 - `SESSION_SECRET` — already set; AES-256-GCM key derivation for stored integration creds.
@@ -127,13 +127,19 @@ These are set in the **Deploy** panel's secrets, not committed. Grouped by neces
 
 ## 5. Schedule the cron ticks (Scheduled Deployments)
 
-The three cron endpoints are driven externally by
+The four cron endpoints are driven externally by
 `pnpm --filter @workspace/scripts run cron-tick -- <target>` (needs `PUBLIC_BASE_URL` +
 `CRON_SECRET`; exits non-zero on failure so a missed tick surfaces in logs):
 
 - `reset-harness-limits` — **daily 00:00 UTC** (`0 0 * * *`; mandatory; otherwise tiers lock after 24h).
 - `weekly-digest` — **Mondays 09:00 UTC** (`0 9 * * 1`).
 - `run-f0-monitoring` — **Mondays 08:00 UTC** (`0 8 * * 1`).
+- `sweep-cost-cap-alerts` — **every 15 minutes** (`*/15 * * * *`; 30 minutes also fine).
+  Production is an autoscale deployment: with zero traffic the instance scales down and
+  the server's in-process 15-minute cost-cap sweep cannot fire, so without this tick the
+  80/95/100% company-spend threshold emails are only detected on the next request. The
+  external tick keeps detection time-bounded even when the app is fully asleep; the
+  exactly-once stamp in `cost_cap_notifications` makes the two paths safe to coexist.
 
 Create one Scheduled Deployment per target (Publishing tool → **Scheduled**) with the
 matching cron expression (UTC timezone) and the run command above, e.g. for the digest:

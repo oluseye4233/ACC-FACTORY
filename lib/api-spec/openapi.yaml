@@ -1115,6 +1115,20 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /cron/sweep-cost-cap-alerts:
+    post:
+      operationId: cronSweepCostCapAlerts
+      tags: [cron]
+      summary: Run the company cost-cap alert sweep (requires CRON_SECRET header)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /exemplars:
     get:
       operationId: listExemplars

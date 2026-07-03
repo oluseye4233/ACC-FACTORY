@@ -1415,6 +1415,14 @@ export const CronRunF0MonitoringResponse = zod.object({
 
 
 /**
+ * @summary Run the company cost-cap alert sweep (requires CRON_SECRET header)
+ */
+export const CronSweepCostCapAlertsResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+/**
  * @summary List canonical and hand-authored SPC / PDD exemplars
  */
 export const ListExemplarsResponseItem = zod.object({

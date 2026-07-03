@@ -13,6 +13,13 @@
  *                            at their daily engine cap after 24h)
  *   - weekly-digest          weekly, Mondays 09:00 UTC
  *   - run-f0-monitoring      weekly, Mondays 08:00 UTC
+ *   - sweep-cost-cap-alerts  every 15–30 minutes (e.g. *\/15 * * * *) — keeps
+ *                            the 80/95/100% company cost-cap threshold emails
+ *                            time-bounded even when the autoscale deployment
+ *                            is scaled to zero (the in-process 15-minute
+ *                            sweeper can't fire on a machine that isn't
+ *                            running); exactly-once stamping makes the two
+ *                            paths safe to coexist
  *
  * Required env:
  *   - CRON_SECRET            shared secret matching the API server
@@ -22,7 +29,8 @@
  *   - CRON_TARGETS           comma-separated list of targets to run
  *                            (used when no CLI args are given):
  *                            "weekly-digest", "reset-harness-limits",
- *                            "run-f0-monitoring". Defaults to "weekly-digest".
+ *                            "run-f0-monitoring", "sweep-cost-cap-alerts".
+ *                            Defaults to "weekly-digest".
  *   - CRON_TIMEOUT_MS        per-request timeout, default 60000
  *
  * Exit code is non-zero if any request fails so the scheduled deployment
@@ -33,6 +41,7 @@ const TARGETS: Record<string, string> = {
   "weekly-digest": "/api/cron/send-weekly-digest",
   "reset-harness-limits": "/api/cron/reset-harness-limits",
   "run-f0-monitoring": "/api/cron/run-f0-monitoring",
+  "sweep-cost-cap-alerts": "/api/cron/sweep-cost-cap-alerts",
 };
 
 function envOrDie(name: string): string {

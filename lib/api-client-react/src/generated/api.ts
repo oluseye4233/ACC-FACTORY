@@ -4572,6 +4572,76 @@ export const useCronRunF0Monitoring = <TError = ErrorType<UnauthorizedResponse>,
       return useMutation(getCronRunF0MonitoringMutationOptions(options));
     }
 
+export const getCronSweepCostCapAlertsUrl = () => {
+
+
+
+
+  return `/api/cron/sweep-cost-cap-alerts`
+}
+
+/**
+ * @summary Run the company cost-cap alert sweep (requires CRON_SECRET header)
+ */
+export const cronSweepCostCapAlerts = async ( options?: RequestInit): Promise<Ok> => {
+
+  return customFetch<Ok>(getCronSweepCostCapAlertsUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCronSweepCostCapAlertsMutationOptions = <TError = ErrorType<UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cronSweepCostCapAlerts>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cronSweepCostCapAlerts>>, TError,void, TContext> => {
+
+const mutationKey = ['cronSweepCostCapAlerts'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cronSweepCostCapAlerts>>, void> = () => {
+
+
+          return  cronSweepCostCapAlerts(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CronSweepCostCapAlertsMutationResult = NonNullable<Awaited<ReturnType<typeof cronSweepCostCapAlerts>>>
+
+    export type CronSweepCostCapAlertsMutationError = ErrorType<UnauthorizedResponse>
+
+    /**
+ * @summary Run the company cost-cap alert sweep (requires CRON_SECRET header)
+ */
+export const useCronSweepCostCapAlerts = <TError = ErrorType<UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cronSweepCostCapAlerts>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cronSweepCostCapAlerts>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCronSweepCostCapAlertsMutationOptions(options));
+    }
+
 export const getListExemplarsUrl = () => {
 
 
