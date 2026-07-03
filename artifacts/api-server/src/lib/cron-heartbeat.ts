@@ -30,7 +30,7 @@ import {
 import { sendCronTargetStaleAlert } from "@workspace/email";
 import { adminAlertEmails } from "./cost-cap-alerts";
 import { logger } from "./logger";
-import { safeFire } from "./notifications";
+import { publicBaseUrl, safeFire } from "./notifications";
 
 export interface CronTargetConfig {
   target: string;
@@ -251,6 +251,7 @@ export async function dispatchCronStaleAlerts(
             lastTickAt: status.lastTickAt ? new Date(status.lastTickAt) : null,
             staleAfterMinutes: status.staleAfterMinutes,
             overdueMinutes,
+            opsUrl: publicBaseUrl() ? `${publicBaseUrl()}/admin/ops` : undefined,
           }),
         );
       }

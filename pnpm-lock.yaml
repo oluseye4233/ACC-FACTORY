@@ -807,6 +807,9 @@ importers:
       '@workspace/db':
         specifier: workspace:*
         version: link:../lib/db
+      '@workspace/email':
+        specifier: workspace:*
+        version: link:../lib/email
       marked:
         specifier: ^18.0.3
         version: 18.0.3
