@@ -3,6 +3,7 @@ import { logger } from "./lib/logger";
 import { assertMigrationsApplied } from "./lib/migration-guard";
 import { startTestFixtureSweeper } from "./lib/test-fixture-sweeper";
 import { startCostCapAlertSweeper } from "./lib/cost-cap-sweeper";
+import { startCronHeartbeatMonitor } from "./lib/cron-heartbeat";
 
 const rawPort = process.env["PORT"];
 
@@ -43,4 +44,11 @@ app.listen(port, (err) => {
   // without this, a threshold crossing is only detected on the next engine
   // request. Exactly-once is preserved by the cost_cap_notifications stamp.
   startCostCapAlertSweeper();
+
+  // Dead-man's-switch for the external Scheduled-Deployment cron ticks:
+  // seeds per-target baseline rows, then periodically emails ADMIN_EMAILS
+  // (exactly-once per stale episode) when a /api/cron/* target hasn't ticked
+  // within its overdue window — so a never-created / mis-secreted / walled
+  // schedule becomes visible instead of silently degrading.
+  startCronHeartbeatMonitor();
 });

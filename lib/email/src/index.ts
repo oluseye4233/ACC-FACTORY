@@ -451,6 +451,40 @@ Raise STAFF_MONTHLY_COST_CAP_USD to lift the ceiling sooner.`;
   });
 }
 
+export function sendCronTargetStaleAlert(args: {
+  to: string;
+  target: string;
+  label: string;
+  schedule: string;
+  lastTickAt: Date | null;
+  staleAfterMinutes: number;
+  overdueMinutes: number;
+}): Promise<EmailResult> {
+  const lastTickLine = args.lastTickAt
+    ? `${args.lastTickAt.toISOString().replace("T", " ").slice(0, 16)} UTC`
+    : "NEVER (no tick recorded since this monitor started)";
+  const body = `<p>The Scheduled-Deployment cron tick for <strong>${args.label}</strong> (<span style="font-family:monospace;">${args.target}</span>) has <strong>stopped arriving</strong>. The safety net this schedule provides is currently degraded.</p>
+    <p style="font-family:monospace;background:#0d0d0d;padding:12px;border:1px solid #262626;">
+      Expected: ${args.schedule}<br/>
+      Last tick: ${lastTickLine}<br/>
+      Overdue by: ~${args.overdueMinutes} min beyond the ${args.staleAfterMinutes}-min stale window
+    </p>
+    <p>Likely causes: the Scheduled Deployment was never created (or was deleted), <span style="font-family:monospace;">CRON_SECRET</span> / <span style="font-family:monospace;">PUBLIC_BASE_URL</span> drifted, or the deployment was re-published with Private visibility (Replit's auth wall 307-blocks external cron ticks — it must be Public).</p>
+    <p>Check the Scheduled Deployment's logs, then verify a manual run of <span style="font-family:monospace;">cron-tick -- ${args.target}</span> succeeds. This email is sent once per outage; a new alert only fires if the schedule recovers and dies again.</p>`;
+  const text = `Cron schedule stale: ${args.label} (${args.target})
+Expected: ${args.schedule}
+Last tick: ${lastTickLine}
+Overdue by ~${args.overdueMinutes} min beyond the ${args.staleAfterMinutes}-min stale window.
+Likely causes: Scheduled Deployment missing/deleted, CRON_SECRET or PUBLIC_BASE_URL drift, or deployment re-published Private (auth wall blocks cron ticks).
+Verify with: cron-tick -- ${args.target}. One email per outage.`;
+  return send({
+    to: args.to,
+    subject: `CRON SCHEDULE STALE · ${args.target}`,
+    html: wrap("CRON SCHEDULE STALE", body),
+    text,
+  });
+}
+
 export function sendAccountDeleted(args: {
   to: string;
 }): Promise<EmailResult> {

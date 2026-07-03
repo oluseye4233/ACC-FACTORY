@@ -3,6 +3,7 @@ import { db, commandCentreSubscribersTable } from "@workspace/db";
 import { runWeeklyDigest } from "../lib/notification-dispatch";
 import { runF0MonitoringSweep } from "../engines/f0";
 import { runCostCapAlertSweepOnce } from "../lib/cost-cap-sweeper";
+import { recordCronTick } from "../lib/cron-heartbeat";
 
 const router: IRouter = Router();
 
@@ -34,18 +35,21 @@ router.post("/cron/reset-harness-limits", async (req, res): Promise<void> => {
       f8Today: 0,
       limitsResetAt: new Date(),
     });
+  await recordCronTick("reset-harness-limits");
   res.json({ ok: true });
 });
 
 router.post("/cron/send-weekly-digest", async (req, res): Promise<void> => {
   if (!requireCronSecret(req, res)) return;
   const result = await runWeeklyDigest();
+  await recordCronTick("weekly-digest");
   res.json({ ok: true, ...result });
 });
 
 router.post("/cron/run-f0-monitoring", async (req, res): Promise<void> => {
   if (!requireCronSecret(req, res)) return;
   const result = await runF0MonitoringSweep();
+  await recordCronTick("run-f0-monitoring");
   res.json({ ok: true, ...result });
 });
 
@@ -59,6 +63,7 @@ router.post("/cron/run-f0-monitoring", async (req, res): Promise<void> => {
 router.post("/cron/sweep-cost-cap-alerts", async (req, res): Promise<void> => {
   if (!requireCronSecret(req, res)) return;
   await runCostCapAlertSweepOnce();
+  await recordCronTick("sweep-cost-cap-alerts");
   res.json({ ok: true });
 });
 

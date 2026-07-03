@@ -1692,6 +1692,27 @@ export const AdminListBadgeRevocationsResponse = zod.object({
 
 
 /**
+ * @summary Dead-man's-switch health for the external Scheduled-Deployment cron ticks (admin only)
+ */
+export const AdminGetCronStatusResponse = zod.object({
+  "generatedAt": zod.coerce.date(),
+  "targets": zod.array(zod.object({
+  "target": zod.string(),
+  "label": zod.string(),
+  "schedule": zod.string(),
+  "expectedIntervalMinutes": zod.number(),
+  "staleAfterMinutes": zod.number(),
+  "firstSeenAt": zod.coerce.date().nullable(),
+  "lastTickAt": zod.coerce.date().nullable(),
+  "tickCount": zod.number(),
+  "neverTicked": zod.boolean(),
+  "minutesSinceLastTick": zod.number().nullable(),
+  "stale": zod.boolean()
+}))
+})
+
+
+/**
  * @summary DE-SPC — synthesise a Digitally Evolved SPC from N MA birth packages (requires ASPE badge)
  */
 export const harnessEvolveBodyMaArtifactIdsMin = 2;

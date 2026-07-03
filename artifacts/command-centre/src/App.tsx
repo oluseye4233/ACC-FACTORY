@@ -29,6 +29,7 @@ import Ingest from "@/pages/ingest";
 import Cartridge from "@/pages/cartridge";
 import F0Dashboard from "@/pages/f0";
 import AdminBadges from "@/pages/admin-badges";
+import AdminOps from "@/pages/admin-ops";
 import Ascension from "@/pages/ascension";
 import Activity from "@/pages/activity";
 import MeCosts from "@/pages/me-costs";
@@ -90,6 +91,7 @@ function AuthenticatedRoutes() {
       <Route path="/ascension" component={Ascension} />
       <Route path="/account" component={Account} />
       <Route path="/admin/badges" component={AdminBadges} />
+      <Route path="/admin/ops" component={AdminOps} />
       <Route path="/me/activity" component={Activity} />
       <Route path="/me/costs" component={MeCosts} />
       <Route path="/exemplars" component={Exemplars} />

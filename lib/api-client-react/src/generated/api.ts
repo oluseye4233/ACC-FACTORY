@@ -22,6 +22,7 @@ import type {
 import type {
   AdminBadgeRevocationPreview,
   AdminBadgeRevocationsList,
+  AdminCronStatus,
   AdminListBadgeRevocationsParams,
   AdminPreviewBadgeRevocationParams,
   AdminRestoreBadgeInput,
@@ -5551,6 +5552,83 @@ export function useAdminListBadgeRevocations<TData = Awaited<ReturnType<typeof a
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getAdminListBadgeRevocationsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAdminGetCronStatusUrl = () => {
+
+
+
+
+  return `/api/admin/cron-status`
+}
+
+/**
+ * @summary Dead-man's-switch health for the external Scheduled-Deployment cron ticks (admin only)
+ */
+export const adminGetCronStatus = async ( options?: RequestInit): Promise<AdminCronStatus> => {
+
+  return customFetch<AdminCronStatus>(getAdminGetCronStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminGetCronStatusQueryKey = () => {
+    return [
+    `/api/admin/cron-status`
+    ] as const;
+    }
+
+
+export const getAdminGetCronStatusQueryOptions = <TData = Awaited<ReturnType<typeof adminGetCronStatus>>, TError = ErrorType<ForbiddenResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminGetCronStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminGetCronStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetCronStatus>>> = ({ signal }) => adminGetCronStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminGetCronStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AdminGetCronStatusQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetCronStatus>>>
+export type AdminGetCronStatusQueryError = ErrorType<ForbiddenResponse>
+
+
+/**
+ * @summary Dead-man's-switch health for the external Scheduled-Deployment cron ticks (admin only)
+ */
+
+export function useAdminGetCronStatus<TData = Awaited<ReturnType<typeof adminGetCronStatus>>, TError = ErrorType<ForbiddenResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminGetCronStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAdminGetCronStatusQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

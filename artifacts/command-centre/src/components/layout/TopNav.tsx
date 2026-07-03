@@ -38,7 +38,11 @@ export function TopNav() {
 
   const links =
     session.role === "ADMIN"
-      ? [...STAFF_LINKS, { href: "/admin/badges", label: "Admin" }]
+      ? [
+          ...STAFF_LINKS,
+          { href: "/admin/badges", label: "Admin" },
+          { href: "/admin/ops", label: "Ops" },
+        ]
       : STAFF_LINKS;
 
   const go = (href: string) => {

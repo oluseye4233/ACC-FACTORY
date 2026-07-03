@@ -2198,6 +2198,25 @@ export interface AdminBadgeRevocationsList {
   revocations: BadgeRevocationEntry[];
 }
 
+export interface CronTargetStatus {
+  target: string;
+  label: string;
+  schedule: string;
+  expectedIntervalMinutes: number;
+  staleAfterMinutes: number;
+  firstSeenAt: string | null;
+  lastTickAt: string | null;
+  tickCount: number;
+  neverTicked: boolean;
+  minutesSinceLastTick: number | null;
+  stale: boolean;
+}
+
+export interface AdminCronStatus {
+  generatedAt: string;
+  targets: CronTargetStatus[];
+}
+
 export interface HarnessEvolveInput {
   sessionId: string;
   /**

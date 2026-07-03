@@ -1368,6 +1368,20 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /admin/cron-status:
+    get:
+      operationId: adminGetCronStatus
+      tags: [admin]
+      summary: Dead-man's-switch health for the external Scheduled-Deployment cron ticks (admin only)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminCronStatus" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /harness/evolve:
     post:
       operationId: harnessEvolve
@@ -3761,6 +3775,44 @@ components:
         revocations:
           type: array
           items: { $ref: "#/components/schemas/BadgeRevocationEntry" }
+
+    CronTargetStatus:
+      type: object
+      required:
+        [
+          target,
+          label,
+          schedule,
+          expectedIntervalMinutes,
+          staleAfterMinutes,
+          firstSeenAt,
+          lastTickAt,
+          tickCount,
+          neverTicked,
+          minutesSinceLastTick,
+          stale,
+        ]
+      properties:
+        target: { type: string }
+        label: { type: string }
+        schedule: { type: string }
+        expectedIntervalMinutes: { type: integer }
+        staleAfterMinutes: { type: integer }
+        firstSeenAt: { type: string, format: date-time, nullable: true }
+        lastTickAt: { type: string, format: date-time, nullable: true }
+        tickCount: { type: integer }
+        neverTicked: { type: boolean }
+        minutesSinceLastTick: { type: integer, nullable: true }
+        stale: { type: boolean }
+
+    AdminCronStatus:
+      type: object
+      required: [generatedAt, targets]
+      properties:
+        generatedAt: { type: string, format: date-time }
+        targets:
+          type: array
+          items: { $ref: "#/components/schemas/CronTargetStatus" }
 
     HarnessEvolveInput:
       type: object
