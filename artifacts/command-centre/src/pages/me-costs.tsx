@@ -127,8 +127,32 @@ function CompanySpendCard() {
         </span>
         <span className={`font-semibold ${textColor}`}>{percentUsed.toFixed(1)}% used</span>
       </div>
+      {data.alertsSent.length > 0 ? (
+        <div
+          className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3 text-xs"
+          data-testid="row-cost-cap-alerts"
+        >
+          <span className="font-medium text-muted-foreground">Admin alerts already emailed this month:</span>
+          {data.alertsSent.map((a) => (
+            <span
+              key={a.thresholdPercent}
+              className="inline-flex items-center gap-1 rounded-full border bg-muted px-2 py-0.5 font-mono tabular-nums"
+              data-testid={`badge-cost-cap-alert-${a.thresholdPercent}`}
+              title={`The one-time ${a.thresholdPercent}% threshold email went to all admins on ${fmtAlertDate(a.sentAt)} — no need to ping them again.`}
+            >
+              {a.thresholdPercent}% · {fmtAlertDate(a.sentAt)}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
+}
+
+function fmtAlertDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
 }
 
 function SpendByUserCard() {

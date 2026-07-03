@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CompanySpendWarnLevel } from './companySpendWarnLevel';
+import type { CostCapAlertSent } from './costCapAlertSent';
 
 /**
  * Company-wide LLM spend for the current UTC calendar month against the single shared monthly cost cap (STAFF_MONTHLY_COST_CAP_USD). Uses the exact same SUM over harness_engine_runs.cost_usd that the requireCostBudget gate enforces, so the meter always matches the server's own 402 decision.
@@ -24,4 +25,7 @@ export interface CompanySpend {
   warnLevel: CompanySpendWarnLevel;
   /** Start of next UTC month, when the spend counter resets */
   monthResetsAt: Date;
+  /** One-time admin threshold alert emails (80/95/100% of the cap) already dispatched this UTC month, read from the exactly-once cost_cap_notifications stamps. Lets staff see the escalation already happened without pinging admins again.
+   */
+  alertsSent: CostCapAlertSent[];
 }

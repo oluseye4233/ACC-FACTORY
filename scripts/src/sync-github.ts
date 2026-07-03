@@ -49,6 +49,9 @@ function repoRoot(): string {
 
 async function getGithubToken(): Promise<string> {
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+  // Canonical Replit connector identity pattern (same as api-server/src/lib/stripe.ts):
+  // REPL_IDENTITY ("repl " prefix) in the workspace, WEB_REPL_RENEWAL ("depl "
+  // prefix) in deployments. Exactly one is present per environment.
   const xReplitToken = process.env.REPL_IDENTITY
     ? "repl " + process.env.REPL_IDENTITY
     : process.env.WEB_REPL_RENEWAL
@@ -230,8 +233,11 @@ async function syncOnce(api: Api, baseArg: string | undefined, headSha: string):
 }
 
 function isNonFastForwardError(error: unknown): boolean {
+  // Match ONLY GitHub's canonical non-fast-forward wording ("Update is not a
+  // fast forward"). Other 422s (branch protection, required checks) must NOT
+  // consume the retry — they are permanent failures that should surface as-is.
   const message = error instanceof Error ? error.message : String(error);
-  return /HTTP 422/.test(message) && /fast.?forward|not a fast forward|Update is not/i.test(message);
+  return /HTTP 422/.test(message) && /fast.?forward/i.test(message);
 }
 
 async function main(): Promise<void> {
@@ -247,7 +253,12 @@ async function main(): Promise<void> {
     // (now advanced by the winner, trailer included) and try exactly once more.
     if (!isNonFastForwardError(error)) throw error;
     console.log("[sync-github] ref moved during sync (concurrent run); retrying once from the new remote head");
-    await syncOnce(api, undefined, headSha);
+    // Re-resolve HEAD: the winning sync may have pushed a NEWER local commit
+    // (e.g. a merge landed mid-run). Retrying with the stale headSha would
+    // fail the ancestor check; the fresh HEAD resumes cleanly from the new
+    // remote trailer.
+    const freshHeadSha = ((await git(["rev-parse", "HEAD"])) as string).trim();
+    await syncOnce(api, undefined, freshHeadSha);
   }
 }
 

@@ -85,7 +85,11 @@ export const GetCompanySpendResponse = zod.object({
   "percentUsed": zod.number().describe('usedUsd \/ capUsd as a percentage, clamped to [0, 100]'),
   "overCap": zod.boolean().describe('True once engine routes are being refused with 402 COST_CAP_EXCEEDED'),
   "warnLevel": zod.enum(['ok', 'warn', 'critical', 'blocked']).describe('ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached'),
-  "monthResetsAt": zod.coerce.date().describe('Start of next UTC month, when the spend counter resets')
+  "monthResetsAt": zod.coerce.date().describe('Start of next UTC month, when the spend counter resets'),
+  "alertsSent": zod.array(zod.object({
+  "thresholdPercent": zod.number().describe('Threshold crossed when the alert was sent: 80, 95, or 100 (percent of the monthly cap)'),
+  "sentAt": zod.coerce.date().describe('When the admin alert email was dispatched')
+})).describe('One-time admin threshold alert emails (80\/95\/100% of the cap) already dispatched this UTC month, read from the exactly-once cost_cap_notifications stamps. Lets staff see the escalation already happened without pinging admins again.\n')
 }).describe('Company-wide LLM spend for the current UTC calendar month against the single shared monthly cost cap (STAFF_MONTHLY_COST_CAP_USD). Uses the exact same SUM over harness_engine_runs.cost_usd that the requireCostBudget gate enforces, so the meter always matches the server\'s own 402 decision.\n')
 
 

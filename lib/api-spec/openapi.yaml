@@ -2563,7 +2563,7 @@ components:
         exact same SUM over harness_engine_runs.cost_usd that the
         requireCostBudget gate enforces, so the meter always matches the
         server's own 402 decision.
-      required: [usedUsd, capUsd, percentUsed, overCap, warnLevel, monthResetsAt]
+      required: [usedUsd, capUsd, percentUsed, overCap, warnLevel, monthResetsAt, alertsSent]
       properties:
         usedUsd: { type: number, description: "Month-to-date company-wide LLM spend (USD)" }
         capUsd: { type: number, description: "The shared monthly cap (USD)" }
@@ -2574,6 +2574,24 @@ components:
           enum: [ok, warn, critical, blocked]
           description: "ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached"
         monthResetsAt: { type: string, format: date-time, description: "Start of next UTC month, when the spend counter resets" }
+        alertsSent:
+          type: array
+          description: >
+            One-time admin threshold alert emails (80/95/100% of the cap)
+            already dispatched this UTC month, read from the exactly-once
+            cost_cap_notifications stamps. Lets staff see the escalation
+            already happened without pinging admins again.
+          items:
+            $ref: "#/components/schemas/CostCapAlertSent"
+
+    CostCapAlertSent:
+      type: object
+      required: [thresholdPercent, sentAt]
+      properties:
+        thresholdPercent:
+          type: integer
+          description: "Threshold crossed when the alert was sent: 80, 95, or 100 (percent of the monthly cap)"
+        sentAt: { type: string, format: date-time, description: "When the admin alert email was dispatched" }
 
     CompanySpendUserRow:
       type: object

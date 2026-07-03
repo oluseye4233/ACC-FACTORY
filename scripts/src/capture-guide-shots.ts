@@ -13,7 +13,7 @@
  * Requires: dev workflows running (proxy on localhost:80), chromium on PATH.
  */
 import { execFile } from "node:child_process";
-import { mkdir, rm, readdir, stat } from "node:fs/promises";
+import { mkdir, rename, rm, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -54,8 +54,12 @@ const GIF_FRAMES = 18;
 async function findChromium(): Promise<string> {
   const candidate = process.env.CHROMIUM_BIN;
   if (candidate) return candidate;
-  const { stdout } = await execFileAsync("which", ["chromium"]);
-  const bin = stdout.trim();
+  // `which` exits non-zero (rejects) when the binary is absent — catch it so
+  // the operator sees the actionable hint instead of a raw "Command failed".
+  const bin = await execFileAsync("which", ["chromium"]).then(
+    ({ stdout }) => stdout.trim(),
+    () => "",
+  );
   if (!bin) throw new Error("chromium not found on PATH; set CHROMIUM_BIN");
   return bin;
 }
@@ -135,19 +139,33 @@ async function captureGif(page: Page, id: string, route: string): Promise<void> 
     await page.screenshot({ path: framePath as `${string}.png`, type: "png" });
   }
 
-  await execFileAsync("ffmpeg", [
-    "-y",
-    "-framerate",
-    String(GIF_FPS),
-    "-i",
-    path.join(framesDir, "frame%03d.png"),
-    "-vf",
-    `scale=${GIF_WIDTH}:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=128[p];[s1][p]paletteuse=dither=bayer:bayer_scale=4`,
-    "-loop",
-    "0",
-    gifPath,
-  ]);
-  await rm(framesDir, { recursive: true, force: true });
+  // Encode to a temp path and rename atomically: if ffmpeg dies mid-write, a
+  // truncated GIF must never land at gifPath, or the skip-existing resume
+  // logic would treat it as complete and the guide page would embed it.
+  // The temp file lives in outDir (same filesystem as gifPath) — a rename
+  // from /tmp could cross filesystems and fail with EXDEV.
+  const tmpGifPath = path.join(outDir, `.${id}.gif.tmp`);
+  try {
+    await execFileAsync("ffmpeg", [
+      "-y",
+      "-framerate",
+      String(GIF_FPS),
+      "-i",
+      path.join(framesDir, "frame%03d.png"),
+      "-vf",
+      `scale=${GIF_WIDTH}:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=128[p];[s1][p]paletteuse=dither=bayer:bayer_scale=4`,
+      "-loop",
+      "0",
+      // The .tmp suffix hides the .gif extension, so the muxer must be explicit.
+      "-f",
+      "gif",
+      tmpGifPath,
+    ]);
+    await rename(tmpGifPath, gifPath);
+  } finally {
+    await rm(tmpGifPath, { force: true });
+    await rm(framesDir, { recursive: true, force: true });
+  }
   const size = (await stat(gifPath)).size;
   console.log(`[capture-guide-shots] gif   ${id}.gif (${Math.round(size / 1024)} KB)`);
 }

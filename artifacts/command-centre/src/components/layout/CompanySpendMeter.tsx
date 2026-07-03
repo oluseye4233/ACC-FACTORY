@@ -9,6 +9,16 @@ function fmtUsd(n: number): string {
   return `$${n.toFixed(n < 1 && n > 0 ? 4 : 2)}`;
 }
 
+function fmtAlertDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function fmtResetDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "the start of next month UTC";
@@ -83,6 +93,13 @@ export function CompanySpendBanner() {
   const { usedUsd, capUsd, percentUsed, warnLevel } = data;
   const resetDate = fmtResetDate(data.monthResetsAt);
 
+  // The one-time admin threshold emails already dispatched this month —
+  // telling staff the escalation happened saves a duplicate manual ping.
+  const latestAlert =
+    data.alertsSent.length > 0
+      ? data.alertsSent.reduce((a, b) => (b.thresholdPercent > a.thresholdPercent ? b : a))
+      : null;
+
   const styles =
     warnLevel === "warn"
       ? "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
@@ -111,6 +128,12 @@ export function CompanySpendBanner() {
       <div className="container mx-auto flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
         <strong>{headline}</strong>
         <span className="opacity-90">{detail}</span>
+        {latestAlert ? (
+          <span className="opacity-90" data-testid="text-cost-cap-alert-sent">
+            Admins were already emailed the {latestAlert.thresholdPercent}% alert on{" "}
+            {fmtAlertDate(latestAlert.sentAt)} — no need to ping them again.
+          </span>
+        ) : null}
         <Link href="/me/costs" className="underline underline-offset-2 hover:opacity-80 shrink-0">
           View costs
         </Link>

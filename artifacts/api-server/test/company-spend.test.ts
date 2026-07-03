@@ -126,6 +126,7 @@ async function getSpend(capUsd?: number) {
     overCap: boolean;
     warnLevel: "ok" | "warn" | "critical" | "blocked";
     monthResetsAt: string;
+    alertsSent: Array<{ thresholdPercent: number; sentAt: string }>;
   };
 }
 
@@ -185,5 +186,55 @@ describe("GET /me/company-spend", () => {
   test("rejects unauthenticated callers", async () => {
     const res = await fetch(`${baseUrl}/me/company-spend`);
     expect(res.status).toBe(401);
+  });
+
+  test("alertsSent mirrors this month's cost_cap_notifications stamps", async () => {
+    const { costCapNotificationsTable } = await import("@workspace/db");
+    const { eq, and } = await import("drizzle-orm");
+    const month = new Date().toISOString().slice(0, 7);
+
+    // Snapshot what's already stamped this month on the shared dev DB —
+    // the endpoint must return exactly the stamped rows, ordered ascending.
+    const before = await getSpend();
+    expect(Array.isArray(before.alertsSent)).toBe(true);
+    const preexisting = new Set(before.alertsSent.map((a) => a.thresholdPercent));
+    for (const a of before.alertsSent) {
+      expect([80, 95, 100]).toContain(a.thresholdPercent);
+      expect(Number.isNaN(new Date(a.sentAt).getTime())).toBe(false);
+    }
+
+    // Pick a threshold not yet stamped this month; if all three are stamped
+    // (real spend crossed 100% on the shared dev DB) the mirror property is
+    // already fully exercised by the snapshot assertions above.
+    const free = [80, 95, 100].find((t) => !preexisting.has(t));
+    if (free === undefined) return;
+
+    const inserted = await db
+      .insert(costCapNotificationsTable)
+      .values({ month, thresholdPercent: free, usedUsd: "1.000000", capUsd: "100.00" })
+      .onConflictDoNothing()
+      .returning({ id: costCapNotificationsTable.id });
+    try {
+      const after = await getSpend();
+      const mine = after.alertsSent.find((a) => a.thresholdPercent === free);
+      expect(mine).toBeDefined();
+      expect(Number.isNaN(new Date(mine!.sentAt).getTime())).toBe(false);
+      // Ascending by threshold.
+      const thresholds = after.alertsSent.map((a) => a.thresholdPercent);
+      expect(thresholds).toEqual([...thresholds].sort((a, b) => a - b));
+    } finally {
+      // Remove only the row this test created so a genuine production stamp
+      // for the real month is never deleted (exactly-once must survive tests).
+      if (inserted[0]) {
+        await db
+          .delete(costCapNotificationsTable)
+          .where(
+            and(
+              eq(costCapNotificationsTable.id, inserted[0].id),
+              eq(costCapNotificationsTable.month, month),
+            ),
+          );
+      }
+    }
   });
 });

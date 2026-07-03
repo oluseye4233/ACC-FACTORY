@@ -5,6 +5,7 @@ import {
   db,
   harnessEngineRunsTable,
   commandCentreSubscribersTable,
+  costCapNotificationsTable,
   usersTable,
 } from "@workspace/db";
 import { requireAdmin, requireAuth } from "../lib/auth";
@@ -28,6 +29,11 @@ const router: IRouter = Router();
  *
  * warnLevel thresholds: ok < 80%, warn >= 80%, critical >= 95%,
  * blocked once usedUsd >= capUsd (engine routes are now refusing).
+ *
+ * alertsSent lists the one-time admin threshold emails (80/95/100%) already
+ * dispatched this UTC month — read straight from the `cost_cap_notifications`
+ * exactly-once stamps — so staff can see the escalation already happened and
+ * skip a duplicate manual ping.
  */
 router.get("/me/company-spend", requireAuth, async (req, res) => {
   const [usedUsd, capUsd] = [await currentMonthCostGlobal(), globalMonthlyCostCapUsd()];
@@ -45,7 +51,22 @@ router.get("/me/company-spend", requireAuth, async (req, res) => {
   const monthResetsAt = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
   ).toISOString();
-  res.json({ usedUsd, capUsd, percentUsed, overCap, warnLevel, monthResetsAt });
+
+  const month = now.toISOString().slice(0, 7); // YYYY-MM (UTC) — same key the dispatcher stamps
+  const alertRows = await db
+    .select({
+      thresholdPercent: costCapNotificationsTable.thresholdPercent,
+      sentAt: costCapNotificationsTable.sentAt,
+    })
+    .from(costCapNotificationsTable)
+    .where(eq(costCapNotificationsTable.month, month))
+    .orderBy(costCapNotificationsTable.thresholdPercent);
+  const alertsSent = alertRows.map((r) => ({
+    thresholdPercent: r.thresholdPercent,
+    sentAt: r.sentAt.toISOString(),
+  }));
+
+  res.json({ usedUsd, capUsd, percentUsed, overCap, warnLevel, monthResetsAt, alertsSent });
 });
 
 /**

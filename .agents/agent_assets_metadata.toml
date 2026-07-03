@@ -234,3 +234,15 @@ id = "Xeno1V_UCFBgnZC9oDoiX"
 uri = "file://docs/ATANDA_Command_Centre_MVP_PDD_SPARTAN_Certified.pdf"
 type = "pdf"
 title = "SPARTAN-Certified MVP PDD (rev -006, July 2026)"
+
+[[outputs]]
+id = "7xcciBGEhnkpauBuidjdc"
+uri = "file://docs/BUGMXT_Report_GuideMedia_GitHubSync.md"
+type = "text"
+title = "BUGMXT Bug Triage Report (with remediation addendum)"
+
+[[outputs]]
+id = "y9TArfVAQqyFomuJt11eh"
+uri = "file://docs/BUGMXT_Report_GuideMedia_GitHubSync.pdf"
+type = "pdf"
+title = "BUGMXT Bug Triage Report (PDF)"

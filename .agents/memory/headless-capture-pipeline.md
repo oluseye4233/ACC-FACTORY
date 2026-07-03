@@ -8,3 +8,5 @@ description: How to capture authenticated app screenshots/GIFs in this workspace
 **Why:** A capture run backgrounded with nohup died between polls with no log file; only the resumable-skip design allowed finishing in a second foreground run.
 
 **How to apply:** For any script expected to exceed the ~2-min bash timeout: make each output idempotent/skippable, then run `timeout 110 ...` foreground passes until done. For authenticated UI captures: system `chromium` (nix) + `puppeteer-core` works; log in by `page.evaluate(fetch('/api/auth/login', ...))` with the secret read from `process.env` (never interpolated into logs or files), then navigate via `localhost:80`.
+
+**Atomic media writes:** resume-by-existence logic means outputs must be written atomically — encode to a temp file in the SAME directory as the final path (a /tmp temp risks EXDEV on rename), and force the muxer explicitly (`-f gif`) because a `.tmp` suffix hides the extension ffmpeg uses to pick it.

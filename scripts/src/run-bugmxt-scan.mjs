@@ -23,9 +23,55 @@ const PDFDocument = exportRequire("pdfkit");
 // so the scan uses the same canonical body that is served as the `bugmxt-si` exemplar.
 const BUGMXT_SPC_PATH = resolve(repoRoot, "attached_assets/BUGMXT_SI_SPC_v1_0_1779070949571.md");
 const DIFF_PATH = "/tmp/bugmxt_diff.patch";
-const MD_OUT = resolve(repoRoot, "docs/BUGMXT_Report_AccountDelete.md");
-const PDF_OUT = resolve(repoRoot, "docs/BUGMXT_Report_AccountDelete.pdf");
-const PHASE_DIR = "/tmp/bugmxt-phases";
+
+// Each scan run is a named config: what the diff contains, what BUGMXT should
+// assume, where the layer focus lies, and where the report lands.
+const RUNS = {
+  "account-delete": {
+    mdOut: "docs/BUGMXT_Report_AccountDelete.md",
+    pdfOut: "docs/BUGMXT_Report_AccountDelete.pdf",
+    targetLine:
+      "ATANDA Command Centre — commits `778e73d..169519b` (Engine button glow + HoverCard explainers + ontological-alignment cleanup)",
+    pdfSubtitle: "5-layer code integrity scan · ATANDA Command Centre · UX polish + ontology cleanup (778e73d..169519b)",
+    pdfTitle: "BUGMXT SI — Bug Triage Report (Account delete + auth hardening)",
+    contextIntro: `Target: the unified git diff below. It contains the two most recent change sets in the ATANDA Command Centre codebase: (1) UX polish on the session-detail page — F1–F8 button glow/pulse animation plus HoverCard explainers on every engine button (FeatureNavItem + index.css keyframes + ENGINES explainer fields + isNext computed flag); and (2) a 4-fix ontological-alignment cleanup — restoring the canonical "=== CARTRIDGE CONTEXT (authoritative · do not contradict) ===" fence in cartridge-context.ts, stripping the (AISE_BUILD) suffix from the senior-engineer badge display name, upgrading the JCSE counter chip to a HoverCard that expands "Junglenomics Composite Score Estimate" with all 7 pillars and tier bands, and replacing the static INGESTED·PWDD badge on session-detail with a HoverCard explainer that defines IPDD vs PWDD per the replit.md ontology.`,
+    knownBullets: `- This change set was self-reviewed only; no architect pass yet. Look for what self-review MISSED.
+- Stack: Express 5 + Drizzle + Clerk (Replit-managed) + Stripe + Zod (zod/v4 + drizzle-zod), OpenAPI-first contract via Orval; React 18 + Vite + Wouter + TanStack Query + shadcn/ui on the web side.
+- App-layer authorisation; no Postgres RLS. Every Drizzle query touching user-owned data MUST filter on req.localUser.id.
+- The HARNESS itself is the PDD blueprint that produces SPCs/PDDs — it is NOT itself an SPC. IPDD = human-authored INPUT to the INGESTION ENGINE; PWDD = HARNESS-certified OUTPUT of an ingested session. Never collapse those terms.
+- HoverCard component lives at artifacts/command-centre/src/components/ui/hover-card.tsx (shadcn wrapper around @radix-ui/react-hover-card). It is the canonical pattern for explainer popovers — title-attribute tooltips are being phased out.`,
+    phase2Focus: `Focus on race conditions, error-handling holes, ordering bugs in the Stripe→Clerk→local cascade, edge cases in the strict \`ensureLocalUser\`, missing tier/auth checks, idempotency gaps, and any path where a stale token could survive deletion.`,
+    pfpFocus: `Cross-reference against the ATANDA Command Centre MVP PDD intent (subscription portal in front of FORGE.BONSAI HARNESS; HARNESS is a PDD blueprint, not an SPC; tier-gated F5/F6/F7; quest-badge progression). Call out anywhere the implementation drifts from the PDD intent — e.g. authz bypasses, copy that mis-describes the HARNESS as an SPC, missing audit-log lines on destructive actions, anything in the account flow that conflicts with the documented MVP contract.`,
+  },
+  "guide-github-sync": {
+    mdOut: "docs/BUGMXT_Report_GuideMedia_GitHubSync.md",
+    pdfOut: "docs/BUGMXT_Report_GuideMedia_GitHubSync.pdf",
+    targetLine:
+      "ATANDA Command Centre — commits `4b8f27a` (guide-page walkthrough screenshots/GIFs) + `655657e` (automatic GitHub mirror)",
+    pdfSubtitle: "5-layer code integrity scan · ATANDA Command Centre · guide media + GitHub auto-sync (4b8f27a, 655657e)",
+    pdfTitle: "BUGMXT SI — Bug Triage Report (Guide media + GitHub auto-sync)",
+    contextIntro: `Target: the unified git diff below. It contains the two most recent change sets in the ATANDA Command Centre codebase: (1) guide-page walkthrough media — a resumable headless-Chromium capture pipeline (scripts/src/capture-guide-media.mjs) that logs into the staff portal, screenshots each guide step, records short GIFs, and writes them into artifacts/command-centre/public/guide-media/, plus the guide page updates that embed those assets (binary PNG/GIF entries appear as "Binary files differ" — audit only the code that produces/consumes them); and (2) an automatic one-way GitHub mirror — scripts/src/sync-github.ts pushes local main to oluseye4233/ACC-FACTORY@main via the GitHub Data API: it resumes from a "Replit-Commit: <sha>" trailer on the remote head (or an explicit --base=<sha>), parses git diff --no-renames base..HEAD, uploads changed blobs base64 with concurrency 5, builds a tree against base_tree (deletions via sha:null), creates one commit, and PATCHes the branch ref with force:false; on a non-fast-forward HTTP 422 (two syncs racing) it re-reads the remote head and retries exactly once. It is triggered from scripts/post-merge.sh (best-effort) and from an always-on "GitHub Sync" workflow looping every 600 seconds.`,
+    knownBullets: `- Both change sets already passed an architect review; look for what BOTH self-review AND the architect pass MISSED.
+- Stack: pnpm monorepo, Node 24 ESM scripts under scripts/src/, TypeScript 5.9; the sync script runs via tsx from package.json.
+- The GitHub OAuth token comes from the Replit GitHub connector, fetched fresh per run, expires in ~1 hour, and MUST never be logged or written to disk. It lacks the \`workflow\` scope, so any push touching .github/workflows/* is rejected wholesale by GitHub — the sync intentionally excludes those paths from the diff.
+- The mirror must NEVER force-push or rewrite remote history; force:false on the ref PATCH is the invariant.
+- Two sync entry points can genuinely race: the post-merge hook and the 600-second workflow loop. The loser of the race gets HTTP 422 non-fast-forward.
+- The capture pipeline runs against the local dev server through the shared proxy on localhost:80 and authenticates with the shared STAFF_ACCESS_CODE; it must not leak that code into captured files or logs.
+- Guide media are static public assets served by Vite from artifacts/command-centre/public/; there is no per-user data in them.`,
+    phase2Focus: `Focus on: correctness of the trailer-resume protocol (missing trailer, rewritten local history, --base pointing at the wrong tree); the race/retry path (is one retry sufficient, can the retry itself push a duplicate or skip commits, what happens if the winner synced a DIFFERENT local head); partial-failure states (blobs uploaded but ref never moved, token expiring mid-run); git plumbing edge cases in parseChanges/fileMode (renames disabled, file-mode changes, executable bits, submodules, paths with spaces or quotes, binary files); the post-merge hook's best-effort semantics masking real failures; and in the capture pipeline, login/session handling, secret leakage into logs or captured frames, and resumability leaving stale or half-written media files that the guide page then embeds.`,
+    pfpFocus: `Cross-reference against the documented operating contract in replit.md: the mirror is strictly one-way and never force-pushes; .github/workflows/* is excluded because the connector token lacks the workflow scope; connector tokens are short-lived and never logged; the sync runs automatically after merges and on a 10-minute loop so manual invocation is not normally needed. Call out anywhere the implementation or its docs drift from that contract, any secret-hygiene violation, any path that could rewrite or corrupt the GitHub mirror, and any guide-page copy in the diff that mis-states the IPDD/PWDD ontology or describes the HARNESS as an SPC.`,
+  },
+};
+
+const runSlug = process.argv.find((a) => a.startsWith("--run="))?.slice("--run=".length) ?? "account-delete";
+const RUN = RUNS[runSlug];
+if (!RUN) {
+  console.error(`unknown --run=${runSlug}; known: ${Object.keys(RUNS).join(", ")}`);
+  process.exit(2);
+}
+const MD_OUT = resolve(repoRoot, RUN.mdOut);
+const PDF_OUT = resolve(repoRoot, RUN.pdfOut);
+const PHASE_DIR = `/tmp/bugmxt-phases-${runSlug}`;
 mkdirSync(PHASE_DIR, { recursive: true });
 mkdirSync(dirname(MD_OUT), { recursive: true });
 
@@ -53,14 +99,10 @@ ${bugmxtSpc}
 
 === END SPC ===`;
 
-const COMMON_CONTEXT = `Target: the unified git diff below. It contains the two most recent change sets in the ATANDA Command Centre codebase: (1) UX polish on the session-detail page — F1–F8 button glow/pulse animation plus HoverCard explainers on every engine button (FeatureNavItem + index.css keyframes + ENGINES explainer fields + isNext computed flag); and (2) a 4-fix ontological-alignment cleanup — restoring the canonical "=== CARTRIDGE CONTEXT (authoritative · do not contradict) ===" fence in cartridge-context.ts, stripping the (AISE_BUILD) suffix from the senior-engineer badge display name, upgrading the JCSE counter chip to a HoverCard that expands "Junglenomics Composite Score Estimate" with all 7 pillars and tier bands, and replacing the static INGESTED·PWDD badge on session-detail with a HoverCard explainer that defines IPDD vs PWDD per the replit.md ontology.
+const COMMON_CONTEXT = `${RUN.contextIntro}
 
 Context BUGMXT should treat as known:
-- This change set was self-reviewed only; no architect pass yet. Look for what self-review MISSED.
-- Stack: Express 5 + Drizzle + Clerk (Replit-managed) + Stripe + Zod (zod/v4 + drizzle-zod), OpenAPI-first contract via Orval; React 18 + Vite + Wouter + TanStack Query + shadcn/ui on the web side.
-- App-layer authorisation; no Postgres RLS. Every Drizzle query touching user-owned data MUST filter on req.localUser.id.
-- The HARNESS itself is the PDD blueprint that produces SPCs/PDDs — it is NOT itself an SPC. IPDD = human-authored INPUT to the INGESTION ENGINE; PWDD = HARNESS-certified OUTPUT of an ingested session. Never collapse those terms.
-- HoverCard component lives at artifacts/command-centre/src/components/ui/hover-card.tsx (shadcn wrapper around @radix-ui/react-hover-card). It is the canonical pattern for explainer popovers — title-attribute tooltips are being phased out.
+${RUN.knownBullets}
 
 === UNIFIED DIFF ===
 
@@ -84,7 +126,7 @@ List each finding as a bullet beginning with the [SYNTAX-XXX] ID. If none, write
 Begin now.`,
   },
   phase2: {
-    maxTokens: 1800,
+    maxTokens: 4000,
     instructions: `Produce ONLY this section in well-formed markdown:
 
 ## Layer 2 — Logic & Outcome Audit
@@ -95,24 +137,28 @@ List each finding as a numbered subsection. Each finding must include:
 - expected vs actual outcome
 - proposed fix pathway (Patch | Refactor | Redesign)
 
-Focus on race conditions, error-handling holes, ordering bugs in the Stripe→Clerk→local cascade, edge cases in the strict \`ensureLocalUser\`, missing tier/auth checks, idempotency gaps, and any path where a stale token could survive deletion. If none, write exactly: \`No logic-layer findings.\`
+${RUN.phase2Focus} If none, write exactly: \`No logic-layer findings.\`
+
+Cap the layer at the 6 highest-value findings, ordered most severe first. Keep each finding tight (≤120 words) — no rhetorical padding, no restating the diff. You MUST finish the final finding completely.
 
 Begin now.`,
   },
   phase3: {
-    maxTokens: 1800,
+    maxTokens: 3200,
     instructions: `Produce ONLY these two sections, in this order, in well-formed markdown:
 
 ## Layer 3 — HARP (Human + AI Readability)
 Bulleted findings with [HARP-AI-XXX] or [HARP-HUMAN-XXX] IDs. Cover: naming clarity, missing JSDoc on cross-cutting helpers, ambiguous error messages surfaced to users, comment/code drift, and anything that would confuse a future agent reading the diff cold. If none, write exactly: \`No HARP-layer findings.\`
 
 ## Layer 4 — PFP (PDD Fidelity Protocol)
-Cross-reference against the ATANDA Command Centre MVP PDD intent (subscription portal in front of FORGE.BONSAI HARNESS; HARNESS is a PDD blueprint, not an SPC; tier-gated F5/F6/F7; quest-badge progression). Findings as bullets with [PFP-DRIFT-XXX] IDs. Call out anywhere the implementation drifts from the PDD intent — e.g. authz bypasses, copy that mis-describes the HARNESS as an SPC, missing audit-log lines on destructive actions, anything in the account flow that conflicts with the documented MVP contract. If none, write exactly: \`No PFP-layer findings.\`
+Findings as bullets with [PFP-DRIFT-XXX] IDs. ${RUN.pfpFocus} If none, write exactly: \`No PFP-layer findings.\`
+
+Cap each layer at the 5 highest-value findings; keep each bullet ≤60 words. You MUST finish both sections completely.
 
 Begin now.`,
   },
   phase4: {
-    maxTokens: 2000,
+    maxTokens: 3600,
     instructions: `Produce ONLY these final sections, in this order, in well-formed markdown:
 
 ## Layer 5 — EAL Bayesian Triage
@@ -128,6 +174,8 @@ Top 3 CRITICAL/HIGH items as numbered entries. For each: \`Severity\`, \`Blast R
 One line in the form \`<LIFE ZONE | ADVISORY MODE | HUMAN_ESCALATION> — <one-sentence justification>\`.
 
 Assume the layer findings already produced are the inputs. If you must invent placeholder IDs because earlier phases are not in your context, prefix them with \`PROVISIONAL-\` and note this in a one-line italicised disclaimer at the top of Layer 5.
+
+Keep prose tight — table rows one line each, triage entries ≤80 words. You MUST finish every section completely, ending with the GRO line.
 
 Begin now.`,
   },
@@ -210,7 +258,7 @@ async function assemble() {
 
   const header = `# BUGMXT SI — Bug Triage Report
 
-**Target:** ATANDA Command Centre — commits \`778e73d..169519b\` (Engine button glow + HoverCard explainers + ontological-alignment cleanup)
+**Target:** ${RUN.targetLine}
 **Engine:** BUGMXT SI v1.0 (JCSE 46 / Platinum)
 **Model:** claude-sonnet-4-6 (4-phase scan)
 **Scan duration:** ${totalElapsed}s total
@@ -236,7 +284,7 @@ async function assemble() {
     size: "LETTER",
     margins: { top: 56, bottom: 56, left: 56, right: 56 },
     info: {
-      Title: "BUGMXT SI — Bug Triage Report (Account delete + auth hardening)",
+      Title: RUN.pdfTitle,
       Author: "BUGMXT SI v1.0",
       Subject: "5-layer code-integrity scan output",
     },
@@ -348,7 +396,7 @@ async function assemble() {
   doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(14).text("Bug Triage Report");
   doc.moveDown(0.4);
   doc.fillColor(SOFT_GREY).font("Helvetica-Oblique").fontSize(10)
-    .text("5-layer code integrity scan · ATANDA Command Centre · UX polish + ontology cleanup (778e73d..169519b)");
+    .text(RUN.pdfSubtitle);
   doc.moveDown(0.8);
   hr();
 
