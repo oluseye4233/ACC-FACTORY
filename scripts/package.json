@@ -7,17 +7,20 @@
     "hello": "tsx ./src/hello.ts",
     "backfill-artifact-provider": "tsx ./src/backfill-artifact-provider.ts",
     "backfill-skus": "tsx ./src/backfill-skus.ts",
+    "cleanup-test-cost-data": "tsx ./src/cleanup-test-cost-data.ts",
     "cron-tick": "tsx ./src/cron-tick.ts",
     "migration-status": "tsx ./src/migration-status.ts",
     "seed-f1000-invites": "tsx ./src/seed-f1000-invites.ts",
     "build-f1000-qr": "tsx ./src/build-f1000-qr.ts",
     "build-atlas-investor-pdd": "node ./src/build-atlas-investor-pdd.mjs",
     "build-spartan-mvp-pdd": "node ./src/build-spartan-mvp-pdd.mjs",
+    "capture-guide-shots": "tsx ./src/capture-guide-shots.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "@types/qrcode": "^1.5.6",
+    "puppeteer-core": "^25.3.0",
     "tsx": "catalog:"
   },
   "dependencies": {

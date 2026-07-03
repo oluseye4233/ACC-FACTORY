@@ -77,6 +77,37 @@ export const GetMyUsageResponse = zod.object({
 
 
 /**
+ * @summary Company-wide month-to-date LLM spend vs. the shared monthly cost cap
+ */
+export const GetCompanySpendResponse = zod.object({
+  "usedUsd": zod.number().describe('Month-to-date company-wide LLM spend (USD)'),
+  "capUsd": zod.number().describe('The shared monthly cap (USD)'),
+  "percentUsed": zod.number().describe('usedUsd \/ capUsd as a percentage, clamped to [0, 100]'),
+  "overCap": zod.boolean().describe('True once engine routes are being refused with 402 COST_CAP_EXCEEDED'),
+  "warnLevel": zod.enum(['ok', 'warn', 'critical', 'blocked']).describe('ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached'),
+  "monthResetsAt": zod.coerce.date().describe('Start of next UTC month, when the spend counter resets')
+}).describe('Company-wide LLM spend for the current UTC calendar month against the single shared monthly cost cap (STAFF_MONTHLY_COST_CAP_USD). Uses the exact same SUM over harness_engine_runs.cost_usd that the requireCostBudget gate enforces, so the meter always matches the server\'s own 402 decision.\n')
+
+
+/**
+ * @summary Per-staff-member breakdown of the company-wide month-to-date LLM spend
+ */
+export const GetCompanySpendByUserResponse = zod.object({
+  "totalUsd": zod.number().describe('Company-wide month-to-date spend (USD) — the sum of all rows'),
+  "capUsd": zod.number().describe('The shared monthly cap (USD)'),
+  "monthResetsAt": zod.coerce.date().describe('Start of next UTC month'),
+  "users": zod.array(zod.object({
+  "userId": zod.string().uuid(),
+  "displayName": zod.string().describe('The staff member\'s display name (falls back to email, then a short id)'),
+  "email": zod.string().nullish(),
+  "costUsd": zod.number().describe('Month-to-date LLM spend for this user (USD)'),
+  "runs": zod.number().describe('Engine runs recorded this month for this user'),
+  "sharePercent": zod.number().describe('This user\'s share of the company-wide month-to-date spend, 0-100')
+}))
+}).describe('Who is consuming the shared monthly LLM budget. Same SUM over harness_engine_runs.cost_usd for the current UTC month that the company-wide meter and the requireCostBudget gate use, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.\n')
+
+
+/**
  * @summary Update the calling user's display name
  */
 export const updateMyProfileBodyDisplayNameMax = 120;

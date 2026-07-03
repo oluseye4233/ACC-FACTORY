@@ -8,6 +8,7 @@ import {
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { MONTHLY_COST_CAP_USD } from "./tier";
+import { maybeDispatchCostCapAlerts } from "./cost-cap-alerts";
 
 /**
  * Parse a `YYYY-MM-DD` env value as midnight UTC of that day. Returns null
@@ -218,6 +219,9 @@ async function enforceGlobalCostBudget(
   try {
     const usedUsd = await currentMonthCostGlobal();
     const capUsd = globalMonthlyCostCapUsd();
+    // Fire-and-forget: email admins the first time spend crosses 80/95/100%
+    // of the cap this UTC month (exactly-once via cost_cap_notifications).
+    maybeDispatchCostCapAlerts(usedUsd, capUsd);
     if (usedUsd >= capUsd) {
       res.status(402).json({
         error: "Monthly LLM cost cap reached",

@@ -33,6 +33,7 @@ import Ascension from "@/pages/ascension";
 import Activity from "@/pages/activity";
 import MeCosts from "@/pages/me-costs";
 import TestYourAgent from "@/pages/test-your-agent";
+import Guide from "@/pages/guide";
 import CalculateYourSavings from "@/pages/calculate-your-savings";
 import { AccessGate } from "@/components/AccessGate";
 import {
@@ -77,6 +78,7 @@ function AuthenticatedRoutes() {
       <Route path="/test-your-agent" component={TestYourAgent} />
       <Route path="/calculate-your-savings" component={CalculateYourSavings} />
       <Route path="/command" component={Command} />
+      <Route path="/guide" component={Guide} />
       <Route path="/sessions" component={Sessions} />
       <Route path="/session/new" component={SessionNew} />
       <Route path="/ingest" component={Ingest} />

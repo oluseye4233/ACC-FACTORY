@@ -41,6 +41,8 @@ import type {
   CheckoutInput,
   CheckoutSession,
   CodebaseBundle,
+  CompanySpend,
+  CompanySpendByUser,
   ContextCraftBadge,
   CreateF0EngagementInput,
   CreateF0RetainerInput,
@@ -447,6 +449,160 @@ export function useGetMyUsage<TData = Awaited<ReturnType<typeof getMyUsage>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMyUsageQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCompanySpendUrl = () => {
+
+
+
+
+  return `/api/me/company-spend`
+}
+
+/**
+ * @summary Company-wide month-to-date LLM spend vs. the shared monthly cost cap
+ */
+export const getCompanySpend = async ( options?: RequestInit): Promise<CompanySpend> => {
+
+  return customFetch<CompanySpend>(getGetCompanySpendUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCompanySpendQueryKey = () => {
+    return [
+    `/api/me/company-spend`
+    ] as const;
+    }
+
+
+export const getGetCompanySpendQueryOptions = <TData = Awaited<ReturnType<typeof getCompanySpend>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompanySpend>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCompanySpendQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCompanySpend>>> = ({ signal }) => getCompanySpend({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCompanySpend>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCompanySpendQueryResult = NonNullable<Awaited<ReturnType<typeof getCompanySpend>>>
+export type GetCompanySpendQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary Company-wide month-to-date LLM spend vs. the shared monthly cost cap
+ */
+
+export function useGetCompanySpend<TData = Awaited<ReturnType<typeof getCompanySpend>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompanySpend>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCompanySpendQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCompanySpendByUserUrl = () => {
+
+
+
+
+  return `/api/me/company-spend/by-user`
+}
+
+/**
+ * @summary Per-staff-member breakdown of the company-wide month-to-date LLM spend
+ */
+export const getCompanySpendByUser = async ( options?: RequestInit): Promise<CompanySpendByUser> => {
+
+  return customFetch<CompanySpendByUser>(getGetCompanySpendByUserUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCompanySpendByUserQueryKey = () => {
+    return [
+    `/api/me/company-spend/by-user`
+    ] as const;
+    }
+
+
+export const getGetCompanySpendByUserQueryOptions = <TData = Awaited<ReturnType<typeof getCompanySpendByUser>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompanySpendByUser>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCompanySpendByUserQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCompanySpendByUser>>> = ({ signal }) => getCompanySpendByUser({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCompanySpendByUser>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCompanySpendByUserQueryResult = NonNullable<Awaited<ReturnType<typeof getCompanySpendByUser>>>
+export type GetCompanySpendByUserQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary Per-staff-member breakdown of the company-wide month-to-date LLM spend
+ */
+
+export function useGetCompanySpendByUser<TData = Awaited<ReturnType<typeof getCompanySpendByUser>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompanySpendByUser>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCompanySpendByUserQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -1,5 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import {
+  useGetCompanySpend,
+  getGetCompanySpendQueryKey,
+  useGetCompanySpendByUser,
+  getGetCompanySpendByUserQueryKey,
+} from "@workspace/api-client-react";
 import { TopNav } from "@/components/layout/TopNav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, type CostSummary } from "@/lib/api";
@@ -73,6 +79,139 @@ function CapMeter({ summary }: { summary: CostSummary }) {
           You're past 80% of this month's cap. Consider pacing the heavy engines (F6/F7/F8) or requesting an override.
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function CompanySpendCard() {
+  const { data } = useGetCompanySpend({
+    query: { queryKey: getGetCompanySpendQueryKey(), refetchInterval: 60_000, staleTime: 30_000, retry: false },
+  });
+  if (!data) return null;
+  const { usedUsd, capUsd, percentUsed, warnLevel } = data;
+  const barColor =
+    warnLevel === "blocked" || warnLevel === "critical"
+      ? "bg-red-600"
+      : warnLevel === "warn"
+        ? "bg-amber-500"
+        : "bg-emerald-600";
+  const textColor =
+    warnLevel === "blocked" || warnLevel === "critical"
+      ? "text-red-700"
+      : warnLevel === "warn"
+        ? "text-amber-700"
+        : "text-emerald-700";
+  const resetDate = new Date(data.monthResetsAt);
+  return (
+    <div className="rounded-lg border bg-card p-6 shadow-sm" data-testid="card-company-spend">
+      <div className="flex items-baseline justify-between gap-4 mb-2">
+        <h2 className="text-lg font-semibold">Company-wide LLM spend (this month)</h2>
+        <div className={`text-2xl font-mono tabular-nums ${textColor}`}>
+          {fmtUsd(usedUsd)} <span className="text-base text-muted-foreground">/ {fmtUsd(capUsd)}</span>
+        </div>
+      </div>
+      <div className="h-3 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full ${barColor} transition-all`}
+          style={{ width: `${Math.min(100, Math.max(percentUsed > 0 ? 2 : 0, percentUsed)).toFixed(2)}%` }}
+        />
+      </div>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+        <span>
+          One shared cap for the whole team (STAFF_MONTHLY_COST_CAP_USD). Every engine run counts here —
+          once it's hit, all runs pause until{" "}
+          {Number.isNaN(resetDate.getTime())
+            ? "the start of next month UTC"
+            : resetDate.toLocaleDateString(undefined, { month: "long", day: "numeric", timeZone: "UTC" })}{" "}
+          UTC or an admin raises the cap.
+        </span>
+        <span className={`font-semibold ${textColor}`}>{percentUsed.toFixed(1)}% used</span>
+      </div>
+    </div>
+  );
+}
+
+function SpendByUserCard() {
+  const { data, error } = useGetCompanySpendByUser({
+    query: {
+      queryKey: getGetCompanySpendByUserQueryKey(),
+      refetchInterval: 60_000,
+      staleTime: 30_000,
+      retry: false,
+    },
+  });
+  if (error) {
+    return (
+      <div
+        className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+        data-testid="error-spend-by-user"
+      >
+        Couldn't load the per-person spend breakdown. Refresh in a moment.
+      </div>
+    );
+  }
+  if (!data) {
+    return <Skeleton className="h-40 w-full" data-testid="skeleton-spend-by-user" />;
+  }
+  const maxCost = Math.max(0.0001, ...data.users.map((u) => u.costUsd));
+  return (
+    <div className="rounded-lg border bg-card p-6 shadow-sm" data-testid="card-spend-by-user">
+      <div className="mb-1 flex items-baseline justify-between gap-4">
+        <h2 className="text-lg font-semibold">Who's using the budget (this month)</h2>
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {fmtUsd(data.totalUsd)} of {fmtUsd(data.capUsd)} shared cap
+        </span>
+      </div>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Month-to-date spend per staff member — the same numbers as the company-wide meter, split by
+        person, highest first.
+      </p>
+      {data.users.length === 0 ? (
+        <p className="text-sm text-muted-foreground" data-testid="text-spend-by-user-empty">
+          No engine runs yet this month.
+        </p>
+      ) : (
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <th className="pb-2 font-medium">Staff member</th>
+              <th className="pb-2 font-medium text-right">Runs</th>
+              <th className="pb-2 font-medium text-right">Cost</th>
+              <th className="pb-2 font-medium text-right">Share</th>
+              <th className="pb-2 pl-4 font-medium w-32 sm:w-48" aria-hidden="true" />
+            </tr>
+          </thead>
+          <tbody>
+            {data.users.map((u) => (
+              <tr key={u.userId} className="border-t" data-testid={`row-spend-user-${u.userId}`}>
+                <td className="py-2">
+                  <span className="font-medium">{u.displayName}</span>
+                  {u.email && u.email !== u.displayName ? (
+                    <span className="ml-2 hidden text-xs text-muted-foreground sm:inline">
+                      {u.email}
+                    </span>
+                  ) : null}
+                </td>
+                <td className="py-2 text-right tabular-nums">{u.runs}</td>
+                <td className="py-2 text-right tabular-nums">{fmtUsd(u.costUsd)}</td>
+                <td className="py-2 text-right tabular-nums text-muted-foreground">
+                  {u.sharePercent.toFixed(1)}%
+                </td>
+                <td className="py-2 pl-4">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-emerald-500/80"
+                      style={{
+                        width: `${Math.max(2, (u.costUsd / maxCost) * 100).toFixed(2)}%`,
+                      }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
@@ -222,6 +361,8 @@ export default function MeCosts() {
           </div>
         ) : data ? (
           <>
+            <CompanySpendCard />
+            <SpendByUserCard />
             <CapMeter summary={data} />
             <DailyBars daily={data.dailyBreakdown} />
             <div className="grid gap-6 md:grid-cols-2">

@@ -78,6 +78,34 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /me/company-spend:
+    get:
+      operationId: getCompanySpend
+      tags: [me]
+      summary: Company-wide month-to-date LLM spend vs. the shared monthly cost cap
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanySpend" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /me/company-spend/by-user:
+    get:
+      operationId: getCompanySpendByUser
+      tags: [me]
+      summary: Per-staff-member breakdown of the company-wide month-to-date LLM spend
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanySpendByUser" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /me/profile:
     patch:
       operationId: updateMyProfile
@@ -2526,6 +2554,60 @@ components:
         byEngine:
           type: array
           items: { $ref: "#/components/schemas/UsageByEngine" }
+
+    CompanySpend:
+      type: object
+      description: >
+        Company-wide LLM spend for the current UTC calendar month against the
+        single shared monthly cost cap (STAFF_MONTHLY_COST_CAP_USD). Uses the
+        exact same SUM over harness_engine_runs.cost_usd that the
+        requireCostBudget gate enforces, so the meter always matches the
+        server's own 402 decision.
+      required: [usedUsd, capUsd, percentUsed, overCap, warnLevel, monthResetsAt]
+      properties:
+        usedUsd: { type: number, description: "Month-to-date company-wide LLM spend (USD)" }
+        capUsd: { type: number, description: "The shared monthly cap (USD)" }
+        percentUsed: { type: number, description: "usedUsd / capUsd as a percentage, clamped to [0, 100]" }
+        overCap: { type: boolean, description: "True once engine routes are being refused with 402 COST_CAP_EXCEEDED" }
+        warnLevel:
+          type: string
+          enum: [ok, warn, critical, blocked]
+          description: "ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached"
+        monthResetsAt: { type: string, format: date-time, description: "Start of next UTC month, when the spend counter resets" }
+
+    CompanySpendUserRow:
+      type: object
+      required: [userId, displayName, costUsd, runs, sharePercent]
+      properties:
+        userId: { type: string, format: uuid }
+        displayName:
+          type: string
+          description: "The staff member's display name (falls back to email, then a short id)"
+        email:
+          type: string
+          nullable: true
+        costUsd: { type: number, description: "Month-to-date LLM spend for this user (USD)" }
+        runs: { type: integer, description: "Engine runs recorded this month for this user" }
+        sharePercent:
+          type: number
+          description: "This user's share of the company-wide month-to-date spend, 0-100"
+
+    CompanySpendByUser:
+      type: object
+      description: >
+        Who is consuming the shared monthly LLM budget. Same SUM over
+        harness_engine_runs.cost_usd for the current UTC month that the
+        company-wide meter and the requireCostBudget gate use, grouped by
+        user and sorted by spend (highest first). Only users with at least
+        one run this month appear.
+      required: [totalUsd, capUsd, monthResetsAt, users]
+      properties:
+        totalUsd: { type: number, description: "Company-wide month-to-date spend (USD) — the sum of all rows" }
+        capUsd: { type: number, description: "The shared monthly cap (USD)" }
+        monthResetsAt: { type: string, format: date-time, description: "Start of next UTC month" }
+        users:
+          type: array
+          items: { $ref: "#/components/schemas/CompanySpendUserRow" }
 
     UpdateProfileInput:
       type: object

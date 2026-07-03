@@ -404,6 +404,53 @@ Unsubscribe: ${args.unsubscribeUrl}`;
   });
 }
 
+/**
+ * Company-wide LLM spend threshold alert, sent to each ADMIN_EMAILS address
+ * the first time monthly spend crosses 80% / 95% / 100% of
+ * STAFF_MONTHLY_COST_CAP_USD (exactly once per threshold per UTC month).
+ */
+export function sendCostCapThresholdAlert(args: {
+  to: string;
+  thresholdPercent: number;
+  usedUsd: number;
+  capUsd: number;
+  percentUsed: number;
+  resetsAt: Date;
+}): Promise<EmailResult> {
+  const atCap = args.thresholdPercent >= 100;
+  const resetDay = args.resetsAt.toISOString().slice(0, 10);
+  const headline = atCap
+    ? "The company-wide monthly LLM spend cap has been <strong>reached</strong>. Engine routes are now refusing new runs with 402 COST_CAP_EXCEEDED."
+    : `Company-wide monthly LLM spend has crossed <strong>${args.thresholdPercent}%</strong> of the monthly cap.`;
+  const body = `<p>${headline}</p>
+    <p style="font-family:monospace;background:#0d0d0d;padding:12px;border:1px solid #262626;">
+      Used: $${args.usedUsd.toFixed(2)}<br/>
+      Cap: $${args.capUsd.toFixed(2)}<br/>
+      Percent used: ${args.percentUsed.toFixed(1)}%
+    </p>
+    <p>The counter resets at the start of the next UTC month: <strong>${resetDay} 00:00 UTC</strong>.</p>
+    <p>To raise the ceiling sooner, update the <span style="font-family:monospace;">STAFF_MONTHLY_COST_CAP_USD</span> environment variable, or pace usage until the reset.</p>`;
+  const text = `${
+    atCap
+      ? "The company-wide monthly LLM spend cap has been REACHED. Engine routes are refusing new runs (402 COST_CAP_EXCEEDED)."
+      : `Company-wide monthly LLM spend has crossed ${args.thresholdPercent}% of the monthly cap.`
+  }
+Used: $${args.usedUsd.toFixed(2)}
+Cap: $${args.capUsd.toFixed(2)}
+Percent used: ${args.percentUsed.toFixed(1)}%
+Resets: ${resetDay} 00:00 UTC (start of next UTC month)
+Raise STAFF_MONTHLY_COST_CAP_USD to lift the ceiling sooner.`;
+  const subject = atCap
+    ? `LLM SPEND CAP REACHED · $${args.usedUsd.toFixed(2)} / $${args.capUsd.toFixed(2)}`
+    : `LLM SPEND ALERT · ${args.thresholdPercent}% OF MONTHLY CAP`;
+  return send({
+    to: args.to,
+    subject,
+    html: wrap(atCap ? "LLM SPEND CAP REACHED" : "LLM SPEND ALERT", body),
+    text,
+  });
+}
+
 export function sendAccountDeleted(args: {
   to: string;
 }): Promise<EmailResult> {

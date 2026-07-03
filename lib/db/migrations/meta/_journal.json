@@ -29,6 +29,13 @@
       "when": 1782946153967,
       "tag": "0003_robust_dagger",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783082016062,
+      "tag": "0004_whole_thundra",
+      "breakpoints": true
     }
   ]
 }

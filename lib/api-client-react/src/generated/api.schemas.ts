@@ -808,6 +808,65 @@ export interface UsageReport {
   byEngine: UsageByEngine[];
 }
 
+/**
+ * ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached
+ */
+export type CompanySpendWarnLevel = typeof CompanySpendWarnLevel[keyof typeof CompanySpendWarnLevel];
+
+
+export const CompanySpendWarnLevel = {
+  ok: 'ok',
+  warn: 'warn',
+  critical: 'critical',
+  blocked: 'blocked',
+} as const;
+
+/**
+ * Company-wide LLM spend for the current UTC calendar month against the single shared monthly cost cap (STAFF_MONTHLY_COST_CAP_USD). Uses the exact same SUM over harness_engine_runs.cost_usd that the requireCostBudget gate enforces, so the meter always matches the server's own 402 decision.
+
+ */
+export interface CompanySpend {
+  /** Month-to-date company-wide LLM spend (USD) */
+  usedUsd: number;
+  /** The shared monthly cap (USD) */
+  capUsd: number;
+  /** usedUsd / capUsd as a percentage, clamped to [0, 100] */
+  percentUsed: number;
+  /** True once engine routes are being refused with 402 COST_CAP_EXCEEDED */
+  overCap: boolean;
+  /** ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached */
+  warnLevel: CompanySpendWarnLevel;
+  /** Start of next UTC month, when the spend counter resets */
+  monthResetsAt: string;
+}
+
+export interface CompanySpendUserRow {
+  userId: string;
+  /** The staff member's display name (falls back to email, then a short id) */
+  displayName: string;
+  email?: string | null;
+  /** Month-to-date LLM spend for this user (USD) */
+  costUsd: number;
+  /** Engine runs recorded this month for this user */
+  runs: number;
+  /** This user's share of the company-wide month-to-date spend, 0-100 */
+  sharePercent: number;
+}
+
+/**
+ * Who is consuming the shared monthly LLM budget. Same SUM over harness_engine_runs.cost_usd for the current UTC month that the company-wide meter and the requireCostBudget gate use, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.
+
+ */
+export interface CompanySpendByUser {
+  /** Company-wide month-to-date spend (USD) — the sum of all rows */
+  totalUsd: number;
+  /** The shared monthly cap (USD) */
+  capUsd: number;
+  /** Start of next UTC month */
+  monthResetsAt: string;
+  users: CompanySpendUserRow[];
+}
+
 export interface UpdateProfileInput {
   /**
      * @minLength 1

@@ -21,3 +21,5 @@
 - [Test seeds & unique columns](test-seed-unique-constants.md) — never seed a fixed constant into a UNIQUE column; killed/concurrent runs leave rows behind and every later seed hits duplicate-key.
 - [Pending migration → dev drift](pending-migration-dev-drift.md) — runtime "relation/column does not exist" for an object present in schema+committed migration = unapplied dev migration; fix with `db run migrate`, not code.
 - [Shared-DB global-SUM gates in tests](test-shared-db-cost-cap.md) — neutralise live aggregate gates (cost cap) in vitest setup; intentional logger.warn tests must mock the pino singleton or output misattributes across suites.
+- [Headless capture pipeline](headless-capture-pipeline.md) — nohup children die when a bash call ends; long capture scripts must be resumable + run in foreground chunks; nix chromium + puppeteer-core + in-page fetch login works.
+- [Exactly-once alert stamps](exactly-once-alert-stamps.md) — threshold emails: UNIQUE(period,threshold) insert-before-send, never stamp with empty recipients; toISOString month keys break past year 9999.

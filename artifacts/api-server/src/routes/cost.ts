@@ -8,9 +8,96 @@ import {
   usersTable,
 } from "@workspace/db";
 import { requireAdmin, requireAuth } from "../lib/auth";
-import { loadCostStatus } from "../lib/cost-budget";
+import {
+  currentMonthCostGlobal,
+  globalMonthlyCostCapUsd,
+  loadCostStatus,
+} from "../lib/cost-budget";
 
 const router: IRouter = Router();
+
+/**
+ * GET /api/me/company-spend
+ *
+ * The company-wide spend meter. Returns the current UTC-month SUM over
+ * `harness_engine_runs.cost_usd` across ALL users against the single shared
+ * cap (`STAFF_MONTHLY_COST_CAP_USD`) — the exact same numbers the
+ * `requireCostBudget` gate uses when deciding to refuse an engine run with
+ * 402 COST_CAP_EXCEEDED, so what staff see always matches what the server
+ * enforces.
+ *
+ * warnLevel thresholds: ok < 80%, warn >= 80%, critical >= 95%,
+ * blocked once usedUsd >= capUsd (engine routes are now refusing).
+ */
+router.get("/me/company-spend", requireAuth, async (req, res) => {
+  const [usedUsd, capUsd] = [await currentMonthCostGlobal(), globalMonthlyCostCapUsd()];
+  const overCap = usedUsd >= capUsd;
+  const rawPercent = capUsd > 0 ? (usedUsd / capUsd) * 100 : 100;
+  const percentUsed = Math.min(100, Math.max(0, rawPercent));
+  const warnLevel = overCap
+    ? "blocked"
+    : rawPercent >= 95
+      ? "critical"
+      : rawPercent >= 80
+        ? "warn"
+        : "ok";
+  const now = new Date();
+  const monthResetsAt = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
+  ).toISOString();
+  res.json({ usedUsd, capUsd, percentUsed, overCap, warnLevel, monthResetsAt });
+});
+
+/**
+ * GET /api/me/company-spend/by-user
+ *
+ * Who is consuming the shared monthly LLM budget. Groups the exact same
+ * current-UTC-month SUM over `harness_engine_runs.cost_usd` that the
+ * company-wide meter uses by user, so the per-person rows always add up to
+ * the meter's total. Shared view (any authenticated staff member) — the
+ * internal-staff access model gives every code-authenticated member full
+ * visibility, letting the team self-correct before the cap blocks everyone.
+ */
+router.get("/me/company-spend/by-user", requireAuth, async (req, res) => {
+  const monthStart = sql`date_trunc('month', now() at time zone 'utc')`;
+  const rows = await db
+    .select({
+      userId: harnessEngineRunsTable.userId,
+      displayName: usersTable.displayName,
+      email: usersTable.email,
+      costUsd: sql<string>`COALESCE(SUM(${harnessEngineRunsTable.costUsd}), 0)::numeric`,
+      runs: sql<number>`COUNT(*)::int`,
+    })
+    .from(harnessEngineRunsTable)
+    .innerJoin(usersTable, eq(usersTable.id, harnessEngineRunsTable.userId))
+    .where(gte(harnessEngineRunsTable.createdAt, monthStart))
+    .groupBy(harnessEngineRunsTable.userId, usersTable.displayName, usersTable.email)
+    .orderBy(sql`SUM(${harnessEngineRunsTable.costUsd}) DESC`);
+
+  const users = rows.map((r) => ({
+    userId: r.userId,
+    displayName: r.displayName || r.email || r.userId.slice(0, 8),
+    email: r.email ?? null,
+    costUsd: Number(r.costUsd) || 0,
+    runs: Number(r.runs) || 0,
+    sharePercent: 0, // filled in below once the total is known
+  }));
+  const totalUsd = users.reduce((s, u) => s + u.costUsd, 0);
+  for (const u of users) {
+    u.sharePercent = totalUsd > 0 ? (u.costUsd / totalUsd) * 100 : 0;
+  }
+
+  const now = new Date();
+  const monthResetsAt = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
+  ).toISOString();
+  res.json({
+    totalUsd,
+    capUsd: globalMonthlyCostCapUsd(),
+    monthResetsAt,
+    users,
+  });
+});
 
 interface DailyPoint {
   date: string; // YYYY-MM-DD (UTC)

@@ -10,9 +10,14 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import {
+  CompanySpendBanner,
+  CompanySpendMeter,
+} from "@/components/layout/CompanySpendMeter";
 
 const STAFF_LINKS: Array<{ href: string; label: string }> = [
   { href: "/command", label: "Command" },
+  { href: "/guide", label: "Guide" },
   { href: "/sessions", label: "Sessions" },
   { href: "/ingest", label: "Ingest" },
   { href: "/cartridge", label: "Cartridge" },
@@ -81,6 +86,7 @@ export function TopNav() {
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
+          <CompanySpendMeter />
           {session.name ? (
             <span
               className="hidden sm:inline font-mono text-xs uppercase tracking-wider text-muted-foreground"
@@ -140,6 +146,7 @@ export function TopNav() {
           </Sheet>
         </div>
       </div>
+      <CompanySpendBanner />
     </header>
   );
 }
