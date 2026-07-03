@@ -122,7 +122,14 @@ interface Fixtures {
   sku: string;
 }
 
-const ARTIFACT_SKU = "ARK-SPC-GEN-abc123-0001-V1";
+// Each seed mints its own SKU. A fixed shared constant made every later
+// `seed()` collide on the `harness_artifacts.sku` unique index whenever a
+// prior row lingered — e.g. a killed test run that never reached cleanup, or a
+// concurrent run of this file against the same database.
+function mintArtifactSku(): string {
+  const hex = Math.random().toString(16).slice(2, 8).padEnd(6, "0");
+  return `ARK-SPC-GEN-${hex}-0001-V1`;
+}
 
 // A completed SOCRATES discovery: 7 questions, each with a substantive recorded
 // answer. Full coverage (an answer per question id) is what the discovery
@@ -175,6 +182,7 @@ async function seed(
     .returning();
   if (!session) throw new Error("seed: session insert failed");
 
+  const artifactSku = mintArtifactSku();
   const [artifact] = await db
     .insert(harnessArtifactsTable)
     .values({
@@ -183,7 +191,7 @@ async function seed(
       featureId: 5,
       artifactType: "SPC",
       artifactContent: { title: "The SPC this engagement advises on" },
-      sku: ARTIFACT_SKU,
+      sku: artifactSku,
     })
     .returning();
   if (!artifact) throw new Error("seed: artifact insert failed");
@@ -214,7 +222,7 @@ async function seed(
     sessionId: session.id,
     artifactId: artifact.id,
     engagementId: engagement.id,
-    sku: ARTIFACT_SKU,
+    sku: artifactSku,
   };
 }
 
@@ -250,15 +258,10 @@ async function seedNoArtifact(): Promise<Omit<Fixtures, "artifactId" | "sku">> {
     .returning();
   if (!session) throw new Error("seedNoArtifact: session insert failed");
 
-  const transcript = {
-    intro: "Discovery intro",
-    questions: Array.from({ length: 7 }, (_, i) => ({
-      id: `q${i + 1}`,
-      prompt: `Question ${i + 1}?`,
-      why: `Because ${i + 1}`,
-    })),
-    answers: [{ id: "q1", answer: "An answer" }],
-  };
+  // Full coverage (an answer for every one of the 7 questions) is required by
+  // the discovery precondition — a single answer would 409 before the handler
+  // ever reaches the advisory-SKU minting path this seed exists to exercise.
+  const transcript = completedTranscript();
 
   const [engagement] = await db
     .insert(f0EngagementsTable)
@@ -681,4 +684,123 @@ describe("F0 discovery precondition — no report before SOCRATES is complete", 
       await cleanup(fx.user.id);
     }
   });
+});
+
+describe("F0 report persistence — client disconnect mid-stream must not lose the report", () => {
+  beforeEach(() => {
+    llm.responseText = JSON.stringify(validReport());
+  });
+
+  // Polls `fn` until it returns a non-null value or the deadline passes. The
+  // server keeps working after the client aborts, so the assertions have to
+  // wait for the handler's post-disconnect persistence to land.
+  async function waitFor<T>(
+    fn: () => Promise<T | null | undefined>,
+    label: string,
+    timeoutMs = 10_000,
+  ): Promise<T> {
+    const deadline = Date.now() + timeoutMs;
+    for (;;) {
+      const value = await fn();
+      if (value) return value;
+      if (Date.now() > deadline) throw new Error(`timed out waiting for ${label}`);
+      await new Promise((r) => setTimeout(r, 200));
+    }
+  }
+
+  // Opens the SSE report stream, reads until the first `step` event arrives
+  // (the stream is genuinely open and mid-run), then aborts the fetch —
+  // simulating the user closing the tab / dropping the connection before the
+  // `complete` event. The abort destroys the socket, which fires the server's
+  // `req.on("close")` and flips its `clientClosed` flag.
+  async function openStreamThenAbortAfterFirstStep(
+    url: string,
+    engagementId: string,
+  ): Promise<void> {
+    const controller = new AbortController();
+    const res = await fetch(`${url}/api/f0/engagements/${engagementId}/reports`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ service: "PRODUCT_VIABILITY", provider: "claude" }),
+      signal: controller.signal,
+    });
+    expect(res.status).toBe(200);
+    if (!res.body) throw new Error("SSE response had no body stream");
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    while (!buffer.includes("event: step")) {
+      const { done, value } = await reader.read();
+      if (done) throw new Error("stream ended before any step event arrived");
+      buffer += decoder.decode(value, { stream: true });
+    }
+    // The stream is open and step events are flowing; a `complete` event must
+    // not have arrived yet — the disconnect genuinely happens mid-run.
+    expect(buffer.includes("event: complete")).toBe(false);
+    controller.abort();
+    await reader.cancel().catch(() => {});
+  }
+
+  test(
+    "a mid-stream disconnect still persists the report, its report code, and advances the engagement to ACTIVE",
+    async () => {
+      const fx = await seed();
+      const srv = await startServer(buildApp(fx.user, fx.subscriber));
+      try {
+        await openStreamThenAbortAfterFirstStep(srv.url, fx.engagementId);
+
+        // The client is gone, but the ensemble work completes server-side and
+        // the report must land in f0_reports anyway.
+        const report = await waitFor(
+          async () => {
+            const rows = await db
+              .select()
+              .from(f0ReportsTable)
+              .where(eq(f0ReportsTable.userId, fx.user.id));
+            return rows[0] ?? null;
+          },
+          "f0_reports row after client disconnect",
+        );
+        expect(report.engagementId).toBe(fx.engagementId);
+        expect(report.service).toBe("PRODUCT_VIABILITY");
+        expect(report.sku).toBe(fx.sku);
+        expect(report.content).toMatchObject({
+          executivePosition: "Proceed with disciplined caution.",
+        });
+
+        // The matching report-code registry row is minted and anchored to the
+        // artifact SKU exactly as on the happy path.
+        const codes = await db
+          .select()
+          .from(f0ReportCodesTable)
+          .where(eq(f0ReportCodesTable.userId, fx.user.id));
+        expect(codes.length).toBe(1);
+        const code = codes[0]!;
+        expect(code.code).toBe("F0-PV");
+        expect(code.sku).toBe(fx.sku);
+        expect(code.artifactId).toBe(fx.artifactId);
+        expect(code.reportCode).toBe(report.reportCode);
+        expect(report.reportCode).toMatch(new RegExp(`^F0-PV-${fx.sku}-\\d{14}$`));
+
+        // The engagement advances out of DISCOVERY to ACTIVE despite the
+        // disconnect — the report row proves persistence already ran, and the
+        // status update happens right after it, so poll briefly for the flip.
+        const engagement = await waitFor(
+          async () => {
+            const rows = await db
+              .select()
+              .from(f0EngagementsTable)
+              .where(eq(f0EngagementsTable.id, fx.engagementId));
+            return rows[0]?.status === "ACTIVE" ? rows[0] : null;
+          },
+          "engagement status ACTIVE after client disconnect",
+        );
+        expect(engagement.status).toBe("ACTIVE");
+      } finally {
+        await srv.close();
+        await cleanup(fx.user.id);
+      }
+    },
+    20_000,
+  );
 });
