@@ -259,8 +259,9 @@ async function seedNoArtifact(): Promise<Omit<Fixtures, "artifactId" | "sku">> {
   if (!session) throw new Error("seedNoArtifact: session insert failed");
 
   // Full coverage (an answer for every one of the 7 questions) is required by
-  // the discovery precondition — a single answer would 409 before the handler
-  // ever reaches the advisory-SKU minting path this seed exists to exercise.
+  // the discovery precondition — a single answer would fail DISCOVERY_REQUIRED
+  // before the handler ever reaches the advisory-SKU minting path this seed
+  // exists to exercise.
   const transcript = completedTranscript();
 
   const [engagement] = await db

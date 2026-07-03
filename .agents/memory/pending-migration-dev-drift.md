@@ -22,3 +22,13 @@ at runtime even though everything looks correct in source.
 schema/migration clearly exists, check migration state first. The app DB, the
 `executeSql` sandbox, and the Playwright testing subagent all share the same dev DB,
 so applying the migration once fixes runtime, unit tests, and e2e alike.
+
+**Drift is now caught automatically.** A startup guard compares the committed
+journal against `drizzle.__drizzle_migrations` (drizzle stores each journal
+entry's `when` as `created_at`, so set membership identifies pending entries).
+Outside production the api-server refuses to boot on pending migrations with
+the fix command in the error; in production it only warns (prod is synced via
+Publish and may legitimately not track the journal). `post-merge.sh` also runs
+a `migration-status` script that prints applied/pending counts and exits
+non-zero on drift. If the dev server won't boot with "PENDING DB MIGRATIONS",
+that IS this drift — run `migrate`, don't touch code.
