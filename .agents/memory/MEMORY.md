@@ -23,3 +23,4 @@
 - [Shared-DB global-SUM gates in tests](test-shared-db-cost-cap.md) — neutralise live aggregate gates (cost cap) in vitest setup; intentional logger.warn tests must mock the pino singleton or output misattributes across suites.
 - [Headless capture pipeline](headless-capture-pipeline.md) — nohup children die when a bash call ends; long capture scripts must be resumable + run in foreground chunks; nix chromium + puppeteer-core + in-page fetch login works.
 - [Exactly-once alert stamps](exactly-once-alert-stamps.md) — threshold emails: UNIQUE(period,threshold) insert-before-send, never stamp with empty recipients; toISOString month keys break past year 9999.
+- [GitHub repo mirror](github-repo-mirror.md) — auto-sync to GitHub uses the Data API (connector token lacks workflow scope, so git push with .github/workflows changes is rejected); trailer on remote head = resume point.
