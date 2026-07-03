@@ -127,14 +127,29 @@ These are set in the **Deploy** panel's secrets, not committed. Grouped by neces
 
 ## 5. Schedule the cron ticks (Scheduled Deployments)
 
-The two cron endpoints are driven externally by
+The three cron endpoints are driven externally by
 `pnpm --filter @workspace/scripts run cron-tick -- <target>` (needs `PUBLIC_BASE_URL` +
 `CRON_SECRET`; exits non-zero on failure so a missed tick surfaces in logs):
 
-- `reset-harness-limits` — **daily 00:00 UTC** (mandatory; otherwise tiers lock after 24h).
-- `weekly-digest` — **Mondays 09:00 UTC**.
+- `reset-harness-limits` — **daily 00:00 UTC** (`0 0 * * *`; mandatory; otherwise tiers lock after 24h).
+- `weekly-digest` — **Mondays 09:00 UTC** (`0 9 * * 1`).
+- `run-f0-monitoring` — **Mondays 08:00 UTC** (`0 8 * * 1`).
 
-Create one Scheduled Deployment per target with the matching cron expression.
+Create one Scheduled Deployment per target (Publishing tool → **Scheduled**) with the
+matching cron expression (UTC timezone) and the run command above, e.g. for the digest:
+
+```
+pnpm --filter @workspace/scripts run cron-tick -- weekly-digest
+```
+
+`CRON_SECRET` is already a global Secret; set `PUBLIC_BASE_URL` on each Scheduled
+Deployment to the live app URL (e.g. `https://<your-app>.replit.app`).
+
+> **Gotcha — the app must be published with *Public* visibility.** If the autoscale
+> deployment is Private, Replit's private-app wall 307-redirects every external request
+> (including cron ticks) to a Replit login, so `/api/cron/*` is unreachable and the digest
+> never sends. `cron-tick` detects this and fails with an explicit
+> "behind Replit's private-app wall" error.
 
 ---
 

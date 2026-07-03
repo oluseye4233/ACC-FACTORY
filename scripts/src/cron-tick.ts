@@ -54,10 +54,25 @@ async function tick(baseUrl: string, secret: string, path: string, timeoutMs: nu
       method: "POST",
       headers: { "x-cron-secret": secret, "content-type": "application/json" },
       body: "{}",
+      redirect: "manual",
       signal: ac.signal,
     });
     const ms = Date.now() - startedAt;
     const text = await res.text();
+    if (res.status >= 300 && res.status < 400) {
+      const loc = res.headers.get("location") ?? "";
+      console.error(
+        `[cron-tick] FAIL ${path} status=${res.status} ms=${ms} redirect=${loc.slice(0, 200)}`,
+      );
+      if (/replit\.(com|app)/.test(loc) || loc.includes("__replauth") || loc.includes("replco")) {
+        console.error(
+          `[cron-tick] The target at PUBLIC_BASE_URL is behind Replit's private-app wall. ` +
+            `Set the deployment's visibility to Public (re-Publish with public visibility), ` +
+            `otherwise scheduled cron ticks can never reach /api/cron/*.`,
+        );
+      }
+      return false;
+    }
     if (!res.ok) {
       console.error(`[cron-tick] FAIL ${path} status=${res.status} ms=${ms} body=${text.slice(0, 500)}`);
       return false;

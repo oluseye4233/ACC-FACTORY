@@ -17,3 +17,4 @@
 - [DB migrations vs push](db-migrations-vs-push.md) — schema changes need a committed drizzle migration (run generate), not just push; deploys replay migrations.
 - [Billing feature deferral](billing-feature-deferral.md) — deferring project credits behind the sub flag must gate enforcement + checkout + summary endpoint + frontend (card, fetch, AND the available<1 action gate), else staff get blocked.
 - [Migration collision on rebase](migration-rebase-collision.md) — a duplicate/superset migration must be dropped + regenerated as a delta; empty __drizzle_migrations on push-built dev DB is reconciled by inserting rows (never truncate).
+- [Scheduled cron vs private wall](scheduled-cron-private-wall.md) — Private-visibility deployments 307-wall external cron ticks; publish Public; task agents can't create Scheduled Deployments (user does in Publishing tool).
