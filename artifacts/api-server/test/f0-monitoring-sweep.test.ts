@@ -1,4 +1,10 @@
 import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
+import express, {
+  type Express,
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import { eq, inArray, sql } from "drizzle-orm";
 import {
   db,
@@ -54,6 +60,38 @@ vi.mock("../src/lib/cost-budget", async (importOriginal) => {
     globalMonthlyCostCapUsd: vi.fn(() => mockedCapUsd),
     currentMonthCostGlobal: vi.fn(async () => mockedUsedUsd),
   };
+});
+
+// ---------- Mock requireAuth (mirrors github-push.test.ts) ----------
+// The end-to-end lifecycle test below drives the REAL HTTP routes (cron sweep →
+// dashboard → acknowledge). Only the Clerk hop is stubbed: the test names its
+// local user via the x-test-user-id header and the mock loads the actual DB row,
+// so ownership checks inside the routes run for real.
+vi.mock("../src/lib/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/lib/auth")>();
+  const requireAuth = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    const { db: d, usersTable: u } = await import("@workspace/db");
+    const { eq: e } = await import("drizzle-orm");
+    const headerVal = req.headers["x-test-user-id"];
+    const uid = Array.isArray(headerVal) ? headerVal[0] : headerVal;
+    if (!uid) {
+      res.status(401).json({ error: "test user header missing" });
+      return;
+    }
+    const [user] = await d.select().from(u).where(e(u.id, uid)).limit(1);
+    if (!user) {
+      res.status(401).json({ error: "test user not found" });
+      return;
+    }
+    req.localUser = user;
+    req.memberships = [];
+    next();
+  };
+  return { ...actual, requireAuth };
 });
 
 const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -308,5 +346,190 @@ describe("runF0MonitoringSweep", () => {
     expect(latest.breached).toBe(true);
     expect(latest.notifiedAt).not.toBeNull();
     expect(emailsFor(title)).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// End-to-end alert lifecycle over the REAL HTTP routes: the weekly cron sweep
+// persists a breached run → it surfaces as an open alert on GET /f0/dashboard
+// → POST .../acknowledge clears it server-side → the dashboard drops it.
+//
+// This lives in this file (not a sibling) deliberately: vitest runs test FILES
+// in parallel against the shared DB, and the sweep walks EVERY ACTIVE retainer.
+// Two files triggering sweeps concurrently would cross-pollinate each other's
+// run counts / recent-sweep guards. Inside one file, tests run serially and the
+// shared beforeEach retires earlier retainers, so each sweep only touches the
+// single ACTIVE retainer its test seeds.
+// ---------------------------------------------------------------------------
+
+describe("weekly sweep → dashboard alert → acknowledge (HTTP lifecycle)", () => {
+  const CRON_SECRET = `test-cron-secret-${stamp}`;
+  let srv: { url: string; close: () => Promise<void> };
+
+  function injectLog(req: Request, _res: Response, next: NextFunction): void {
+    const noop = (): void => {};
+    (req as unknown as { log: Record<string, unknown> }).log = {
+      info: noop,
+      warn: noop,
+      error: noop,
+      debug: noop,
+      trace: noop,
+      fatal: noop,
+      child: () => (req as unknown as { log: unknown }).log,
+    };
+    next();
+  }
+
+  async function startApp(app: Express): Promise<{ url: string; close: () => Promise<void> }> {
+    const server = app.listen(0);
+    await new Promise<void>((r) => server.once("listening", () => r()));
+    const addr = server.address();
+    if (!addr || typeof addr === "string") throw new Error("no test server address");
+    return {
+      url: `http://127.0.0.1:${addr.port}`,
+      close: () => new Promise<void>((r) => server.close(() => r())),
+    };
+  }
+
+  interface DashboardMonitoring {
+    lastRunAt: string | null;
+    openAlertCount: number;
+    openAlerts: Array<{
+      id: string;
+      retainerId: string;
+      retainerTitle: string;
+      highestUrgency: string;
+      capiPosture: string;
+      alertCount: number;
+      source: string;
+      ranAt: string;
+    }>;
+    byRetainer: Array<{ retainerId: string; lastRunAt: string }>;
+  }
+
+  async function getDashboard(): Promise<DashboardMonitoring> {
+    const res = await fetch(`${srv.url}/api/f0/dashboard`, {
+      headers: { "x-test-user-id": userId },
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { monitoring: DashboardMonitoring };
+    return body.monitoring;
+  }
+
+  beforeAll(async () => {
+    process.env.CRON_SECRET = CRON_SECRET;
+    const app = express();
+    app.use(injectLog);
+    app.use(express.json());
+    const f0Router = (await import("../src/routes/f0")).default;
+    const cronRouter = (await import("../src/routes/cron")).default;
+    app.use("/api", f0Router);
+    app.use("/api", cronRouter);
+    srv = await startApp(app);
+  });
+
+  afterAll(async () => {
+    await srv.close();
+  });
+
+  test("cron endpoint rejects a missing/wrong secret without sweeping", async () => {
+    const noSecret = await fetch(`${srv.url}/api/cron/run-f0-monitoring`, { method: "POST" });
+    expect(noSecret.status).toBe(401);
+    const wrongSecret = await fetch(`${srv.url}/api/cron/run-f0-monitoring`, {
+      method: "POST",
+      headers: { "x-cron-secret": "nope" },
+    });
+    expect(wrongSecret.status).toBe(401);
+    expect(llmCalls).not.toHaveBeenCalled();
+  });
+
+  test("sweep persists a breach, dashboard surfaces it, acknowledge clears it", async () => {
+    const title = `Lifecycle retainer ${stamp}`;
+    const retainerId = await seedRetainer(title);
+    nextMonitoringOutput = BREACH_OUTPUT;
+
+    // 1. Weekly sweep via the real cron route.
+    const sweepRes = await fetch(`${srv.url}/api/cron/run-f0-monitoring`, {
+      method: "POST",
+      headers: { "x-cron-secret": CRON_SECRET },
+    });
+    expect(sweepRes.status).toBe(200);
+    const sweepBody = (await sweepRes.json()) as Record<string, unknown>;
+    expect(sweepBody.ok).toBe(true);
+    expect(sweepBody.breaches).toBeGreaterThanOrEqual(1);
+
+    const runs = await runsFor(retainerId);
+    expect(runs).toHaveLength(1);
+    const run = runs[0]!;
+    expect(run.source).toBe("cron");
+    expect(run.breached).toBe(true);
+    expect(run.acknowledgedAt).toBeNull();
+
+    // 2. Dashboard shows the open alert.
+    const before = await getDashboard();
+    expect(before.openAlertCount).toBeGreaterThan(0);
+    expect(before.openAlertCount).toBe(before.openAlerts.length);
+    const alert = before.openAlerts.find((a) => a.retainerId === retainerId);
+    expect(alert).toBeDefined();
+    expect(alert!.id).toBe(run.id);
+    expect(alert!.retainerTitle).toBe(title);
+    expect(alert!.highestUrgency).toBe("ACT_NOW");
+    expect(alert!.capiPosture).toBe("Slipping");
+    expect(alert!.alertCount).toBe(BREACH_OUTPUT.eventAlerts.length);
+    expect(alert!.source).toBe("cron");
+    // The sweep run also registers as monitoring activity.
+    expect(before.lastRunAt).not.toBeNull();
+    expect(before.byRetainer.some((r) => r.retainerId === retainerId)).toBe(true);
+
+    // 3. Acknowledge over the real route.
+    const ackRes = await fetch(
+      `${srv.url}/api/f0/retainers/${retainerId}/monitoring/${run.id}/acknowledge`,
+      { method: "POST", headers: { "x-test-user-id": userId } },
+    );
+    expect(ackRes.status).toBe(200);
+    const ackBody = (await ackRes.json()) as { id: string; acknowledgedAt: string };
+    expect(ackBody.id).toBe(run.id);
+    expect(new Date(ackBody.acknowledgedAt).getTime()).not.toBeNaN();
+
+    // 4. The alert is gone and the count dropped.
+    const after = await getDashboard();
+    expect(after.openAlerts.find((a) => a.id === run.id)).toBeUndefined();
+    expect(after.openAlertCount).toBe(before.openAlertCount - 1);
+  });
+
+  test("a foreign user cannot acknowledge someone else's alert", async () => {
+    const title = `Lifecycle foreign ${stamp}`;
+    const retainerId = await seedRetainer(title);
+    nextMonitoringOutput = BREACH_OUTPUT;
+    const sweepRes = await fetch(`${srv.url}/api/cron/run-f0-monitoring`, {
+      method: "POST",
+      headers: { "x-cron-secret": CRON_SECRET },
+    });
+    expect(sweepRes.status).toBe(200);
+    const [run] = await runsFor(retainerId);
+    expect(run).toBeDefined();
+
+    const [stranger] = await db
+      .insert(usersTable)
+      .values({
+        clerkUserId: `clerk_f0sweep_stranger_${stamp}`,
+        email: `f0sweep-stranger-${stamp}@example.test`,
+      })
+      .returning();
+    try {
+      const res = await fetch(
+        `${srv.url}/api/f0/retainers/${retainerId}/monitoring/${run!.id}/acknowledge`,
+        { method: "POST", headers: { "x-test-user-id": stranger!.id } },
+      );
+      // Retainer ownership guard: not yours → 404, alert stays open.
+      expect(res.status).toBe(404);
+      const [still] = await runsFor(retainerId);
+      expect(still!.acknowledgedAt).toBeNull();
+    } finally {
+      await db
+        .delete(notificationPreferencesTable)
+        .where(eq(notificationPreferencesTable.userId, stranger!.id));
+      await db.execute(sql`DELETE FROM users WHERE id = ${stranger!.id}`);
+    }
   });
 });
