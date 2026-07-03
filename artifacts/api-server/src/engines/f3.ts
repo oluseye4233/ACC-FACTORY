@@ -145,25 +145,28 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
   });
   await advanceFeatureState(sessionId, 3);
 
+  // Fire-and-await email — a mid-stream disconnect must not drop the notification
+  // (matches the F7 pattern: email before the clientClosed check).
+  if (out.escalated && req.localUser?.email) {
+    const { sendEscalationGranted } = await import("@workspace/email");
+    const { db: _db, harnessSessionsTable: _t } = await import("@workspace/db");
+    const { eq: _eq } = await import("drizzle-orm");
+    const rows = await _db
+      .select({ name: _t.sessionName })
+      .from(_t)
+      .where(_eq(_t.id, sessionId))
+      .limit(1);
+    sendEscalationGranted({
+      to: req.localUser.email,
+      engine: "F3 → F5",
+      sessionName: rows[0]?.name ?? "Untitled session",
+    }).catch((err) => req.log.warn({ err }, "sendEscalationGranted failed"));
+  }
+
   if (clientClosed) return;
   send("classification", out.classification);
   if (out.escalated) {
     send("escalation", { from: 3, to: 5 });
-    if (req.localUser?.email) {
-      const { sendEscalationGranted } = await import("@workspace/email");
-      const { db: _db, harnessSessionsTable: _t } = await import("@workspace/db");
-      const { eq: _eq } = await import("drizzle-orm");
-      const rows = await _db
-        .select({ name: _t.sessionName })
-        .from(_t)
-        .where(_eq(_t.id, sessionId))
-        .limit(1);
-      sendEscalationGranted({
-        to: req.localUser.email,
-        engine: "F3 → F5",
-        sessionName: rows[0]?.name ?? "Untitled session",
-      }).catch((err) => req.log.warn({ err }, "sendEscalationGranted failed"));
-    }
   }
   send("complete", { ...out, artifactId: artifact.id });
   res.end();

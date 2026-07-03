@@ -7,6 +7,7 @@ import {
   commandCentreSubscribersTable,
   harnessSessionsTable,
   harnessArtifactsTable,
+  harnessEscalationsTable,
   mathmonIntakesTable,
   mathmonMapsTable,
   type ArtifactType,
@@ -28,6 +29,21 @@ const llm = vi.hoisted(() => ({ responseText: "" }));
 // the disconnect genuinely happens mid-run (before the handler awaits the LLM
 // promise and reaches its persistence branch).
 const LLM_DELAY_MS = 2000;
+
+// Spy on the escalation email so the F3 escalation test can assert the send
+// path is invoked even after the client disconnects. All other senders keep
+// their real (dry-run console-log) implementations.
+const emailMocks = vi.hoisted(() => ({
+  sendEscalationGranted: vi.fn(async () => ({ ok: true, dryRun: true })),
+}));
+
+vi.mock("@workspace/email", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@workspace/email")>();
+  return {
+    ...actual,
+    sendEscalationGranted: emailMocks.sendEscalationGranted,
+  };
+});
 
 vi.mock("@workspace/integrations-anthropic-ai", async (importOriginal) => {
   const actual =
@@ -335,6 +351,70 @@ describe("streaming engines — client disconnect mid-stream must not lose the o
           classification: { phase: "PHASE_1", kind: "PLANNER" },
           birthPackage: { overview: "Meal planner micro-agent" },
         });
+      } finally {
+        await srv.close();
+        await cleanup(fx.user.id);
+      }
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "F3 escalation: a mid-stream disconnect still records the escalation AND sends the escalation email",
+    async () => {
+      llm.responseText = JSON.stringify({
+        ...F3_RESPONSE,
+        classification: { ...F3_RESPONSE.classification, phase: "PHASE_3", kind: "SYSTEM" },
+        escalated: true,
+      });
+      emailMocks.sendEscalationGranted.mockClear();
+      const fx = await seed();
+      const srv = await startServer(
+        buildApp(fx.user, fx.subscriber, "/api/harness/f3", handleF3Stream),
+      );
+      try {
+        await openStreamThenAbortAfterFirstProgress(
+          srv.url,
+          "/api/harness/f3",
+          {
+            sessionId: fx.sessionId,
+            atomicPrompt: SAMPLE_ATOMIC_PROMPT,
+            intent: "Plan a one-week family dinner menu under budget.",
+            provider: "claude",
+          },
+          "organelle",
+        );
+
+        // The escalation row must land despite the disconnect.
+        const escalation = await waitFor(
+          async () => {
+            const rows = await db
+              .select()
+              .from(harnessEscalationsTable)
+              .where(eq(harnessEscalationsTable.sessionId, fx.sessionId));
+            return rows[0] ?? null;
+          },
+          "harness_escalations row after client disconnect",
+        );
+        expect(escalation.fromFeature).toBe(3);
+        expect(escalation.toFeature).toBe(5);
+
+        // The "escalation granted" email must also be sent — the disconnect
+        // must not drop the notification (regression: email used to sit
+        // behind the clientClosed early-return).
+        await waitFor(
+          async () =>
+            emailMocks.sendEscalationGranted.mock.calls.length > 0 ? true : null,
+          "sendEscalationGranted call after client disconnect",
+        );
+        expect(emailMocks.sendEscalationGranted).toHaveBeenCalledTimes(1);
+        expect(emailMocks.sendEscalationGranted).toHaveBeenCalledWith(
+          expect.objectContaining({
+            to: fx.user.email,
+            engine: "F3 → F5",
+            sessionName: expect.stringContaining("engine-disconnect"),
+          }),
+        );
       } finally {
         await srv.close();
         await cleanup(fx.user.id);
