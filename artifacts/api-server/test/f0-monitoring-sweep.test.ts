@@ -29,11 +29,30 @@ vi.mock("@workspace/email", async (importOriginal) => {
 // row (so the cost-cap guard is never tripped by this suite).
 let nextMonitoringOutput: unknown = null;
 
+const llmCalls = vi.fn(async () => nextMonitoringOutput);
+
 vi.mock("../src/engines/shared", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../src/engines/shared")>();
   return {
     ...actual,
-    callLlmJson: vi.fn(async () => nextMonitoringOutput),
+    callLlmJson: llmCalls,
+  };
+});
+
+// ---------- Mock the company-wide cost-cap probe ----------
+// The sweep checks currentMonthCostGlobal() against globalMonthlyCostCapUsd()
+// before every LLM call and halts the loop once used >= cap. Defaults here
+// never trip the guard (used 0 vs cap 1000) so the other tests are unaffected;
+// the cost-cap tests below override these knobs.
+let mockedCapUsd = 1000;
+let mockedUsedUsd = 0;
+
+vi.mock("../src/lib/cost-budget", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/lib/cost-budget")>();
+  return {
+    ...actual,
+    globalMonthlyCostCapUsd: vi.fn(() => mockedCapUsd),
+    currentMonthCostGlobal: vi.fn(async () => mockedUsedUsd),
   };
 });
 
@@ -103,6 +122,13 @@ afterAll(async () => {
 beforeEach(async () => {
   sentRetainer.length = 0;
   nextMonitoringOutput = null;
+  mockedCapUsd = 1000;
+  mockedUsedUsd = 0;
+  llmCalls.mockClear();
+  // Restore the knob-driven default in case a test replaced the
+  // implementation via mockResolvedValue/mockResolvedValueOnce.
+  const costBudget = await import("../src/lib/cost-budget");
+  vi.mocked(costBudget.currentMonthCostGlobal).mockImplementation(async () => mockedUsedUsd);
   // Retire retainers seeded by earlier tests so each test's sweep only touches
   // the single ACTIVE retainer it creates.
   if (retainerIds.length) {
@@ -206,6 +232,57 @@ describe("runF0MonitoringSweep", () => {
     expect(runs).toHaveLength(1); // no new run added
     expect(result.skippedRecent).toBeGreaterThanOrEqual(1);
     expect(emailsFor(title)).toHaveLength(0);
+  });
+
+  test("halts before any LLM call when spend already meets the cost cap", async () => {
+    const { runF0MonitoringSweep } = await import("../src/engines/f0");
+    const titleA = `Sweep cap A ${stamp}`;
+    const titleB = `Sweep cap B ${stamp}`;
+    const idA = await seedRetainer(titleA);
+    const idB = await seedRetainer(titleB);
+    nextMonitoringOutput = BREACH_OUTPUT;
+    mockedCapUsd = 50;
+    mockedUsedUsd = 50; // at the cap — guard trips on used >= cap
+
+    const result = await runF0MonitoringSweep();
+
+    expect(result.costCapReached).toBe(true);
+    expect(result.retainersConsidered).toBe(2);
+    expect(result.runsExecuted).toBe(0);
+    expect(result.breaches).toBe(0);
+    expect(result.alertsSent).toBe(0);
+    // The loop broke before the first LLM call: no runs persisted, no spend.
+    expect(llmCalls).not.toHaveBeenCalled();
+    expect(await runsFor(idA)).toHaveLength(0);
+    expect(await runsFor(idB)).toHaveLength(0);
+    expect(emailsFor(titleA)).toHaveLength(0);
+    expect(emailsFor(titleB)).toHaveLength(0);
+  });
+
+  test("stops mid-sweep once spend crosses the cap between retainers", async () => {
+    const { runF0MonitoringSweep } = await import("../src/engines/f0");
+    const costBudget = await import("../src/lib/cost-budget");
+    const titleFirst = `Sweep cap mid A ${stamp}`;
+    const titleSecond = `Sweep cap mid B ${stamp}`;
+    const idFirst = await seedRetainer(titleFirst);
+    const idSecond = await seedRetainer(titleSecond);
+    nextMonitoringOutput = CALM_OUTPUT;
+    mockedCapUsd = 50;
+    // First probe is under the cap; the first retainer's run pushes spend to
+    // the ceiling, so the probe before the second retainer trips the guard.
+    vi.mocked(costBudget.currentMonthCostGlobal)
+      .mockResolvedValueOnce(49)
+      .mockResolvedValue(50);
+
+    const result = await runF0MonitoringSweep();
+
+    expect(result.costCapReached).toBe(true);
+    expect(result.retainersConsidered).toBe(2);
+    expect(result.runsExecuted).toBe(1);
+    expect(llmCalls).toHaveBeenCalledTimes(1);
+    // Retainers are swept in createdAt order: the first ran, the second never started.
+    expect(await runsFor(idFirst)).toHaveLength(1);
+    expect(await runsFor(idSecond)).toHaveLength(0);
   });
 
   test("re-runs a retainer whose last cron run is older than 6 days", async () => {
