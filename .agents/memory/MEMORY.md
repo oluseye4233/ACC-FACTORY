@@ -20,3 +20,4 @@
 - [Scheduled cron vs private wall](scheduled-cron-private-wall.md) — Private-visibility deployments 307-wall external cron ticks; publish Public; task agents can't create Scheduled Deployments (user does in Publishing tool).
 - [Test seeds & unique columns](test-seed-unique-constants.md) — never seed a fixed constant into a UNIQUE column; killed/concurrent runs leave rows behind and every later seed hits duplicate-key.
 - [Pending migration → dev drift](pending-migration-dev-drift.md) — runtime "relation/column does not exist" for an object present in schema+committed migration = unapplied dev migration; fix with `db run migrate`, not code.
+- [Shared-DB global-SUM gates in tests](test-shared-db-cost-cap.md) — neutralise live aggregate gates (cost cap) in vitest setup; intentional logger.warn tests must mock the pino singleton or output misattributes across suites.

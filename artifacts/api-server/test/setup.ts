@@ -1,6 +1,19 @@
 import { vi } from "vitest";
 import { hashKey, readFixture, writeFixture, IS_RECORD, MissingFixtureError } from "./llm-cache";
 
+// Cost-cap isolation for the shared dev/test DB. Test files run concurrently
+// against ONE database, and several suites (plus real engine runs replayed
+// from fixtures) insert `harness_engine_runs` cost rows. The company-wide cap
+// check is a live SUM over that table, so one suite's seeded spend — or rows
+// left behind by killed runs — could push the global total over the workspace
+// cap mid-run and make any engine route 402 flakily. Force an effectively
+// unreachable cap for every test worker: "under cap" is now deterministic no
+// matter what other suites spend. Tests that exercise the OVER-cap path stay
+// deterministic too — they either set an explicit tiny cap around their own
+// seeded row (mathmon-flow) or mock the cost-budget probes outright
+// (f0-monitoring-sweep), so they never depend on suite ordering.
+process.env.STAFF_MONTHLY_COST_CAP_USD = "1000000000";
+
 // In replay mode, set dummy env vars so providerConfigured() in the tests
 // reports each provider as available without needing real keys. The mocked
 // clients below never actually open a network socket in replay mode.

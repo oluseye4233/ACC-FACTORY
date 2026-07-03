@@ -28,6 +28,30 @@ vi.mock("@workspace/email", async (importOriginal) => {
   };
 });
 
+// ---------- Mock the pino singleton ----------
+// The sweep's cost-cap guard logs "F0 monitoring sweep halted: company-wide
+// monthly cost cap reached" through the shared pino logger. The halt tests
+// below trip that guard ON PURPOSE (with mocked spend), and the real logger
+// writes to the worker's shared stdout — vitest interleaves it into whichever
+// file's output is streaming, which looks like a genuine cap breach in an
+// unrelated suite. Capture warns instead so the intentional halt is silent
+// AND assertable.
+const loggerWarns = vi.fn();
+
+vi.mock("../src/lib/logger", () => {
+  const noop = (): void => {};
+  const fake = {
+    info: noop,
+    warn: loggerWarns,
+    error: noop,
+    debug: noop,
+    trace: noop,
+    fatal: noop,
+    child: (): unknown => fake,
+  };
+  return { logger: fake };
+});
+
 // ---------- Mock the LLM call ----------
 // The weekly sweep drives one LLM call per active retainer. Stubbing
 // callLlmJson keeps the whole sweep offline and lets each test dictate exactly
@@ -163,6 +187,7 @@ beforeEach(async () => {
   mockedCapUsd = 1000;
   mockedUsedUsd = 0;
   llmCalls.mockClear();
+  loggerWarns.mockClear();
   // Restore the knob-driven default in case a test replaced the
   // implementation via mockResolvedValue/mockResolvedValueOnce.
   const costBudget = await import("../src/lib/cost-budget");
@@ -291,6 +316,11 @@ describe("runF0MonitoringSweep", () => {
     expect(result.alertsSent).toBe(0);
     // The loop broke before the first LLM call: no runs persisted, no spend.
     expect(llmCalls).not.toHaveBeenCalled();
+    // The halt is logged as a warning (captured, not printed to shared stdout).
+    expect(loggerWarns).toHaveBeenCalledWith(
+      { used: 50, capUsd: 50 },
+      "F0 monitoring sweep halted: company-wide monthly cost cap reached",
+    );
     expect(await runsFor(idA)).toHaveLength(0);
     expect(await runsFor(idB)).toHaveLength(0);
     expect(emailsFor(titleA)).toHaveLength(0);
