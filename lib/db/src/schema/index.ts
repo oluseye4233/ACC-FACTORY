@@ -31,3 +31,4 @@ export * from "./f0-retainer-tasks";
 export * from "./f0-monitoring-runs";
 export * from "./cost-cap-notifications";
 export * from "./cron-heartbeat";
+export * from "./ark-x-redemptions";
