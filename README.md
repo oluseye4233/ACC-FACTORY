@@ -63,6 +63,34 @@ pnpm --filter @workspace/db run generate && pnpm --filter @workspace/db run migr
 
 Required env: `DATABASE_URL`, `SESSION_SECRET`, `STAFF_ACCESS_CODE`, `ANTHROPIC_API_KEY`. See `replit.md` for the full env reference, scheduled-job (cron) setup, and operational gotchas.
 
+### ARK-X Hive Gold Architect eligibility
+
+When public subscriptions are enabled (`SUBSCRIPTIONS_ENABLED=true`), an
+authenticated account can submit `arkXEligibilityAssertion` to
+`POST /api/billing/checkout` for an `ARCHITECT` plan. ACC-FACTORY remains the
+subscription authority: it verifies the short-lived, asymmetric ARK-X JWT and
+then creates the Stripe checkout with its own 50%-off coupon. Configure
+`ARK_X_PUBLIC_KEY` (PEM; escaped `\n` is accepted), `ARK_X_PUBLIC_KEY_KID`, and
+optionally `ARK_X_ALLOWED_ALGORITHMS` (comma-separated; defaults to `RS256`).
+The assertion must have `iss=ark-x`, `aud=acc-factory`,
+`eligibility=hive_gold`, `discountPercent=50`, `version=1`, and valid `sub`,
+`jti`, `iat`, and `exp`; its lifetime may not exceed 10 minutes. Completed
+redemptions are one-time by `jti` and store the resulting Stripe checkout
+session. The ARK subject is permanently linked one-to-one to the currently
+authenticated ACC account — no email matching is performed — while a later
+fresh assertion from that same linked subject may be used for resubscription.
+Checkout creation uses the assertion JTI as its Stripe idempotency key, so a
+same-account retry recovers the original checkout rather than consuming it.
+
+**Current deployment safeguard:** the active auth path is a shared internal
+staff access code that deliberately synthesizes an ADMIN/INSTITUTION account.
+It is not customer authentication and is never accepted by billing routes.
+The retained Clerk middleware is not mounted or verified in the current app,
+so `/billing/*` fails closed with `503 CUSTOMER_AUTH_NOT_CONFIGURED` even when
+subscriptions are enabled. Configure and mount a separately reviewed,
+verified customer-auth middleware that resolves a real customer user and
+subscriber before enabling ARK-X/customer checkout.
+
 ## Key docs
 
 - `replit.md` — operating manual, env reference, top gotchas

@@ -1135,7 +1135,8 @@ export const BillingCheckoutBody = zod.object({
   "tier": zod.enum(['EXPLORER', 'PRACTITIONER', 'ARCHITECT', 'INSTITUTION']),
   "interval": zod.enum(['month', 'year']),
   "successUrl": zod.string().nullish(),
-  "cancelUrl": zod.string().nullish()
+  "cancelUrl": zod.string().nullish(),
+  "arkXEligibilityAssertion": zod.string().nullish()
 })
 
 export const BillingCheckoutResponse = zod.object({

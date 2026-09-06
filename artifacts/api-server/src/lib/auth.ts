@@ -77,6 +77,29 @@ export async function requireAuth(
   next();
 }
 
+/**
+ * Guard the customer billing surface.
+ *
+ * The active application authentication is deliberately staff-code only:
+ * `requireAuth` synthesizes an ADMIN/INSTITUTION subscriber and therefore must
+ * never authenticate a paid customer or an ARK-X eligibility redemption.
+ * Clerk middleware is retained in this repository but is not mounted in
+ * app.ts, so its request identity cannot be trusted or safely revived here.
+ *
+ * This fails closed until a separately mounted, verified customer identity
+ * provider is configured. Do not replace this with `requireAuth`.
+ */
+export function requireCustomerAuth(
+  _req: Request,
+  res: Response,
+  _next: NextFunction,
+): void {
+  res.status(503).json({
+    error: "Customer billing authentication is not configured on this deployment",
+    code: "CUSTOMER_AUTH_NOT_CONFIGURED",
+  });
+}
+
 export function requireAdmin(
   req: Request,
   res: Response,

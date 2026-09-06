@@ -860,6 +860,7 @@ paths:
     post:
       operationId: billingCheckout
       tags: [billing]
+      summary: Create paid-tier checkout; an ARK-X Hive Gold assertion discounts Architect by 50%
       requestBody:
         required: true
         content:
@@ -871,6 +872,21 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/CheckoutSession" }
+        "400":
+          description: Invalid checkout request or ARK-X assertion
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "409":
+          description: ARK-X assertion was replayed or its subject is linked to another account
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "503":
+          description: Subscriptions or verified customer billing authentication are not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   /billing/ingestion/checkout:
     post:
@@ -3321,6 +3337,13 @@ components:
         interval: { type: string, enum: [month, year] }
         successUrl: { type: ["string", "null"] }
         cancelUrl: { type: ["string", "null"] }
+        arkXEligibilityAssertion:
+          type: ["string", "null"]
+          description: >-
+            Short-lived ARK-X signed eligibility assertion. Accepted only for
+            ARCHITECT checkout and never matched by email. A JTI is redeemed
+            once after checkout creation; a linked account may use a future
+            fresh assertion when re-subscribing.
 
     CheckoutSession:
       type: object

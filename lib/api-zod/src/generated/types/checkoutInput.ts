@@ -15,4 +15,10 @@ export interface CheckoutInput {
   successUrl?: string | null;
   /** @nullable */
   cancelUrl?: string | null;
+  /**
+   * Short-lived ARK-X signed eligibility assertion. Accepted only for ARCHITECT
+   * checkout, redeemed once, and never matched by email.
+   * @nullable
+   */
+  arkXEligibilityAssertion?: string | null;
 }
