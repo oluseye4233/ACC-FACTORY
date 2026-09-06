@@ -43,6 +43,20 @@
       "when": 1783096069530,
       "tag": "0005_short_shadowcat",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783100000000,
+      "tag": "0006_ark_x_eligibility_redemptions",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783100100000,
+      "tag": "0007_ark_x_account_links",
+      "breakpoints": true
     }
   ]
 }
