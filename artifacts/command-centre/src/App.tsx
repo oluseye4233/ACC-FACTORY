@@ -103,7 +103,7 @@ function AuthenticatedRoutes() {
       <Route path="/spc-player" component={SpcPlayerDashboard} />
       <Route path="/spc-player/new" component={SpcPlayerNew} />
       <Route path="/spc-player/:id" component={SpcPlayerDetail} />
-      <Route path="/f10" component={F10Console} />
+      <Route path="/f10" component={() => <F10Console />} />
       <Route component={NotFound} />
     </Switch>
   );

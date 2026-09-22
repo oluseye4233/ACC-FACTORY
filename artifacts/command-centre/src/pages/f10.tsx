@@ -490,9 +490,21 @@ function ColonizationRunDialog({ runId, open, onOpenChange }: { runId: string | 
   );
 }
 
-export default function F10Console() {
+interface F10ConsoleProps {
+  /** When present, F10 is rendered as the final stage of a session's production line. */
+  sessionId?: string;
+  embedded?: boolean;
+}
+
+type F9ProductionRun = {
+  status?: string;
+  artifactContent?: { machine_artifact_id?: string } | null;
+};
+
+export default function F10Console({ sessionId, embedded = false }: F10ConsoleProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("handoff");
+  const [upstreamArtifactId, setUpstreamArtifactId] = useState<string | null>(null);
 
   // Hand-off State
   const [sourceFilter, setSourceFilter] = useState<string>("ALL");
@@ -772,7 +784,7 @@ export default function F10Console() {
     GEMINI_AGENTS: ["GEMINI_ADK", "GEMINI_VERTEX_AGENT_ENGINE"],
   };
   function handleCreateProviderConnection(connectionId?: string, providerOverride = provider) {
-    authorizeProviderConnection.mutate({ data: { provider: providerOverride, returnTo: `${window.location.origin}/f10`, connectionId } }, {
+      authorizeProviderConnection.mutate({ data: { provider: providerOverride, returnTo: sessionId ? `${window.location.origin}/session/${sessionId}` : `${window.location.origin}/f10`, connectionId } }, {
       onSuccess: (result: any) => { if (result?.authorizeUrl) window.location.assign(result.authorizeUrl); else toast({ title: "Provider unavailable", description: "Use the deterministic export fallback.", variant: "destructive" }); },
       onError: (e) => toast({ title: "Connection failed", description: getErrorMessage(e), variant: "destructive" }),
     });
@@ -795,9 +807,34 @@ export default function F10Console() {
     },
   });
 
+  useEffect(() => {
+    if (!sessionId) return;
+    let current = true;
+    api
+      .get<F9ProductionRun[]>(
+        `/api/harness/f9/runs?sessionId=${encodeURIComponent(sessionId)}`,
+      )
+      .then((runs) => {
+        const emitted = runs.find(
+          (run) => run.status === "EMITTED" && run.artifactContent?.machine_artifact_id,
+        );
+        const artifactId = emitted?.artifactContent?.machine_artifact_id ?? null;
+        if (current) {
+          setUpstreamArtifactId(artifactId);
+          if (artifactId) form.setValue("machineArtifactId", artifactId);
+        }
+      })
+      .catch(() => {
+        if (current) setUpstreamArtifactId(null);
+      });
+    return () => {
+      current = false;
+    };
+  }, [sessionId, form]);
+
   function onSubmit(values: z.infer<typeof releaseSchema>) {
     createRelease.mutate(
-      { data: values },
+      { data: sessionId ? { ...values, sessionId } : values },
       {
         onSuccess: (data: any) => {
           queryClient.invalidateQueries({ queryKey: getListF10ReleasesQueryKey() });
@@ -853,8 +890,8 @@ export default function F10Console() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopNav />
-      <main className="container py-8 max-w-6xl space-y-8">
+      {!embedded && <TopNav />}
+      <main className={embedded ? "w-full p-1 md:p-2 space-y-8" : "container py-8 max-w-6xl space-y-8"}>
         <ReleaseDetailDialog
           releaseId={selectedReleaseId}
           open={!!selectedReleaseId}
@@ -914,10 +951,12 @@ export default function F10Console() {
         <div>
           <h1 className="text-4xl font-display tracking-widest text-primary flex items-center gap-3 uppercase">
             <TerminalSquare className="h-8 w-8" />
-            F10 Release Console
+            {embedded ? "F10 Connector" : "F10 Release Console"}
           </h1>
           <p className="font-mono text-sm text-muted-foreground mt-2 uppercase tracking-wide">
-            Portable multi-artifact handoffs and immutable transmission of signed F9 machine artifacts across controlled boundaries.
+             {embedded
+               ? "The production-line handoff after F9. Verify custody, authorize the destination, and record the delivery receipt."
+               : "Portable multi-artifact handoffs and immutable transmission of signed F9 machine artifacts across controlled boundaries."}
           </p>
         </div>
 
@@ -1269,9 +1308,9 @@ export default function F10Console() {
               <div className="lg:col-span-1">
                 <Card className="border-border bg-card/50 backdrop-blur">
                   <CardHeader className="border-b border-border bg-muted/20">
-                    <CardTitle className="font-display tracking-widest text-lg">NEW F9 DISPATCH</CardTitle>
+                    <CardTitle className="font-display tracking-widest text-lg">NEW F10 RELEASE</CardTitle>
                     <CardDescription className="font-mono text-xs uppercase">
-                      Authorize an artifact for HTTPS dispatch
+                      Authorize the emitted F9 artifact for controlled dispatch
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-6">
@@ -1284,8 +1323,21 @@ export default function F10Console() {
                             <FormItem>
                               <FormLabel className="font-mono text-xs uppercase">Machine Artifact ID</FormLabel>
                               <FormControl>
-                                <Input className="font-mono text-sm" placeholder="art_..." {...field} data-testid="input-artifact-id" />
+                                <Input
+                                  className="font-mono text-sm"
+                                  placeholder="F9 machine artifact ID"
+                                  readOnly={Boolean(sessionId)}
+                                  {...field}
+                                  data-testid="input-artifact-id"
+                                />
                               </FormControl>
+                              {sessionId && (
+                                <FormDescription className="font-mono text-[10px]">
+                                  {upstreamArtifactId
+                                    ? "Pinned to this session's emitted F9 Machine Artifact."
+                                    : "Waiting for this session's emitted F9 Machine Artifact."}
+                                </FormDescription>
+                              )}
                               <FormMessage className="font-mono text-xs" />
                             </FormItem>
                           )}

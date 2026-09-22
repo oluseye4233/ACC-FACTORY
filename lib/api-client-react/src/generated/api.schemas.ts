@@ -1040,6 +1040,7 @@ export interface F10ReleaseRequest {
   machineArtifactId: string;
   destinationId: string;
   releaseIntent: string;
+  sessionId?: string;
 }
 
 export type F10EnvelopeUcgCertificate = {

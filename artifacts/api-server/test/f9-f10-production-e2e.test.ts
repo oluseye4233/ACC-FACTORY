@@ -113,7 +113,7 @@ describe("F9 to OSIRIS to F10 production path", () => {
     }) });
     expect(destinationResponse.status).toBe(201);
     const destination = await destinationResponse.json() as { id: string };
-    const releaseResponse = await request("/api/f10/releases", { method: "POST", body: JSON.stringify({ machineArtifactId: artifactId, destinationId: destination.id, releaseIntent: "production-e2e" }) });
+    const releaseResponse = await request("/api/f10/releases", { method: "POST", body: JSON.stringify({ machineArtifactId: artifactId, destinationId: destination.id, releaseIntent: "production-e2e", sessionId }) });
     expect(releaseResponse.status).toBe(201);
     const release = await releaseResponse.json() as { id: string };
     releaseId = release.id;

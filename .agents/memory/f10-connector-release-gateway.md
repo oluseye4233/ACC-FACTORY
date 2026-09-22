@@ -55,3 +55,16 @@ multi-artifact handoffs. Build handoffs only from server-loaded, user-owned
 artifacts; use deterministic manifests and safe paths; expose live provider
 actions only when a real user-owned authorization flow and destination adapter
 exist.
+
+F10 is the final production-line stage after an emitted F9 Machine Artifact;
+the session cockpit is the primary entry point, while the legacy console route
+is only a compatibility deep link. Embedded release requests carry the session
+ID so F10 cannot select an emitted F9 artifact from another session.
+
+**Why:** F10 is the natural release handoff after MECHA and OSIRIS custody, not
+an unrelated workspace. Session binding preserves the F-process lineage while
+leaving the connector's fail-closed gates intact.
+
+**How to apply:** Keep F6-VDJ and MM as side-steps, place F10 after F9 in the
+production sequence, unlock it only after that session emits F9, and keep F10
+responsible only for custody/policy verification and delivery receipts.

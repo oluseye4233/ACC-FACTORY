@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
 
 // ---------- mocks ----------
 // This suite exercises the REAL SessionDetail page together with the REAL
@@ -97,6 +97,12 @@ vi.mock("@/components/workspaces/F8CodeDj", () => ({
 vi.mock("@/components/workspaces/MathmonLayer", () => ({
   MathmonLayer: () => <div data-testid="workspace-MathmonLayer" />,
 }));
+vi.mock("@/components/workspaces/F9MachineFloor", () => ({
+  F9MachineFloor: () => <div data-testid="workspace-F9MachineFloor" />,
+}));
+vi.mock("@/pages/f10", () => ({
+  default: () => <div data-testid="workspace-F10Console" />,
+}));
 
 import SessionDetail from "./session-detail";
 
@@ -106,7 +112,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
 
-  apiGet.mockResolvedValue({ id: "user-1" });
+  apiGet.mockImplementation((path: string) =>
+    path.includes("/api/harness/f9/runs")
+      ? Promise.resolve([])
+      : Promise.resolve({ id: "user-1" }),
+  );
 
   // Every linear stage available (and therefore navigable via the sequence nav).
   featureStates = [1, 2, 3, 4, 5, 6, 7].map((id) => ({
@@ -382,6 +392,39 @@ describe("SessionDetail — side-step engines stay navigable", () => {
     const nav = screen.getByTestId("feature-nav-f8") as HTMLButtonElement;
     expect(nav.disabled).toBe(true);
     expect(screen.queryByTestId("workspace-F8CodeDj")).toBeNull();
+  });
+
+  it("keeps F10 off the line until this session emits an F9 artifact", () => {
+    useListFeatureStateMock.mockReturnValue({ data: [], isLoading: false });
+    render(<SessionDetail />);
+
+    const nav = screen.getByTestId("feature-nav-f10") as HTMLButtonElement;
+    expect(nav.disabled).toBe(true);
+  });
+
+  it("places F10 immediately after F9 when this session has an emitted machine artifact", async () => {
+    apiGet.mockImplementation((path: string) =>
+      path.includes("/api/harness/f9/runs")
+        ? Promise.resolve([{ status: "EMITTED" }])
+        : Promise.resolve({ id: "user-1" }),
+    );
+    useListSessionArtifactsMock.mockReturnValue({
+      data: [
+        { artifactType: "MVP_PDD", spartanCert: { certId: "cert-1" } },
+        { artifactType: "CODEBASE_BUNDLE" },
+      ],
+      isLoading: false,
+    });
+    useListFeatureStateMock.mockReturnValue({ data: [], isLoading: false });
+    render(<SessionDetail />);
+
+    await waitFor(() => {
+      expect((screen.getByTestId("feature-nav-f10") as HTMLButtonElement).disabled).toBe(false);
+    });
+    gotoStage("f9");
+    expect(screen.getByTestId("workspace-F9MachineFloor")).toBeTruthy();
+    gotoStage("f10");
+    expect(screen.getByTestId("workspace-F10Console")).toBeTruthy();
   });
 });
 

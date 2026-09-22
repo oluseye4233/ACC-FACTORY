@@ -37,6 +37,7 @@ import { F6VdjBuild } from "@/components/workspaces/F6VdjBuild";
 import { F8CodeDj } from "@/components/workspaces/F8CodeDj";
 import { MathmonLayer } from "@/components/workspaces/MathmonLayer";
 import { F9MachineFloor } from "@/components/workspaces/F9MachineFloor";
+import F10Console from "@/pages/f10";
 import { ProviderSelector } from "@/components/shared/ProviderSelector";
 import { SessionOrgVisibility } from "@/components/shared/SessionOrgVisibility";
 
@@ -54,6 +55,7 @@ export default function SessionDetail() {
   const [activeEngineId, setActiveEngineId] = useState<number>(1);
   const [sequenceOpen, setSequenceOpen] = useState(false);
   const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [hasEmittedF9, setHasEmittedF9] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,6 +69,25 @@ export default function SessionDetail() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!id) return;
+    setHasEmittedF9(false);
+    let cancelled = false;
+    api
+      .get<Array<{ status?: string }>>(
+        `/api/harness/f9/runs?sessionId=${encodeURIComponent(id)}`,
+      )
+      .then((runs) => {
+        if (!cancelled) setHasEmittedF9(runs.some((run) => run.status === "EMITTED"));
+      })
+      .catch(() => {
+        if (!cancelled) setHasEmittedF9(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const sessionAuthorId = (sessionData?.session as unknown as { userId?: string } | undefined)
     ?.userId ?? null;
@@ -112,6 +133,9 @@ export default function SessionDetail() {
       const hasCodeBundle = artifacts?.some((artifact) => artifact.artifactType === "CODEBASE_BUNDLE");
       return hasCertifiedMvp && hasCodeBundle ? FeatureStatus.AVAILABLE : FeatureStatus.LOCKED;
     }
+    if (engineId === 12) {
+      return hasEmittedF9 ? FeatureStatus.AVAILABLE : FeatureStatus.LOCKED;
+    }
     if (engineId > 7) return FeatureStatus.AVAILABLE;
     const state = featureStates?.find(fs => fs.featureId === engineId);
     return state?.status || FeatureStatus.LOCKED;
@@ -119,8 +143,8 @@ export default function SessionDetail() {
 
   // The "next" engine to attract attention to is the lowest-id stage in the
   // linear F1→F7 pipeline that is AVAILABLE (not yet COMPLETE and not LOCKED).
-  // Side-step engines (F6-VDJ, F8) are never marked NEXT — they are operator-
-  // initiated, not part of the production sequence.
+  // Side-step engines (F6-VDJ and MM) are never marked NEXT. F8, F9, and F10
+  // remain on the production line and are gated by their upstream artifacts.
   const nextEngineId = ENGINES.filter((e) => e.id <= 7)
     .find((e) => getFeatureStatus(e.id) === FeatureStatus.AVAILABLE)?.id;
 
@@ -313,6 +337,9 @@ export default function SessionDetail() {
               {activeEngineId === 10 && <MathmonLayer sessionId={id} artifacts={artifacts || []} />}
               {activeEngineId === 11 && getFeatureStatus(11) !== FeatureStatus.LOCKED && (
                 <F9MachineFloor sessionId={id} artifacts={artifacts || []} />
+              )}
+              {activeEngineId === 12 && getFeatureStatus(12) !== FeatureStatus.LOCKED && (
+                <F10Console embedded sessionId={id} />
               )}
             </>
           )}

@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ENGINES } from "@/lib/constants";
+import { ENGINES, PRODUCTION_ENGINE_IDS } from "@/lib/constants";
 import { FeatureStatus, HarnessArtifact } from "@workspace/api-client-react";
 import { ArrowLeft, ArrowRight, Upload, Package, Info, Download } from "lucide-react";
 import { ArtifactTray } from "@/components/shared/ArtifactTray";
@@ -30,11 +30,15 @@ export function CockpitShell({
 }: CockpitShellProps) {
   const activeEngine = ENGINES.find((e) => e.id === activeEngineId);
   
-  // linear track 1-7
-  const prevEngineId = activeEngineId > 1 && activeEngineId <= 7 ? activeEngineId - 1 : null;
+  const productionIndex = PRODUCTION_ENGINE_IDS.findIndex((id) => id === activeEngineId);
+  const prevEngineId = productionIndex > 0
+    ? PRODUCTION_ENGINE_IDS[productionIndex - 1]
+    : null;
   const prevEngine = prevEngineId ? ENGINES.find((e) => e.id === prevEngineId) : null;
   
-  const nextEngineId = activeEngineId >= 1 && activeEngineId < 7 ? activeEngineId + 1 : null;
+  const nextEngineId = productionIndex >= 0 && productionIndex < PRODUCTION_ENGINE_IDS.length - 1
+    ? PRODUCTION_ENGINE_IDS[productionIndex + 1]
+    : null;
   const nextEngine = nextEngineId ? ENGINES.find((e) => e.id === nextEngineId) : null;
   const attentionEngineId = ENGINES
     .filter((engine) => engine.id <= 7)

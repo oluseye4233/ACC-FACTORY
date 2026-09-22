@@ -821,7 +821,8 @@ export const ListF10ReleasesResponse = zod.array(ListF10ReleasesResponseItem)
 export const CreateF10ReleaseBody = zod.object({
   "machineArtifactId": zod.string(),
   "destinationId": zod.string().uuid(),
-  "releaseIntent": zod.string()
+  "releaseIntent": zod.string(),
+  "sessionId": zod.string().uuid().optional()
 })
 
 

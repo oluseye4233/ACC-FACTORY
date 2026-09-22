@@ -179,4 +179,15 @@ export const ENGINES = [
     explainer:
       "Runs the seven ordered MECHA phases. F9 is locked until a SPARTAN-certified MVP PDD and its downstream F8 Code Oracle lineage are present in this session.",
   },
+  {
+    id: 12,
+    name: "F10",
+    title: "CONNECTOR",
+    description: "Release an emitted F9 Machine Artifact through an authorized, auditable delivery gateway.",
+    explainer:
+      "The natural production-line handoff after F9. F10 never builds, certifies, or mutates the Machine Artifact; it verifies F9/OSIRIS custody, applies destination policy, and records delivery receipts.",
+  },
 ];
+
+/** The production line; F6-VDJ and MM remain advisory side-steps. */
+export const PRODUCTION_ENGINE_IDS = [1, 2, 3, 4, 5, 6, 7, 9, 11, 12] as const;

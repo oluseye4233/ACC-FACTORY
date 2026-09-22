@@ -16,7 +16,13 @@ import { requireTier } from "../lib/tier";
 import { COLONIZATION_TARGET_CLASSES, evaluateColonization, evaluatePromotionGate, type ColonizationInput } from "../lib/f10-colonization";
 
 const router: IRouter = Router();
-const Body = z.object({ machineArtifactId: z.string().min(1).max(200), destinationId: z.string().uuid(), releaseIntent: z.string().min(1).max(200) });
+const Body = z.object({
+  machineArtifactId: z.string().min(1).max(200),
+  destinationId: z.string().uuid(),
+  releaseIntent: z.string().min(1).max(200),
+  /** Required by the embedded F10 production-line stage; optional for legacy console links. */
+  sessionId: z.string().uuid().optional(),
+});
 const DestinationBody = z.object({
   name: z.string().trim().min(1).max(120),
   adapterId: z.literal("https"),
@@ -664,9 +670,14 @@ router.post("/f10/destinations/:id/revoke", requireAuth, async (req, res): Promi
 router.post("/f10/releases", requireAuth, async (req, res): Promise<void> => {
   const parsed = Body.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: "machineArtifactId, destinationId and releaseIntent are required; artifact bytes are never accepted" }); return; }
-  const { machineArtifactId, destinationId, releaseIntent } = parsed.data;
+  const { machineArtifactId, destinationId, releaseIntent, sessionId } = parsed.data;
   const tenantId = req.localUser!.id;
-  const runs = await db.select().from(f9MechaRunsTable).where(and(eq(f9MechaRunsTable.userId, tenantId), eq(f9MechaRunsTable.status, "EMITTED")));
+  const runConditions = [
+    eq(f9MechaRunsTable.userId, tenantId),
+    eq(f9MechaRunsTable.status, "EMITTED" as const),
+    ...(sessionId ? [eq(f9MechaRunsTable.sessionId, sessionId)] : []),
+  ];
+  const runs = await db.select().from(f9MechaRunsTable).where(and(...runConditions));
   const run = runs.find((candidate) => (candidate.artifactContent as Record<string, any> | null)?.machine_artifact_id === machineArtifactId);
   const artifactContent = run?.artifactContent as Record<string, any> | null;
   const artifact = run && artifactContent?.machine_artifact_id === machineArtifactId ? {
