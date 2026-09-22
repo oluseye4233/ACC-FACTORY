@@ -66,6 +66,8 @@ function setHookResults({
   isFetchingSessions = false,
   isFetchingHealth = false,
   isFetchingUsage = false,
+  sessionsUpdatedAt = 0,
+  healthUpdatedAt = 0,
   usageUpdatedAt = 0,
 }: {
   me?: unknown;
@@ -82,6 +84,8 @@ function setHookResults({
   isFetchingSessions?: boolean;
   isFetchingHealth?: boolean;
   isFetchingUsage?: boolean;
+  sessionsUpdatedAt?: number;
+  healthUpdatedAt?: number;
   usageUpdatedAt?: number;
 }) {
   apiHooks.useGetMe.mockReturnValue({ data: me, isLoading: isLoadingMe });
@@ -90,6 +94,7 @@ function setHookResults({
     isLoading: isLoadingSessions,
     isError: isSessionsError,
     isFetching: isFetchingSessions,
+    dataUpdatedAt: sessionsUpdatedAt,
     refetch: refetchSessions,
   });
   apiHooks.useHealthDeep.mockReturnValue({
@@ -97,6 +102,7 @@ function setHookResults({
     isLoading: isLoadingHealth,
     isError: isHealthError,
     isFetching: isFetchingHealth,
+    dataUpdatedAt: healthUpdatedAt,
     refetch: refetchHealth,
   });
   apiHooks.useGetMyUsage.mockReturnValue({
@@ -119,7 +125,7 @@ afterEach(() => {
 });
 
 describe("Command Deck", () => {
-  it("keeps the primary launch control and utility actions routed", () => {
+  it("keeps the primary launch control and utility actions routed", async () => {
     render(<Command />);
 
     expect(screen.getByTestId("button-build-something").getAttribute("href")).toBe(
@@ -132,8 +138,30 @@ describe("Command Deck", () => {
       ["Open Library", "/exemplars"],
       ["View Quests", "/quests"],
     ] as const;
+    for (const [label, href] of expectedRoutes) {
+      expect(screen.getByRole("link", { name: new RegExp(label) }).getAttribute("href")).toBe(
+        href,
+      );
+    }
+  });
 
-    let resolveSessions!: () => void;
+  it("waits for all metric requests and ignores repeated combined refresh clicks", async () => {
+    let resolveSessions!: (value?: unknown) => void;
+    let resolveHealth!: (value?: unknown) => void;
+    let resolveUsage!: (value?: unknown) => void;
+    refetchSessions.mockReturnValue(new Promise((resolve) => {
+      resolveSessions = resolve;
+    }));
+    refetchHealth.mockReturnValue(new Promise((resolve) => {
+      resolveHealth = resolve;
+    }));
+    refetchUsage.mockReturnValue(new Promise((resolve) => {
+      resolveUsage = resolve;
+    }));
+
+    render(<Command />);
+
+    const refreshButton = screen.getByTestId("button-refresh-all-metrics");
     fireEvent.click(refreshButton);
 
     expect((refreshButton as HTMLButtonElement).disabled).toBe(true);
@@ -155,6 +183,68 @@ describe("Command Deck", () => {
 
     expect((refreshButton as HTMLButtonElement).disabled).toBe(false);
     expect(refreshButton.textContent).toContain("Refresh all metrics");
+    expect(screen.queryByTestId("refresh-all-metrics-error")).toBeNull();
+  });
+
+  it("reports partial failures after a combined metric refresh", async () => {
+    setHookResults({
+      sessions: POPULATED_SESSIONS,
+      health: { status: "ok", db: "ok", engines: "ok" },
+      usageReport: {
+        day: { totalTokens: 100, totalCostUsd: 0.01 },
+        month: { totalTokens: 12345, totalCostUsd: 1.23 },
+        byEngine: [],
+      },
+      isHealthError: true,
+    });
+    refetchSessions.mockResolvedValue({ isError: false });
+    refetchHealth.mockRejectedValue(new Error("health unavailable"));
+    refetchUsage.mockResolvedValue({ isError: false });
+
+    render(<Command />);
+
+    const refreshButton = screen.getByTestId("button-refresh-all-metrics");
+    await act(async () => {
+      fireEvent.click(refreshButton);
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "System status remain unchanged",
+    );
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Launch plan")).toBeTruthy();
+    expect(screen.getByTestId("system-status-error")).toBeTruthy();
+    expect(screen.getByTestId("button-retry-system-status")).toBeTruthy();
+    expect((refreshButton as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("renders safe empty states when APIs return no data", () => {
+    render(<Command />);
+
+    expect(screen.getByText("No sessions yet. Press BUILD SOMETHING to begin.")).toBeTruthy();
+    expect(screen.getByText("SYSTEM")).toBeTruthy();
+    expect(screen.getAllByText("UNKNOWN")).toHaveLength(4);
+    expect(screen.getAllByText("—")).toHaveLength(2);
+    expect(screen.queryByText("0 tok")).toBeNull();
+  });
+
+  it("renders safe loading states while API responses are pending", () => {
+    setHookResults({
+      isLoadingMe: true,
+      isLoadingSessions: true,
+      isLoadingHealth: true,
+      isLoadingUsage: true,
+    });
+
+    render(<Command />);
+
+    expect(screen.getByTestId("button-build-something")).toBeTruthy();
+    expect(screen.getByText("RECENT BUILDS")).toBeTruthy();
+    expect(screen.getByText("SYSTEM")).toBeTruthy();
+    expect(screen.queryByText("No sessions yet. Press BUILD SOMETHING to begin.")).toBeNull();
+    expect(screen.getAllByText("—")).toHaveLength(4);
   });
 
   it("renders recent builds and system status from populated API responses", () => {
@@ -174,6 +264,8 @@ describe("Command Deck", () => {
           { engineId: 1, runs: 5, totalTokens: 8889, totalCostUsd: 0.78 },
         ],
       },
+      sessionsUpdatedAt: Date.parse("2026-09-22T10:00:00.000Z"),
+      healthUpdatedAt: Date.parse("2026-09-22T10:05:00.000Z"),
       usageUpdatedAt: Date.parse("2026-09-22T10:15:00.000Z"),
     });
 
@@ -192,6 +284,12 @@ describe("Command Deck", () => {
     expect(screen.getByText("F1 Diagnose")).toBeTruthy();
     expect(screen.getByText("8,889 tok · $0.78")).toBeTruthy();
     expect(screen.getByText("3,456 tok · $0.45")).toBeTruthy();
+    expect(screen.getByTestId("sessions-refreshed").textContent).toBe(
+      "Last refreshed 2026-09-22 10:00",
+    );
+    expect(screen.getByTestId("system-health-refreshed").textContent).toBe(
+      "Last refreshed 2026-09-22 10:05",
+    );
     expect(screen.getByTestId("monthly-usage-refreshed").textContent).toBe(
       "Last refreshed 2026-09-22 10:15",
     );
@@ -261,6 +359,9 @@ describe("Command Deck", () => {
     setHookResults({
       isSessionsError: true,
       isHealthError: true,
+      sessionsUpdatedAt: Date.parse("2026-09-22T10:00:00.000Z"),
+      healthUpdatedAt: Date.parse("2026-09-22T10:05:00.000Z"),
+      usageUpdatedAt: Date.parse("2026-09-22T10:15:00.000Z"),
     });
 
     render(<Command />);
@@ -271,6 +372,9 @@ describe("Command Deck", () => {
     expect(screen.getByText("System status unavailable")).toBeTruthy();
     expect(screen.queryByText("No sessions yet. Press BUILD SOMETHING to begin.")).toBeNull();
     expect(screen.getAllByText("UNAVAILABLE")).toHaveLength(3);
+    expect(screen.queryByTestId("sessions-refreshed")).toBeNull();
+    expect(screen.queryByTestId("system-health-refreshed")).toBeNull();
+    expect(screen.queryByTestId("monthly-usage-refreshed")).toBeNull();
 
     fireEvent.click(screen.getByTestId("button-retry-sessions"));
     fireEvent.click(screen.getByTestId("button-retry-system-status"));
@@ -279,9 +383,3 @@ describe("Command Deck", () => {
     expect(refetchHealth).toHaveBeenCalledTimes(1);
   });
 });
-
-    let resolveHealth!: () => void;
-
-    let resolveUsage!: () => void;
-
-    const refreshButton = screen.getByTestId("button-refresh-all-metrics");

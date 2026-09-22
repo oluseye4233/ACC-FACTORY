@@ -97,6 +97,14 @@ function formatRecentBuildDate(value: unknown): string {
   return Number.isNaN(date.getTime()) ? "Unknown date" : format(date, "yyyy-MM-dd HH:mm");
 }
 
+function formatRefreshTime(value: number | undefined): string | null {
+  if (!Number.isFinite(value) || !value || Number.isNaN(new Date(value).getTime())) {
+    return null;
+  }
+
+  return `Last refreshed ${format(new Date(value), "yyyy-MM-dd HH:mm")}`;
+}
+
 const ENGINE_LABELS: Record<number, string> = {
   1: "F1 Diagnose",
   2: "F2 Atomic",
@@ -112,12 +120,14 @@ const ENGINE_LABELS: Record<number, string> = {
 };
 export default function Command() {
   const [isRefreshingAll, setIsRefreshingAll] = useState(false);
+  const [refreshFailures, setRefreshFailures] = useState<string[]>([]);
   const { data: me, isLoading: isLoadingMe } = useGetMe();
   const {
     data: sessions,
     isLoading: isLoadingSessions,
     isError: isSessionsError,
     isFetching: isFetchingSessions,
+    dataUpdatedAt: sessionsUpdatedAt,
     refetch: refetchSessions,
   } = useListSessions();
   const {
@@ -125,6 +135,7 @@ export default function Command() {
     isLoading: isLoadingHealth,
     isError: isHealthError,
     isFetching: isFetchingHealth,
+    dataUpdatedAt: healthUpdatedAt,
     refetch: refetchHealth,
   } = useHealthDeep();
   const {
@@ -147,6 +158,9 @@ export default function Command() {
   const apiTone = health?.status === "ok" ? "good" : health?.status === undefined ? "warn" : "bad";
   const dbTone = health?.db === "ok" ? "good" : health?.db === undefined ? "warn" : "bad";
   const inferenceTone = health?.engines === "ok" ? "good" : health?.engines === "degraded" ? "warn" : health?.engines === undefined ? "warn" : "bad";
+  const sessionsRefreshLabel = !isSessionsError ? formatRefreshTime(sessionsUpdatedAt) : null;
+  const healthRefreshLabel = !isHealthError ? formatRefreshTime(healthUpdatedAt) : null;
+  const usageRefreshLabel = !isUsageError && usageReport?.month ? formatRefreshTime(usageUpdatedAt) : null;
 
   const refreshAllMetrics = async () => {
     if (isRefreshingAll) {
@@ -154,8 +168,28 @@ export default function Command() {
     }
 
     setIsRefreshingAll(true);
+    setRefreshFailures([]);
     try {
-      await Promise.allSettled([refetchSessions(), refetchHealth(), refetchUsage()]);
+      const results = await Promise.allSettled([
+        refetchSessions(),
+        refetchHealth(),
+        refetchUsage(),
+      ]);
+      const metricLabels = ["Recent builds", "System status", "Monthly usage"];
+      const failedMetrics = results.flatMap((result, index) => {
+        if (result.status === "rejected") {
+          return [metricLabels[index]];
+        }
+
+        const value = result.value;
+        return typeof value === "object" &&
+          value !== null &&
+          "isError" in value &&
+          value.isError === true
+          ? [metricLabels[index]]
+          : [];
+      });
+      setRefreshFailures(failedMetrics);
     } finally {
       setIsRefreshingAll(false);
     }
@@ -193,6 +227,23 @@ export default function Command() {
               )}
             </div>
           </header>
+          {refreshFailures.length > 0 && (
+            <div
+              className="mb-4 flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3"
+              role="alert"
+              data-testid="refresh-all-metrics-error"
+            >
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+              <div className="font-mono text-[10px]">
+                <p className="font-bold uppercase tracking-wider text-destructive">
+                  Some metrics could not be refreshed
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  {refreshFailures.join(", ")} remain unchanged. Use the panel retry actions to try again.
+                </p>
+              </div>
+            </div>
+          )}
 
           <section className="relative overflow-hidden rounded-[2rem] border border-destructive/30 bg-card p-4 shadow-[0_20px_80px_rgba(0,0,0,0.22)] md:p-8" data-testid="command-orb">
             <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
@@ -276,18 +327,14 @@ export default function Command() {
                     </Button>
                   )}
                 </div>
-                {!isLoadingUsage &&
-                  !isUsageError &&
-                  usageReport?.month &&
-                  Number.isFinite(usageUpdatedAt) &&
-                  usageUpdatedAt > 0 && (
-                    <p
-                      className="mt-1 font-mono text-[9px] uppercase tracking-wider text-muted-foreground"
-                      data-testid="monthly-usage-refreshed"
-                    >
-                      Last refreshed {format(new Date(usageUpdatedAt), "yyyy-MM-dd HH:mm")}
-                    </p>
-                  )}
+                {usageRefreshLabel && (
+                  <p
+                    className="mt-1 break-words font-mono text-[9px] uppercase tracking-wider text-muted-foreground"
+                    data-testid="monthly-usage-refreshed"
+                  >
+                    {usageRefreshLabel}
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-3 border-border/50 sm:border-l sm:pl-4 lg:border-l-0 lg:pl-0">
@@ -304,11 +351,19 @@ export default function Command() {
           <section className="grid gap-4 lg:grid-cols-[1fr_260px]">
             <Card className="bg-card">
               <CardContent className="p-5">
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="font-display text-xl tracking-wider">RECENT BUILDS</p>
                     <p className="mt-1 font-mono text-[10px] uppercase text-muted-foreground">Your latest harness sessions</p>
                   </div>
+                  {sessionsRefreshLabel && (
+                    <p
+                      className="break-words font-mono text-[9px] uppercase tracking-wider text-muted-foreground sm:text-right"
+                      data-testid="sessions-refreshed"
+                    >
+                      {sessionsRefreshLabel}
+                    </p>
+                  )}
                   <Link href="/sessions" className="font-mono text-[10px] font-bold uppercase tracking-wider text-primary hover:underline">View all</Link>
                 </div>
                 {isLoadingSessions ? (
@@ -371,6 +426,14 @@ export default function Command() {
                 <div className="mb-4">
                   <p className="font-display text-xl tracking-wider">SYSTEM</p>
                   <p className="mt-1 font-mono text-[10px] uppercase text-muted-foreground">Core services</p>
+                  {healthRefreshLabel && (
+                    <p
+                      className="mt-1 break-words font-mono text-[9px] uppercase tracking-wider text-muted-foreground"
+                      data-testid="system-health-refreshed"
+                    >
+                      {healthRefreshLabel}
+                    </p>
+                  )}
                 </div>
                 {isLoadingHealth ? (
                   <div className="space-y-4"><Skeleton className="h-5 w-full" /><Skeleton className="h-5 w-full" /><Skeleton className="h-5 w-full" /></div>
