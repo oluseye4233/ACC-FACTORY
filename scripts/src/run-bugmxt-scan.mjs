@@ -7,8 +7,22 @@
 //   node scripts/src/run-bugmxt-scan.mjs phase3
 //   node scripts/src/run-bugmxt-scan.mjs phase4
 //   node scripts/src/run-bugmxt-scan.mjs assemble
+//
+// Repeatable "latest change set" mode (the standing quality gate):
+//
+//   pnpm --filter @workspace/scripts run bugmxt-latest
+//   (= node scripts/src/run-bugmxt-scan.mjs all --run=latest)
+//
+// In --run=latest the run config is built automatically: the diff is
+// git diff <last scanned sha>..HEAD (state in docs/bugmxt/.last-scan.json,
+// overridable with --base=<sha>), the report lands in
+// docs/bugmxt/BUGMXT_Report_<date>_<base>-<head>.{md,pdf}, and past
+// false-positive triage notes (docs/bugmxt/TRIAGE_NOTES.md) are injected
+// into the prompt so known-good findings aren't re-flagged. The state file
+// advances to HEAD only after a successful assemble.
 
 import { createRequire } from "node:module";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, existsSync, createWriteStream, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,7 +36,85 @@ const PDFDocument = exportRequire("pdfkit");
 // Must match the filename registered in artifacts/api-server/src/data/exemplars.ts
 // so the scan uses the same canonical body that is served as the `bugmxt-si` exemplar.
 const BUGMXT_SPC_PATH = resolve(repoRoot, "attached_assets/BUGMXT_SI_SPC_v1_0_1779070949571.md");
-const DIFF_PATH = "/tmp/bugmxt_diff.patch";
+
+// ---- "latest" run support: scan the diff since the last recorded scan ----
+const BUGMXT_DIR = resolve(repoRoot, "docs/bugmxt");
+const STATE_PATH = resolve(BUGMXT_DIR, ".last-scan.json");
+const TRIAGE_NOTES_PATH = resolve(BUGMXT_DIR, "TRIAGE_NOTES.md");
+
+function git(args) {
+  return execFileSync("git", args, { cwd: repoRoot, encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 });
+}
+
+// Builds a full run config from git state. Deterministic for a given
+// base..head range, so per-phase invocations rebuild the identical config.
+function buildLatestRun() {
+  const baseArg = process.argv.find((a) => a.startsWith("--base="))?.slice("--base=".length);
+  let base = baseArg;
+  if (!base) {
+    if (!existsSync(STATE_PATH)) {
+      console.error(
+        `No ${STATE_PATH} found and no --base=<sha> given. Seed the state file ` +
+          `({"sha":"<last scanned commit>"}) or pass --base once.`
+      );
+      process.exit(2);
+    }
+    base = JSON.parse(readFileSync(STATE_PATH, "utf-8")).sha;
+  }
+  const head = git(["rev-parse", "HEAD"]).trim();
+  const baseFull = git(["rev-parse", `${base}^{commit}`]).trim();
+  if (baseFull === head) return { upToDate: true, head };
+
+  const shortBase = baseFull.slice(0, 7);
+  const shortHead = head.slice(0, 7);
+  // Exclude prior BUGMXT reports and agent memory from the scanned diff —
+  // scanning our own scan output just produces noise.
+  const pathspec = [".", ":(exclude)docs/bugmxt", ":(exclude).agents"];
+  const log = git(["log", "--oneline", "--no-decorate", `${baseFull}..${head}`]).trim();
+  const stat = git(["diff", "--stat", "--no-renames", `${baseFull}..${head}`, "--", ...pathspec]).trim();
+  const diffText = git(["diff", "--no-renames", `${baseFull}..${head}`, "--", ...pathspec]);
+  const triage = existsSync(TRIAGE_NOTES_PATH) ? readFileSync(TRIAGE_NOTES_PATH, "utf-8").trim() : "";
+  const date = new Date().toISOString().slice(0, 10);
+  const stamp = `${date}_${shortBase}-${shortHead}`;
+
+  return {
+    upToDate: false,
+    head,
+    baseFull,
+    diffText,
+    diffPath: "/tmp/bugmxt_diff-latest.patch",
+    mdOut: `docs/bugmxt/BUGMXT_Report_${stamp}.md`,
+    pdfOut: `docs/bugmxt/BUGMXT_Report_${stamp}.pdf`,
+    targetLine: `ATANDA Command Centre — commits \`${shortBase}..${shortHead}\` (routine change-set scan, ${date})`,
+    pdfSubtitle: `5-layer code integrity scan · ATANDA Command Centre · change sets ${shortBase}..${shortHead} · ${date}`,
+    pdfTitle: `BUGMXT SI — Bug Triage Report (change sets ${shortBase}..${shortHead})`,
+    contextIntro: `Target: the unified git diff below — every commit landed on main since the last BUGMXT scan (\`${shortBase}..${shortHead}\`).
+
+Commits in this change set:
+\`\`\`
+${log}
+\`\`\`
+
+Diffstat:
+\`\`\`
+${stat}
+\`\`\`
+
+Binary entries appear as "Binary files differ" — audit only the code that produces/consumes them.`,
+    knownBullets: `- This is a routine repeatable scan of the latest change sets; look for what the authors' self-review missed.
+- Stack: pnpm monorepo; Express 5 + Drizzle + Clerk (Replit-managed) + Stripe + Zod (zod/v4 + drizzle-zod), OpenAPI-first contract via Orval; React 18 + Vite + Wouter + TanStack Query + shadcn/ui on the web side; Node 24 ESM/TypeScript 5.9 scripts under scripts/src/.
+- App-layer authorisation; no Postgres RLS. Every Drizzle query touching user-owned data MUST filter on req.localUser.id.
+- The HARNESS itself is the PDD blueprint that produces SPCs/PDDs — it is NOT itself an SPC. IPDD = human-authored INPUT to the INGESTION ENGINE; PWDD = HARNESS-certified OUTPUT of an ingested session. Never collapse those terms.
+${triage ? `
+=== TRIAGE NOTES FROM PAST SCANS (verified — do NOT re-flag these as new findings) ===
+
+${triage}
+
+=== END TRIAGE NOTES ===` : ""}`,
+    phase2Focus: `Focus on race conditions, error-handling holes, missing tier/auth checks, idempotency gaps, unvalidated inputs, off-by-one and ordering bugs, partial-failure states, and any query on user-owned data missing the owner filter.`,
+    pfpFocus: `Cross-reference against the documented operating contract in replit.md and the ATANDA Command Centre MVP PDD intent (subscription portal in front of FORGE.BONSAI HARNESS; HARNESS is a PDD blueprint, not an SPC; tier-gated engines; quest-badge progression). Call out authz bypasses, secret-hygiene violations, copy that mis-states the IPDD/PWDD ontology, and missing audit-log lines on destructive actions.`,
+  };
+}
 
 // Each scan run is a named config: what the diff contains, what BUGMXT should
 // assume, where the layer focus lies, and where the report lands.
@@ -64,10 +156,25 @@ const RUNS = {
 };
 
 const runSlug = process.argv.find((a) => a.startsWith("--run="))?.slice("--run=".length) ?? "account-delete";
-const RUN = RUNS[runSlug];
-if (!RUN) {
-  console.error(`unknown --run=${runSlug}; known: ${Object.keys(RUNS).join(", ")}`);
-  process.exit(2);
+let RUN;
+let diff;
+if (runSlug === "latest") {
+  const latest = buildLatestRun();
+  if (latest.upToDate) {
+    console.log(`[bugmxt] up to date — HEAD ${latest.head.slice(0, 7)} already scanned; nothing to do.`);
+    process.exit(0);
+  }
+  RUN = latest;
+  diff = latest.diffText;
+  writeFileSync(latest.diffPath, diff); // for inspection / reproducibility
+} else {
+  RUN = RUNS[runSlug];
+  if (!RUN) {
+    console.error(`unknown --run=${runSlug}; known: ${Object.keys(RUNS).join(", ")}, latest`);
+    process.exit(2);
+  }
+  const DIFF_PATH = "/tmp/bugmxt_diff.patch";
+  diff = existsSync(DIFF_PATH) ? readFileSync(DIFF_PATH, "utf-8") : "";
 }
 const MD_OUT = resolve(repoRoot, RUN.mdOut);
 const PDF_OUT = resolve(repoRoot, RUN.pdfOut);
@@ -79,7 +186,6 @@ const baseUrl = process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL;
 const apiKey = process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY;
 
 const bugmxtSpc = existsSync(BUGMXT_SPC_PATH) ? readFileSync(BUGMXT_SPC_PATH, "utf-8") : "";
-const diff = existsSync(DIFF_PATH) ? readFileSync(DIFF_PATH, "utf-8") : "";
 
 const SYSTEM_BASE = `You are BUGMXT SI, the Bug Matrix Extraction & Triage Engine described in the SPC below.
 
@@ -210,23 +316,35 @@ async function runPhase(name) {
 
   console.log(`[bugmxt:${name}] sys=${SYSTEM_BASE.length} user=${userPrompt.length} max_tokens=${spec.maxTokens}`);
   const t0 = Date.now();
-  const res = await fetch(`${baseUrl}/v1/messages`, {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: spec.maxTokens,
-      system: SYSTEM_BASE,
-      messages: [{ role: "user", content: userPrompt }],
-    }),
-  });
-  if (!res.ok) {
+  // Retry 429/5xx with backoff — a 4-phase run fires calls back-to-back and
+  // can trip the proxy rate limit; a repeatable check must ride that out.
+  const MAX_ATTEMPTS = 4;
+  let res;
+  for (let attempt = 1; ; attempt++) {
+    res = await fetch(`${baseUrl}/v1/messages`, {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: spec.maxTokens,
+        system: SYSTEM_BASE,
+        messages: [{ role: "user", content: userPrompt }],
+      }),
+    });
+    if (res.ok) break;
     const body = await res.text();
-    throw new Error(`Anthropic ${res.status}: ${body}`);
+    const retryable = res.status === 429 || res.status >= 500;
+    if (!retryable || attempt >= MAX_ATTEMPTS) {
+      throw new Error(`Anthropic ${res.status}: ${body}`);
+    }
+    const retryAfter = Number(res.headers.get("retry-after"));
+    const waitS = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 15 * attempt;
+    console.log(`[bugmxt:${name}] HTTP ${res.status}; retrying in ${waitS}s (attempt ${attempt}/${MAX_ATTEMPTS})`);
+    await new Promise((r) => setTimeout(r, waitS * 1000));
   }
   const data = await res.json();
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
@@ -289,7 +407,16 @@ async function assemble() {
       Subject: "5-layer code-integrity scan output",
     },
   });
-  doc.pipe(createWriteStream(PDF_OUT));
+  const pdfStream = createWriteStream(PDF_OUT);
+  // Resolve only when the PDF is fully flushed to disk; reject on either
+  // document or stream errors so the scan pointer never advances past a
+  // missing/corrupt report.
+  const pdfDone = new Promise((resolvePdf, rejectPdf) => {
+    pdfStream.on("finish", resolvePdf);
+    pdfStream.on("error", rejectPdf);
+    doc.on("error", rejectPdf);
+  });
+  doc.pipe(pdfStream);
 
   function hr() {
     const y = doc.y + 4;
@@ -410,15 +537,30 @@ async function assemble() {
   );
 
   doc.end();
+  await pdfDone;
   console.log(`[bugmxt:assemble] wrote ${PDF_OUT}`);
+
+  // Latest mode: advance the scan pointer only after a fully assembled report.
+  if (runSlug === "latest") {
+    writeFileSync(
+      STATE_PATH,
+      JSON.stringify({ sha: RUN.head, scannedAt: new Date().toISOString(), report: RUN.mdOut }, null, 2) + "\n"
+    );
+    console.log(`[bugmxt] state advanced to ${RUN.head.slice(0, 7)} (${STATE_PATH})`);
+  }
 }
 
 const arg = process.argv[2];
 if (!arg) {
-  console.error("usage: node scripts/src/run-bugmxt-scan.mjs <phase1|phase2|phase3|phase4|assemble>");
+  console.error("usage: node scripts/src/run-bugmxt-scan.mjs <phase1|phase2|phase3|phase4|assemble|all> [--run=<slug|latest>] [--base=<sha>]");
   process.exit(2);
 }
 if (arg === "assemble") {
+  await assemble();
+} else if (arg === "all") {
+  for (const p of ["phase1", "phase2", "phase3", "phase4"]) {
+    await runPhase(p);
+  }
   await assemble();
 } else {
   await runPhase(arg);

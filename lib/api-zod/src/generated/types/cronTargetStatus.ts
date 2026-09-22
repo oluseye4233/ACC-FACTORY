@@ -18,4 +18,10 @@ export interface CronTargetStatus {
   neverTicked: boolean;
   minutesSinceLastTick: number | null;
   stale: boolean;
+  /** Most recent tick timestamps (newest first), bounded window. */
+  recentTicks: Date[];
+  /** Ticks observed in the trailing 24h window. */
+  ticksLast24h: number;
+  /** Ticks the schedule should produce in 24h (0 for schedules coarser than daily). */
+  expectedTicksLast24h: number;
 }

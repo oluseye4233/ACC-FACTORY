@@ -180,7 +180,11 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
       certClass: cert.class,
       sessionName,
       verifyUrl,
-    }).catch((err) => req.log.warn({ err }, "sendCertIssued failed"));
+    })
+      .then((r) => {
+        if (!r.ok) req.log.warn({ error: r.error }, "sendCertIssued failed");
+      })
+      .catch((err) => req.log.warn({ err }, "sendCertIssued failed"));
   }
 
   if (clientClosed) return;

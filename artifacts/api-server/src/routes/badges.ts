@@ -314,7 +314,11 @@ router.post(
           reason,
           appealUrl,
           isRepeat: historyLength > 1,
-        }).catch((err) => req.log.warn({ err }, "sendBadgeRevoked failed"));
+        })
+          .then((r) => {
+            if (!r.ok) req.log.warn({ error: r.error }, "sendBadgeRevoked failed");
+          })
+          .catch((err) => req.log.warn({ err }, "sendBadgeRevoked failed"));
       } catch (err) {
         req.log.warn({ err }, "sendBadgeRevoked import failed");
       }
@@ -426,7 +430,11 @@ router.post(
           badgeName: BADGE_DISPLAY_NAMES[badgeId],
           note: note ?? null,
           badgesUrl,
-        }).catch((err) => req.log.warn({ err }, "sendBadgeRestored failed"));
+        })
+          .then((r) => {
+            if (!r.ok) req.log.warn({ error: r.error }, "sendBadgeRestored failed");
+          })
+          .catch((err) => req.log.warn({ err }, "sendBadgeRestored failed"));
       } catch (err) {
         req.log.warn({ err }, "sendBadgeRestored import failed");
       }

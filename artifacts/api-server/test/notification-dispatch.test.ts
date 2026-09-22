@@ -30,12 +30,15 @@ vi.mock("@workspace/email", async (importOriginal) => {
     ...actual,
     sendOrgActivityDigest: vi.fn(async (args: Record<string, unknown>) => {
       sentDigest.push(args);
+      return { ok: true as const, id: "test-digest" };
     }),
     sendHighCostRunAlert: vi.fn(async (args: Record<string, unknown>) => {
       sentHighCost.push(args);
+      return { ok: true as const, id: "test-high-cost" };
     }),
     sendBillingFailureAlert: vi.fn(async (args: Record<string, unknown>) => {
       sentBillingFailure.push(args);
+      return { ok: true as const, id: "test-billing" };
     }),
   };
 });

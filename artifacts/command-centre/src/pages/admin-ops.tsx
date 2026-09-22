@@ -28,6 +28,75 @@ function formatUtc(iso: string | null): string {
   return `${iso.replace("T", " ").slice(0, 16)} UTC`;
 }
 
+/**
+ * "expected N, got M in last 24h" flakiness line. Only meaningful for
+ * schedules with at least one expected tick per day; a shortfall means the
+ * schedule is firing intermittently even when the LAST tick looks recent.
+ * One missed tick is tolerated before flagging (window-boundary effects on
+ * the densest schedule would otherwise flap the warning).
+ */
+function TickHistoryLine({ t }: { t: CronTargetStatus }) {
+  if (t.expectedTicksLast24h < 1) {
+    if (t.recentTicks.length === 0) return null;
+    return (
+      <div
+        className="text-xs text-muted-foreground"
+        data-testid={`text-tick-history-${t.target}`}
+      >
+        {t.ticksLast24h} tick{t.ticksLast24h === 1 ? "" : "s"} in last 24h (schedule is
+        coarser than daily)
+      </div>
+    );
+  }
+  // Schedule-aware tolerance: dense schedules (many ticks/day) get one
+  // missed tick of slack so window-boundary effects never flap the warning;
+  // low-frequency schedules (e.g. daily, expected=1) must flag ANY shortfall
+  // or "expected 1, got 0" would never warn.
+  const tolerance = t.expectedTicksLast24h >= 8 ? 1 : 0;
+  const flaky = t.ticksLast24h < t.expectedTicksLast24h - tolerance;
+  return (
+    <div
+      className={`text-xs ${flaky ? "text-amber-500 font-medium" : "text-muted-foreground"}`}
+      data-testid={`text-tick-history-${t.target}`}
+    >
+      Last 24h: expected {t.expectedTicksLast24h}, got {t.ticksLast24h}
+      {flaky ? " — schedule looks flaky" : ""}
+    </div>
+  );
+}
+
+/**
+ * Compact strip of the most recent ticks (oldest → newest, left → right).
+ * A dot turns amber when the gap since the previous tick exceeded 2× the
+ * expected interval — a visible "hole" even when the latest tick is green.
+ */
+function TickStrip({ t }: { t: CronTargetStatus }) {
+  if (t.recentTicks.length === 0) return null;
+  const ticks = [...t.recentTicks].reverse(); // oldest first
+  const gapThresholdMs = t.expectedIntervalMinutes * 2 * 60_000;
+  return (
+    <div
+      className="flex items-center gap-1 mt-1"
+      data-testid={`strip-ticks-${t.target}`}
+      aria-label={`Recent ticks for ${t.label}`}
+    >
+      {ticks.map((iso, i) => {
+        const gapMs = i > 0 ? new Date(iso).getTime() - new Date(ticks[i - 1]!).getTime() : 0;
+        const gapped = i > 0 && gapMs > gapThresholdMs;
+        return (
+          <span
+            key={iso}
+            title={`${formatUtc(iso)}${gapped ? ` — ${Math.round(gapMs / 60_000)} min gap before this tick` : ""}`}
+            className={`inline-block h-2 w-2 rounded-full ${
+              gapped ? "bg-amber-500" : "bg-green-600"
+            }`}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 function StatusBadge({ t }: { t: CronTargetStatus }) {
   if (t.stale) {
     return (
@@ -174,6 +243,10 @@ export default function AdminOps() {
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {t.schedule} · stale after {t.staleAfterMinutes} min without a tick
                       </p>
+                      <div className="mt-1.5 space-y-0.5">
+                        <TickHistoryLine t={t} />
+                        <TickStrip t={t} />
+                      </div>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                       <div className="text-right">

@@ -388,11 +388,12 @@ router.post(
               })
               .where(eq(commandCentreSubscribersTable.stripeCustomerId, customerId));
             if (before) {
-              await sendSubscriptionCancelled({
+              const r = await sendSubscriptionCancelled({
                 to: before.email,
                 tier: before.tier,
                 periodEnd,
               });
+              if (!r.ok) req.log.warn({ error: r.error }, "sendSubscriptionCancelled failed");
             }
             break;
           }
@@ -405,12 +406,13 @@ router.post(
             if (!customerId) break;
             const rec = await emailForCustomer(tx, customerId);
             if (rec) {
-              await sendSubscriptionReceipt({
+              const r = await sendSubscriptionReceipt({
                 to: rec.email,
                 tier: rec.tier,
                 amountUsd: (invoice.amount_paid ?? 0) / 100,
                 periodEnd: invoice.period_end ? new Date(invoice.period_end * 1000) : null,
               });
+              if (!r.ok) req.log.warn({ error: r.error }, "sendSubscriptionReceipt failed");
             }
             break;
           }
@@ -427,7 +429,8 @@ router.post(
               .where(eq(commandCentreSubscribersTable.stripeCustomerId, customerId));
             const rec = await emailForCustomer(tx, customerId);
             if (rec) {
-              await sendPaymentFailed({ to: rec.email, tier: rec.tier });
+              const r = await sendPaymentFailed({ to: rec.email, tier: rec.tier });
+              if (!r.ok) req.log.warn({ error: r.error }, "sendPaymentFailed failed");
             }
             // Org owners/admins subscribed to billing alerts also get notified.
             // Fire-and-forget — never blocks the webhook ack.

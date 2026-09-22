@@ -292,7 +292,8 @@ router.post("/me/delete", requireAuth, async (req, res): Promise<void> => {
   if (email) {
     try {
       const { sendAccountDeleted } = await import("@workspace/email");
-      await sendAccountDeleted({ to: email });
+      const r = await sendAccountDeleted({ to: email });
+      if (!r.ok) req.log.warn({ error: r.error }, "account-deleted email failed");
     } catch (err) {
       req.log.warn({ err }, "account-deleted email failed");
     }

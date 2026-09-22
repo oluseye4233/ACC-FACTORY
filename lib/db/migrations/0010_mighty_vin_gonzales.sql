@@ -1,0 +1,1 @@
+ALTER TABLE "cron_stale_notifications" ADD COLUMN IF NOT EXISTS "recovered_notified_at" timestamp with time zone;

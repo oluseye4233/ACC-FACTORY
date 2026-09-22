@@ -1,4 +1,4 @@
-import { and, eq, gte, lte, sql } from "drizzle-orm";
+import { and, eq, gte, lt, sql } from "drizzle-orm";
 import {
   db,
   harnessEngineRunsTable,
@@ -147,7 +147,7 @@ export async function dispatchRetainerMonitoringAlert(args: {
     if (!email) return false;
     const prefs = await getOrCreatePreferences(args.userId, null);
     if (!prefs.retainerAlertsEnabled) return false;
-    await sendRetainerMonitoringAlert({
+    const result = await sendRetainerMonitoringAlert({
       to: email,
       retainerTitle: args.retainerTitle,
       capiPosture: args.capiPosture,
@@ -158,6 +158,15 @@ export async function dispatchRetainerMonitoringAlert(args: {
       dashboardUrl: `${publicBaseUrl()}/f0`,
       unsubscribeUrl: unsubscribeUrl(prefs.unsubscribeToken),
     });
+    if (!result.ok) {
+      // Do NOT report success: the cron sweep uses this to stamp notifiedAt,
+      // and stamping a failed send would permanently swallow the alert.
+      logger.warn(
+        { userId: args.userId, error: result.error },
+        "dispatchRetainerMonitoringAlert send failed",
+      );
+      return false;
+    }
     return true;
   } catch (err) {
     logger.warn({ err, userId: args.userId }, "dispatchRetainerMonitoringAlert failed");
@@ -241,7 +250,10 @@ async function summarizeForOrg(
         and(
           eq(stripeWebhookEventsTable.customerId, stripeCustomerId),
           gte(stripeWebhookEventsTable.receivedAt, windowStart),
-          lte(stripeWebhookEventsTable.receivedAt, windowEnd),
+          // Half-open [start, end) to match the engine-run window above —
+          // an event landing exactly on the boundary must not appear in two
+          // consecutive digests.
+          lt(stripeWebhookEventsTable.receivedAt, windowEnd),
         ),
       )
       .orderBy(stripeWebhookEventsTable.receivedAt);
@@ -297,7 +309,7 @@ export async function runWeeklyDigest(now: Date = new Date()): Promise<{
       }
       const prefs = await getOrCreatePreferences(c.userId, c.orgId);
       try {
-        await sendOrgActivityDigest({
+        const result = await sendOrgActivityDigest({
           to: c.email,
           orgName: c.orgName,
           periodStart: windowStart,
@@ -310,6 +322,17 @@ export async function runWeeklyDigest(now: Date = new Date()): Promise<{
           activityUrl: activityUrl(c.orgId),
           unsubscribeUrl: unsubscribeUrl(prefs.unsubscribeToken),
         });
+        if (!result.ok) {
+          // send() reports provider errors via { ok: false } rather than
+          // throwing. Stamping lastDigestSentAt here would mark a failed send
+          // as delivered and skip the recipient for the whole next week.
+          logger.warn(
+            { orgId: c.orgId, userId: c.userId, error: result.error },
+            "weekly digest send failed",
+          );
+          emailsSkipped++;
+          continue;
+        }
         emailsSent++;
         await db
           .update(notificationPreferencesTable)

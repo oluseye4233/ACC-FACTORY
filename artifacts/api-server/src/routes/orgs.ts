@@ -418,22 +418,40 @@ router.post("/orgs/:id/invites", requireAuth, async (req, res): Promise<void> =>
   // Best-effort email
   try {
     const { sendOrgInvite } = await import("@workspace/email");
+    // Only http(s) origins are acceptable as an email link base — request
+    // headers are attacker-controlled, and a forged Origin like
+    // "javascript:..." would otherwise become a live link in the invite.
+    const safeOrigin = (candidate: string | undefined): string | null => {
+      if (!candidate) return null;
+      try {
+        const u = new URL(candidate);
+        if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+        return u.origin;
+      } catch {
+        return null;
+      }
+    };
     const origin =
-      req.headers.origin?.toString() ||
-      (req.headers["x-forwarded-proto"] && req.headers.host
-        ? `${req.headers["x-forwarded-proto"]}://${req.headers.host}`
-        : process.env.PUBLIC_BASE_URL ?? "");
+      safeOrigin(process.env.PUBLIC_BASE_URL) ??
+      safeOrigin(req.headers.origin?.toString()) ??
+      safeOrigin(
+        req.headers["x-forwarded-proto"] && req.headers.host
+          ? `${req.headers["x-forwarded-proto"]}://${req.headers.host}`
+          : undefined,
+      ) ??
+      "";
     const [org] = await db
       .select({ name: organizationsTable.name })
       .from(organizationsTable)
       .where(eq(organizationsTable.id, id))
       .limit(1);
-    await sendOrgInvite({
+    const r = await sendOrgInvite({
       to: parsed.data.email,
       orgName: org?.name ?? "an organization",
       acceptUrl: `${origin}/accept-invite/${token}`,
       inviterEmail: req.localUser!.email,
     });
+    if (!r.ok) req.log.warn({ error: r.error }, "org invite email failed");
   } catch (err) {
     req.log.warn({ err }, "org invite email failed");
   }

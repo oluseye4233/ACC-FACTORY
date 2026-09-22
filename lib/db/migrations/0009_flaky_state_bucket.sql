@@ -1,0 +1,1 @@
+ALTER TABLE "cron_flaky_episode_state" ADD COLUMN "last_counted_bucket" bigint DEFAULT 0 NOT NULL;

@@ -160,7 +160,11 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
       to: req.localUser.email,
       engine: "F3 → F5",
       sessionName: rows[0]?.name ?? "Untitled session",
-    }).catch((err) => req.log.warn({ err }, "sendEscalationGranted failed"));
+    })
+      .then((r) => {
+        if (!r.ok) req.log.warn({ error: r.error }, "sendEscalationGranted failed");
+      })
+      .catch((err) => req.log.warn({ err }, "sendEscalationGranted failed"));
   }
 
   if (clientClosed) return;
