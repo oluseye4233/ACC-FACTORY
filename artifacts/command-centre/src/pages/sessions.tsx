@@ -10,15 +10,69 @@ import { Search, Plus, Calendar, Activity, Download } from "lucide-react";
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 import { format } from "date-fns";
 
+type SessionRecord = {
+  id: string;
+  idLabel: string;
+  sessionName: string;
+  status: string;
+  updatedAt: unknown;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function formatSessionName(value: unknown): string {
+  return typeof value === "string" && value.trim() ? value : "Untitled build";
+}
+
+function formatSessionId(value: unknown, index: number): string {
+  return typeof value === "string" && value.trim() ? value : `unknown-${index}`;
+}
+
+function formatSessionStatus(value: unknown): string {
+  return typeof value === "string" && value.trim() ? value : "UNKNOWN";
+}
+
+function formatSessionDate(value: unknown, includeTime: boolean): string {
+  if (typeof value !== "string" && typeof value !== "number" && !(value instanceof Date)) {
+    return "Unknown date";
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown date";
+  }
+
+  return format(date, includeTime ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd");
+}
+
+function normalizeSession(value: unknown, index: number): SessionRecord {
+  const session = isRecord(value) ? value : {};
+  const hasValidId = typeof session.id === "string" && session.id.trim();
+
+  return {
+    id: formatSessionId(session.id, index),
+    idLabel: hasValidId ? session.id as string : "Unknown ID",
+    sessionName: formatSessionName(session.sessionName),
+    status: formatSessionStatus(session.status),
+    updatedAt: session.updatedAt,
+  };
+}
+
 export default function Sessions() {
   const [, setLocation] = useLocation();
   const { data: sessions, isLoading } = useListSessions();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
-  const filteredSessions = sessions?.filter(session => {
+  const normalizedSessions = Array.isArray(sessions)
+    ? sessions.map(normalizeSession)
+    : [];
+
+  const filteredSessions = normalizedSessions.filter(session => {
     // Filter by search
-    if (searchQuery && !session.sessionName.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    if (searchQuery && !session.sessionName.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !session.id.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
@@ -131,7 +185,7 @@ export default function Sessions() {
                               {session.sessionName}
                             </div>
                             <div className="font-mono text-[10px] md:text-xs text-muted-foreground truncate">
-                              ID: {session.id}
+                              ID: {session.idLabel}
                             </div>
                             {/* Mobile-only inline meta */}
                             <div className="mt-2 flex flex-wrap items-center gap-2 md:hidden">
@@ -144,7 +198,7 @@ export default function Sessions() {
                               </span>
                               <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-mono">
                                 <Calendar className="h-3 w-3" />
-                                {format(new Date(session.updatedAt), "yyyy-MM-dd")}
+                                {formatSessionDate(session.updatedAt, false)}
                               </span>
                             </div>
                           </td>
@@ -160,7 +214,7 @@ export default function Sessions() {
                           <td className="py-4 px-4 hidden md:table-cell">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono">
                               <Calendar className="h-3.5 w-3.5" />
-                              {format(new Date(session.updatedAt), "yyyy-MM-dd HH:mm")}
+                              {formatSessionDate(session.updatedAt, true)}
                             </div>
                           </td>
                           <td className="py-4 px-4 text-right hidden md:table-cell">

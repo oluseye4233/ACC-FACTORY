@@ -6,6 +6,8 @@ import {
   harnessArtifactsTable,
   harnessEngineRunsTable,
   harnessFeatureStateTable,
+  LLM_PROVIDERS,
+  SESSION_ORIGINS,
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { loadMembershipsForUser } from "../lib/orgs";
@@ -21,6 +23,7 @@ import {
 } from "../lib/mathmon-store";
 import { CreateSessionBody, UpdateSessionBody } from "@workspace/api-zod";
 import type { Response } from "express";
+import { z } from "zod/v4";
 
 function rejectProviderIfExplorer(
   res: Response,
@@ -42,8 +45,43 @@ function rejectProviderIfExplorer(
 
 const router: IRouter = Router();
 
-export function serializeSession(s: typeof harnessSessionsTable.$inferSelect) {
-  return {
+/**
+ * Contract for every session representation returned by this router.
+ *
+ * The database columns are non-null for the core fields, but validating at
+ * this boundary also protects consumers from old/corrupt rows and from
+ * accidental changes to the serializer. We intentionally reject a malformed
+ * row (rather than filtering it out), so the standard API error handler logs
+ * the contract failure instead of silently hiding a user's session.
+ */
+export const SessionResponseSchema = z.object({
+  id: z.string().uuid(),
+  sessionName: z.string().trim().min(1).max(255),
+  status: z.string().trim().min(1),
+  origin: z.enum(SESSION_ORIGINS),
+  ingestionId: z.string().uuid().nullable(),
+  cartridgeId: z.string().uuid().nullable(),
+  orgId: z.string().uuid().nullable(),
+  orgVisible: z.boolean(),
+  userId: z.string().uuid(),
+  preferredModelProvider: z.enum(LLM_PROVIDERS),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+function serializeSessionTimestamp(value: Date | null | undefined): unknown {
+  // Leave missing/invalid values for the schema to reject with a useful field
+  // path instead of allowing Date#toISOString to throw an unrelated TypeError.
+  if (!(value instanceof Date) || Number.isNaN(value.getTime())) return value;
+  return value.toISOString();
+}
+
+export type SessionResponse = z.infer<typeof SessionResponseSchema>;
+
+export function serializeSession(
+  s: typeof harnessSessionsTable.$inferSelect,
+): SessionResponse {
+  return SessionResponseSchema.parse({
     id: s.id,
     sessionName: s.sessionName,
     status: s.status,
@@ -54,9 +92,9 @@ export function serializeSession(s: typeof harnessSessionsTable.$inferSelect) {
     orgVisible: s.orgVisible,
     userId: s.userId,
     preferredModelProvider: s.preferredModelProvider,
-    createdAt: s.createdAt.toISOString(),
-    updatedAt: s.updatedAt.toISOString(),
-  };
+    createdAt: serializeSessionTimestamp(s.createdAt),
+    updatedAt: serializeSessionTimestamp(s.updatedAt),
+  });
 }
 
 async function memberOrgIds(userId: string): Promise<string[]> {

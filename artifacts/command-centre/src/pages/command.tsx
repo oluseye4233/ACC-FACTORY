@@ -9,8 +9,10 @@ import { TierBadge } from "@/components/shared/TierBadge";
 import { TopNav } from "@/components/layout/TopNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import {
   Activity,
+  AlertTriangle,
   ArrowRight,
   BookOpen,
   CheckCircle2,
@@ -19,6 +21,7 @@ import {
   FileUp,
   Library,
   Play,
+  RefreshCw,
   Trophy,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -76,11 +79,46 @@ function UtilityAction({
   );
 }
 
+function formatRecentBuildName(value: unknown): string {
+  return typeof value === "string" && value.trim() ? value : "Untitled build";
+}
+
+function formatRecentBuildStatus(value: unknown): string {
+  return typeof value === "string" && value.trim() ? value : "UNKNOWN";
+}
+
+function formatRecentBuildDate(value: unknown): string {
+  if (typeof value !== "string" && typeof value !== "number" && !(value instanceof Date)) {
+    return "Unknown date";
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? "Unknown date" : format(date, "yyyy-MM-dd HH:mm");
+}
+
 export default function Command() {
   const { data: me, isLoading: isLoadingMe } = useGetMe();
-  const { data: sessions, isLoading: isLoadingSessions } = useListSessions();
-  const { data: health, isLoading: isLoadingHealth } = useHealthDeep();
-  const { data: usageReport, isLoading: isLoadingUsage } = useGetMyUsage();
+  const {
+    data: sessions,
+    isLoading: isLoadingSessions,
+    isError: isSessionsError,
+    isFetching: isFetchingSessions,
+    refetch: refetchSessions,
+  } = useListSessions();
+  const {
+    data: health,
+    isLoading: isLoadingHealth,
+    isError: isHealthError,
+    isFetching: isFetchingHealth,
+    refetch: refetchHealth,
+  } = useHealthDeep();
+  const {
+    data: usageReport,
+    isLoading: isLoadingUsage,
+    isError: isUsageError,
+    isFetching: isFetchingUsage,
+    refetch: refetchUsage,
+  } = useGetMyUsage();
 
   const activeSessions = sessions?.filter((session) => session.status !== "COMPLETE").length || 0;
   const completedMvps = sessions?.filter((session) => session.status === "COMPLETE").length || 0;
@@ -154,28 +192,57 @@ export default function Command() {
               <Activity className="h-4 w-4 text-primary" />
               <div>
                 <p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Active sessions</p>
-                <p className="font-mono text-lg font-bold text-primary">{isLoadingSessions ? "—" : activeSessions}</p>
+                <p className="font-mono text-lg font-bold text-primary">
+                  {isLoadingSessions ? "—" : isSessionsError ? "UNAVAILABLE" : activeSessions}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3 border-border/50 sm:border-l sm:pl-4">
               <CheckCircle2 className="h-4 w-4 text-secondary" />
               <div>
                 <p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Completed MVPs</p>
-                <p className="font-mono text-lg font-bold text-secondary">{isLoadingSessions ? "—" : completedMvps}</p>
+                <p className="font-mono text-lg font-bold text-secondary">
+                  {isLoadingSessions ? "—" : isSessionsError ? "UNAVAILABLE" : completedMvps}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3 border-border/50 lg:border-l lg:pl-4">
               <BookOpen className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Month usage</p>
-                <p className="font-mono text-lg font-bold">{isLoadingUsage ? "—" : `${(usageReport?.month?.totalTokens ?? 0).toLocaleString()} tok`}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-mono text-lg font-bold">
+                    {isLoadingUsage
+                      ? "—"
+                      : isUsageError
+                        ? "UNAVAILABLE"
+                        : usageReport?.month
+                          ? `${usageReport.month.totalTokens.toLocaleString()} tok`
+                          : "—"}
+                  </p>
+                  {isUsageError && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => void refetchUsage()}
+                      disabled={isFetchingUsage}
+                      aria-label="Retry monthly usage"
+                      data-testid="button-retry-monthly-usage"
+                    >
+                      <RefreshCw className={`h-3.5 w-3.5 ${isFetchingUsage ? "animate-spin" : ""}`} />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-3 border-border/50 sm:border-l sm:pl-4 lg:border-l-0 lg:pl-0">
               <Database className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">System</p>
-                <p className="font-mono text-lg font-bold uppercase">{health?.status || "—"}</p>
+                <p className="font-mono text-lg font-bold uppercase">
+                  {isLoadingHealth ? "—" : isHealthError ? "UNAVAILABLE" : health?.status || "—"}
+                </p>
               </div>
             </div>
           </section>
@@ -194,26 +261,52 @@ export default function Command() {
                   <div className="space-y-3">
                     {[0, 1, 2].map((item) => <Skeleton key={item} className="h-14 w-full" />)}
                   </div>
+                ) : isSessionsError ? (
+                  <div
+                    className="flex flex-col items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center"
+                    data-testid="recent-builds-error"
+                  >
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    <div>
+                      <p className="font-mono text-xs font-bold uppercase text-destructive">Recent builds unavailable</p>
+                      <p className="mt-1 text-xs text-muted-foreground">We could not load your latest harness sessions.</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void refetchSessions()}
+                      disabled={isFetchingSessions}
+                      data-testid="button-retry-sessions"
+                    >
+                      <RefreshCw className={`h-3.5 w-3.5 ${isFetchingSessions ? "animate-spin" : ""}`} />
+                      Retry recent builds
+                    </Button>
+                  </div>
                 ) : recentSessions.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border p-8 text-center font-mono text-xs text-muted-foreground">
                     No sessions yet. Press BUILD SOMETHING to begin.
                   </div>
                 ) : (
                   <div className="divide-y divide-border/50">
-                    {recentSessions.map((session) => (
-                      <div key={session.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                        <div className="min-w-0">
-                          <Link href={`/session/${session.id}`} className="block truncate text-sm font-medium hover:text-primary">{session.sessionName}</Link>
-                          <span className="font-mono text-[10px] text-muted-foreground">{format(new Date(session.updatedAt), "yyyy-MM-dd HH:mm")}</span>
+                    {recentSessions.map((session, index) => {
+                      const sessionId = typeof session?.id === "string" && session.id.trim() ? session.id : `unknown-${index}`;
+                      const sessionStatus = formatRecentBuildStatus(session?.status);
+
+                      return (
+                        <div key={sessionId} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                          <div className="min-w-0">
+                            <Link href={`/session/${sessionId}`} className="block truncate text-sm font-medium hover:text-primary">{formatRecentBuildName(session?.sessionName)}</Link>
+                            <span className="font-mono text-[10px] text-muted-foreground">{formatRecentBuildDate(session?.updatedAt)}</span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <span className={`rounded border px-2 py-1 font-mono text-[9px] font-bold ${sessionStatus === "COMPLETE" ? "border-primary/20 bg-primary/10 text-primary" : "border-border bg-muted text-muted-foreground"}`}>
+                              {sessionStatus}
+                            </span>
+                            <Link href={`/session/${sessionId}`} className="font-mono text-[10px] font-bold text-primary hover:underline">ENTER</Link>
+                          </div>
                         </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <span className={`rounded border px-2 py-1 font-mono text-[9px] font-bold ${session.status === "COMPLETE" ? "border-primary/20 bg-primary/10 text-primary" : "border-border bg-muted text-muted-foreground"}`}>
-                            {session.status}
-                          </span>
-                          <Link href={`/session/${session.id}`} className="font-mono text-[10px] font-bold text-primary hover:underline">ENTER</Link>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
@@ -227,12 +320,41 @@ export default function Command() {
                 </div>
                 {isLoadingHealth ? (
                   <div className="space-y-4"><Skeleton className="h-5 w-full" /><Skeleton className="h-5 w-full" /><Skeleton className="h-5 w-full" /></div>
+                ) : isHealthError ? (
+                  <div
+                    className="flex flex-col items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-6 text-center"
+                    data-testid="system-status-error"
+                  >
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    <div>
+                      <p className="font-mono text-xs font-bold uppercase text-destructive">System status unavailable</p>
+                      <p className="mt-1 text-xs text-muted-foreground">We could not reach the service health check.</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void refetchHealth()}
+                      disabled={isFetchingHealth}
+                      data-testid="button-retry-system-status"
+                    >
+                      <RefreshCw className={`h-3.5 w-3.5 ${isFetchingHealth ? "animate-spin" : ""}`} />
+                      Retry system status
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     <HealthChip label="API" value={health?.status} tone={apiTone} />
                     <HealthChip label="Data" value={health?.db} tone={dbTone} />
                     <HealthChip label="Inference" value={health?.engines} tone={inferenceTone} />
-                    {usageReport?.month && (
+                    {isUsageError ? (
+                      <div
+                        className="flex items-center justify-between border-t border-destructive/30 pt-4 font-mono text-[10px]"
+                        data-testid="monthly-usage-error"
+                      >
+                        <span className="text-muted-foreground">MONTH COST</span>
+                        <span className="font-bold text-destructive">UNAVAILABLE</span>
+                      </div>
+                    ) : usageReport?.month && (
                       <div className="border-t border-border/50 pt-4">
                         <div className="flex items-center justify-between font-mono text-[10px]">
                           <span className="text-muted-foreground">MONTH COST</span>
