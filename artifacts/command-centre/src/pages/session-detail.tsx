@@ -92,9 +92,17 @@ export default function SessionDetail() {
   const activeEngine = ENGINES.find(e => e.id === activeEngineId) || ENGINES[0];
   
   const getFeatureStatus = (engineId: number) => {
-    // Side-step engines (F6-VDJ = 8, F8 Code ORACLE = 9) are not part of the F1→F7
-    // linear pipeline and so are not represented in feature_states. Surface
-    // them as AVAILABLE; the server tier/badge gates are the real authorities.
+    // Side-step engines are not represented in feature_states. F8 still needs
+    // the same certified MVP input that the server requires, so do not surface
+    // a dead navigation target before F7 has produced one.
+    if (engineId === 9) {
+      const hasCertifiedMvp = artifacts?.some(
+        (artifact) =>
+          artifact.artifactType === "MVP_PDD" &&
+          Boolean((artifact as unknown as { spartanCert?: unknown }).spartanCert),
+      );
+      return hasCertifiedMvp ? FeatureStatus.AVAILABLE : FeatureStatus.LOCKED;
+    }
     if (engineId === 11) {
       const hasCertifiedMvp = artifacts?.some(
         (artifact) =>

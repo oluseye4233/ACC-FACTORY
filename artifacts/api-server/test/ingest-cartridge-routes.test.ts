@@ -91,7 +91,8 @@ async function startApp(
   user: User,
   subscriber: Subscriber,
 ): Promise<{ url: string; close: () => Promise<void> }> {
-  const [ingestRouter, cartridgeRouter] = await Promise.all([
+  const [sessionsRouter, ingestRouter, cartridgeRouter] = await Promise.all([
+    import("../src/routes/sessions").then((m) => m.default),
     import("../src/routes/ingest").then((m) => m.default),
     import("../src/routes/cartridge").then((m) => m.default),
   ]);
@@ -99,6 +100,7 @@ async function startApp(
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(injectContext(user, subscriber));
+  app.use("/api", sessionsRouter);
   app.use("/api", ingestRouter);
   app.use("/api", cartridgeRouter);
   app.use(
@@ -212,6 +214,94 @@ describe("authenticated Ingestion and Cartridge multipart routes", () => {
     expect(response.status, JSON.stringify(body)).toBe(201);
     expect(body.projectName).toBe("Staff cartridge route test");
     expect(mocks.claimCartridgeCredit).not.toHaveBeenCalled();
+  });
+
+  test("a simulated project can start from Prompt, Ingestion, and Cartridge", async () => {
+    mocks.callLlmJson.mockReset();
+    mocks.callLlmJson.mockResolvedValue({
+      detectedTitle: "Three-entry project",
+      sourceDocKind: "product_design_document",
+      summary: "A project used to exercise all three F-process entry points.",
+      seedPrompt:
+        "Build a reliable project workflow that can begin from a prompt, an ingested document, or a cartridge.",
+    });
+
+    const promptResponse = await fetch(`${server.url}/api/sessions`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-test-auth": "staff",
+      },
+      body: JSON.stringify({ sessionName: "Three-entry Prompt" }),
+    });
+    const prompt = await json(promptResponse);
+    expect(promptResponse.status, JSON.stringify(prompt)).toBe(201);
+
+    const ingestionForm = new FormData();
+    ingestionForm.set(
+      "file",
+      new Blob(["Three-entry ingestion source ".repeat(8)], { type: "text/plain" }),
+      "three-entry.txt",
+    );
+    const ingestionResponse = await fetch(`${server.url}/api/ingest`, {
+      method: "POST",
+      headers: { "x-test-auth": "staff" },
+      body: ingestionForm,
+    });
+    const ingestion = await json(ingestionResponse);
+    expect(ingestionResponse.status, JSON.stringify(ingestion)).toBe(201);
+
+    const ingestionSessionResponse = await fetch(
+      `${server.url}/api/ingest/${String(ingestion.id)}/start-session`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-test-auth": "staff",
+        },
+        body: JSON.stringify({ sessionName: "Three-entry Ingestion" }),
+      },
+    );
+    const ingestionSession = await json(ingestionSessionResponse);
+    expect(ingestionSessionResponse.status, JSON.stringify(ingestionSession)).toBe(201);
+
+    const cartridgeResponse = await fetch(`${server.url}/api/cartridge`, {
+      method: "POST",
+      headers: { "x-test-auth": "staff" },
+      body: cartridgeForm(),
+    });
+    const cartridge = await json(cartridgeResponse);
+    expect(cartridgeResponse.status, JSON.stringify(cartridge)).toBe(201);
+
+    const cartridgeSessionResponse = await fetch(
+      `${server.url}/api/cartridge/${String(cartridge.id)}/start-session`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-test-auth": "staff",
+        },
+        body: JSON.stringify({ sessionName: "Three-entry Cartridge" }),
+      },
+    );
+    const cartridgeSession = await json(cartridgeSessionResponse);
+    expect(cartridgeSessionResponse.status, JSON.stringify(cartridgeSession)).toBe(201);
+
+    const sessionCases = [
+      { session: prompt, origin: "manual", expected: ["AVAILABLE", "LOCKED", "LOCKED", "LOCKED", "LOCKED", "LOCKED", "LOCKED"] },
+      { session: ingestionSession, origin: "ingested", expected: ["AVAILABLE", "LOCKED", "LOCKED", "LOCKED", "LOCKED", "LOCKED", "LOCKED"] },
+      { session: cartridgeSession, origin: "cartridge", expected: ["AVAILABLE", "AVAILABLE", "AVAILABLE", "AVAILABLE", "AVAILABLE", "AVAILABLE", "AVAILABLE"] },
+    ] as const;
+
+    for (const item of sessionCases) {
+      const sessionId = String(item.session.id);
+      expect(item.session.origin).toBe(item.origin);
+      const states = await db
+        .select({ featureId: harnessFeatureStateTable.featureId, status: harnessFeatureStateTable.status })
+        .from(harnessFeatureStateTable)
+        .where(eq(harnessFeatureStateTable.sessionId, sessionId));
+      expect(states.sort((a, b) => a.featureId - b.featureId).map((state) => state.status)).toEqual(item.expected);
+    }
   });
 
   test("oversized Ingestion returns a stable structured 400", async () => {

@@ -161,6 +161,10 @@ describe("SessionDetail — F0 advisory placement", () => {
   });
 
   it("shows the advisory nudge after F8 / CODE ORACLE (engine 9)", () => {
+    useListSessionArtifactsMock.mockReturnValue({
+      data: [{ artifactType: "MVP_PDD", spartanCert: { certId: "cert-1" } }],
+      isLoading: false,
+    });
     render(<SessionDetail />);
     gotoStage("f8");
     expect(screen.getByTestId(PROMPT)).toBeTruthy();
@@ -343,7 +347,6 @@ describe("SessionDetail — NEXT attention marker", () => {
 describe("SessionDetail — side-step engines stay navigable", () => {
   it.each([
     ["f6-vdj", "F6VdjBuild"],
-    ["f8", "F8CodeDj"],
     ["mm", "MathmonLayer"],
   ])(
     "navigates to %s regardless of feature_states",
@@ -362,12 +365,23 @@ describe("SessionDetail — side-step engines stay navigable", () => {
     },
   );
 
-  it("keeps side-steps navigable even with no feature_states at all", () => {
+  it("keeps F6-VDJ and Mathmon navigable even with no feature_states at all", () => {
     useListFeatureStateMock.mockReturnValue({ data: [], isLoading: false });
     render(<SessionDetail />);
 
-    gotoStage("f8");
-    expect(screen.getByTestId("workspace-F8CodeDj")).toBeTruthy();
+    gotoStage("f6-vdj");
+    expect(screen.getByTestId("workspace-F6VdjBuild")).toBeTruthy();
+    gotoStage("mm");
+    expect(screen.getByTestId("workspace-MathmonLayer")).toBeTruthy();
+  });
+
+  it("locks F8 until a SPARTAN-certified MVP PDD exists", () => {
+    useListFeatureStateMock.mockReturnValue({ data: [], isLoading: false });
+    render(<SessionDetail />);
+
+    const nav = screen.getByTestId("feature-nav-f8") as HTMLButtonElement;
+    expect(nav.disabled).toBe(true);
+    expect(screen.queryByTestId("workspace-F8CodeDj")).toBeNull();
   });
 });
 
