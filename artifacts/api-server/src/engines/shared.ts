@@ -71,6 +71,9 @@ export async function ownedSessionOr404(
 > {
   const userId = req.localUser?.id;
   if (!userId) return { ok: false, status: 401, error: "Unauthorized" };
+  if (!z.string().uuid().safeParse(sessionId).success) {
+    return { ok: false, status: 404, error: "Session not found" };
+  }
   const rows = await db
     .select({
       id: harnessSessionsTable.id,

@@ -13,9 +13,8 @@ import { ENGINES } from "@/lib/constants";
 import { IngestionBanner } from "@/components/shared/IngestionBanner";
 import { F0AdvisoryPrompt } from "@/components/shared/F0AdvisoryPrompt";
 import { FeatureNavItem } from "@/components/shared/FeatureNavItem";
-import { ArtifactTray } from "@/components/shared/ArtifactTray";
+import { CockpitShell } from "@/components/shared/CockpitShell";
 import { EscalationModal } from "@/components/shared/EscalationModal";
-import { GRODot } from "@/components/shared/GRODot";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Sheet,
@@ -26,7 +25,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { ArrowLeft, AlertTriangle, ListOrdered, Package } from "lucide-react";
+import { ArrowLeft, AlertTriangle, ListOrdered } from "lucide-react";
 import { F1TestPrompt } from "@/components/workspaces/F1TestPrompt";
 import { F2BuildAtomic } from "@/components/workspaces/F2BuildAtomic";
 import { F3BuildMa } from "@/components/workspaces/F3BuildMa";
@@ -37,6 +36,7 @@ import { F7ConvertMvp } from "@/components/workspaces/F7ConvertMvp";
 import { F6VdjBuild } from "@/components/workspaces/F6VdjBuild";
 import { F8CodeDj } from "@/components/workspaces/F8CodeDj";
 import { MathmonLayer } from "@/components/workspaces/MathmonLayer";
+import { F9MachineFloor } from "@/components/workspaces/F9MachineFloor";
 import { ProviderSelector } from "@/components/shared/ProviderSelector";
 import { SessionOrgVisibility } from "@/components/shared/SessionOrgVisibility";
 
@@ -53,7 +53,6 @@ export default function SessionDetail() {
   
   const [activeEngineId, setActiveEngineId] = useState<number>(1);
   const [sequenceOpen, setSequenceOpen] = useState(false);
-  const [trayOpen, setTrayOpen] = useState(false);
   const [myUserId, setMyUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -96,6 +95,15 @@ export default function SessionDetail() {
     // Side-step engines (F6-VDJ = 8, F8 Code ORACLE = 9) are not part of the F1→F7
     // linear pipeline and so are not represented in feature_states. Surface
     // them as AVAILABLE; the server tier/badge gates are the real authorities.
+    if (engineId === 11) {
+      const hasCertifiedMvp = artifacts?.some(
+        (artifact) =>
+          artifact.artifactType === "MVP_PDD" &&
+          Boolean((artifact as unknown as { spartanCert?: unknown }).spartanCert),
+      );
+      const hasCodeBundle = artifacts?.some((artifact) => artifact.artifactType === "CODEBASE_BUNDLE");
+      return hasCertifiedMvp && hasCodeBundle ? FeatureStatus.AVAILABLE : FeatureStatus.LOCKED;
+    }
     if (engineId > 7) return FeatureStatus.AVAILABLE;
     const state = featureStates?.find(fs => fs.featureId === engineId);
     return state?.status || FeatureStatus.LOCKED;
@@ -232,7 +240,7 @@ export default function SessionDetail() {
             <SheetContent side="left" className="w-72 p-0 flex flex-col">
               <SheetHeader className="p-4 border-b">
                 <SheetTitle className="font-mono text-xs font-bold text-muted-foreground uppercase tracking-wider text-left">
-                  HARNESS SEQUENCE
+                  NAVIGATION
                 </SheetTitle>
               </SheetHeader>
               <div className="flex-1 overflow-y-auto p-2 space-y-1">
@@ -241,138 +249,67 @@ export default function SessionDetail() {
             </SheetContent>
           </Sheet>
 
-          {/* Mobile/Tablet-only: open Artifact Tray */}
-          <Sheet open={trayOpen} onOpenChange={setTrayOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="lg:hidden h-8 px-2 font-mono text-[10px] gap-1"
-                aria-label="Open artifact tray"
-                data-testid="button-mobile-tray"
-              >
-                <Package className="h-3.5 w-3.5" />
-                {artifacts?.length ?? 0}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-80 p-0 flex flex-col">
-              <SheetHeader className="p-4 border-b flex-row items-center justify-between space-y-0">
-                <SheetTitle className="font-mono text-xs font-bold text-muted-foreground uppercase tracking-wider text-left">
-                  ARTIFACT TRAY
-                </SheetTitle>
-                <span className="text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                  {artifacts?.length || 0} TOTAL
-                </span>
-              </SheetHeader>
-              <div className="flex-1 overflow-y-auto p-4">
-                {isLoadingArtifacts ? (
-                  <div className="space-y-2">
-                    {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
-                  </div>
-                ) : (
-                  <ArtifactTray artifacts={artifacts || []} />
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
-
           {id && <EscalationModal sessionId={id} />}
         </div>
       </header>
       
-      {/* 3-Column Layout (collapses to single column on mobile via sheets in header) */}
-      <main className="flex-1 flex">
-
-        {/* Left Column: Navigation (desktop only) */}
-        <div className="w-[280px] border-r bg-card/50 flex-col shrink-0 hidden md:flex">
-          <div className="p-4 border-b">
-            <h2 className="font-mono text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              HARNESS SEQUENCE
-            </h2>
+      {/* Cockpit Layout */}
+      <CockpitShell
+        sessionId={id || ""}
+        activeEngineId={activeEngineId}
+        getFeatureStatus={getFeatureStatus}
+        artifacts={artifacts || []}
+        onNavigate={(engineId) => setActiveEngineId(engineId)}
+      >
+        {isIngested && ingestion && (
+          <div className="p-4 border-b border-border/40 bg-muted/20">
+            <IngestionBanner ingestion={ingestion} isF7={activeEngineId === 7} />
           </div>
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {renderSequenceList()}
+        )}
+
+        {/* F0 advisory nudge — before F1 (frame the idea) */}
+        {activeEngineId === 1 && (
+          <div className="p-4 border-b border-border/40">
+            <F0AdvisoryPrompt
+              dismissKey={`${id}:pre-f1`}
+              headline="Before you run F1 — want an advisory read?"
+              body="F0 Business Intelligence can pressure-test viability, positioning, and the numbers before you commit the idea to the production floor."
+            />
           </div>
-        </div>
-
-        {/* Center Column: Workspace */}
-        <div className="flex-1 flex flex-col bg-background relative min-w-0">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-
-          <div className="p-4 md:p-8 flex-1 flex flex-col relative z-10">
-            <div className="mb-6 md:mb-8">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="font-display text-2xl sm:text-3xl md:text-4xl tracking-wider text-foreground">
-                  {activeEngine.title}
-                </h1>
-                <GRODot state="GREY" className="mt-1" />
-              </div>
-              <p className="text-muted-foreground font-mono text-xs md:text-sm max-w-2xl">
-                {activeEngine.description}
-              </p>
-            </div>
-            
-            {isIngested && ingestion && (
-              <IngestionBanner ingestion={ingestion} isF7={activeEngineId === 7} />
-            )}
-
-            {/* F0 advisory nudge — before F1 (frame the idea) */}
-            {activeEngineId === 1 && (
-              <F0AdvisoryPrompt
-                dismissKey={`${id}:pre-f1`}
-                headline="Before you run F1 — want an advisory read?"
-                body="F0 Business Intelligence can pressure-test viability, positioning, and the numbers before you commit the idea to the production floor."
-              />
-            )}
-            {/* F0 advisory nudge — after F7/F8 (pressure-test before shipping) */}
-            {(activeEngineId === 7 || activeEngineId === 9) && (
-              <F0AdvisoryPrompt
-                dismissKey={`${id}:post-f${activeEngineId}`}
-                headline="Certified — pressure-test before you ship?"
-                body="Commission an F0 SOLVA bear-case and range-based financials to stress the certified spec against the market before go-to-market."
-              />
-            )}
-
-            {/* STAGE 3 WORKSPACES */}
-            {id && (
-              <>
-                {activeEngineId === 1 && <F1TestPrompt sessionId={id} artifacts={artifacts || []} />}
-                {activeEngineId === 2 && <F2BuildAtomic sessionId={id} artifacts={artifacts || []} />}
-                {activeEngineId === 3 && <F3BuildMa sessionId={id} artifacts={artifacts || []} />}
-                {activeEngineId === 4 && <F4MicroPdd sessionId={id} artifacts={artifacts || []} />}
-                {activeEngineId === 5 && <F5BuildSpc sessionId={id} artifacts={artifacts || []} />}
-                {activeEngineId === 6 && <F6DraftPdd sessionId={id} artifacts={artifacts || []} />}
-                {activeEngineId === 7 && <F7ConvertMvp sessionId={id} artifacts={artifacts || []} />}
-                {activeEngineId === 8 && <F6VdjBuild sessionId={id} artifacts={artifacts || []} />}
-                {activeEngineId === 9 && <F8CodeDj sessionId={id} artifacts={artifacts || []} />}
-                {activeEngineId === 10 && <MathmonLayer sessionId={id} artifacts={artifacts || []} />}
-              </>
-            )}
-          </div>
-        </div>
+        )}
         
-        {/* Right Column: Artifacts (large screens only) */}
-        <div className="w-[300px] border-l bg-card/50 flex-col shrink-0 hidden lg:flex">
-          <div className="p-4 border-b flex items-center justify-between">
-            <h2 className="font-mono text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              ARTIFACT TRAY
-            </h2>
-            <div className="text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-              {artifacts?.length || 0} TOTAL
-            </div>
+        {/* F0 advisory nudge — after F7/F8 (pressure-test before shipping) */}
+        {(activeEngineId === 7 || activeEngineId === 9) && (
+          <div className="p-4 border-b border-border/40">
+            <F0AdvisoryPrompt
+              dismissKey={`${id}:post-f${activeEngineId}`}
+              headline="Certified — pressure-test before you ship?"
+              body="Commission an F0 SOLVA bear-case and range-based financials to stress the certified spec against the market before go-to-market."
+            />
           </div>
-          <div className="flex-1 overflow-y-auto p-4">
-            {isLoadingArtifacts ? (
-              <div className="space-y-2">
-                {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
-              </div>
-            ) : (
-              <ArtifactTray artifacts={artifacts || []} />
-            )}
-          </div>
+        )}
+
+        {/* STAGE 3 WORKSPACES */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {id && (
+            <>
+              {activeEngineId === 1 && <F1TestPrompt sessionId={id} artifacts={artifacts || []} />}
+              {activeEngineId === 2 && <F2BuildAtomic sessionId={id} artifacts={artifacts || []} />}
+              {activeEngineId === 3 && <F3BuildMa sessionId={id} artifacts={artifacts || []} />}
+              {activeEngineId === 4 && <F4MicroPdd sessionId={id} artifacts={artifacts || []} />}
+              {activeEngineId === 5 && <F5BuildSpc sessionId={id} artifacts={artifacts || []} />}
+              {activeEngineId === 6 && <F6DraftPdd sessionId={id} sessionOrigin={session?.origin} artifacts={artifacts || []} />}
+              {activeEngineId === 7 && <F7ConvertMvp sessionId={id} sessionOrigin={session?.origin} artifacts={artifacts || []} />}
+              {activeEngineId === 8 && <F6VdjBuild sessionId={id} artifacts={artifacts || []} />}
+              {activeEngineId === 9 && <F8CodeDj sessionId={id} artifacts={artifacts || []} />}
+              {activeEngineId === 10 && <MathmonLayer sessionId={id} artifacts={artifacts || []} />}
+              {activeEngineId === 11 && getFeatureStatus(11) !== FeatureStatus.LOCKED && (
+                <F9MachineFloor sessionId={id} artifacts={artifacts || []} />
+              )}
+            </>
+          )}
         </div>
-        
-      </main>
+      </CockpitShell>
     </div>
   );
 }

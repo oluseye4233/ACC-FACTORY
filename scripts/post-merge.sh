@@ -16,8 +16,3 @@ pnpm --filter @workspace/scripts run migration-status
 # `set -e` is active above).
 pnpm --filter @workspace/scripts run cleanup-test-cost-data \
   || echo "[post-merge] warning: cleanup-test-cost-data failed (continuing; run it manually if needed)"
-# Mirror the newly merged code to GitHub (oluseye4233/ACC-FACTORY). Best-effort:
-# a sync failure (rate limit, token refresh, network) must never fail the merge —
-# the periodic "GitHub Sync" workflow retries every 10 minutes anyway.
-pnpm --filter @workspace/scripts run sync-github \
-  || echo "[post-merge] warning: sync-github failed (continuing; the periodic GitHub Sync workflow will retry)"

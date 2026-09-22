@@ -5,244 +5,404 @@ generated = []
 id = "H38ZGMzsfMUTAkjaGdpSZ"
 uri = "file://docs/ATANDA_Command_Centre_Guide.pdf"
 type = "pdf"
-title = "ATANDA Command Centre — A Plain-English Guide for Every Plan"
+title = "Updated ATANDA Command Centre Guide"
+description = "Current guide covering ATOMIC UI, ATLAS 360 PLAN/SCAN, the Exemplar Library, and SPC Player registration boundaries."
+logical_id = "d53d67ac-f8db-4a05-8da6-8bc1256bb045"
+content_hash = "sha256:c5a235f5050259340501bad9a4c1e0f14b24ec277b9275ff08549afc32de7ef5"
+size = 15536
+mtime_ms = 1789345482373
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/d53d67ac-f8db-4a05-8da6-8bc1256bb045/430eed89-e88f-4890-8a5a-985ef2fb7bf0"
+storage_version_token = "1789345586554682"
+content_type = "application/pdf"
 
 [[outputs]]
 id = "VXnY1X0lRv2KmWGzioh37"
 uri = "file://docs/ATANDA_Command_Centre_Walkthrough.pdf"
 type = "pdf"
-title = "ATANDA Command Centre — Scenario Walkthroughs (F1 to F7) for Every Plan"
+title = "Updated ATANDA Command Centre Walkthrough"
+description = "Current scenario walkthrough aligned with the shipped Command Centre workflows."
+logical_id = "c0ce4175-6a3f-4f08-a534-088cee65143a"
+content_hash = "sha256:d6cffb05f3b648c7e45fa64843035592ff9d7e57c82a797eb11c5e9608a74cb5"
+size = 28383
+mtime_ms = 1789345482553
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/c0ce4175-6a3f-4f08-a534-088cee65143a/8854d189-3bac-4e6e-8443-6be8fab946da"
+storage_version_token = "1789345587317244"
+content_type = "application/pdf"
 
 [[outputs]]
 id = "Z-rdVIPyaq-rj4Vwebh6n"
 uri = "file://docs/BUGMXT_Report_AccountDelete.pdf"
 type = "pdf"
 title = "BUGMXT SI — Bug Triage Report (UX polish + ontology cleanup)"
+logical_id = "2b404c1c-feff-42e8-9e6c-0a79acc906c7"
 
 [[outputs]]
 id = "v1fFe3iAsQ0IV2RIkzItC"
 uri = "file://docs/ATANDA_Quest_Badges_Guide.pdf"
 type = "pdf"
 title = "ATANDA Quest Badges — How to Earn & Share"
+logical_id = "d2e8a833-f0ee-4beb-8496-2a4dd1ed125f"
 
 [[outputs]]
 id = "jSMkPX4QAX_oKl-Aazuo8"
 uri = "file://docs/ATANDA_Post_Publish_GoLive_Guide.pdf"
 type = "pdf"
 title = "ATANDA Post-Publish Go-Live Guide"
+logical_id = "e5083e1c-ef0d-4c87-8c2c-656fc85f4ab6"
 
 [[outputs]]
 id = "M6jIaufdddL-O5gAUbq9h"
 uri = "file://docs/ATANDA_ATLAS_PDD_Investor_Edition.pdf"
 type = "pdf"
 title = "4-Part ATLAS PDD (Investor Edition) — with the F1000 Promo special chapter"
+logical_id = "c8380378-1334-468c-83b1-16dcfed29000"
 
 [[outputs]]
 id = "Y_ARbkQQwJTeRmlvM-fTL"
 uri = "file://docs/ATANDA_Command_Centre_PDD_2.pdf"
 type = "pdf"
 title = "ATANDA Command Centre PDD 2 (Investor Edition)"
+logical_id = "bcffe73a-0453-4fec-9966-02dd0a975856"
 
 [[outputs]]
 id = "DnOtY8HnPmYC1ZKJ0tmm_"
 uri = "file://docs/ATANDA_F500_Handover_Protocol.pdf"
 type = "pdf"
 title = "ATANDA × F500 Handover Protocol"
+logical_id = "39c11de9-3b48-406b-98e3-91223eb73a53"
 
 [[outputs]]
 id = "HxZorPwY3PlpCzRIX1jPB"
 uri = "file://docs/azure-foundry-agent-template.yaml"
 type = "unspecified"
 title = "Azure AI Foundry Agent Template (SPC → Foundry mapping)"
+logical_id = "ba91c988-1670-4c40-8d60-9a61fc57ad64"
 
 [[outputs]]
 id = "GA8hlgP74gkrM6TWnNFyF"
 uri = "file://docs/PDD.md"
 type = "text"
 title = "ATANDA Command Centre — PDD v1.0 (Investor Preview)"
+logical_id = "d102f4c5-adcf-4220-8b78-e375dacca7e9"
 
 [[outputs]]
 id = "eP1ffLoW6BrV1fxJBWK48"
 uri = "file://docs/PDD.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — PDD v1.0 (PDF)"
+logical_id = "5996060c-42e1-46b6-9898-68d78a30241f"
 
 [[outputs]]
 id = "sALuQbevpvtFUqt4Fo_qn"
 uri = "file://docs/PWDD.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — PWDD (PDF)"
+logical_id = "f35b7027-ffde-4546-b053-046736ee7ea5"
 
 [[outputs]]
 id = "z8-illV7qV4dkh-ZBR3Nl"
 uri = "file://docs/DEMO_PUBLISHING.md"
 type = "text"
 title = "Investor Demo — Publishing Walkthrough (Markdown)"
+logical_id = "bf1097fe-fecc-49e5-9028-ce39a1454ec3"
 
 [[outputs]]
 id = "zukyaycqODRK69O6LnB62"
 uri = "file://docs/DEMO_PUBLISHING.pdf"
 type = "pdf"
 title = "Investor Demo — Publishing Walkthrough (PDF)"
+logical_id = "8fce4da8-06fa-4395-abe5-dc4d04d1bcfc"
 
 [[outputs]]
 id = "HmD2njWTDS4XBS_QdgQMN"
 uri = "file://docs/IPDD.md"
 type = "text"
 title = "ATANDA Command Centre — IPDD (Markdown)"
+logical_id = "2c2eb45b-d50a-44fe-b399-484fa81f6ae6"
 
 [[outputs]]
 id = "xTD6tvtr5nSpywtjpr0NC"
 uri = "file://docs/IPDD.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — IPDD (PDF)"
+logical_id = "6ca3aac6-2790-4a26-b651-e86c9ce30a3e"
 
 [[outputs]]
 id = "_P1QchhfKYkq_GrLI60IJ"
 uri = "file://docs/PWDD.md"
 type = "text"
 title = "ATANDA Command Centre — PWDD (Markdown)"
+logical_id = "1ec3abd4-2c98-415d-a4b6-7a0eb5b14e1c"
 
 [[outputs]]
 id = "uxS9ty4Sg0ySYhMrWcpJk"
 uri = "file://docs/ATANDA_Command_Centre_PWDD_Investor.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — PWDD (Investor Edition)"
+logical_id = "fa8db088-6a10-4991-a80b-30b5859109a2"
 
 [[outputs]]
 id = "77teq5LtdLmaqhT837Wur"
 uri = "file://docs/ATANDA_Command_Centre_PWDD_ATLAS_Investor.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — ATLAS PWDD (Investor Edition, v2.1)"
+logical_id = "b90f0cd6-7e32-4b59-adc9-99567fee3714"
 
 [[outputs]]
 id = "ELtnbVDU6dBzwZj6XQ9LO"
 uri = "file://docs/ATANDA_Command_Centre_PWDD_ATLAS_Investor.md"
 type = "text"
 title = "ATLAS PWDD Source Markdown (v2.1)"
+logical_id = "edeb15b0-de85-4b3c-bfaa-24afa7d5bdf4"
 
 [[outputs]]
 id = "4xUdLaLH6QJ6E8QM1bLme"
 uri = "file://docs/ATANDA_Command_Centre_Tiers_For_Dummies.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — Tiers, Ingestion & Cartridge for Dummies"
+logical_id = "c2176315-cdb9-46a6-a972-cf3171f2431d"
 
 [[outputs]]
 id = "_fDD78s8cEoKuMihXNW_q"
 uri = "file://docs/ATANDA_Command_Centre_PDD_Current_State.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — Current-State PDD v3.0 (with Comparative Analysis)"
+logical_id = "c24ad0f4-7259-4674-baaa-223fdf2cf4f7"
 
 [[outputs]]
 id = "OJ3e5ta6hlkDmsu543YHz"
 uri = "file://docs/ATANDA_Command_Centre_MVP_PDD_SPARTAN.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — SPARTAN MVP PDD (PDF)"
+logical_id = "c72e4a4b-bbb5-4301-b71f-1197e60dea56"
 
 [[outputs]]
 id = "IdAdokvNy9Q81mEFiKhfs"
 uri = "file://docs/ATANDA_Command_Centre_MVP_PDD_SPARTAN.md"
 type = "text"
 title = "ATANDA Command Centre — SPARTAN MVP PDD (Markdown)"
+logical_id = "001cb29f-2a6d-468e-bcba-a74ad3c96eb0"
 
 [[outputs]]
 id = "1wchqsAzRkdGodhatueGH"
 uri = "file://docs/architecture/llm-cost-guardrail.md"
 type = "text"
 title = "LLM Usage Guardrail Policy"
+logical_id = "c35335a4-c46e-4b2d-9ebb-db30d1c04f78"
 
 [[outputs]]
 id = "bM5cm-fjSjxW9vaUISQW_"
 uri = "file://exports/atanda_cc_safe_transformation_guide.pdf"
 type = "pdf"
 title = "AI Transformation with the ATANDA Command Centre — SAFe Practitioner's Guide"
+logical_id = "fddf25c7-0be6-4ca2-ac28-a9aa6ed7a14a"
 
 [[outputs]]
 id = "m3_nE5VX1TnkIQPdHPOQe"
 uri = "file://exports/atanda_cc_safe_transformation_guide_v1_1.pdf"
 type = "pdf"
 title = "ATANDA CC — AI Transformation Guide v1.1 (code-audited)"
+logical_id = "6509a0f1-9450-4a70-ac1c-799d11056102"
 
 [[outputs]]
 id = "L9W7Mwz8x0VsVanx3ghQx"
 uri = "file://exports/atanda_cc_business_cases_and_onboarding.pdf"
 type = "pdf"
 title = "ATANDA CC — Business Cases Catalogue + Context Craft Onboarding Design"
+logical_id = "ad40df4a-ae32-47cf-8d81-dd08f80f7b94"
 
 [[outputs]]
 id = "eC5Z0Tc5e0geisQ5CZgwN"
 uri = "file://exports/atanda_cc_book_comparison.pdf"
 type = "pdf"
 title = "Onboarding Book Selection — Atomic Prompt vs Context Craft (Comparative Analysis)"
+logical_id = "87ea4728-3e0b-48bd-9599-6bbc743b4640"
 
 [[outputs]]
 id = "3gMMDGinosOw4aZYNthq6"
 uri = "file://exports/atomic_prompt_onboarding_edition.pdf"
 type = "pdf"
 title = "The Atomic Prompt — Ascension Protocol (Onboarding Edition: Subscriptions + Quest Badge Ladder)"
+logical_id = "a0406fa0-adbf-4e72-8572-ef9cff8d05ea"
 
 [[outputs]]
 id = "fBPio_c7C6VtXJmImP2vM"
 uri = "file://docs/atlas-pdd-command-centre.md"
 type = "text"
 title = "ATLAS PDD — ATANDA Command Centre"
+logical_id = "1c76ac13-3f97-4e19-a477-f60ba929bfc9"
 
 [[outputs]]
 id = "uwRt3tgqjYS2yndci6zwG"
 uri = "file://docs/atlas-pdd-command-centre.pdf"
 type = "pdf"
 title = "ATLAS PDD — ATANDA Command Centre (PDF)"
+logical_id = "0bff2225-8d09-4927-99bb-ae491a493c55"
 
 [[outputs]]
 id = "Y6tlV2WwLtaKd0Cyzf3UQ"
 uri = "file://docs/spartan-mvp-codedj-bugmxt-command-centre.pdf"
 type = "pdf"
 title = "SPARTAN MVP · CODE DJ · BUGMXT — ATANDA Command Centre"
+logical_id = "e4a378ec-c1b3-4f51-a708-2c0725cadf5e"
 
 [[outputs]]
 id = "0abzgIonOKU8GR_fH7LtN"
 uri = "file://docs/ATANDA_Command_Centre_Living_PDD_ATLAS.pdf"
 type = "pdf"
-title = "ATANDA Command Centre — ATLAS Living PDD (4-Part)"
+title = "ATANDA Command Centre — ATLAS 360 Living PDD"
+description = "18-page current-codebase PDD using the ATLAS 360 PLAN v3.0.0 structure. The editable living source is docs/ATANDA_Command_Centre_Living_PDD_ATLAS.md."
+logical_id = "6a974867-79cc-41fa-afb3-1c8fbe4f1e48"
+content_hash = "sha256:c8973c9e9c814354568aa42d5797f31fca493ec9511ad701242fbd2019cf3b12"
+size = 49816
+mtime_ms = 1788459233162
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/6a974867-79cc-41fa-afb3-1c8fbe4f1e48/a4b80f2c-457a-416e-9b85-7af816e2d79c"
+storage_version_token = "1788459255893875"
+content_type = "application/pdf"
 
 [[outputs]]
 id = "-d_7VLYRdMW0u843WhrmC"
 uri = "file://docs/ATANDA_Command_Centre_MVP_PDD_SPARTAN_Living.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — SPARTAN-Certified MVP PDD"
+logical_id = "50568e5c-78ab-4b85-a186-657b756bfbb2"
 
 [[outputs]]
 id = "3EGWKYV7gmlGnb9fN1S1w"
 uri = "file://exports/ATANDA_Command_Centre_MVP-PDD_SPARTAN.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — SPARTAN-Certified MVP-PDD (Investors & Auditors)"
+logical_id = "049ed5d8-7af3-4b72-bd3b-e1e17dec94a1"
 
 [[outputs]]
 id = "bQxRI6bl9tCaPwGnp7CZw"
 uri = "file://exports/ATANDA_Command_Centre_Living_PDD_ATLAS.pdf"
 type = "pdf"
 title = "ATANDA Command Centre — ATLAS Living PDD (latest)"
+logical_id = "c6ef5d50-b9fd-4554-9cd5-f9abff59833d"
 
 [[outputs]]
 id = "dz6MFviqa5crvlbbltgw-"
 uri = "file://exports/f1000-qr.png"
 type = "image"
 title = "F1000 QR — Book & landing (encodes /f1000)"
+logical_id = "bc67adcd-174e-4f13-97a0-4adaab9e0be4"
 
 [[outputs]]
 id = "Xeno1V_UCFBgnZC9oDoiX"
 uri = "file://docs/ATANDA_Command_Centre_MVP_PDD_SPARTAN_Certified.pdf"
 type = "pdf"
 title = "SPARTAN-Certified MVP PDD (rev -006, July 2026)"
+logical_id = "3869172f-536e-4984-8197-6d2997518377"
 
 [[outputs]]
 id = "7xcciBGEhnkpauBuidjdc"
 uri = "file://docs/BUGMXT_Report_GuideMedia_GitHubSync.md"
 type = "text"
 title = "BUGMXT Bug Triage Report (with remediation addendum)"
+logical_id = "596c1446-9c35-4ed6-b574-5dbca62b7ad5"
 
 [[outputs]]
 id = "y9TArfVAQqyFomuJt11eh"
 uri = "file://docs/BUGMXT_Report_GuideMedia_GitHubSync.pdf"
 type = "pdf"
 title = "BUGMXT Bug Triage Report (PDF)"
+logical_id = "98ac6fb4-c09f-4f4e-b002-4d4d2da32736"
+
+[[outputs]]
+id = "RpynruKcqz_ht9s_XFoly"
+uri = "file://docs/SPC_Player_End_User_Guide.pdf"
+type = "pdf"
+title = "SPC Player End-User Guide"
+description = "A four-page plain-English guide covering the SPC Player’s purpose, Dev Kit cards, execution flow, governance scores, retries, JSON packages, and safe webhook delivery."
+logical_id = "6b867456-0e62-40c4-8143-ba1483d572b3"
+content_hash = "sha256:289cf7069d15caab2448eaca1b4d5652f5689c3723ca704279ccf40d1e2b8b12"
+size = 9782
+mtime_ms = 1789348517708
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/6b867456-0e62-40c4-8143-ba1483d572b3/25b008cb-413f-4779-832a-104d9383736c"
+storage_version_token = "1789348522699016"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "NKTm5shWvNhsLFjtOMAJY"
+uri = "file://exports/atanda-present-site-map.pdf"
+type = "pdf"
+title = "ATANDA Present-State Site Map (PDF)"
+description = "Detailed route topology showing public and staff surfaces, F0-F10 lifecycle, side-steps, admin areas, integrations, and active/gated/inactive/incomplete states."
+logical_id = "9b02a01b-7291-4cbd-ab4c-281350341a8e"
+content_hash = "sha256:15ba273a4bf0f17ba791dd4d90c5ca59ffcc756e12ed774f68324f8a8f6f1391"
+size = 384851
+mtime_ms = 1789881707426
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/9b02a01b-7291-4cbd-ab4c-281350341a8e/5420bb8f-61cb-4850-90b6-7feeefb6b81b"
+storage_version_token = "1789881713556178"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "0QweqpFXibIIBR6s-gke7"
+uri = "file://exports/atanda-present-site-map.jpg"
+type = "image"
+title = "ATANDA Present-State Site Map (JPG)"
+description = "High-resolution 1050 × 3000 visual rendering of the current Command Centre site map and function status."
+logical_id = "542863d8-f375-453f-a116-c43dab5dbd1f"
+content_hash = "sha256:c0d2315e09cef4547c9ebe17f18d43d2a80b03f233227b77738cbbda9f648642"
+size = 321663
+mtime_ms = 1789881701391
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/542863d8-f375-453f-a116-c43dab5dbd1f/bd251a9d-ec25-4c1e-81bc-b23305955215"
+storage_version_token = "1789881714488673"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "iGmDu-WhpYEmb5hg1AH8s"
+uri = "file://docs/ATANDA_Site_Plan.pdf"
+type = "pdf"
+title = "ATANDA Site Plan"
+description = "Nine-page PDF covering the F0 advisory layer, F1-F7 production rail, F8-F10 post-certification system, OSIRIS custody, F10 release lanes, provider execution states, and advisory side-steps."
+logical_id = "28f9bca3-b338-45b9-b76f-f3b0181e9e9d"
+content_hash = "sha256:1da8ad9abcf91e54b01af3b7fdc2c9797fa4c73084e4a54dff10cd83f61e5e7c"
+size = 18514
+mtime_ms = 1789920173698
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/28f9bca3-b338-45b9-b76f-f3b0181e9e9d/f0dff201-fb94-4de6-9952-495bf3272edf"
+storage_version_token = "1789920187270103"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "4eJ_TQTNz81uHj-8wwBjD"
+uri = "file://docs/ATANDA_Function_Status_Map.pdf"
+type = "pdf"
+title = "ATANDA Function Status Map — PDF"
+description = "One-page color-coded site map showing active functions in green and inactive, dormant, or incomplete functions in red."
+logical_id = "473e3167-1544-4543-8ca1-6f9a744462fc"
+content_hash = "sha256:0b1ddae54dd20a409a1ac164b9681d6151d64a26ef66df7f7192d2de38d77678"
+size = 7086
+mtime_ms = 1789922043827
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/473e3167-1544-4543-8ca1-6f9a744462fc/f57309af-a397-4b1f-acc0-16310d7cbded"
+storage_version_token = "1789922051472364"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "arziKC14CMacVKV1hTkyo"
+uri = "file://docs/ATANDA_Function_Status_Map.jpg"
+type = "image"
+title = "ATANDA Function Status Map — JPG"
+description = "High-resolution 3060 × 1980 JPG version of the color-coded ATANDA function status map."
+logical_id = "5047f708-b8bb-4c8b-a0f0-b2793caf1c52"
+content_hash = "sha256:cf76a1b0a3928bb736137094d160de8a26ef09be42ebd6aa89eec31ecc01f77a"
+size = 605063
+mtime_ms = 1789922043931
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/5047f708-b8bb-4c8b-a0f0-b2793caf1c52/c118154c-3e94-4347-95d7-87f61926f884"
+storage_version_token = "1789922052595095"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "cEYGbDg6Fj4fb1ZgiVSFo"
+uri = "file://docs/ATLAS_360_SCAN_ATANDA_Command_Centre_2026-09-21.pdf"
+type = "pdf"
+title = "ATLAS 360 SCAN — ATANDA Command Centre"
+description = "Draft repository-grounded engineering status report covering verified codebase health, architecture, risks, and unavailable production evidence."
+logical_id = "2e66cfb5-cdb6-49ab-9a55-0f20d213a29d"
+content_hash = "sha256:5b83f2cdff9c9428fe5c3aab9e2fd3704b7356cca62afa612cdcf0e64b5f6068"
+size = 21784
+mtime_ms = 1790033239175
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/2e66cfb5-cdb6-49ab-9a55-0f20d213a29d/ed6c95d1-4030-42c3-a4a2-37ebccc97087"
+storage_version_token = "1790033259837707"
+content_type = "application/pdf"

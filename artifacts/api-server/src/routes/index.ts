@@ -25,6 +25,9 @@ import f1000Router from "./f1000";
 import f0Router from "./f0";
 import staffAuthRouter from "./staff-auth";
 import magnetRouter from "./magnet";
+import spcPlayerRouter from "./spc-player";
+import osirisRouter from "./osiris";
+import f10Router from "./f10";
 
 const router: IRouter = Router();
 
@@ -43,6 +46,9 @@ router.use(pricingRouter);
 router.use(cronRouter);
 router.use(verifyRouter);
 router.use(exemplarsRouter);
+router.use(spcPlayerRouter);
+router.use(osirisRouter);
+router.use(f10Router);
 router.use(harnessRouter);
 router.use(ingestRouter);
 router.use(cartridgeRouter);

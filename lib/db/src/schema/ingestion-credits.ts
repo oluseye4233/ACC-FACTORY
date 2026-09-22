@@ -23,6 +23,7 @@ export const ingestionCreditsTable = pgTable("ingestion_credits", {
     () => ingestionDocumentsTable.id,
     { onDelete: "set null" },
   ),
+  reservationToken: uuid("reservation_token"),
   purchasedAt: timestamp("purchased_at", { withTimezone: true }).notNull().defaultNow(),
   consumedAt: timestamp("consumed_at", { withTimezone: true }),
 });

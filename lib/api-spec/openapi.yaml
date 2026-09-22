@@ -26,6 +26,253 @@ tags:
   - name: magnet
 
 paths:
+  /f10/catalog:
+    get:
+      operationId: getF10Catalog
+      tags: [f10]
+      summary: Honest F10 export families, targets, and delivery modes
+      responses:
+        "200":
+          description: F10 catalog
+          content: { application/json: { schema: { $ref: "#/components/schemas/F10Catalog" } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /f10/colonization-runs:
+    get:
+      operationId: listF10ColonizationRuns
+      tags: [f10]
+      summary: List cited, fail-closed SAVANT CONNECTOR colonization runs
+      responses:
+        "200":
+          description: Colonization runs
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/F10ColonizationRun" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      operationId: createF10ColonizationRun
+      tags: [f10]
+      summary: Record and evaluate an F10 colonization protocol run
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/F10ColonizationInput" } } }
+      responses:
+        "201": { description: Recorded run (promotion is unavailable), content: { application/json: { schema: { $ref: "#/components/schemas/F10ColonizationRun" } } } }
+        "400": { description: Invalid intake envelope }
+  /f10/colonization-runs/{id}:
+    get:
+      operationId: getF10ColonizationRun
+      tags: [f10]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: Colonization run, content: { application/json: { schema: { $ref: "#/components/schemas/F10ColonizationRun" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /f10/sources:
+    get:
+      operationId: listF10Sources
+      tags: [f10]
+      summary: List owned artifacts eligible for F10 exports
+      responses:
+        "200":
+          description: Eligible owned sources
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/F10Source" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /f10/exports/manifest:
+    post:
+      operationId: createF10ExportManifest
+      tags: [f10]
+      summary: Create a deterministic F10 export manifest from an owned artifact
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/F10ExportInput" } } }
+      responses:
+        "200": { description: Deterministic export manifest, content: { application/json: { schema: { $ref: "#/components/schemas/F10ExportManifest" } } } }
+        "400": { description: Invalid source or profile }
+  /f10/exports/download:
+    post:
+      operationId: downloadF10Export
+      tags: [f10]
+      summary: Download a deterministic F10 ZIP export
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/F10ExportInput" } } }
+      responses:
+        "200":
+          description: ZIP export
+          content: { application/zip: { schema: { type: string, format: binary } } }
+        "400": { description: Invalid source or profile }
+  /f10/exports/github:
+    post:
+      operationId: pushF10ExportToGitHub
+      tags: [f10]
+      summary: Rebuild and push an owned F10 handoff to an authorized GitHub repository
+      description: File bytes are reconstructed from the owned source artifact and selected profile; caller-supplied files are not accepted.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/F10GitHubPushInput" } } }
+      responses:
+        "200": { description: Durable GitHub push result, content: { application/json: { schema: { $ref: "#/components/schemas/F10GitHubPushResult" } } } }
+        "400": { description: "Invalid source, profile, repository, or branch" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { description: GitHub is not connected }
+  /f10/destinations:
+    get:
+      operationId: listF10Destinations
+      tags: [f10]
+      summary: List tenant-scoped release destinations
+      responses:
+        "200":
+          description: Destinations visible to the current operator
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/F10Destination" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      operationId: createF10Destination
+      tags: [f10]
+      summary: Register an authorized HTTPS release destination
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/F10DestinationRequest" }
+      responses:
+        "201":
+          description: Destination registered
+          content: { application/json: { schema: { $ref: "#/components/schemas/F10Destination" } } }
+        "400": { description: Invalid or unsafe destination }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /f10/connections:
+    get:
+      operationId: listF10ProviderConnections
+      tags: [f10]
+      summary: List provider authorization references (credential values are never returned)
+      responses:
+        "200": { description: Connections, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/F10ProviderConnection" } } } } }
+  /f10/connections/authorize:
+    post:
+      operationId: authorizeF10ProviderConnection
+      tags: [f10]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/F10ProviderAuthorizeRequest" } } } }
+      responses: { "200": { description: Provider OAuth/broker authorization URL or deterministic fallback } }
+  /f10/connections/callback:
+    get:
+      operationId: f10ProviderConnectionCallback
+      tags: [f10]
+      parameters:
+        - { in: query, name: state, required: true, schema: { type: string } }
+        - { in: query, name: code, required: true, schema: { type: string } }
+      responses: { "302": { description: Redirect to F10 UI after callback } }
+  /f10/connections/{id}/revoke:
+    post:
+      operationId: revokeF10ProviderConnection
+      tags: [f10]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: Revoked connection } }
+  /f10/deployments:
+    get:
+      operationId: listF10BundleDeployments
+      tags: [f10]
+      responses: { "200": { description: Deployment history, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/F10BundleDeployment" } } } } } }
+    post:
+      operationId: createF10BundleDeployment
+      tags: [f10]
+      summary: Generate a server-owned provider bundle and queue one deployment release
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/F10BundleDeploymentRequest" } } } }
+      responses:
+        "201": { description: Queued deployment release }
+        "200": { description: Deterministic export fallback when unconfigured }
+  /f10/deployments/{id}:
+    get:
+      operationId: getF10BundleDeployment
+      tags: [f10]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200":
+          description: Deployment, attempts, receipt, and audit history
+          content: { application/json: { schema: { $ref: "#/components/schemas/F10BundleDeploymentDetail" } } }
+  /f10/deployments/{id}/process:
+    post:
+      operationId: processF10BundleDeployment
+      tags: [f10]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "202": { description: Submitted to provider transport }
+        "409": { description: "Provider unconfigured, revoked, or not accepted; deterministic export fallback applies" }
+  /f10/deployments/{id}/reconcile:
+    post:
+      operationId: reconcileF10BundleDeployment
+      tags: [f10]
+      summary: Reconcile provider-side execution status through the user's connected account
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: Provider execution status reconciled, content: { application/json: { schema: { $ref: "#/components/schemas/F10BundleReconciliation" } } } }
+        "409": { description: Reconciliation unavailable; the signed acceptance receipt remains intact }
+  /f10/destinations/{id}/revoke:
+    post:
+      operationId: revokeF10Destination
+      tags: [f10]
+      summary: Revoke a tenant-scoped destination
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Destination revoked
+          content: { application/json: { schema: { $ref: "#/components/schemas/F10Destination" } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /f10/releases:
+    get:
+      operationId: listF10Releases
+      tags: [f10]
+      responses:
+        "200":
+          description: Tenant-scoped release list
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/F10Release" } } } }
+    post:
+      operationId: createF10Release
+      tags: [f10]
+      summary: Request release of an immutable signed F9 artifact
+      description: Artifact bytes are never accepted; F10 retrieves them from OSIRIS custody.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/F10ReleaseRequest" }
+      responses:
+        "201":
+          description: Recorded release intent
+          content: { application/json: { schema: { $ref: "#/components/schemas/F10Release" } } }
+        "400": { description: Invalid envelope }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /f10/releases/{id}/process:
+    post:
+      operationId: processF10Release
+      tags: [f10]
+      summary: Trigger a bounded worker dispatch
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "202": { description: Queued for fenced dispatch }
+        "409": { description: Release is not queued }
+  /f10/releases/{id}:
+    get:
+      operationId: getF10Release
+      tags: [f10]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Release and append-only transition history
+          content: { application/json: { schema: { $ref: "#/components/schemas/F10Release" } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
   /healthz:
     get:
       operationId: healthCheck
@@ -701,6 +948,60 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /harness/f9:
+    post:
+      operationId: harnessF9Mecha
+      tags: [harness]
+      summary: Run the deterministic F9 MECHA Machine Floor
+      description: >
+        Accepts an F8 CODEBASE_BUNDLE whose MVP PDD lineage is SPARTAN-certified.
+        All seven phases and immutable external gate evidence must be supplied in
+        order. Missing, non-passing, or unverifiable evidence produces a cited
+        refusal; MECHA never invents or overrides a gate verdict.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HarnessF9Input" }
+      responses:
+        "200":
+          description: Existing signed Machine Artifact returned for an idempotent repeat submission
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F9MachineArtifact" }
+        "201":
+          description: Signed Machine Artifact
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F9MachineArtifact" }
+        "400":
+          description: Invalid phase envelope
+        "409":
+          description: Upstream F8/SPARTAN prerequisite failed
+        "422":
+          description: Cited MECHA refusal
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F9Refusal" }
+  /harness/f9/runs:
+    get:
+      operationId: listHarnessF9Runs
+      tags: [harness]
+      summary: List owned F9 MECHA run records
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: F9 run state, evidence, and terminal outcome
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/F9RunRecord" }
+
   /harness/f8-hdj:
     post:
       operationId: harnessF8Hdj
@@ -736,7 +1037,8 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/HarnessAtlasCrystalliseInput" }
+            schema:
+              { $ref: "#/components/schemas/HarnessAtlasCrystalliseInput" }
       responses:
         "200":
           description: OK
@@ -770,6 +1072,42 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           description: Source MVP PDD is not SPARTAN-certified
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /harness/sessions/{id}/pdd-view:
+    post:
+      operationId: harnessPddView
+      tags: [harness]
+      summary: Render and persist an ATLAS 360 PLAN or SCAN view of the latest F6/F7 PDD
+      description: >
+        Read-only side-step over the latest owned ATLAS_PDD or MVP_PDD artifact.
+        The persisted view never reruns F1-F8. Without format, manual and
+        cartridge sessions default to PLAN and ingested sessions default to SCAN.
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - name: format
+          in: query
+          required: false
+          schema: { type: string, enum: [plan, scan] }
+      responses:
+        "200":
+          description: Persisted ATLAS 360 PDD view
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Atlas360PddViewResponse" }
+        "400":
+          description: Invalid format
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "402":
+          description: Monthly LLM cost cap reached
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
@@ -1129,11 +1467,27 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /cron/reconcile-f10-deployments:
+    post:
+      operationId: cronReconcileF10Deployments
+      tags: [cron]
+      summary: Reconcile a bounded batch of accepted or running provider deployments (requires CRON_SECRET header)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /exemplars:
     get:
       operationId: listExemplars
       tags: [exemplars]
-      summary: List canonical and hand-authored SPC / PDD exemplars
+      summary: List curated and open-marketplace SPC, MA, MPDD, and PDD exemplars
       responses:
         "200":
           description: OK
@@ -1142,6 +1496,49 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/ExemplarSummary" }
+
+  /spc-player/registry:
+    get:
+      operationId: getSpcPlayerRegistry
+      tags: [exemplars]
+      summary: Fetch the versioned SPC Dev Kit registry and platform publication rules
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcPlayerRegistry" }
+
+  /exemplars/from-artifact:
+    post:
+      operationId: addArtifactToExemplarLibrary
+      tags: [exemplars]
+      summary: Copy a completed SPC, MA, MPDD, or PDD artifact into the open library
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              {
+                $ref: "#/components/schemas/AddArtifactToExemplarLibraryRequest",
+              }
+      responses:
+        "201":
+          description: Exemplar added
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExemplarSummary" }
+        "400":
+          description: Unsupported artifact type
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Artifact already exists in the library
 
   /exemplars/{id}:
     get:
@@ -1183,7 +1580,8 @@ paths:
         - name: kind
           in: query
           required: false
-          schema: { type: string, enum: [ATOMIC_PROMPT, PROMPT_DIAGNOSTIC, SPC] }
+          schema:
+            { type: string, enum: [ATOMIC_PROMPT, PROMPT_DIAGNOSTIC, SPC] }
       responses:
         "200":
           description: OK
@@ -1343,7 +1741,8 @@ paths:
           description: OK
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/AdminBadgeRevocationPreview" }
+              schema:
+                { $ref: "#/components/schemas/AdminBadgeRevocationPreview" }
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
@@ -1843,6 +2242,271 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /spc-player/catalog:
+    get:
+      operationId: getSpcPlayerCatalog
+      tags: [spc-player]
+      summary: SPC library cards and v4 Cheat Sheet metadata
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200":
+          description: SPC library catalog
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SpcLibraryCard" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /spc-player/dev-kit:
+    get:
+      operationId: getSpcDevKit
+      tags: [spc-player]
+      summary: Named six-card SPC Dev Kit registry
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200":
+          description: Registered baseline (registration does not execute it)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcDevKit" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /spc-player/runs:
+    get:
+      operationId: listSpcPlayerRuns
+      tags: [spc-player]
+      summary: List the caller's standalone SPC Player drafts
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200":
+          description: Owned drafts
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SpcPlayerRun" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createSpcPlayerRun
+      tags: [spc-player]
+      summary: Persist a standalone SPC Player draft
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateSpcPlayerRunInput" }
+      responses:
+        "201":
+          description: Draft created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcPlayerRun" }
+        "400":
+          description: Invalid input or unknown card
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /spc-player/runs/{id}:
+    get:
+      operationId: getSpcPlayerRun
+      tags: [spc-player]
+      summary: Get one owned standalone SPC Player draft
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: Owned draft
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcPlayerRun" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /spc-player/runs/{id}/execute:
+    post:
+      operationId: executeSpcPlayerRun
+      tags: [spc-player]
+      summary: Execute an SPC Player run without entitlement or billing gates
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ExecuteSpcPlayerRunInput" }
+      responses:
+        "200":
+          description: Completed or failed owned SPC Player run
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcPlayerRun" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "400":
+          description: Invalid execution input or card selection
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Run is already executing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "502":
+          description: Provider execution failed; failure is persisted on the run
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcPlayerRun" }
+        "503":
+          description: Provider is unavailable; failure is persisted on the run
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /spc-player/runs/{id}/authorize:
+    get:
+      operationId: getSpcPlayerWebhookAuthorization
+      tags: [spc-player]
+      summary: Read persisted webhook authorization status for an owned run
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: Current webhook authorization status
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcPlayerWebhookAuthorizationStatus" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      operationId: authorizeSpcPlayerWebhook
+      tags: [spc-player]
+      summary: Explicitly authorize webhook delivery for an owned run
+      description: >-
+        Stores only public webhook endpoint metadata and a consent timestamp.
+        The endpoint must use HTTPS and resolve exclusively to public addresses.
+        Credentials are never accepted or stored.
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SpcPlayerWebhookAuthorizationInput" }
+      responses:
+        "200":
+          description: Webhook authorization recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcPlayerWebhookAuthorization" }
+        "400":
+          description: Invalid or unsafe webhook destination
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /spc-player/runs/{id}/deliver:
+    post:
+      operationId: deliverSpcPlayerRun
+      tags: [spc-player]
+      summary: Deliver completed output to an explicitly authorized webhook
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: Completed output delivered
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcPlayerDeliveryResult" }
+        "400":
+          description: Run is incomplete or webhook authorization is missing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "502":
+          description: Webhook delivery failed or returned a non-2xx response
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /spc-player/runs/{id}/download:
+    get:
+      operationId: downloadSpcPlayerRun
+      tags: [spc-player]
+      summary: Download an owned completed SPC Player output package as JSON
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: Ownership-scoped completed JSON output package
+          headers:
+            Content-Disposition:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcPlayerOutputPackage" }
+        "400":
+          description: Run has not completed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /spc-player/runs/{id}/manifest:
+    get:
+      operationId: getSpcPlayerRunManifest
+      tags: [spc-player]
+      summary: Download a supported SPC Player run manifest
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: JSON attachment containing run metadata, governance disclosures, and open connectors
+          headers:
+            Content-Disposition:
+              schema: { type: string }
+            Content-Type:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcPlayerManifest" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
   parameters:
     SessionId:
@@ -1855,6 +2519,12 @@ components:
       in: path
       required: true
       schema: { type: string, format: uuid }
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: atanda_staff
 
   responses:
     Unauthorized:
@@ -1879,6 +2549,379 @@ components:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   schemas:
+    F10ExportInput:
+      type: object
+      required: [sourceArtifactId, outputKind, family, target]
+      properties:
+        sourceArtifactId: { type: string, format: uuid }
+        outputKind: { type: string, enum: [SPC, MA, MPDD, PDD, CODE_DJ] }
+        family: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, IDE, VIBE_APP, F0, SPC_PLAYER, LANGCHAIN, GITHUB, PROGRAMMING_ENVIRONMENT] }
+        target:
+          type: string
+          minLength: 1
+          maxLength: 120
+          description: Closed provider target identifier; provider targets are not arbitrary provider names.
+          enum: [AWS_LAMBDA, AWS_ECS_FARGATE, AWS_S3, AZURE_FUNCTIONS, AZURE_CONTAINER_APPS, AZURE_BLOB_STORAGE, OPENAI_AGENTS_SDK, GEMINI_ADK, GEMINI_VERTEX_AGENT_ENGINE, VS Code, Cursor, Windsurf, JetBrains, Replit, Visual Studio, Xcode, Android Studio, Eclipse, Vim/Neovim, Replit Agent, Lovable, Bolt, v0, Base44, TypeScript/Node, Python, Java, C#, C++, Go, Rust, PHP, Ruby, Swift, Kotlin, F0, SPC_PLAYER, LANGCHAIN, GITHUB]
+        deliveryMode: { type: string, enum: [EXPORT, INTERNAL_HANDOFF] }
+    F10GitHubPushInput:
+      allOf:
+        - $ref: "#/components/schemas/F10ExportInput"
+        - type: object
+          required: [repository, branch]
+          properties:
+            family: { type: string, enum: [GITHUB] }
+            repository: { type: string, pattern: "^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$" }
+            branch: { type: string, minLength: 1, maxLength: 255 }
+    F10GitHubPushResult:
+      type: object
+      required: [ok, idempotent, idempotencyKey, repository, branch, commitSha, commitUrl, bundleSha256, pushedAt]
+      properties:
+        ok: { type: boolean }
+        idempotent: { type: boolean }
+        idempotencyKey: { type: string }
+        repository: { type: string }
+        branch: { type: string }
+        commitSha: { type: string }
+        commitUrl: { type: string, format: uri }
+        bundleSha256: { type: string, pattern: "^[a-f0-9]{64}$" }
+        pushedAt: { type: string, format: date-time }
+    F10Source:
+      type: object
+      required: [id, type, artifactType, outputKind, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        type: { type: string, enum: [SPC, MA_BIRTH_PACKAGE, MICRO_PDD, ATLAS_PDD, ATLAS_PDD_JSON, MVP_PDD, CODEBASE_BUNDLE] }
+        artifactType: { type: string, enum: [SPC, MA_BIRTH_PACKAGE, MICRO_PDD, ATLAS_PDD, ATLAS_PDD_JSON, MVP_PDD, CODEBASE_BUNDLE] }
+        outputKind: { type: string, enum: [SPC, MA, MPDD, PDD, CODE_DJ] }
+        name: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+    F10Catalog:
+      type: object
+      required: [sourceTypes, outputKinds, families, httpsRelease]
+      properties:
+        sourceTypes: { type: array, items: { type: string } }
+        outputKinds: { type: array, items: { type: string } }
+        families: { type: array, items: { $ref: "#/components/schemas/F10CatalogFamily" } }
+        httpsRelease: { $ref: "#/components/schemas/F10HttpsRelease" }
+    F10CatalogFamily:
+      type: object
+      required: [family, liveMode, fallbackMode, deployed, configuration, targets, supportedOutputs]
+      properties:
+        family: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, IDE, VIBE_APP, F0, SPC_PLAYER, LANGCHAIN, GITHUB, PROGRAMMING_ENVIRONMENT] }
+        liveMode: { type: string, enum: [EXPORT, INTERNAL_HANDOFF, USER_AUTHORIZED] }
+        fallbackMode: { type: ["string", "null"], enum: [EXPORT, null] }
+        deployed: { type: boolean }
+        configuration: { type: string }
+        targets: { type: array, items: { type: string } }
+        supportedOutputs: { type: array, items: { type: string, enum: [SPC, MA, MPDD, PDD, CODE_DJ] } }
+    F10HttpsRelease:
+      type: object
+      required: [separate, live, mode]
+      properties:
+        separate: { type: boolean }
+        live: { type: boolean }
+        mode: { type: string, enum: [SIGNED_F9_OSIRIS_HTTPS] }
+    F10ExportManifest:
+      type: object
+      required: [schemaVersion, source, profile, files, bundleSha256]
+      properties:
+        schemaVersion: { type: string }
+        source: { $ref: "#/components/schemas/F10ManifestSource" }
+        profile: { $ref: "#/components/schemas/F10ManifestProfile" }
+        bundleSha256Scope: { type: string }
+        files: { type: array, items: { $ref: "#/components/schemas/F10ManifestFile" } }
+        bundleSha256: { type: string, pattern: "^[a-f0-9]{64}$" }
+    F10ManifestSource:
+      type: object
+      required: [id, type, name, contentSha256]
+      properties:
+        id: { type: string, format: uuid }
+        type: { type: string }
+        name: { type: ["string", "null"] }
+        contentSha256: { type: string, pattern: "^[a-f0-9]{64}$" }
+    F10ManifestProfile:
+      type: object
+      required: [outputKind, family, target, deliveryMode]
+      properties:
+        outputKind: { type: string, enum: [SPC, MA, MPDD, PDD, CODE_DJ] }
+        family: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, IDE, VIBE_APP, F0, SPC_PLAYER, LANGCHAIN, GITHUB, PROGRAMMING_ENVIRONMENT] }
+        target: { type: string }
+        deliveryMode: { type: string, enum: [EXPORT, INTERNAL_HANDOFF] }
+    F10ManifestFile:
+      type: object
+      required: [path, mediaType, bytes, sha256, role]
+      properties:
+        path: { type: string }
+        mediaType: { type: string }
+        bytes: { type: integer, minimum: 0 }
+        sha256: { type: string, pattern: "^[a-f0-9]{64}$" }
+        role: { type: string }
+    F10DestinationRequest:
+      type: object
+      additionalProperties: false
+      required: [name, adapterId, adapterVersion, endpoint, secretRef, authorizationScopes]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        adapterId: { type: string, enum: [https] }
+        adapterVersion: { type: string, enum: ["1"] }
+        endpoint: { type: string, format: uri }
+        secretRef: { type: string, pattern: "^F10_SECRET_[A-Z0-9_]+$" }
+        authorizationScopes: { type: array, maxItems: 50, items: { type: string } }
+    F10Destination:
+      allOf:
+        - $ref: "#/components/schemas/F10DestinationRequest"
+        - type: object
+          required: [id, active, createdAt]
+          properties:
+            id: { type: string, format: uuid }
+            active: { type: boolean }
+            revokedAt: { type: [string, "null"], format: date-time }
+            createdAt: { type: string, format: date-time }
+    F10ProviderConnectionRequest:
+      type: object
+      additionalProperties: false
+      required: [provider, name, scopes]
+      properties:
+        provider: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS] }
+        name: { type: string, minLength: 1, maxLength: 120 }
+        scopes: { type: array, maxItems: 50, items: { type: string } }
+    F10ProviderAuthorizeRequest:
+      type: object
+      additionalProperties: false
+      required: [provider]
+      properties:
+        provider: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS] }
+        returnTo: { type: string, maxLength: 500 }
+        connectionId: { type: string, format: uuid }
+    F10ProviderConnection:
+      allOf:
+        - $ref: "#/components/schemas/F10ProviderConnectionRequest"
+        - type: object
+          required: [id, active, createdAt]
+          properties:
+            id: { type: string, format: uuid }
+            active: { type: boolean }
+            revokedAt: { type: ["string", "null"], format: date-time }
+            createdAt: { type: string, format: date-time }
+    F10ColonizationInput:
+      type: object
+      additionalProperties: false
+      required: [artifactRef, artifactHash, artifactClass, ucgCertificateRef, target, targetClass, connectorAdapter, consentChannel]
+      properties:
+        requestClass: { type: string, enum: [RUN, SENSE_ONLY, RE_VERIFY, ROLLBACK], default: RUN }
+        artifactRef: { type: string, minLength: 1, maxLength: 500 }
+        artifactHash: { type: string, pattern: "^sha256:[a-f0-9]{64}$" }
+        artifactClass: { type: string, enum: [SPC, MA, PDD, MPDD] }
+        ucgCertificateRef: { type: string, minLength: 1, maxLength: 500 }
+        target: { type: string, minLength: 1, maxLength: 500 }
+        targetClass: { type: string, enum: [SOFTWARE_PLATFORM, AGENT_GATEWAY, FIRMWARE, ROBOTICS, APPLIANCE_IOT] }
+        connectorAdapter: { type: string, minLength: 1, maxLength: 200 }
+        customizationSet:
+          type: object
+          properties:
+            packaging_fields_only: { type: object, additionalProperties: { type: string } }
+        f9AttestationRef: { type: ["string", "null"], maxLength: 500 }
+        consentChannel: { type: string, minLength: 1, maxLength: 200 }
+    F10ColonizationRun:
+      type: object
+      required: [id, runId, artifactHash, artifactClass, target, targetClass, state, phase, maxReachablePhase, groMode, phaseStatuses, adapterReadiness, refusal, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        runId: { type: string }
+        artifactRef: { type: string }
+        artifactHash: { type: string }
+        artifactClass: { type: string }
+        ucgCertificateRef: { type: string }
+        target: { type: string }
+        targetClass: { type: string }
+        state: { type: string, enum: [RUNNING, REFUSED, STAGED_ONLY, PROMOTED] }
+        phase: { type: string, enum: [C0, C1, C2, C3, C4, C5, C6, C7, C8] }
+        maxReachablePhase: { type: string, enum: [C4, C8] }
+        groMode: { type: string, enum: [SAFE_LIFE] }
+        phaseStatuses: { $ref: "#/components/schemas/F10ColonizationPhaseStatuses" }
+        adapterReadiness: { $ref: "#/components/schemas/F10ColonizationAdapterReadiness" }
+        refusal: { $ref: "#/components/schemas/F10ColonizationRefusal" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    F10ColonizationPhaseStatuses:
+      type: object
+      additionalProperties: false
+      required: [C0, C1, C2, C3, C4, C5, C6, C7, C8]
+      properties:
+        C0: { type: string, enum: [PENDING, ACTIVE, REFUSED, COMPLETE] }
+        C1: { type: string, enum: [PENDING, ACTIVE, REFUSED, COMPLETE] }
+        C2: { type: string, enum: [PENDING, ACTIVE, REFUSED, COMPLETE] }
+        C3: { type: string, enum: [PENDING, ACTIVE, REFUSED, COMPLETE] }
+        C4: { type: string, enum: [PENDING, ACTIVE, REFUSED, COMPLETE] }
+        C5: { type: string, enum: [PENDING, ACTIVE, REFUSED, COMPLETE] }
+        C6: { type: string, enum: [PENDING, ACTIVE, REFUSED, COMPLETE] }
+        C7: { type: string, enum: [PENDING, ACTIVE, REFUSED, COMPLETE] }
+        C8: { type: string, enum: [PENDING, ACTIVE, REFUSED, COMPLETE] }
+    F10ColonizationAdapterReadiness:
+      type: object
+      additionalProperties: false
+      required: [savant, connector, analyzer, vault, consentGate, ucgCol]
+      properties:
+        savant: { type: string, enum: [UNWIRED] }
+        connector: { type: string, enum: [UNWIRED] }
+        analyzer: { type: string, enum: [UNWIRED] }
+        vault: { type: string, enum: [UNWIRED] }
+        consentGate: { type: string, enum: [UNWIRED] }
+        ucgCol: { type: string, enum: [UNWIRED] }
+    F10ColonizationRefusal:
+      type: object
+      additionalProperties: false
+      required: [phaseHalted, constraintCited, invariantCited, cause, requiredToProceed, groMode]
+      properties:
+        phaseHalted: { type: integer, minimum: 0, maximum: 8 }
+        constraintCited: { type: string }
+        invariantCited: { type: string }
+        cause: { type: string }
+        requiredToProceed: { type: string }
+        groMode: { type: string, enum: [SAFE_LIFE, HUMAN_IN_LOOP, CONTAINMENT, KILLZONE] }
+    F10BundleDeploymentRequest:
+      type: object
+      additionalProperties: false
+      required: [sourceArtifactId, provider, target, connectionRef, outputKind, targetConfig, releaseIntent]
+      properties:
+        sourceArtifactId: { type: string, format: uuid }
+        provider: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS] }
+        target: { type: string, enum: [AWS_LAMBDA, AWS_ECS_FARGATE, AWS_S3, AZURE_FUNCTIONS, AZURE_CONTAINER_APPS, AZURE_BLOB_STORAGE, OPENAI_AGENTS_SDK, GEMINI_ADK, GEMINI_VERTEX_AGENT_ENGINE] }
+        connectionRef: { type: string, format: uuid }
+        outputKind: { type: string, enum: [SPC, MA, MPDD, PDD, CODE_DJ] }
+        targetConfig:
+          description: Provider-specific deployment target. Unknown fields are rejected.
+          oneOf:
+            - $ref: "#/components/schemas/F10AwsTargetConfig"
+            - $ref: "#/components/schemas/F10AzureTargetConfig"
+            - $ref: "#/components/schemas/F10OpenAiTargetConfig"
+            - $ref: "#/components/schemas/F10GeminiTargetConfig"
+        releaseIntent: { type: string, minLength: 1, maxLength: 200 }
+    F10AwsTargetConfig:
+      type: object
+      additionalProperties: false
+      required: [region, resourceName]
+      properties:
+        region: { type: string, minLength: 1 }
+        resourceName: { type: string, minLength: 1 }
+        accountId: { type: string }
+        roleArn: { type: string }
+    F10AzureTargetConfig:
+      type: object
+      additionalProperties: false
+      required: [subscriptionId, resourceGroup, location, resourceName]
+      properties:
+        subscriptionId: { type: string, minLength: 1 }
+        tenantId: { type: string }
+        resourceGroup: { type: string, minLength: 1 }
+        location: { type: string, minLength: 1 }
+        resourceName: { type: string, minLength: 1 }
+    F10OpenAiTargetConfig:
+      type: object
+      additionalProperties: false
+      required: [model, environment]
+      properties:
+        projectId: { type: string }
+        agentId: { type: string }
+        model: { type: string, minLength: 1 }
+        environment: { type: string, minLength: 1 }
+    F10GeminiTargetConfig:
+      type: object
+      additionalProperties: false
+      required: [projectId, location, model, environment]
+      properties:
+        projectId: { type: string, minLength: 1 }
+        location: { type: string, minLength: 1 }
+        agentId: { type: string }
+        displayName: { type: string }
+        model: { type: string, minLength: 1 }
+        environment: { type: string, minLength: 1 }
+        useVertex: { type: string, enum: ["true", "false"] }
+    F10BundleDeployment:
+      type: object
+      required: [id, provider, target, state, bundleHash, executionStatus]
+      properties:
+        id: { type: string, format: uuid }
+        provider: { type: string }
+        target: { type: string }
+        state: { type: string }
+        bundleHash: { type: string, pattern: "^[a-f0-9]{64}$" }
+        executionStatus: { type: string, enum: [NOT_CONFIRMED, ACCEPTED, RUNNING, COMPLETED, FAILED] }
+        executionCheckedAt: { type: ["string", "null"], format: date-time }
+        providerExecutionUpdatedAt: { type: ["string", "null"], format: date-time }
+        reconciliationPausedAt: { type: ["string", "null"], format: date-time }
+        reconciliationPauseReason: { type: ["string", "null"] }
+    F10BundleReconciliation:
+      type: object
+      required: [acceptance, executionStatus, checkedAt, changed]
+      properties:
+        acceptance: { type: string, enum: [ACCEPTED] }
+        executionStatus: { type: string, enum: [ACCEPTED, RUNNING, COMPLETED, FAILED] }
+        checkedAt: { type: string, format: date-time }
+        providerUpdatedAt: { type: ["string", "null"], format: date-time }
+        changed: { type: boolean }
+    F10BundleDeploymentDetail:
+      allOf:
+        - $ref: "#/components/schemas/F10BundleDeployment"
+        - type: object
+          required: [audit, attempts, receipt]
+          properties:
+            audit:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            attempts:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            receipt:
+              type: [object, "null"]
+              additionalProperties: true
+    F10ReleaseRequest:
+      type: object
+      additionalProperties: false
+      required: [machineArtifactId, destinationId, releaseIntent]
+      properties:
+        machineArtifactId: { type: string }
+        destinationId: { type: string, format: uuid }
+        releaseIntent: { type: string }
+    F10Envelope:
+      type: object
+      additionalProperties: false
+      required: [machine_artifact_id, mecha_run_id, artifact_version, media_type, ucg_certificate, spk_id, payload_hash, artifact_signature, osiris_custody_attestation]
+      properties:
+        machine_artifact_id: { type: string }
+        mecha_run_id: { type: string }
+        artifact_version: { type: string }
+        media_type: { type: string }
+        ucg_certificate:
+          type: object
+          required: [verdict, expires_at, signature]
+          properties:
+            verdict: { type: string }
+            expires_at: { type: string, format: date-time }
+            signature: { type: string }
+        spk_id: { type: string }
+        payload_hash: { type: string, pattern: "^[a-f0-9]{64}$" }
+        artifact_signature: { type: string }
+        osiris_custody_attestation:
+          type: object
+          required: [osiris_custody, expires_at, signature]
+          properties:
+            osiris_custody: { type: boolean }
+            expires_at: { type: string, format: date-time }
+            signature: { type: string }
+    F10Release:
+      type: object
+      description: Persisted release metadata and append-only transitions; no artifact bytes or secrets.
+      properties:
+        id: { type: string, format: uuid }
+        state: { type: string, enum: [REQUESTED, VERIFYING, AUTHORIZED, QUEUED, DISPATCHING, ACKNOWLEDGED, BLOCKED, FAILED_PERMANENT, DEAD_LETTERED, CANCELLED] }
+        idempotencyKey: { type: string }
+        blockedReasons: { type: array, items: { type: string } }
+        transitions: { type: array, items: { type: object } }
     # ── F0 · Business Intelligence Consulting Layer (Domain 23) ──────────────
     F0Service:
       type: string
@@ -1902,30 +2945,31 @@ components:
       type: object
       required: [id, userId, title, status, createdAt, updatedAt]
       properties:
-        id:        { type: string, format: uuid }
-        userId:    { type: string, format: uuid }
-        title:     { type: string }
-        status:    { type: string, enum: [DISCOVERY, ACTIVE, CLOSED] }
-        sessionId:  { type: string, format: uuid, nullable: true }
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        title: { type: string }
+        status: { type: string, enum: [DISCOVERY, ACTIVE, CLOSED] }
+        sessionId: { type: string, format: uuid, nullable: true }
         artifactId: { type: string, format: uuid, nullable: true }
         discoveryTranscript: { nullable: true }
-        challengeResponse:   { nullable: true }
+        challengeResponse: { nullable: true }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
 
     F0Report:
       type: object
-      required: [id, engagementId, userId, service, reportCode, content, createdAt]
+      required:
+        [id, engagementId, userId, service, reportCode, content, createdAt]
       properties:
-        id:           { type: string, format: uuid }
+        id: { type: string, format: uuid }
         engagementId: { type: string, format: uuid }
-        userId:       { type: string, format: uuid }
-        service:      { $ref: "#/components/schemas/F0Service" }
-        reportCode:   { type: string }
-        sku:          { type: string, nullable: true }
-        content:      { type: object, additionalProperties: true }
+        userId: { type: string, format: uuid }
+        service: { $ref: "#/components/schemas/F0Service" }
+        reportCode: { type: string }
+        sku: { type: string, nullable: true }
+        content: { type: object, additionalProperties: true }
         accruedCostUsd: { type: string }
-        createdAt:    { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
 
     F0EngagementDetail:
       type: object
@@ -1940,28 +2984,40 @@ components:
       type: object
       required: [id, userId, title, status, createdAt, updatedAt]
       properties:
-        id:        { type: string, format: uuid }
-        userId:    { type: string, format: uuid }
-        title:     { type: string }
-        status:    { type: string, enum: [ACTIVE, PAUSED, ENDED] }
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        title: { type: string }
+        status: { type: string, enum: [ACTIVE, PAUSED, ENDED] }
         sessionId: { type: string, format: uuid, nullable: true }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
 
     F0RetainerTask:
       type: object
-      required: [id, retainerId, userId, title, detail, status, estCostUsd, createdAt, updatedAt]
+      required:
+        [
+          id,
+          retainerId,
+          userId,
+          title,
+          detail,
+          status,
+          estCostUsd,
+          createdAt,
+          updatedAt,
+        ]
       properties:
-        id:         { type: string, format: uuid }
+        id: { type: string, format: uuid }
         retainerId: { type: string, format: uuid }
-        userId:     { type: string, format: uuid }
-        title:      { type: string }
-        detail:     { type: string }
-        status:     { type: string, enum: [PROPOSED, APPROVED, DECLINED, COMPLETED] }
-        stage:      { type: string, nullable: true }
+        userId: { type: string, format: uuid }
+        title: { type: string }
+        detail: { type: string }
+        status:
+          { type: string, enum: [PROPOSED, APPROVED, DECLINED, COMPLETED] }
+        stage: { type: string, nullable: true }
         estCostUsd: { type: string }
-        createdAt:  { type: string, format: date-time }
-        updatedAt:  { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
 
     F0RetainerDetail:
       type: object
@@ -1984,12 +3040,18 @@ components:
           items: { $ref: "#/components/schemas/F0Retainer" }
         totals:
           type: object
-          required: [engagementCount, reportCount, accruedReportCostUsd, accruedTaskCostUsd]
+          required:
+            [
+              engagementCount,
+              reportCount,
+              accruedReportCostUsd,
+              accruedTaskCostUsd,
+            ]
           properties:
-            engagementCount:      { type: integer }
-            reportCount:          { type: integer }
+            engagementCount: { type: integer }
+            reportCount: { type: integer }
             accruedReportCostUsd: { type: string }
-            accruedTaskCostUsd:   { type: string }
+            accruedTaskCostUsd: { type: string }
         monitoring:
           $ref: "#/components/schemas/F0MonitoringDashboard"
 
@@ -2013,49 +3075,58 @@ components:
             required: [retainerId, lastRunAt]
             properties:
               retainerId: { type: string, format: uuid }
-              lastRunAt:  { type: string, format: date-time }
+              lastRunAt: { type: string, format: date-time }
 
     F0OpenAlert:
       type: object
       required: [id, retainerId, retainerTitle, alertCount, source, ranAt]
       properties:
-        id:             { type: string, format: uuid }
-        retainerId:     { type: string, format: uuid }
-        retainerTitle:  { type: string }
-        highestUrgency: { type: string, enum: [WATCH, ACT_SOON, ACT_NOW], nullable: true }
-        capiPosture:    { type: string, nullable: true }
-        alertCount:     { type: integer }
-        source:         { type: string, enum: [manual, cron] }
-        ranAt:          { type: string, format: date-time }
+        id: { type: string, format: uuid }
+        retainerId: { type: string, format: uuid }
+        retainerTitle: { type: string }
+        highestUrgency:
+          { type: string, enum: [WATCH, ACT_SOON, ACT_NOW], nullable: true }
+        capiPosture: { type: string, nullable: true }
+        alertCount: { type: integer }
+        source: { type: string, enum: [manual, cron] }
+        ranAt: { type: string, format: date-time }
 
     F0MonitoringAck:
       type: object
       required: [id, acknowledgedAt]
       properties:
-        id:             { type: string, format: uuid }
+        id: { type: string, format: uuid }
         acknowledgedAt: { type: string, format: date-time }
 
     F0MonitoringSweepResult:
       type: object
       required:
-        [ok, retainersConsidered, runsExecuted, breaches, alertsSent, skippedRecent, costCapReached]
+        [
+          ok,
+          retainersConsidered,
+          runsExecuted,
+          breaches,
+          alertsSent,
+          skippedRecent,
+          costCapReached,
+        ]
       properties:
-        ok:                  { type: boolean }
+        ok: { type: boolean }
         retainersConsidered: { type: integer }
-        runsExecuted:        { type: integer }
-        breaches:            { type: integer }
-        alertsSent:          { type: integer }
-        skippedRecent:       { type: integer }
-        costCapReached:      { type: boolean }
+        runsExecuted: { type: integer }
+        breaches: { type: integer }
+        alertsSent: { type: integer }
+        skippedRecent: { type: integer }
+        costCapReached: { type: boolean }
 
     F0Commentary:
       type: object
       required: [stage, read, strengths, watchouts, oneThingToFix]
       properties:
-        stage:         { type: string }
-        read:          { type: string }
-        strengths:     { type: array, items: { type: string } }
-        watchouts:     { type: array, items: { type: string } }
+        stage: { type: string }
+        read: { type: string }
+        strengths: { type: array, items: { type: string } }
+        watchouts: { type: array, items: { type: string } }
         oneThingToFix: { type: string }
 
     F0Monitoring:
@@ -2069,7 +3140,7 @@ components:
             type: object
             required: [summary, significance]
             properties:
-              summary:      { type: string }
+              summary: { type: string }
               significance: { type: string, enum: [LOW, MEDIUM, HIGH] }
         eventAlerts:
           type: array
@@ -2077,8 +3148,8 @@ components:
             type: object
             required: [alert, urgency, recommendedAction]
             properties:
-              alert:             { type: string }
-              urgency:           { type: string, enum: [WATCH, ACT_SOON, ACT_NOW] }
+              alert: { type: string }
+              urgency: { type: string, enum: [WATCH, ACT_SOON, ACT_NOW] }
               recommendedAction: { type: string }
         weeklyCounsel: { type: string }
 
@@ -2086,14 +3157,14 @@ components:
       type: object
       required: [title]
       properties:
-        title:      { type: string, minLength: 1, maxLength: 200 }
-        sessionId:  { type: string, format: uuid }
+        title: { type: string, minLength: 1, maxLength: 200 }
+        sessionId: { type: string, format: uuid }
         artifactId: { type: string, format: uuid }
 
     GenerateF0DiscoveryInput:
       type: object
       properties:
-        notes:    { type: string, maxLength: 2000 }
+        notes: { type: string, maxLength: 2000 }
         provider: { $ref: "#/components/schemas/LlmProvider" }
 
     RecordF0DiscoveryInput:
@@ -2108,59 +3179,60 @@ components:
             type: object
             required: [id, answer]
             properties:
-              id:     { type: string }
+              id: { type: string }
               answer: { type: string, minLength: 1, maxLength: 4000 }
 
     GenerateF0ReportInput:
       type: object
       required: [service]
       properties:
-        service:  { $ref: "#/components/schemas/F0Service" }
-        notes:    { type: string, maxLength: 2000 }
+        service: { $ref: "#/components/schemas/F0Service" }
+        notes: { type: string, maxLength: 2000 }
         provider: { $ref: "#/components/schemas/LlmProvider" }
 
     GenerateF0ChallengeInput:
       type: object
       properties:
-        notes:    { type: string, maxLength: 2000 }
+        notes: { type: string, maxLength: 2000 }
         provider: { $ref: "#/components/schemas/LlmProvider" }
 
     CreateF0RetainerInput:
       type: object
       required: [title]
       properties:
-        title:     { type: string, minLength: 1, maxLength: 200 }
+        title: { type: string, minLength: 1, maxLength: 200 }
         sessionId: { type: string, format: uuid }
 
     CreateF0RetainerTaskInput:
       type: object
       required: [title]
       properties:
-        title:      { type: string, minLength: 1, maxLength: 200 }
-        detail:     { type: string, maxLength: 2000 }
-        stage:      { type: string, maxLength: 8 }
+        title: { type: string, minLength: 1, maxLength: 200 }
+        detail: { type: string, maxLength: 2000 }
+        stage: { type: string, maxLength: 8 }
         estCostUsd: { type: number, minimum: 0 }
 
     UpdateF0RetainerTaskInput:
       type: object
       required: [status]
       properties:
-        status: { type: string, enum: [PROPOSED, APPROVED, DECLINED, COMPLETED] }
+        status:
+          { type: string, enum: [PROPOSED, APPROVED, DECLINED, COMPLETED] }
 
     GenerateF0CommentaryInput:
       type: object
       required: [stage]
       properties:
-        stage:      { type: string, maxLength: 8 }
-        sessionId:  { type: string, format: uuid }
+        stage: { type: string, maxLength: 8 }
+        sessionId: { type: string, format: uuid }
         artifactId: { type: string, format: uuid }
-        notes:      { type: string, maxLength: 2000 }
-        provider:   { $ref: "#/components/schemas/LlmProvider" }
+        notes: { type: string, maxLength: 2000 }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     GenerateF0MonitoringInput:
       type: object
       properties:
-        signals:  { type: string, maxLength: 4000 }
+        signals: { type: string, maxLength: 4000 }
         provider: { $ref: "#/components/schemas/LlmProvider" }
 
     HealthStatus:
@@ -2221,6 +3293,8 @@ components:
         - CODEBASE_BUNDLE
         - PFP_REPORT
         - HOSTING_PLAN
+        - ATLAS_360_PLAN_VIEW
+        - ATLAS_360_SCAN_VIEW
 
     CodeDjPlatform:
       type: string
@@ -2236,29 +3310,45 @@ components:
       type: object
       required: [path, language, content]
       properties:
-        path:     { type: string, description: "Project-root-relative path, e.g. src/index.ts" }
-        language: { type: string, description: "ISO-ish language hint, e.g. typescript, json, md, env" }
-        content:  { type: string }
+        path:
+          {
+            type: string,
+            description: "Project-root-relative path, e.g. src/index.ts",
+          }
+        language:
+          {
+            type: string,
+            description: "ISO-ish language hint, e.g. typescript, json, md, env",
+          }
+        content: { type: string }
 
     CodebaseManifest:
       type: object
-      required: [framework, language, entrypoint, installCommand, runCommand, deployTarget]
+      required:
+        [
+          framework,
+          language,
+          entrypoint,
+          installCommand,
+          runCommand,
+          deployTarget,
+        ]
       properties:
-        framework:      { type: string }
-        language:       { type: string }
-        entrypoint:     { type: string }
+        framework: { type: string }
+        language: { type: string }
+        entrypoint: { type: string }
         installCommand: { type: string }
-        runCommand:     { type: string }
-        buildCommand:   { type: ["string", "null"] }
-        deployTarget:   { type: string }
+        runCommand: { type: string }
+        buildCommand: { type: ["string", "null"] }
+        deployTarget: { type: string }
 
     HarnessF8Input:
       type: object
       required: [sessionId, mvpPddArtifactId, platform]
       properties:
-        sessionId:        { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
         mvpPddArtifactId: { type: string, format: uuid }
-        platform:         { $ref: "#/components/schemas/CodeDjPlatform" }
+        platform: { $ref: "#/components/schemas/CodeDjPlatform" }
         notes:
           type: string
           description: Optional operator hints for the Code DJ (preferred libs, naming, etc.).
@@ -2267,6 +3357,79 @@ components:
           type: boolean
           description: Override the PFP drift gate. Required when the most recent PFP report for the same MVP PDD has any critical findings.
         provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    F9Phase:
+      type: object
+      required: [phase, evidence]
+      properties:
+        phase: { type: integer, minimum: 1, maximum: 7 }
+        evidence: { type: object, additionalProperties: true }
+
+    HarnessF9Input:
+      type: object
+      required: [sessionId, sourceArtifactId, deviceClass, phases]
+      properties:
+        sessionId: { type: string, format: uuid }
+        sourceArtifactId: { type: string, format: uuid }
+        deviceClass: { type: string, minLength: 1, maxLength: 200 }
+        artifactVersion: { type: string, pattern: '^[0-9]+\.[0-9]+\.[0-9]+$', default: "1.0.0" }
+        phases:
+          type: array
+          minItems: 7
+          maxItems: 7
+          items: { $ref: "#/components/schemas/F9Phase" }
+
+    F9Refusal:
+      type: object
+      required: [verdict, mecha_run_id, phase_halted, constraint_cited, invariant_cited, cause, required_to_proceed, gro_mode]
+      properties:
+        verdict: { type: string, enum: [REFUSED] }
+        mecha_run_id: { type: string }
+        phase_halted: { type: integer, minimum: 1, maximum: 7 }
+        constraint_cited: { type: string }
+        invariant_cited: { type: string }
+        cause: { type: string }
+        required_to_proceed: { type: string }
+        gro_mode: { type: string, enum: [HUMAN_IN_LOOP, CONTAINMENT, KILLZONE] }
+
+    F9MachineArtifact:
+      type: object
+      required: [machine_artifact_id, mecha_run_id, artifact_version, spk_id, mm_verdict, ucg_certificate, osiris_custody, reverification_due, payload_hash, artifact_signature, regulatory_conformity_asserted]
+      properties:
+        machine_artifact_id: { type: string }
+        mecha_run_id: { type: string }
+        artifact_version: { type: string }
+        source_artifact_id: { type: string, format: uuid }
+        spk_id: { type: string }
+        mm_verdict: { type: string, enum: [MATH_VERIFIED] }
+        ucg_certificate: { type: object, additionalProperties: true }
+        savant_verdict: { type: string, enum: [FIT, CLUSTER, N/A] }
+        osiris_custody: { type: boolean, enum: [true] }
+        reverification_due: { type: string, format: date-time }
+        payload_hash: { type: string, description: SHA-256 hash of canonical immutable payload }
+        artifact_signature: { type: string, description: HMAC signature; signing key is never returned }
+        regulatory_conformity_asserted: { type: boolean, enum: [false] }
+        evidence: { type: object, additionalProperties: true }
+
+    F9RunRecord:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        mechaRunId: { type: string }
+        sessionId: { type: string, format: uuid }
+        sourceArtifactId: { type: string, format: uuid }
+        evidenceHash: { type: string, description: SHA-256 hash of the canonical seven-phase evidence envelope }
+        idempotencyKey: { type: string, description: Stable SHA-256 key derived from source artifact, artifact version, and evidence hash }
+        status: { type: string, enum: [RUNNING, EMITTED, REFUSED] }
+        phase: { type: integer }
+        evidence:
+          type: array
+          items: { $ref: "#/components/schemas/F9Phase" }
+        refusal: { $ref: "#/components/schemas/F9Refusal" }
+        payloadHash: { type: string }
+        artifactSignature: { type: string }
+        artifactContent: { $ref: "#/components/schemas/F9MachineArtifact" }
+        osirisCustody: { type: boolean }
 
     HostPlatform:
       type: string
@@ -2286,7 +3449,7 @@ components:
       type: object
       required: [sessionId, mvpPddArtifactId]
       properties:
-        sessionId:        { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
         mvpPddArtifactId: { type: string, format: uuid }
         codebaseBundleArtifactId:
           type: string
@@ -2300,11 +3463,29 @@ components:
 
     HostingRequirementsProfile:
       type: object
-      required: [runtime, deployTarget, database, regions, compliance, scaleProfile, summary]
+      required:
+        [
+          runtime,
+          deployTarget,
+          database,
+          regions,
+          compliance,
+          scaleProfile,
+          summary,
+        ]
       properties:
-        runtime:      { type: string, description: "e.g. node, python, static, mobile" }
-        deployTarget: { type: string, description: "Surface implied by the PDD, e.g. web-service, static-site, mobile-app" }
-        database:     { type: string, description: "DB need, e.g. postgres, none, sqlite, managed-kv" }
+        runtime:
+          { type: string, description: "e.g. node, python, static, mobile" }
+        deployTarget:
+          {
+            type: string,
+            description: "Surface implied by the PDD, e.g. web-service, static-site, mobile-app",
+          }
+        database:
+          {
+            type: string,
+            description: "DB need, e.g. postgres, none, sqlite, managed-kv",
+          }
         regions:
           type: array
           items: { type: string }
@@ -2312,66 +3493,90 @@ components:
           type: array
           items: { type: string }
         scaleProfile: { type: string, enum: [prototype, low, medium, high] }
-        summary:      { type: string }
+        summary: { type: string }
 
     HseWeights:
       type: object
-      required: [stackCompat, cost, deploySimplicity, dbFit, cicd, compliance, scalability, lockin]
+      required:
+        [
+          stackCompat,
+          cost,
+          deploySimplicity,
+          dbFit,
+          cicd,
+          compliance,
+          scalability,
+          lockin,
+        ]
       description: Fixed Host-Selection-Engine criterion weights (sum 100), recomputed server-side.
       properties:
-        stackCompat:      { type: integer }
-        cost:             { type: integer }
+        stackCompat: { type: integer }
+        cost: { type: integer }
         deploySimplicity: { type: integer }
-        dbFit:            { type: integer }
-        cicd:             { type: integer }
-        compliance:       { type: integer }
-        scalability:      { type: integer }
-        lockin:           { type: integer }
+        dbFit: { type: integer }
+        cicd: { type: integer }
+        compliance: { type: integer }
+        scalability: { type: integer }
+        lockin: { type: integer }
 
     HseScores:
       type: object
-      required: [stackCompat, cost, deploySimplicity, dbFit, cicd, compliance, scalability, lockin]
+      required:
+        [
+          stackCompat,
+          cost,
+          deploySimplicity,
+          dbFit,
+          cicd,
+          compliance,
+          scalability,
+          lockin,
+        ]
       description: Per-criterion 0..10 scores. "lockin" is scored 10 = no vendor lock-in.
       properties:
-        stackCompat:      { type: number }
-        cost:             { type: number }
+        stackCompat: { type: number }
+        cost: { type: number }
         deploySimplicity: { type: number }
-        dbFit:            { type: number }
-        cicd:             { type: number }
-        compliance:       { type: number }
-        scalability:      { type: number }
-        lockin:           { type: number }
+        dbFit: { type: number }
+        cicd: { type: number }
+        compliance: { type: number }
+        scalability: { type: number }
+        lockin: { type: number }
 
     HseRow:
       type: object
       required: [platform, scores, weightedTotal]
       properties:
-        platform:      { $ref: "#/components/schemas/HostPlatform" }
-        scores:        { $ref: "#/components/schemas/HseScores" }
-        weightedTotal: { type: number, description: "0..100, recomputed server-side from scores × weights." }
+        platform: { $ref: "#/components/schemas/HostPlatform" }
+        scores: { $ref: "#/components/schemas/HseScores" }
+        weightedTotal:
+          {
+            type: number,
+            description: "0..100, recomputed server-side from scores × weights.",
+          }
 
     HostPick:
       type: object
       required: [platform, score, rationale]
       properties:
-        platform:  { $ref: "#/components/schemas/HostPlatform" }
-        score:     { type: number }
+        platform: { $ref: "#/components/schemas/HostPlatform" }
+        score: { type: number }
         rationale: { type: string }
 
     DeploymentJourneyPhase:
       type: object
       required: [name, detail]
       properties:
-        name:   { type: string }
+        name: { type: string }
         detail: { type: string }
 
     EnvTemplateEntry:
       type: object
       required: [key, description, required]
       properties:
-        key:         { type: string, description: "Env var NAME only — never a value." }
+        key: { type: string, description: "Env var NAME only — never a value." }
         description: { type: string }
-        required:    { type: boolean }
+        required: { type: boolean }
 
     SelfDeployFactory:
       type: object
@@ -2380,42 +3585,55 @@ components:
         envTemplate:
           type: array
           items: { $ref: "#/components/schemas/EnvTemplateEntry" }
-        ciYaml:      { type: string, description: "CI/CD pipeline YAML (advisory; contains no secrets)." }
+        ciYaml:
+          {
+            type: string,
+            description: "CI/CD pipeline YAML (advisory; contains no secrets).",
+          }
         healthCheck: { type: string }
-        rollback:    { type: string }
+        rollback: { type: string }
 
     HostingPlan:
       type: object
-      required: [artifactId, hrp, weights, hse, primary, fallback, journey, sdf, jcse]
+      required:
+        [artifactId, hrp, weights, hse, primary, fallback, journey, sdf, jcse]
       properties:
         artifactId: { type: string, format: uuid }
-        hrp:        { $ref: "#/components/schemas/HostingRequirementsProfile" }
-        weights:    { $ref: "#/components/schemas/HseWeights" }
+        hrp: { $ref: "#/components/schemas/HostingRequirementsProfile" }
+        weights: { $ref: "#/components/schemas/HseWeights" }
         hse:
           type: array
           description: Candidate hosts ranked desc by weightedTotal.
           items: { $ref: "#/components/schemas/HseRow" }
-        primary:    { $ref: "#/components/schemas/HostPick" }
-        fallback:   { $ref: "#/components/schemas/HostPick" }
+        primary: { $ref: "#/components/schemas/HostPick" }
+        fallback: { $ref: "#/components/schemas/HostPick" }
         journey:
           type: object
           required: [tier, phases]
           properties:
-            tier: { type: string, description: "Recommended deployment tier on the primary host." }
+            tier:
+              {
+                type: string,
+                description: "Recommended deployment tier on the primary host.",
+              }
             phases:
               type: array
               items: { $ref: "#/components/schemas/DeploymentJourneyPhase" }
-        sdf:  { $ref: "#/components/schemas/SelfDeployFactory" }
-        jcse: { type: number, description: "Journey Confidence / Self-deploy Estimate 0..100, derived server-side from the winning weighted score." }
+        sdf: { $ref: "#/components/schemas/SelfDeployFactory" }
+        jcse:
+          {
+            type: number,
+            description: "Journey Confidence / Self-deploy Estimate 0..100, derived server-side from the winning weighted score.",
+          }
         notes: { type: string }
 
     HarnessAtlasCrystalliseInput:
       type: object
       required: [sessionId, atlasPddArtifactId]
       properties:
-        sessionId:           { type: string, format: uuid }
-        atlasPddArtifactId:  { type: string, format: uuid }
-        provider:            { $ref: "#/components/schemas/LlmProvider" }
+        sessionId: { type: string, format: uuid }
+        atlasPddArtifactId: { type: string, format: uuid }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     AtlasPddJsonPhase:
       type: string
@@ -2423,12 +3641,22 @@ components:
 
     AtlasPddJsonPrompt:
       type: object
-      required: [id, phase, title, operation, classification, dependencies, sourceSection]
+      required:
+        [
+          id,
+          phase,
+          title,
+          operation,
+          classification,
+          dependencies,
+          sourceSection,
+        ]
       properties:
-        id:             { type: string, description: "Stable id of the form P-<PHASE>-<NNN>" }
-        phase:          { $ref: "#/components/schemas/AtlasPddJsonPhase" }
-        title:          { type: string }
-        operation:      { type: string }
+        id:
+          { type: string, description: "Stable id of the form P-<PHASE>-<NNN>" }
+        phase: { $ref: "#/components/schemas/AtlasPddJsonPhase" }
+        title: { type: string }
+        operation: { type: string }
         classification: { type: string, enum: [A, B, C] }
         dependencies:
           type: array
@@ -2439,12 +3667,22 @@ components:
 
     AtlasPddJson:
       type: object
-      required: [artifactId, schemaVersion, title, summary, prompts, stack, routes, deployTarget]
+      required:
+        [
+          artifactId,
+          schemaVersion,
+          title,
+          summary,
+          prompts,
+          stack,
+          routes,
+          deployTarget,
+        ]
       properties:
-        artifactId:    { type: string, format: uuid }
+        artifactId: { type: string, format: uuid }
         schemaVersion: { type: string, enum: ["atlas-pdd-v1"] }
-        title:         { type: string }
-        summary:       { type: string }
+        title: { type: string }
+        summary: { type: string }
         prompts:
           type: array
           items: { $ref: "#/components/schemas/AtlasPddJsonPrompt" }
@@ -2454,16 +3692,88 @@ components:
         routes:
           type: array
           items: { type: string }
-        deployTarget:  { type: string }
+        deployTarget: { type: string }
+
+    Atlas360PddViewPart:
+      type: object
+      required: [part, title, content]
+      properties:
+        part: { type: integer, minimum: 0, maximum: 11 }
+        title: { type: string }
+        content: { type: string }
+
+    Atlas360PlanView:
+      type: object
+      required: [schemaVersion, view, title, parts]
+      properties:
+        schemaVersion: { type: string, enum: [atlas-360-plan-v1] }
+        view: { type: string, enum: [PLAN] }
+        title: { type: string }
+        parts:
+          type: array
+          minItems: 12
+          maxItems: 12
+          items: { $ref: "#/components/schemas/Atlas360PddViewPart" }
+
+    Atlas360ScanStage:
+      type: object
+      required: [stage, name, evidence, assessment, actions]
+      properties:
+        stage: { type: integer, minimum: 1, maximum: 8 }
+        name: { type: string }
+        evidence:
+          type: array
+          items: { type: string }
+        assessment: { type: string }
+        actions:
+          type: array
+          items: { type: string }
+
+    Atlas360ScanView:
+      type: object
+      required: [schemaVersion, view, title, stages]
+      properties:
+        schemaVersion: { type: string, enum: [atlas-360-scan-v1] }
+        view: { type: string, enum: [SCAN] }
+        title: { type: string }
+        stages:
+          type: array
+          minItems: 8
+          maxItems: 8
+          items: { $ref: "#/components/schemas/Atlas360ScanStage" }
+
+    Atlas360PddViewResponse:
+      type: object
+      required: [artifactId, sourceArtifactId, sourceArtifactType, view]
+      properties:
+        artifactId: { type: string, format: uuid }
+        sourceArtifactId: { type: string, format: uuid }
+        sourceArtifactType: { type: string, enum: [ATLAS_PDD, MVP_PDD] }
+        sourceCodebaseBundleArtifactId:
+          type: [string, "null"]
+          format: uuid
+        sourcePfpReportArtifactId:
+          type: [string, "null"]
+          format: uuid
+        disclosure: { type: string }
+        schemaVersion: { type: string }
+        view: { type: string, enum: [PLAN, SCAN] }
+        title: { type: string }
+        parts:
+          type: array
+          items: { $ref: "#/components/schemas/Atlas360PddViewPart" }
+        stages:
+          type: array
+          items: { $ref: "#/components/schemas/Atlas360ScanStage" }
 
     HarnessPfpInput:
       type: object
       required: [sessionId, mvpPddArtifactId, codebaseBundleArtifactId]
       properties:
-        sessionId:                { type: string, format: uuid }
-        mvpPddArtifactId:         { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
+        mvpPddArtifactId: { type: string, format: uuid }
         codebaseBundleArtifactId: { type: string, format: uuid }
-        provider:                 { $ref: "#/components/schemas/LlmProvider" }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
 
     PfpFindingCode:
       type: string
@@ -2484,11 +3794,11 @@ components:
       type: object
       required: [code, severity, pddRef, codeRef, detail]
       properties:
-        code:     { $ref: "#/components/schemas/PfpFindingCode" }
+        code: { $ref: "#/components/schemas/PfpFindingCode" }
         severity: { $ref: "#/components/schemas/PfpFindingSeverity" }
-        pddRef:   { type: string }
-        codeRef:  { type: string }
-        detail:   { type: string }
+        pddRef: { type: string }
+        codeRef: { type: string }
+        detail: { type: string }
 
     PfpReport:
       type: object
@@ -2498,9 +3808,9 @@ components:
         f0ReportCode:
           type: ["string", "null"]
           description: F0 advisory report code assigned at report-generation time, formatted [CODE]-[SKU]-[TIMESTAMP] and anchored to the owning MVP PDD's SKU. Null when the source MVP PDD has no SKU yet.
-        verdict:    { type: string, enum: [pass, pass_with_notes, fail] }
-        fci:        { type: integer, minimum: 0, maximum: 100 }
-        summary:    { type: string }
+        verdict: { type: string, enum: [pass, pass_with_notes, fail] }
+        fci: { type: integer, minimum: 0, maximum: 100 }
+        summary: { type: string }
         findings:
           type: array
           items: { $ref: "#/components/schemas/PfpFinding" }
@@ -2509,21 +3819,21 @@ components:
           required: [critical, high, medium, low]
           properties:
             critical: { type: integer }
-            high:     { type: integer }
-            medium:   { type: integer }
-            low:      { type: integer }
+            high: { type: integer }
+            medium: { type: integer }
+            low: { type: integer }
 
     CodebaseBundle:
       type: object
       required: [artifactId, platform, manifest, files, notes]
       properties:
         artifactId: { type: string, format: uuid }
-        platform:   { $ref: "#/components/schemas/CodeDjPlatform" }
-        manifest:   { $ref: "#/components/schemas/CodebaseManifest" }
+        platform: { $ref: "#/components/schemas/CodeDjPlatform" }
+        manifest: { $ref: "#/components/schemas/CodebaseManifest" }
         files:
           type: array
           items: { $ref: "#/components/schemas/CodebaseFile" }
-        notes:      { type: string }
+        notes: { type: string }
 
     Subscriber:
       type: object
@@ -2591,17 +3901,43 @@ components:
         exact same SUM over harness_engine_runs.cost_usd that the
         requireCostBudget gate enforces, so the meter always matches the
         server's own 402 decision.
-      required: [usedUsd, capUsd, percentUsed, overCap, warnLevel, monthResetsAt, alertsSent]
+      required:
+        [
+          usedUsd,
+          capUsd,
+          percentUsed,
+          overCap,
+          warnLevel,
+          monthResetsAt,
+          alertsSent,
+        ]
       properties:
-        usedUsd: { type: number, description: "Month-to-date company-wide LLM spend (USD)" }
+        usedUsd:
+          {
+            type: number,
+            description: "Month-to-date company-wide LLM spend (USD)",
+          }
         capUsd: { type: number, description: "The shared monthly cap (USD)" }
-        percentUsed: { type: number, description: "usedUsd / capUsd as a percentage, clamped to [0, 100]" }
-        overCap: { type: boolean, description: "True once engine routes are being refused with 402 COST_CAP_EXCEEDED" }
+        percentUsed:
+          {
+            type: number,
+            description: "usedUsd / capUsd as a percentage, clamped to [0, 100]",
+          }
+        overCap:
+          {
+            type: boolean,
+            description: "True once engine routes are being refused with 402 COST_CAP_EXCEEDED",
+          }
         warnLevel:
           type: string
           enum: [ok, warn, critical, blocked]
           description: "ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached"
-        monthResetsAt: { type: string, format: date-time, description: "Start of next UTC month, when the spend counter resets" }
+        monthResetsAt:
+          {
+            type: string,
+            format: date-time,
+            description: "Start of next UTC month, when the spend counter resets",
+          }
         alertsSent:
           type: array
           description: >
@@ -2619,7 +3955,12 @@ components:
         thresholdPercent:
           type: integer
           description: "Threshold crossed when the alert was sent: 80, 95, or 100 (percent of the monthly cap)"
-        sentAt: { type: string, format: date-time, description: "When the admin alert email was dispatched" }
+        sentAt:
+          {
+            type: string,
+            format: date-time,
+            description: "When the admin alert email was dispatched",
+          }
 
     CompanySpendUserRow:
       type: object
@@ -2632,8 +3973,16 @@ components:
         email:
           type: string
           nullable: true
-        costUsd: { type: number, description: "Month-to-date LLM spend for this user (USD)" }
-        runs: { type: integer, description: "Engine runs recorded this month for this user" }
+        costUsd:
+          {
+            type: number,
+            description: "Month-to-date LLM spend for this user (USD)",
+          }
+        runs:
+          {
+            type: integer,
+            description: "Engine runs recorded this month for this user",
+          }
         sharePercent:
           type: number
           description: "This user's share of the company-wide month-to-date spend, 0-100"
@@ -2648,9 +3997,18 @@ components:
         one run this month appear.
       required: [totalUsd, capUsd, monthResetsAt, users]
       properties:
-        totalUsd: { type: number, description: "Company-wide month-to-date spend (USD) — the sum of all rows" }
+        totalUsd:
+          {
+            type: number,
+            description: "Company-wide month-to-date spend (USD) — the sum of all rows",
+          }
         capUsd: { type: number, description: "The shared monthly cap (USD)" }
-        monthResetsAt: { type: string, format: date-time, description: "Start of next UTC month" }
+        monthResetsAt:
+          {
+            type: string,
+            format: date-time,
+            description: "Start of next UTC month",
+          }
         users:
           type: array
           items: { $ref: "#/components/schemas/CompanySpendUserRow" }
@@ -2678,7 +4036,16 @@ components:
 
     MyDataExport:
       type: object
-      required: [exportedAt, user, subscriber, sessions, artifacts, badges, engineRunCount]
+      required:
+        [
+          exportedAt,
+          user,
+          subscriber,
+          sessions,
+          artifacts,
+          badges,
+          engineRunCount,
+        ]
       properties:
         exportedAt: { type: string, format: date-time }
         user:
@@ -2713,7 +4080,18 @@ components:
 
     HarnessSession:
       type: object
-      required: [id, sessionName, status, origin, ingestionId, cartridgeId, preferredModelProvider, createdAt, updatedAt]
+      required:
+        [
+          id,
+          sessionName,
+          status,
+          origin,
+          ingestionId,
+          cartridgeId,
+          preferredModelProvider,
+          createdAt,
+          updatedAt,
+        ]
       properties:
         id: { type: string, format: uuid }
         sessionName: { type: string }
@@ -2728,8 +4106,17 @@ components:
     IngestionDocument:
       type: object
       required:
-        [id, originalFilename, mimeType, fileSizeBytes, sourceDocKind,
-         extractedTextChars, summary, seedPrompt, createdAt]
+        [
+          id,
+          originalFilename,
+          mimeType,
+          fileSizeBytes,
+          sourceDocKind,
+          extractedTextChars,
+          summary,
+          seedPrompt,
+          createdAt,
+        ]
       properties:
         id: { type: string, format: uuid }
         originalFilename: { type: string }
@@ -2737,7 +4124,14 @@ components:
         fileSizeBytes: { type: integer }
         sourceDocKind:
           type: string
-          enum: [product_design_document, software_design_document, concept_note, spec_sheet, other]
+          enum:
+            [
+              product_design_document,
+              software_design_document,
+              concept_note,
+              spec_sheet,
+              other,
+            ]
         detectedTitle: { type: string, nullable: true }
         extractedTextChars: { type: integer }
         summary: { type: string }
@@ -2746,7 +4140,17 @@ components:
 
     ContextCraftBadge:
       type: object
-      required: [pillar, letter, earned, bestScore, maxScore, threshold, firstEarnedAt, evidenceArtifactId]
+      required:
+        [
+          pillar,
+          letter,
+          earned,
+          bestScore,
+          maxScore,
+          threshold,
+          firstEarnedAt,
+          evidenceArtifactId,
+        ]
       properties:
         pillar:
           type: string
@@ -2805,7 +4209,8 @@ components:
 
     HarnessArtifact:
       type: object
-      required: [id, sessionId, featureId, artifactType, artifactContent, createdAt]
+      required:
+        [id, sessionId, featureId, artifactType, artifactContent, createdAt]
       properties:
         id: { type: string, format: uuid }
         sessionId: { type: string, format: uuid }
@@ -2820,7 +4225,8 @@ components:
         spartanCert: { type: ["object", "null"], additionalProperties: true }
         mathmonScore: { type: ["integer", "null"] }
         forgeVerified: { type: boolean }
-        provider: { type: ["string", "null"], enum: [claude, openai, gemini, null] }
+        provider:
+          { type: ["string", "null"], enum: [claude, openai, gemini, null] }
         modelId: { type: ["string", "null"] }
         runDurationMs: { type: ["integer", "null"] }
         runInputTokens: { type: ["integer", "null"] }
@@ -2830,7 +4236,8 @@ components:
 
     JcseBreakdown:
       type: object
-      required: [system, role, instruction, example, constraint, format, data, total]
+      required:
+        [system, role, instruction, example, constraint, format, data, total]
       properties:
         system: { type: integer }
         role: { type: integer }
@@ -2934,7 +4341,14 @@ components:
     MagnetCalculatorResult:
       type: object
       required:
-        [magnetSessionId, savingsLowPct, savingsHighPct, compressionClass, headline, rationale]
+        [
+          magnetSessionId,
+          savingsLowPct,
+          savingsHighPct,
+          compressionClass,
+          headline,
+          rationale,
+        ]
       properties:
         magnetSessionId: { type: string, format: uuid }
         savingsLowPct: { type: integer }
@@ -3198,7 +4612,13 @@ components:
 
     MathmonIntakeReport:
       type: object
-      required: [measurableVariables, constraintCategories, optimisationTargets, summary]
+      required:
+        [
+          measurableVariables,
+          constraintCategories,
+          optimisationTargets,
+          summary,
+        ]
       properties:
         measurableVariables:
           type: array
@@ -3249,7 +4669,17 @@ components:
     MathmonMap:
       type: object
       required:
-        [id, sessionId, sections, mathCoherence, applicability, predictiveReliability, mathmonScore, disclaimer, createdAt]
+        [
+          id,
+          sessionId,
+          sections,
+          mathCoherence,
+          applicability,
+          predictiveReliability,
+          mathmonScore,
+          disclaimer,
+          createdAt,
+        ]
       properties:
         id: { type: string, format: uuid }
         sessionId: { type: string, format: uuid }
@@ -3348,7 +4778,15 @@ components:
 
     CartridgeDocumentSummary:
       type: object
-      required: [id, originalFilename, mimeType, fileSizeBytes, extractedTextChars, summary]
+      required:
+        [
+          id,
+          originalFilename,
+          mimeType,
+          fileSizeBytes,
+          extractedTextChars,
+          summary,
+        ]
       properties:
         id: { type: string, format: uuid }
         originalFilename: { type: string }
@@ -3378,8 +4816,18 @@ components:
     CartridgePackage:
       type: object
       required:
-        [id, projectName, outcomeOneLiner, scopeStatement, seedPrompt, summary,
-         createdAt, documents, spcs, links]
+        [
+          id,
+          projectName,
+          outcomeOneLiner,
+          scopeStatement,
+          seedPrompt,
+          summary,
+          createdAt,
+          documents,
+          spcs,
+          links,
+        ]
       properties:
         id: { type: string, format: uuid }
         projectName: { type: string }
@@ -3490,7 +4938,20 @@ components:
 
     ExemplarSummary:
       type: object
-      required: [id, title, tagline, jcse, certClass, source, kind, sku, disc]
+      required:
+        [
+          id,
+          title,
+          tagline,
+          jcse,
+          certClass,
+          source,
+          kind,
+          sku,
+          disc,
+          marketplace,
+          spcPlayer,
+        ]
       properties:
         id: { type: string }
         title: { type: string }
@@ -3503,10 +4964,18 @@ components:
           enum: [canonical, hand_authored, generated]
         kind:
           type: string
-          enum: [SPC, PDD]
+          enum: [SPC, MA, MPDD, PDD]
+        marketplace:
+          type: string
+          enum: [curated, open]
+        createdAt: { type: string, format: date-time }
         disc:
           type: ["string", "null"]
           description: "DISC personality profile (Dominance / Influence / Steadiness / Conscientiousness). Every SPC has a unique DISC fingerprint; PDDs are null."
+        spcPlayer:
+          oneOf:
+            - $ref: "#/components/schemas/SpcPlayerPublication"
+            - type: "null"
 
     Exemplar:
       allOf:
@@ -3515,6 +4984,142 @@ components:
           required: [body]
           properties:
             body: { type: string }
+
+    ExemplarUploadResponse:
+      type: object
+      required: [items, count]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/ExemplarSummary" }
+        count: { type: integer }
+
+    AddArtifactToExemplarLibraryRequest:
+      type: object
+      required: [artifactId]
+      properties:
+        artifactId: { type: string, format: uuid }
+
+    SpcQualityScores:
+      type: object
+      required: [clarity, truthfulness, detectability]
+      additionalProperties: false
+      description: Three independent advisory axes. Null means the check has not run. No composite score is permitted.
+      properties:
+        clarity: { type: ["number", "null"] }
+        truthfulness: { type: ["number", "null"] }
+        detectability: { type: ["number", "null"] }
+
+    SpcEnvironmentNote:
+      type: object
+      required: [environment, status, note]
+      properties:
+        environment: { type: string }
+        status:
+          type: string
+          enum: [sketch, verified_integration]
+        note: { type: string }
+
+    SpcCheatSheet:
+      type: object
+      required:
+        [
+          mission,
+          skillSet,
+          useCases,
+          productionProcess,
+          thirdPartyDefinitions,
+          environmentNotes,
+        ]
+      properties:
+        mission: { type: string }
+        skillSet:
+          type: array
+          items: { type: string }
+        useCases:
+          type: array
+          items: { type: string }
+        productionProcess:
+          type: array
+          items: { type: string }
+        thirdPartyDefinitions:
+          type: ["array", "null"]
+          items: { type: string }
+        environmentNotes:
+          type: array
+          items: { $ref: "#/components/schemas/SpcEnvironmentNote" }
+
+    SpcPlayerPublication:
+      type: object
+      required:
+        [
+          registryVersion,
+          publicationStatus,
+          cheatSheetPublished,
+          publishedBy,
+          publishedAt,
+          cheatSheet,
+          qualityScores,
+        ]
+      properties:
+        registryVersion: { type: string }
+        publicationStatus:
+          type: string
+          enum: [legacy, draft, published]
+        cheatSheetPublished: { type: boolean }
+        publishedBy:
+          type: ["string", "null"]
+          enum: [sphinx_engine, null]
+        publishedAt: { type: ["string", "null"], format: date-time }
+        cheatSheet:
+          oneOf:
+            - $ref: "#/components/schemas/SpcCheatSheet"
+            - type: "null"
+        qualityScores: { $ref: "#/components/schemas/SpcQualityScores" }
+
+    SpcDevKitCard:
+      type: object
+      required: [key, name, responsibility, status]
+      properties:
+        key: { type: string }
+        name: { type: string }
+        responsibility: { type: string }
+        status:
+          type: string
+          enum: [registered_pre_build]
+
+    SpcPlayerRegistry:
+      type: object
+      required:
+        [
+          productionId,
+          version,
+          status,
+          cards,
+          environments,
+          qualityPolicy,
+          executionAuthority,
+        ]
+      properties:
+        productionId: { type: string }
+        version: { type: string }
+        status:
+          type: string
+          enum: [pre_build]
+        cards:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items: { $ref: "#/components/schemas/SpcDevKitCard" }
+        environments:
+          type: array
+          minItems: 10
+          maxItems: 10
+          items: { type: string }
+        qualityPolicy: { type: string }
+        executionAuthority:
+          type: string
+          enum: ["user-authorized REVERB v3 derivation"]
 
     PromptLibraryItem:
       type: object
@@ -3526,7 +5131,11 @@ components:
         artifactType: { $ref: "#/components/schemas/ArtifactType" }
         certTier: { type: ["string", "null"] }
         jcseScore: { type: ["integer", "null"] }
-        spcOrigin: { type: ["string", "null"], enum: [artisanal, digitally_evolved, null] }
+        spcOrigin:
+          {
+            type: ["string", "null"],
+            enum: [artisanal, digitally_evolved, null],
+          }
         preview: { type: string }
         createdAt: { type: string, format: date-time }
 
@@ -3560,7 +5169,8 @@ components:
           restoredNote,
         ]
       properties:
-        badgeId: { type: string, enum: [ASPE, AISA, AISE, AISA_PWDD, AISE_BUILD] }
+        badgeId:
+          { type: string, enum: [ASPE, AISA, AISE, AISA_PWDD, AISE_BUILD] }
         status: { type: string, enum: [LOCKED, UNLOCKED, CLAIMED, REVOKED] }
         eligible: { type: boolean }
         progress: { type: object, additionalProperties: { type: integer } }
@@ -3578,14 +5188,42 @@ components:
       type: object
       required: [jobsScore, skillsScore, talentScore]
       properties:
-        jobsScore: { type: integer, minimum: 1, maximum: 10, description: "Jobs — paid work / market demand for what you do (1-10)." }
-        skillsScore: { type: integer, minimum: 1, maximum: 10, description: "Skills — learned, practised capability (1-10)." }
-        talentScore: { type: integer, minimum: 1, maximum: 10, description: "Talent — innate edge / natural advantage (1-10)." }
+        jobsScore:
+          {
+            type: integer,
+            minimum: 1,
+            maximum: 10,
+            description: "Jobs — paid work / market demand for what you do (1-10).",
+          }
+        skillsScore:
+          {
+            type: integer,
+            minimum: 1,
+            maximum: 10,
+            description: "Skills — learned, practised capability (1-10).",
+          }
+        talentScore:
+          {
+            type: integer,
+            minimum: 1,
+            maximum: 10,
+            description: "Talent — innate edge / natural advantage (1-10).",
+          }
         notes: { type: string, maxLength: 2000 }
 
     JstAssessment:
       type: object
-      required: [id, jobsScore, skillsScore, talentScore, composite, band, source, createdAt]
+      required:
+        [
+          id,
+          jobsScore,
+          skillsScore,
+          talentScore,
+          composite,
+          band,
+          source,
+          createdAt,
+        ]
       properties:
         id: { type: string, format: uuid }
         jobsScore: { type: integer }
@@ -3604,7 +5242,14 @@ components:
       type: object
       required: [latest, history, count]
       properties:
-        latest: { oneOf: [{ $ref: "#/components/schemas/JstAssessment" }, { type: "null" }] }
+        latest:
+          {
+            oneOf:
+              [
+                { $ref: "#/components/schemas/JstAssessment" },
+                { type: "null" },
+              ],
+          }
         history:
           type: array
           items: { $ref: "#/components/schemas/JstAssessment" }
@@ -3626,17 +5271,41 @@ components:
 
     AscensionRung:
       type: object
-      required: [index, key, title, role, engine, chapter, blurb, complete, current, progress, target, actionLabel, actionHref]
+      required:
+        [
+          index,
+          key,
+          title,
+          role,
+          engine,
+          chapter,
+          blurb,
+          complete,
+          current,
+          progress,
+          target,
+          actionLabel,
+          actionHref,
+        ]
       properties:
         index: { type: integer, description: "0-based position on the ladder." }
         key: { type: string, description: "Stable rung identifier." }
         title: { type: string, description: "Badge / rung name." }
-        role: { type: string, description: "Operator persona earned at this rung." }
-        engine: { type: string, description: "Platform action / engine that proves the rung." }
+        role:
+          { type: string, description: "Operator persona earned at this rung." }
+        engine:
+          {
+            type: string,
+            description: "Platform action / engine that proves the rung.",
+          }
         chapter: { type: string, description: "Anchor in The Atomic Prompt." }
         blurb: { type: string }
         complete: { type: boolean }
-        current: { type: boolean, description: "The next incomplete rung — the reader's focus." }
+        current:
+          {
+            type: boolean,
+            description: "The next incomplete rung — the reader's focus.",
+          }
         progress: { type: integer, minimum: 0 }
         target: { type: integer, minimum: 1 }
         actionLabel: { type: string }
@@ -3650,7 +5319,11 @@ components:
         readerCode: { type: ["string", "null"] }
         completedCount: { type: integer, minimum: 0 }
         totalCount: { type: integer, minimum: 1 }
-        band: { type: ["string", "null"], enum: [SEEKER, BUILDER, OPERATOR, ASCENDANT, null] }
+        band:
+          {
+            type: ["string", "null"],
+            enum: [SEEKER, BUILDER, OPERATOR, ASCENDANT, null],
+          }
         rungs:
           type: array
           items: { $ref: "#/components/schemas/AscensionRung" }
@@ -3747,7 +5420,8 @@ components:
 
     AdminBadgeRevocationPreview:
       type: object
-      required: [userId, badgeId, badgeExists, currentStatus, revocationCount, history]
+      required:
+        [userId, badgeId, badgeExists, currentStatus, revocationCount, history]
       properties:
         userId: { type: string, format: uuid }
         badgeId: { type: string, enum: [AISE, AISE_BUILD] }
@@ -3766,7 +5440,8 @@ components:
           nullable: true
         history:
           type: array
-          items: { $ref: "#/components/schemas/AdminBadgeRevocationPreviewEntry" }
+          items:
+            { $ref: "#/components/schemas/AdminBadgeRevocationPreviewEntry" }
 
     AdminBadgeRevocationsList:
       type: object
@@ -3791,6 +5466,9 @@ components:
           neverTicked,
           minutesSinceLastTick,
           stale,
+          recentTicks,
+          ticksLast24h,
+          expectedTicksLast24h,
         ]
       properties:
         target: { type: string }
@@ -3804,6 +5482,16 @@ components:
         neverTicked: { type: boolean }
         minutesSinceLastTick: { type: integer, nullable: true }
         stale: { type: boolean }
+        recentTicks:
+          type: array
+          description: Most recent tick timestamps (newest first), bounded window.
+          items: { type: string, format: date-time }
+        ticksLast24h:
+          type: integer
+          description: Ticks observed in the trailing 24h window.
+        expectedTicksLast24h:
+          type: integer
+          description: Ticks the schedule should produce in 24h (0 for schedules coarser than daily).
 
     AdminCronStatus:
       type: object
@@ -3825,3 +5513,361 @@ components:
           minItems: 2
           maxItems: 12
         provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    SpcDraftCheatSheet:
+      type: object
+      additionalProperties: false
+      required:
+        [generalDefinition, generalProductionProcess, environmentNotes, thirdPartyDefinitions, publishedBy]
+      properties:
+        generalDefinition:
+          type: object
+          additionalProperties: false
+          required: [mission, skillSet, useCases]
+          properties:
+            mission: { type: string }
+            skillSet:
+              type: array
+              items: { type: string }
+            useCases:
+              type: array
+              items: { type: string }
+        generalProductionProcess:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [step, description]
+            properties:
+              step: { type: integer }
+              description: { type: string }
+        environmentNotes:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [environment, note, status]
+            properties:
+              environment: { type: string }
+              note: { type: string }
+              status: { type: string, enum: [sketch, verified_integration] }
+        thirdPartyDefinitions:
+          nullable: true
+          type: array
+          items: { type: string }
+        publishedBy: { type: string, enum: [sphinx_engine] }
+
+    SpcLibraryCard:
+      type: object
+      additionalProperties: false
+      required:
+        [id, slug, name, provenance, status, preBuild, cheatSheetPublished, cheatSheet, thirdPartyDefinitions]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        provenance:
+          type: object
+          additionalProperties: false
+          required: [source, version, status]
+          properties:
+            source: { type: string }
+            version: { type: string }
+            status: { type: string }
+            exemplarId: { type: string }
+            marketplace: { type: string, enum: [curated, open] }
+            tagline: { type: string }
+            searchText:
+              {
+                type: string,
+                description: Search-only excerpt used for deterministic Capability Brief matching,
+              }
+        status: { type: string, enum: [PRE_BUILD] }
+        preBuild: { type: boolean }
+        cheatSheetPublished: { type: boolean }
+        cheatSheet:
+          allOf:
+            - $ref: "#/components/schemas/SpcDraftCheatSheet"
+          nullable: true
+        thirdPartyDefinitions:
+          nullable: true
+          type: array
+          items: { type: string }
+
+    SpcDevKit:
+      type: object
+      additionalProperties: false
+      required: [id, name, cardIds, cards, registrationNote, executes]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, enum: ["SPC Dev Kit"] }
+        cardIds:
+          type: array
+          items: { type: string, format: uuid }
+          minItems: 6
+          maxItems: 6
+        cards:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items: { $ref: "#/components/schemas/SpcLibraryCard" }
+        registrationNote: { type: string }
+        executes:
+          type: boolean
+          enum: [false]
+
+    CreateSpcPlayerRunInput:
+      type: object
+      additionalProperties: false
+      required: [title, brief, selectedCardIds]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 255 }
+        brief: { type: string, minLength: 1, maxLength: 100000 }
+        selectedCardIds:
+          type: array
+          minItems: 1
+          maxItems: 12
+          uniqueItems: true
+          items: { type: string, format: uuid }
+        profile:
+          type: string
+          enum: [full, rapid]
+          default: full
+
+    ExecuteSpcPlayerRunInput:
+      type: object
+      additionalProperties: false
+      properties:
+        provider:
+          type: string
+          enum: [claude, openai, gemini]
+
+    SpcPlayerScores:
+      type: object
+      additionalProperties: false
+      description: Independent nullable 0-100 axes only; composite scores are prohibited.
+      properties:
+        clarity: { type: ["number", "null"], minimum: 0, maximum: 100 }
+        truthfulness: { type: ["number", "null"], minimum: 0, maximum: 100 }
+        detectability: { type: ["number", "null"], minimum: 0, maximum: 100 }
+
+    SpcPlayerStageResult:
+      type: object
+      additionalProperties: false
+      required: [stageIndex, cardId, cardSlug, invoked, verdict, content, evidence]
+      properties:
+        stageIndex: { type: integer, minimum: 0 }
+        cardId: { type: string, format: uuid }
+        cardSlug: { type: string }
+        invoked: { type: boolean, enum: [true] }
+        verdict: { type: string }
+        content: { type: string }
+        evidence:
+          type: array
+          items: { type: string }
+        completedAt: { type: ["string", "null"], format: date-time }
+
+    SpcPlayerGovernanceEvaluation:
+      type: object
+      additionalProperties: false
+      required: [kind, invoked, verdict, content, evidence, scores, completedAt]
+      properties:
+        kind: { type: string, enum: [governance_evaluation] }
+        invoked: { type: boolean, enum: [true] }
+        verdict: { type: string }
+        content: { type: string }
+        evidence:
+          type: array
+          items: { type: string }
+        scores: { $ref: "#/components/schemas/SpcPlayerScores" }
+        completedAt: { type: string, format: date-time }
+
+    SpcPlayerExecutionAdvisory:
+      type: object
+      additionalProperties: false
+      required: [authority, status, profile, invokedStages, governanceEvaluationInvoked, evidenceTrail, distribution]
+      properties:
+        authority:
+          type: string
+          enum: ["user-authorized REVERB v3 derivation"]
+        status: { type: string, enum: [PRE_BUILD] }
+        profile: { type: string, enum: [full, rapid] }
+        invokedStages:
+          type: array
+          items: { type: integer, minimum: 0 }
+        governanceEvaluationInvoked: { type: boolean }
+        evidenceTrail:
+          type: array
+          items: { type: string }
+        distribution:
+          type: string
+          enum: ["plan-only; no connector invoked"]
+
+    SpcPlayerDistributionPlan:
+      type: object
+      additionalProperties: false
+      required: [status, connectorInvoked, externalSend]
+      properties:
+        status: { type: string, enum: [plan_only] }
+        connectorInvoked: { type: boolean, enum: [false] }
+        externalSend: { type: boolean, enum: [false] }
+
+    SpcPlayerOutputPackage:
+      type: object
+      additionalProperties: false
+      description: Completed SPC content plus its non-detachable advisory.
+      required: [content, governanceEvaluation, advisory, scores, distributionPlan]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/SpcPlayerStageResult" }
+        advisory: { $ref: "#/components/schemas/SpcPlayerExecutionAdvisory" }
+        governanceEvaluation: { $ref: "#/components/schemas/SpcPlayerGovernanceEvaluation" }
+        scores: { $ref: "#/components/schemas/SpcPlayerScores" }
+        distributionPlan: { $ref: "#/components/schemas/SpcPlayerDistributionPlan" }
+
+    SpcPlayerGovernance:
+      type: object
+      additionalProperties: false
+      required: [specVersion, source, scorePolicy]
+      properties:
+        specVersion: { type: string, enum: ["v4.0"] }
+        source: { type: string }
+        scorePolicy:
+          type: object
+          additionalProperties: false
+          required: [axes]
+          properties:
+            axes:
+              type: array
+              minItems: 3
+              maxItems: 3
+              items:
+                type: string
+                enum: [clarity, truthfulness, detectability]
+
+    SpcPlayerRun:
+      type: object
+      additionalProperties: false
+      required:
+        [id, ownerUserId, title, brief, selectedCardIds, profile, status, executionState, canExecute, retryAvailableAt, governance, stageResults, governanceEvaluation, executionAdvisory, distributionPlan, error, transitions, completedAt, outputPackage, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        ownerUserId: { type: string, format: uuid }
+        title: { type: string }
+        brief: { type: string }
+        selectedCardIds:
+          type: array
+          items: { type: string, format: uuid }
+        profile: { type: string, enum: [full, rapid] }
+        status: { type: string, enum: [DRAFT, RUNNING, COMPLETED, FAILED] }
+        executionState:
+          type: string
+          enum: [IDLE, ACTIVE, RECOVERABLE, FINISHED]
+          description: Public execution availability without internal attempt credentials.
+        canExecute:
+          type: boolean
+          description: Whether a new execution attempt may be claimed now.
+        retryAvailableAt:
+          type: ["string", "null"]
+          format: date-time
+          description: When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.
+        governance: { $ref: "#/components/schemas/SpcPlayerGovernance" }
+        stageResults:
+          type: array
+          items: { $ref: "#/components/schemas/SpcPlayerStageResult" }
+        governanceEvaluation:
+          allOf:
+            - $ref: "#/components/schemas/SpcPlayerGovernanceEvaluation"
+          nullable: true
+        executionAdvisory:
+          type: ["object", "null"]
+          allOf:
+            - $ref: "#/components/schemas/SpcPlayerExecutionAdvisory"
+        distributionPlan:
+          allOf:
+            - $ref: "#/components/schemas/SpcPlayerDistributionPlan"
+        error: { type: ["string", "null"] }
+        transitions:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [from, to, at]
+            properties:
+              from: { type: string }
+              to: { type: string }
+              at: { type: string, format: date-time }
+              reason: { type: string }
+        completedAt: { type: ["string", "null"], format: date-time }
+        outputPackage:
+          allOf:
+            - $ref: "#/components/schemas/SpcPlayerOutputPackage"
+          nullable: true
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    SpcPlayerManifest:
+      type: object
+      additionalProperties: false
+      required: [manifestVersion, run, governance, capabilities]
+      properties:
+        manifestVersion: { type: string, enum: ["spc-player-manifest-v2"] }
+        run: { $ref: "#/components/schemas/SpcPlayerRun" }
+        governance: { $ref: "#/components/schemas/SpcPlayerGovernance" }
+        capabilities:
+          type: object
+          additionalProperties: false
+          required: [connectors, actions, formats, entitlement]
+          properties:
+            connectors:
+              type: array
+              items: { type: string, enum: [download, webhook] }
+            actions:
+              type: array
+              items: { type: string, enum: [execute, deliver] }
+            formats:
+              type: array
+              items: { type: string, enum: [json] }
+            entitlement:
+              type: string
+              enum: [open_access]
+
+    SpcPlayerWebhookAuthorizationInput:
+      type: object
+      additionalProperties: false
+      required: [endpoint]
+      properties:
+        endpoint:
+          type: string
+          format: uri
+          description: Public HTTPS webhook destination; credentials are not accepted or stored.
+
+    SpcPlayerWebhookAuthorization:
+      type: object
+      additionalProperties: false
+      required: [connector, endpoint, authorizedAt]
+      properties:
+        connector: { type: string, enum: [webhook] }
+        endpoint: { type: string, format: uri }
+        authorizedAt: { type: string, format: date-time }
+
+    SpcPlayerWebhookAuthorizationStatus:
+      type: object
+      additionalProperties: false
+      required: [authorized, connector, endpoint, authorizedAt]
+      properties:
+        authorized: { type: boolean }
+        connector: { type: string, enum: [webhook] }
+        endpoint: { type: ["string", "null"], format: uri }
+        authorizedAt: { type: ["string", "null"], format: date-time }
+
+    SpcPlayerDeliveryResult:
+      type: object
+      additionalProperties: false
+      required: [runId, connector, deliveredAt, statusCode]
+      properties:
+        runId: { type: string, format: uuid }
+        connector: { type: string, enum: [webhook] }
+        deliveredAt: { type: string, format: date-time }
+        statusCode: { type: integer, minimum: 200, maximum: 299 }

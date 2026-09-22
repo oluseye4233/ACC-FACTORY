@@ -14,23 +14,44 @@
  * per-target last-tick times + a stale flag to admins
  * (`getCronTargetStatuses`, served by GET /api/admin/cron-status), and emails
  * ADMIN_EMAILS exactly once per stale episode (`dispatchCronStaleAlerts`,
- * driven by the in-process monitor started in src/index.ts).
+ * driven by the in-process monitor started in src/index.ts). When a target
+ * with an open stale episode ticks again, a one-time "all clear" recovery
+ * email closes the loop (`dispatchCronRecoveryAlerts`, driven by
+ * `recordCronTick`).
  *
  * Caveat (documented, acceptable): the stale-alert email is dispatched by an
  * in-process timer, so a fully-asleep autoscale instance cannot email until
  * it next wakes. The admin dashboard indicator computes staleness live on
  * every read, so any admin visit surfaces a dead schedule immediately.
  */
-import { eq, inArray, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gt,
+  inArray,
+  isNull,
+  lt,
+  notInArray,
+  sql,
+} from "drizzle-orm";
 import {
   db,
   cronTickStatusTable,
+  cronTickEventsTable,
   cronStaleNotificationsTable,
+  cronFlakyNotificationsTable,
+  cronFlakyEpisodeStateTable,
+  CRON_TICK_HISTORY_LIMIT,
 } from "@workspace/db";
-import { sendCronTargetStaleAlert } from "@workspace/email";
+import {
+  sendCronTargetFlakyAlert,
+  sendCronTargetRecoveredAlert,
+  sendCronTargetStaleAlert,
+} from "@workspace/email";
 import { adminAlertEmails } from "./cost-cap-alerts";
 import { logger } from "./logger";
-import { publicBaseUrl, safeFire } from "./notifications";
+import { safeFire } from "./notifications";
 
 export interface CronTargetConfig {
   target: string;
@@ -53,6 +74,13 @@ export interface CronTargetConfig {
  * Deployments described in replit.md.
  */
 export const CRON_TARGET_CONFIGS: readonly CronTargetConfig[] = [
+  {
+    target: "reconcile-f10-deployments",
+    label: "F10 deployment reconciliation",
+    schedule: "every 5 minutes (*/5 * * * *)",
+    expectedIntervalMinutes: 5,
+    staleAfterMinutes: 20,
+  },
   {
     target: "sweep-cost-cap-alerts",
     label: "Cost-cap alert sweep",
@@ -103,8 +131,103 @@ export async function recordCronTick(target: string, now: Date = new Date()): Pr
           tickCount: sql`${cronTickStatusTable.tickCount} + 1`,
         },
       });
+
+    // Rolling tick history (flakiness signal): append this tick, then prune
+    // the target's history down to the newest CRON_TICK_HISTORY_LIMIT rows so
+    // the table stays bounded no matter how long the schedule runs. Pruning
+    // keys off (ticked_at, id) rather than age so a paused-then-resumed
+    // schedule keeps its most recent window intact.
+    await db.insert(cronTickEventsTable).values({ target, tickedAt: now });
+    const keep = db
+      .select({ id: cronTickEventsTable.id })
+      .from(cronTickEventsTable)
+      .where(eq(cronTickEventsTable.target, target))
+      .orderBy(desc(cronTickEventsTable.tickedAt), desc(cronTickEventsTable.id))
+      .limit(CRON_TICK_HISTORY_LIMIT);
+    await db
+      .delete(cronTickEventsTable)
+      .where(
+        and(eq(cronTickEventsTable.target, target), notInArray(cronTickEventsTable.id, keep)),
+      );
   } catch (err) {
     logger.warn({ err, target }, "[cron-heartbeat] failed to record cron tick");
+    return;
+  }
+
+  // Close the loop on any open stale episode for this target. Skipped under
+  // vitest: suites call recordCronTick against REAL targets on the shared dev
+  // DB, and an automatic recovery dispatch here could claim (and thereby
+  // silence) a genuine open stale stamp. Tests exercise the dispatcher
+  // directly with synthetic targets instead.
+  if (!(process.env.NODE_ENV === "test" || process.env.VITEST)) {
+    await dispatchCronRecoveryAlerts(target, now);
+  }
+}
+
+/**
+ * Email ADMIN_EMAILS a one-time "all clear" when a target that had an open
+ * stale episode records a fresh tick. Exactly-once per episode: the existing
+ * stamp row is atomically claimed via UPDATE ... WHERE recovered_notified_at
+ * IS NULL, so restarts, concurrent ticks, and multiple instances send one
+ * email per episode.
+ *
+ * If the stale alert itself was never sent there is no stamp to recover from.
+ * If ADMIN_EMAILS is empty now, the stamp is not claimed, allowing a later
+ * configured recipient to receive the all-clear on a subsequent tick.
+ */
+export async function dispatchCronRecoveryAlerts(
+  target: string,
+  tickAt: Date,
+): Promise<void> {
+  try {
+    const recipients = adminAlertEmails();
+    if (recipients.length === 0) return;
+
+    const claimed = await db
+      .update(cronStaleNotificationsTable)
+      .set({ recoveredNotifiedAt: tickAt })
+      .where(
+        and(
+          eq(cronStaleNotificationsTable.target, target),
+          isNull(cronStaleNotificationsTable.recoveredNotifiedAt),
+          lt(cronStaleNotificationsTable.staleSinceKey, tickAt.toISOString()),
+        ),
+      )
+      .returning({ staleSinceKey: cronStaleNotificationsTable.staleSinceKey });
+    if (claimed.length === 0) return;
+
+    const cfg = CRON_TARGET_CONFIGS.find((candidate) => candidate.target === target);
+    const latestKey = claimed
+      .map((candidate) => candidate.staleSinceKey)
+      .sort()
+      .at(-1)!;
+
+    logger.info(
+      {
+        target,
+        staleSinceKey: latestKey,
+        recoveredAt: tickAt.toISOString(),
+        recipients: recipients.length,
+      },
+      "[cron-heartbeat] stale cron target recovered — dispatching all-clear email",
+    );
+    for (const to of recipients) {
+      void safeFire(
+        "cron-target-recovered-alert",
+        sendCronTargetRecoveredAlert({
+          to,
+          target,
+          label: cfg?.label ?? target,
+          schedule: cfg?.schedule ?? "unknown schedule",
+          recoveredAt: tickAt,
+          staleSince: Number.isNaN(new Date(latestKey).getTime())
+            ? null
+            : new Date(latestKey),
+        }),
+      );
+    }
+  } catch (err) {
+    logger.warn({ err, target }, "[cron-heartbeat] dispatchCronRecoveryAlerts failed");
   }
 }
 
@@ -133,7 +256,20 @@ export interface CronTargetStatus {
   neverTicked: boolean;
   minutesSinceLastTick: number | null;
   stale: boolean;
+  /** Most recent tick timestamps (newest first), capped at RECENT_TICKS_SHOWN. */
+  recentTicks: string[];
+  /** Ticks observed in the trailing 24h window (from the rolling history). */
+  ticksLast24h: number;
+  /**
+   * Ticks the schedule should have produced in 24h (floor(1440/interval)).
+   * 0 for schedules coarser than daily — the 24h flakiness line does not
+   * apply to them.
+   */
+  expectedTicksLast24h: number;
 }
+
+/** Recent tick timestamps returned per target (UI payload cap). */
+const RECENT_TICKS_SHOWN = 20;
 
 /**
  * Live per-target health, computed on every read (so the admin dashboard
@@ -149,8 +285,34 @@ export async function getCronTargetStatuses(now: Date = new Date()): Promise<Cro
     .where(inArray(cronTickStatusTable.target, KNOWN_TARGETS));
   const byTarget = new Map(rows.map((r) => [r.target, r]));
 
+  // Rolling history: only the trailing 24h matters for the flakiness line,
+  // and recentTicks is capped per target below. Bounded by the per-target
+  // prune in recordCronTick, so this stays a small read.
+  const windowStart = new Date(now.getTime() - 24 * 60 * 60_000);
+  const events = await db
+    .select({
+      target: cronTickEventsTable.target,
+      tickedAt: cronTickEventsTable.tickedAt,
+    })
+    .from(cronTickEventsTable)
+    .where(
+      and(
+        inArray(cronTickEventsTable.target, KNOWN_TARGETS),
+        gt(cronTickEventsTable.tickedAt, windowStart),
+      ),
+    )
+    .orderBy(desc(cronTickEventsTable.tickedAt));
+  const eventsByTarget = new Map<string, Date[]>();
+  for (const e of events) {
+    if (e.tickedAt.getTime() > now.getTime()) continue; // ignore clock-skewed future rows
+    const list = eventsByTarget.get(e.target);
+    if (list) list.push(e.tickedAt);
+    else eventsByTarget.set(e.target, [e.tickedAt]);
+  }
+
   return CRON_TARGET_CONFIGS.map((cfg) => {
     const row = byTarget.get(cfg.target);
+    const targetEvents = eventsByTarget.get(cfg.target) ?? [];
     const lastTickAt = row?.lastTickAt ?? null;
     const firstSeenAt = row?.firstSeenAt ?? null;
     const reference = lastTickAt ?? firstSeenAt;
@@ -174,6 +336,11 @@ export async function getCronTargetStatuses(now: Date = new Date()): Promise<Cro
       // is no baseline to be overdue against until first_seen_at exists.
       stale:
         minutesSinceReference !== null && minutesSinceReference > cfg.staleAfterMinutes,
+      recentTicks: targetEvents
+        .slice(0, RECENT_TICKS_SHOWN)
+        .map((d) => d.toISOString()),
+      ticksLast24h: targetEvents.length,
+      expectedTicksLast24h: Math.floor((24 * 60) / cfg.expectedIntervalMinutes),
     };
   });
 }
@@ -251,13 +418,174 @@ export async function dispatchCronStaleAlerts(
             lastTickAt: status.lastTickAt ? new Date(status.lastTickAt) : null,
             staleAfterMinutes: status.staleAfterMinutes,
             overdueMinutes,
-            opsUrl: publicBaseUrl() ? `${publicBaseUrl()}/admin/ops` : undefined,
           }),
         );
       }
     }
   } catch (err) {
     logger.warn({ err }, "[cron-heartbeat] dispatchCronStaleAlerts failed");
+  }
+}
+
+/**
+ * Flakiness threshold: a target is "flaky" when its trailing-24h tick count
+ * fell below this fraction of expected (and the target is not outright
+ * stale — stale has its own alert).
+ */
+const FLAKY_RATIO_THRESHOLD = 0.75;
+/**
+ * Consecutive monitor checks that must observe the shortfall before an alert
+ * is dispatched, so a single transient dip never fires an email.
+ */
+const FLAKY_CONSECUTIVE_CHECKS = 2;
+
+/**
+ * Email ADMIN_EMAILS once per FLAKY episode: the target is still ticking but
+ * its trailing-24h tick count fell below FLAKY_RATIO_THRESHOLD of expected
+ * for FLAKY_CONSECUTIVE_CHECKS consecutive monitor checks. Complements
+ * dispatchCronStaleAlerts (dead schedules): flaky targets are excluded there
+ * and stale targets are excluded here, so one degradation never produces both
+ * emails at once.
+ *
+ * Eligibility guards:
+ *  - expectedTicksLast24h >= 1 (sub-daily schedules only; the 24h flakiness
+ *    line does not apply to coarser schedules);
+ *  - not stale (the dead-man's-switch alert owns that state);
+ *  - firstSeenAt at least 24h ago (a freshly-seeded target has a short
+ *    history window and would false-positive on the 24h count).
+ *
+ * Episode tracking is DURABLE and shared across restarts / concurrent
+ * instances: the first check that observes a shortfall INSERTs a
+ * cron_flaky_episode_state row (UNIQUE target), fixing the episode key;
+ * every later shortfall check — from any instance — increments its
+ * shortfall_checks via ON CONFLICT DO UPDATE and reads back the SAME key.
+ * Recovery deletes the row, ending the episode. The alert itself is
+ * exactly-once per episode via cron_flaky_notifications (UNIQUE (target,
+ * flaky_since_key) + INSERT ... ON CONFLICT DO NOTHING before sending) —
+ * a continuing shortfall after a restart converges on the same key and the
+ * stamp blocks a duplicate email. When ADMIN_EMAILS is empty we do NOT
+ * stamp (episode state is still tracked), so configuring it later still
+ * alerts for an ongoing episode. Never throws.
+ *
+ * `statusesOverride` exists for tests only (same seam as
+ * dispatchCronStaleAlerts): synthetic target names keep test stamps away from
+ * real targets in the shared dev DB.
+ */
+export async function dispatchCronFlakyAlerts(
+  now: Date = new Date(),
+  statusesOverride?: CronTargetStatus[],
+): Promise<void> {
+  try {
+    const statuses = statusesOverride ?? (await getCronTargetStatuses(now));
+    for (const status of statuses) {
+      if (status.expectedTicksLast24h < 1) continue;
+      if (status.stale) {
+        // Dead, not flaky — the stale alert owns this. Keep any episode state
+        // so a recovery straight out of an outage doesn't immediately re-arm.
+        continue;
+      }
+      const seenAt = status.firstSeenAt ? new Date(status.firstSeenAt) : null;
+      const matureBaseline =
+        seenAt !== null && now.getTime() - seenAt.getTime() >= 24 * 60 * 60_000;
+      const flaky =
+        matureBaseline &&
+        status.ticksLast24h < status.expectedTicksLast24h * FLAKY_RATIO_THRESHOLD;
+
+      if (!flaky) {
+        // Healthy (or not yet evaluable) → recovery ends the episode.
+        await db
+          .delete(cronFlakyEpisodeStateTable)
+          .where(eq(cronFlakyEpisodeStateTable.target, status.target));
+        continue;
+      }
+
+      // Durable episode upsert: the first observer fixes the episode key;
+      // later shortfall checks (any instance, any restart) increment the
+      // counter and read back the same key. The increment is deduped by an
+      // ABSOLUTE monitor-interval bucket (floor(epoch_ms / interval_ms)):
+      // no matter how many instances observe the shortfall inside one
+      // 15-minute bucket — including phase-shifted timers — the consecutive
+      // counter advances at most once per bucket.
+      const bucket = Math.floor(now.getTime() / MONITOR_INTERVAL_MS);
+      const [state] = await db
+        .insert(cronFlakyEpisodeStateTable)
+        .values({
+          target: status.target,
+          episodeKey: now.toISOString(),
+          shortfallChecks: 1,
+          lastCountedBucket: bucket,
+          startedAt: now,
+          updatedAt: now,
+        })
+        .onConflictDoUpdate({
+          target: cronFlakyEpisodeStateTable.target,
+          set: {
+            shortfallChecks: sql`CASE WHEN ${cronFlakyEpisodeStateTable.lastCountedBucket} < ${bucket} THEN ${cronFlakyEpisodeStateTable.shortfallChecks} + 1 ELSE ${cronFlakyEpisodeStateTable.shortfallChecks} END`,
+            lastCountedBucket: sql`GREATEST(${cronFlakyEpisodeStateTable.lastCountedBucket}, ${bucket})`,
+            updatedAt: sql`${now.toISOString()}::timestamptz`,
+          },
+        })
+        .returning({
+          episodeKey: cronFlakyEpisodeStateTable.episodeKey,
+          shortfallChecks: cronFlakyEpisodeStateTable.shortfallChecks,
+        });
+      if (!state) continue;
+      if (state.shortfallChecks < FLAKY_CONSECUTIVE_CHECKS) continue;
+
+      const recipients = adminAlertEmails();
+      if (recipients.length === 0) {
+        // Do NOT stamp: configuring ADMIN_EMAILS later must still alert for
+        // this ongoing episode.
+        logger.warn(
+          {
+            target: status.target,
+            observedTicks: status.ticksLast24h,
+            expectedTicks: status.expectedTicksLast24h,
+          },
+          "[cron-heartbeat] cron target is flaky but ADMIN_EMAILS is empty — no flaky-schedule alert emails can be sent",
+        );
+        continue;
+      }
+
+      const inserted = await db
+        .insert(cronFlakyNotificationsTable)
+        .values({
+          target: status.target,
+          flakySinceKey: state.episodeKey,
+          expectedTicks: status.expectedTicksLast24h,
+          observedTicks: status.ticksLast24h,
+        })
+        .onConflictDoNothing()
+        .returning({ id: cronFlakyNotificationsTable.id });
+      if (!inserted[0]) continue; // this episode already alerted (or race lost)
+
+      logger.warn(
+        {
+          target: status.target,
+          observedTicks: status.ticksLast24h,
+          expectedTicks: status.expectedTicksLast24h,
+          episodeKey: state.episodeKey,
+          recipients: recipients.length,
+        },
+        "[cron-heartbeat] cron target turned flaky — dispatching admin alert",
+      );
+      for (const to of recipients) {
+        void safeFire(
+          "cron-target-flaky-alert",
+          sendCronTargetFlakyAlert({
+            to,
+            target: status.target,
+            label: status.label,
+            schedule: status.schedule,
+            expectedTicks: status.expectedTicksLast24h,
+            observedTicks: status.ticksLast24h,
+            lastTickAt: status.lastTickAt ? new Date(status.lastTickAt) : null,
+          }),
+        );
+      }
+    }
+  } catch (err) {
+    logger.warn({ err }, "[cron-heartbeat] dispatchCronFlakyAlerts failed");
   }
 }
 
@@ -272,7 +600,10 @@ async function runCronHeartbeatCheckOnce(): Promise<void> {
   if (monitorInFlight) return;
   monitorInFlight = true;
   try {
-    await dispatchCronStaleAlerts();
+    const now = new Date();
+    const statuses = await getCronTargetStatuses(now);
+    await dispatchCronStaleAlerts(now, statuses);
+    await dispatchCronFlakyAlerts(now, statuses);
   } catch (err) {
     logger.warn({ err }, "[cron-heartbeat] monitor check failed (will retry next tick)");
   } finally {

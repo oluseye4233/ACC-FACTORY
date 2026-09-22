@@ -5,6 +5,962 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+export type F10ExportInputOutputKind = typeof F10ExportInputOutputKind[keyof typeof F10ExportInputOutputKind];
+
+
+export const F10ExportInputOutputKind = {
+  SPC: 'SPC',
+  MA: 'MA',
+  MPDD: 'MPDD',
+  PDD: 'PDD',
+  CODE_DJ: 'CODE_DJ',
+} as const;
+
+export type F10ExportInputFamily = typeof F10ExportInputFamily[keyof typeof F10ExportInputFamily];
+
+
+export const F10ExportInputFamily = {
+  AWS: 'AWS',
+  AZURE: 'AZURE',
+  OPENAI_AGENTS: 'OPENAI_AGENTS',
+  GEMINI_AGENTS: 'GEMINI_AGENTS',
+  IDE: 'IDE',
+  VIBE_APP: 'VIBE_APP',
+  F0: 'F0',
+  SPC_PLAYER: 'SPC_PLAYER',
+  LANGCHAIN: 'LANGCHAIN',
+  GITHUB: 'GITHUB',
+  PROGRAMMING_ENVIRONMENT: 'PROGRAMMING_ENVIRONMENT',
+} as const;
+
+/**
+ * Closed provider target identifier; provider targets are not arbitrary provider names.
+ * @minLength 1
+ * @maxLength 120
+ */
+export type F10ExportInputTarget = typeof F10ExportInputTarget[keyof typeof F10ExportInputTarget];
+
+
+export const F10ExportInputTarget = {
+  AWS_LAMBDA: 'AWS_LAMBDA',
+  AWS_ECS_FARGATE: 'AWS_ECS_FARGATE',
+  AWS_S3: 'AWS_S3',
+  AZURE_FUNCTIONS: 'AZURE_FUNCTIONS',
+  AZURE_CONTAINER_APPS: 'AZURE_CONTAINER_APPS',
+  AZURE_BLOB_STORAGE: 'AZURE_BLOB_STORAGE',
+  OPENAI_AGENTS_SDK: 'OPENAI_AGENTS_SDK',
+  GEMINI_ADK: 'GEMINI_ADK',
+  GEMINI_VERTEX_AGENT_ENGINE: 'GEMINI_VERTEX_AGENT_ENGINE',
+  VS_Code: 'VS Code',
+  Cursor: 'Cursor',
+  Windsurf: 'Windsurf',
+  JetBrains: 'JetBrains',
+  Replit: 'Replit',
+  Visual_Studio: 'Visual Studio',
+  Xcode: 'Xcode',
+  Android_Studio: 'Android Studio',
+  Eclipse: 'Eclipse',
+  'Vim/Neovim': 'Vim/Neovim',
+  Replit_Agent: 'Replit Agent',
+  Lovable: 'Lovable',
+  Bolt: 'Bolt',
+  v0: 'v0',
+  Base44: 'Base44',
+  'TypeScript/Node': 'TypeScript/Node',
+  Python: 'Python',
+  Java: 'Java',
+  'C#': 'C#',
+  'C++': 'C++',
+  Go: 'Go',
+  Rust: 'Rust',
+  PHP: 'PHP',
+  Ruby: 'Ruby',
+  Swift: 'Swift',
+  Kotlin: 'Kotlin',
+  F0: 'F0',
+  SPC_PLAYER: 'SPC_PLAYER',
+  LANGCHAIN: 'LANGCHAIN',
+  GITHUB: 'GITHUB',
+} as const;
+
+export type F10ExportInputDeliveryMode = typeof F10ExportInputDeliveryMode[keyof typeof F10ExportInputDeliveryMode];
+
+
+export const F10ExportInputDeliveryMode = {
+  EXPORT: 'EXPORT',
+  INTERNAL_HANDOFF: 'INTERNAL_HANDOFF',
+} as const;
+
+export interface F10ExportInput {
+  sourceArtifactId: string;
+  outputKind: F10ExportInputOutputKind;
+  family: F10ExportInputFamily;
+  /**
+     * Closed provider target identifier; provider targets are not arbitrary provider names.
+     * @minLength 1
+     * @maxLength 120
+     */
+  target: F10ExportInputTarget;
+  deliveryMode?: F10ExportInputDeliveryMode;
+}
+
+export type F10GitHubPushInputFamily = typeof F10GitHubPushInputFamily[keyof typeof F10GitHubPushInputFamily];
+
+
+export const F10GitHubPushInputFamily = {
+  GITHUB: 'GITHUB',
+} as const;
+
+export type F10GitHubPushInput = F10ExportInput & {
+  family?: F10GitHubPushInputFamily;
+  /** @pattern ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ */
+  repository: string;
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  branch: string;
+};
+
+export interface F10GitHubPushResult {
+  ok: boolean;
+  idempotent: boolean;
+  idempotencyKey: string;
+  repository: string;
+  branch: string;
+  commitSha: string;
+  commitUrl: string;
+  /** @pattern ^[a-f0-9]{64}$ */
+  bundleSha256: string;
+  pushedAt: string;
+}
+
+export type F10SourceType = typeof F10SourceType[keyof typeof F10SourceType];
+
+
+export const F10SourceType = {
+  SPC: 'SPC',
+  MA_BIRTH_PACKAGE: 'MA_BIRTH_PACKAGE',
+  MICRO_PDD: 'MICRO_PDD',
+  ATLAS_PDD: 'ATLAS_PDD',
+  ATLAS_PDD_JSON: 'ATLAS_PDD_JSON',
+  MVP_PDD: 'MVP_PDD',
+  CODEBASE_BUNDLE: 'CODEBASE_BUNDLE',
+} as const;
+
+export type F10SourceArtifactType = typeof F10SourceArtifactType[keyof typeof F10SourceArtifactType];
+
+
+export const F10SourceArtifactType = {
+  SPC: 'SPC',
+  MA_BIRTH_PACKAGE: 'MA_BIRTH_PACKAGE',
+  MICRO_PDD: 'MICRO_PDD',
+  ATLAS_PDD: 'ATLAS_PDD',
+  ATLAS_PDD_JSON: 'ATLAS_PDD_JSON',
+  MVP_PDD: 'MVP_PDD',
+  CODEBASE_BUNDLE: 'CODEBASE_BUNDLE',
+} as const;
+
+export type F10SourceOutputKind = typeof F10SourceOutputKind[keyof typeof F10SourceOutputKind];
+
+
+export const F10SourceOutputKind = {
+  SPC: 'SPC',
+  MA: 'MA',
+  MPDD: 'MPDD',
+  PDD: 'PDD',
+  CODE_DJ: 'CODE_DJ',
+} as const;
+
+export interface F10Source {
+  id: string;
+  type: F10SourceType;
+  artifactType: F10SourceArtifactType;
+  outputKind: F10SourceOutputKind;
+  /** @nullable */
+  name?: string | null;
+  createdAt: string;
+}
+
+export type F10CatalogFamilyFamily = typeof F10CatalogFamilyFamily[keyof typeof F10CatalogFamilyFamily];
+
+
+export const F10CatalogFamilyFamily = {
+  AWS: 'AWS',
+  AZURE: 'AZURE',
+  OPENAI_AGENTS: 'OPENAI_AGENTS',
+  GEMINI_AGENTS: 'GEMINI_AGENTS',
+  IDE: 'IDE',
+  VIBE_APP: 'VIBE_APP',
+  F0: 'F0',
+  SPC_PLAYER: 'SPC_PLAYER',
+  LANGCHAIN: 'LANGCHAIN',
+  GITHUB: 'GITHUB',
+  PROGRAMMING_ENVIRONMENT: 'PROGRAMMING_ENVIRONMENT',
+} as const;
+
+export type F10CatalogFamilyLiveMode = typeof F10CatalogFamilyLiveMode[keyof typeof F10CatalogFamilyLiveMode];
+
+
+export const F10CatalogFamilyLiveMode = {
+  EXPORT: 'EXPORT',
+  INTERNAL_HANDOFF: 'INTERNAL_HANDOFF',
+  USER_AUTHORIZED: 'USER_AUTHORIZED',
+} as const;
+
+/**
+ * @nullable
+ */
+export type F10CatalogFamilyFallbackMode = typeof F10CatalogFamilyFallbackMode[keyof typeof F10CatalogFamilyFallbackMode] | null;
+
+
+export const F10CatalogFamilyFallbackMode = {
+  EXPORT: 'EXPORT',
+} as const;
+
+export type F10CatalogFamilySupportedOutputsItem = typeof F10CatalogFamilySupportedOutputsItem[keyof typeof F10CatalogFamilySupportedOutputsItem];
+
+
+export const F10CatalogFamilySupportedOutputsItem = {
+  SPC: 'SPC',
+  MA: 'MA',
+  MPDD: 'MPDD',
+  PDD: 'PDD',
+  CODE_DJ: 'CODE_DJ',
+} as const;
+
+export interface F10CatalogFamily {
+  family: F10CatalogFamilyFamily;
+  liveMode: F10CatalogFamilyLiveMode;
+  /** @nullable */
+  fallbackMode: F10CatalogFamilyFallbackMode;
+  deployed: boolean;
+  configuration: string;
+  targets: string[];
+  supportedOutputs: F10CatalogFamilySupportedOutputsItem[];
+}
+
+export type F10HttpsReleaseMode = typeof F10HttpsReleaseMode[keyof typeof F10HttpsReleaseMode];
+
+
+export const F10HttpsReleaseMode = {
+  SIGNED_F9_OSIRIS_HTTPS: 'SIGNED_F9_OSIRIS_HTTPS',
+} as const;
+
+export interface F10HttpsRelease {
+  separate: boolean;
+  live: boolean;
+  mode: F10HttpsReleaseMode;
+}
+
+export interface F10Catalog {
+  sourceTypes: string[];
+  outputKinds: string[];
+  families: F10CatalogFamily[];
+  httpsRelease: F10HttpsRelease;
+}
+
+export interface F10ManifestSource {
+  id: string;
+  type: string;
+  /** @nullable */
+  name: string | null;
+  /** @pattern ^[a-f0-9]{64}$ */
+  contentSha256: string;
+}
+
+export type F10ManifestProfileOutputKind = typeof F10ManifestProfileOutputKind[keyof typeof F10ManifestProfileOutputKind];
+
+
+export const F10ManifestProfileOutputKind = {
+  SPC: 'SPC',
+  MA: 'MA',
+  MPDD: 'MPDD',
+  PDD: 'PDD',
+  CODE_DJ: 'CODE_DJ',
+} as const;
+
+export type F10ManifestProfileFamily = typeof F10ManifestProfileFamily[keyof typeof F10ManifestProfileFamily];
+
+
+export const F10ManifestProfileFamily = {
+  AWS: 'AWS',
+  AZURE: 'AZURE',
+  OPENAI_AGENTS: 'OPENAI_AGENTS',
+  GEMINI_AGENTS: 'GEMINI_AGENTS',
+  IDE: 'IDE',
+  VIBE_APP: 'VIBE_APP',
+  F0: 'F0',
+  SPC_PLAYER: 'SPC_PLAYER',
+  LANGCHAIN: 'LANGCHAIN',
+  GITHUB: 'GITHUB',
+  PROGRAMMING_ENVIRONMENT: 'PROGRAMMING_ENVIRONMENT',
+} as const;
+
+export type F10ManifestProfileDeliveryMode = typeof F10ManifestProfileDeliveryMode[keyof typeof F10ManifestProfileDeliveryMode];
+
+
+export const F10ManifestProfileDeliveryMode = {
+  EXPORT: 'EXPORT',
+  INTERNAL_HANDOFF: 'INTERNAL_HANDOFF',
+} as const;
+
+export interface F10ManifestProfile {
+  outputKind: F10ManifestProfileOutputKind;
+  family: F10ManifestProfileFamily;
+  target: string;
+  deliveryMode: F10ManifestProfileDeliveryMode;
+}
+
+export interface F10ManifestFile {
+  path: string;
+  mediaType: string;
+  /** @minimum 0 */
+  bytes: number;
+  /** @pattern ^[a-f0-9]{64}$ */
+  sha256: string;
+  role: string;
+}
+
+export interface F10ExportManifest {
+  schemaVersion: string;
+  source: F10ManifestSource;
+  profile: F10ManifestProfile;
+  bundleSha256Scope?: string;
+  files: F10ManifestFile[];
+  /** @pattern ^[a-f0-9]{64}$ */
+  bundleSha256: string;
+}
+
+export type F10DestinationRequestAdapterId = typeof F10DestinationRequestAdapterId[keyof typeof F10DestinationRequestAdapterId];
+
+
+export const F10DestinationRequestAdapterId = {
+  https: 'https',
+} as const;
+
+export type F10DestinationRequestAdapterVersion = typeof F10DestinationRequestAdapterVersion[keyof typeof F10DestinationRequestAdapterVersion];
+
+
+export const F10DestinationRequestAdapterVersion = {
+  NUMBER_1: '1',
+} as const;
+
+export interface F10DestinationRequest {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  adapterId: F10DestinationRequestAdapterId;
+  adapterVersion: F10DestinationRequestAdapterVersion;
+  endpoint: string;
+  /** @pattern ^F10_SECRET_[A-Z0-9_]+$ */
+  secretRef: string;
+  /** @maxItems 50 */
+  authorizationScopes: string[];
+}
+
+export type F10Destination = F10DestinationRequest & ({
+  id: string;
+  active: boolean;
+  /** @nullable */
+  revokedAt?: string | null;
+  createdAt: string;
+});
+
+export type F10ProviderConnectionRequestProvider = typeof F10ProviderConnectionRequestProvider[keyof typeof F10ProviderConnectionRequestProvider];
+
+
+export const F10ProviderConnectionRequestProvider = {
+  AWS: 'AWS',
+  AZURE: 'AZURE',
+  OPENAI_AGENTS: 'OPENAI_AGENTS',
+  GEMINI_AGENTS: 'GEMINI_AGENTS',
+} as const;
+
+export interface F10ProviderConnectionRequest {
+  provider: F10ProviderConnectionRequestProvider;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  /** @maxItems 50 */
+  scopes: string[];
+}
+
+export type F10ProviderAuthorizeRequestProvider = typeof F10ProviderAuthorizeRequestProvider[keyof typeof F10ProviderAuthorizeRequestProvider];
+
+
+export const F10ProviderAuthorizeRequestProvider = {
+  AWS: 'AWS',
+  AZURE: 'AZURE',
+  OPENAI_AGENTS: 'OPENAI_AGENTS',
+  GEMINI_AGENTS: 'GEMINI_AGENTS',
+} as const;
+
+export interface F10ProviderAuthorizeRequest {
+  provider: F10ProviderAuthorizeRequestProvider;
+  /** @maxLength 500 */
+  returnTo?: string;
+  connectionId?: string;
+}
+
+export type F10ProviderConnection = F10ProviderConnectionRequest & ({
+  id: string;
+  active: boolean;
+  /** @nullable */
+  revokedAt?: string | null;
+  createdAt: string;
+});
+
+export type F10ColonizationInputRequestClass = typeof F10ColonizationInputRequestClass[keyof typeof F10ColonizationInputRequestClass];
+
+
+export const F10ColonizationInputRequestClass = {
+  RUN: 'RUN',
+  SENSE_ONLY: 'SENSE_ONLY',
+  RE_VERIFY: 'RE_VERIFY',
+  ROLLBACK: 'ROLLBACK',
+} as const;
+
+export type F10ColonizationInputArtifactClass = typeof F10ColonizationInputArtifactClass[keyof typeof F10ColonizationInputArtifactClass];
+
+
+export const F10ColonizationInputArtifactClass = {
+  SPC: 'SPC',
+  MA: 'MA',
+  PDD: 'PDD',
+  MPDD: 'MPDD',
+} as const;
+
+export type F10ColonizationInputTargetClass = typeof F10ColonizationInputTargetClass[keyof typeof F10ColonizationInputTargetClass];
+
+
+export const F10ColonizationInputTargetClass = {
+  SOFTWARE_PLATFORM: 'SOFTWARE_PLATFORM',
+  AGENT_GATEWAY: 'AGENT_GATEWAY',
+  FIRMWARE: 'FIRMWARE',
+  ROBOTICS: 'ROBOTICS',
+  APPLIANCE_IOT: 'APPLIANCE_IOT',
+} as const;
+
+export type F10ColonizationInputCustomizationSetPackagingFieldsOnly = {[key: string]: string};
+
+export type F10ColonizationInputCustomizationSet = {
+  packaging_fields_only?: F10ColonizationInputCustomizationSetPackagingFieldsOnly;
+};
+
+export interface F10ColonizationInput {
+  requestClass?: F10ColonizationInputRequestClass;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  artifactRef: string;
+  /** @pattern ^sha256:[a-f0-9]{64}$ */
+  artifactHash: string;
+  artifactClass: F10ColonizationInputArtifactClass;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  ucgCertificateRef: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  target: string;
+  targetClass: F10ColonizationInputTargetClass;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  connectorAdapter: string;
+  customizationSet?: F10ColonizationInputCustomizationSet;
+  /**
+     * @maxLength 500
+     * @nullable
+     */
+  f9AttestationRef?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  consentChannel: string;
+}
+
+export type F10ColonizationRunState = typeof F10ColonizationRunState[keyof typeof F10ColonizationRunState];
+
+
+export const F10ColonizationRunState = {
+  RUNNING: 'RUNNING',
+  REFUSED: 'REFUSED',
+  STAGED_ONLY: 'STAGED_ONLY',
+  PROMOTED: 'PROMOTED',
+} as const;
+
+export type F10ColonizationRunPhase = typeof F10ColonizationRunPhase[keyof typeof F10ColonizationRunPhase];
+
+
+export const F10ColonizationRunPhase = {
+  C0: 'C0',
+  C1: 'C1',
+  C2: 'C2',
+  C3: 'C3',
+  C4: 'C4',
+  C5: 'C5',
+  C6: 'C6',
+  C7: 'C7',
+  C8: 'C8',
+} as const;
+
+export type F10ColonizationRunMaxReachablePhase = typeof F10ColonizationRunMaxReachablePhase[keyof typeof F10ColonizationRunMaxReachablePhase];
+
+
+export const F10ColonizationRunMaxReachablePhase = {
+  C4: 'C4',
+  C8: 'C8',
+} as const;
+
+export type F10ColonizationRunGroMode = typeof F10ColonizationRunGroMode[keyof typeof F10ColonizationRunGroMode];
+
+
+export const F10ColonizationRunGroMode = {
+  SAFE_LIFE: 'SAFE_LIFE',
+} as const;
+
+export type F10ColonizationPhaseStatusesC0 = typeof F10ColonizationPhaseStatusesC0[keyof typeof F10ColonizationPhaseStatusesC0];
+
+
+export const F10ColonizationPhaseStatusesC0 = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REFUSED: 'REFUSED',
+  COMPLETE: 'COMPLETE',
+} as const;
+
+export type F10ColonizationPhaseStatusesC1 = typeof F10ColonizationPhaseStatusesC1[keyof typeof F10ColonizationPhaseStatusesC1];
+
+
+export const F10ColonizationPhaseStatusesC1 = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REFUSED: 'REFUSED',
+  COMPLETE: 'COMPLETE',
+} as const;
+
+export type F10ColonizationPhaseStatusesC2 = typeof F10ColonizationPhaseStatusesC2[keyof typeof F10ColonizationPhaseStatusesC2];
+
+
+export const F10ColonizationPhaseStatusesC2 = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REFUSED: 'REFUSED',
+  COMPLETE: 'COMPLETE',
+} as const;
+
+export type F10ColonizationPhaseStatusesC3 = typeof F10ColonizationPhaseStatusesC3[keyof typeof F10ColonizationPhaseStatusesC3];
+
+
+export const F10ColonizationPhaseStatusesC3 = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REFUSED: 'REFUSED',
+  COMPLETE: 'COMPLETE',
+} as const;
+
+export type F10ColonizationPhaseStatusesC4 = typeof F10ColonizationPhaseStatusesC4[keyof typeof F10ColonizationPhaseStatusesC4];
+
+
+export const F10ColonizationPhaseStatusesC4 = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REFUSED: 'REFUSED',
+  COMPLETE: 'COMPLETE',
+} as const;
+
+export type F10ColonizationPhaseStatusesC5 = typeof F10ColonizationPhaseStatusesC5[keyof typeof F10ColonizationPhaseStatusesC5];
+
+
+export const F10ColonizationPhaseStatusesC5 = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REFUSED: 'REFUSED',
+  COMPLETE: 'COMPLETE',
+} as const;
+
+export type F10ColonizationPhaseStatusesC6 = typeof F10ColonizationPhaseStatusesC6[keyof typeof F10ColonizationPhaseStatusesC6];
+
+
+export const F10ColonizationPhaseStatusesC6 = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REFUSED: 'REFUSED',
+  COMPLETE: 'COMPLETE',
+} as const;
+
+export type F10ColonizationPhaseStatusesC7 = typeof F10ColonizationPhaseStatusesC7[keyof typeof F10ColonizationPhaseStatusesC7];
+
+
+export const F10ColonizationPhaseStatusesC7 = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REFUSED: 'REFUSED',
+  COMPLETE: 'COMPLETE',
+} as const;
+
+export type F10ColonizationPhaseStatusesC8 = typeof F10ColonizationPhaseStatusesC8[keyof typeof F10ColonizationPhaseStatusesC8];
+
+
+export const F10ColonizationPhaseStatusesC8 = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REFUSED: 'REFUSED',
+  COMPLETE: 'COMPLETE',
+} as const;
+
+export interface F10ColonizationPhaseStatuses {
+  C0: F10ColonizationPhaseStatusesC0;
+  C1: F10ColonizationPhaseStatusesC1;
+  C2: F10ColonizationPhaseStatusesC2;
+  C3: F10ColonizationPhaseStatusesC3;
+  C4: F10ColonizationPhaseStatusesC4;
+  C5: F10ColonizationPhaseStatusesC5;
+  C6: F10ColonizationPhaseStatusesC6;
+  C7: F10ColonizationPhaseStatusesC7;
+  C8: F10ColonizationPhaseStatusesC8;
+}
+
+export type F10ColonizationAdapterReadinessSavant = typeof F10ColonizationAdapterReadinessSavant[keyof typeof F10ColonizationAdapterReadinessSavant];
+
+
+export const F10ColonizationAdapterReadinessSavant = {
+  UNWIRED: 'UNWIRED',
+} as const;
+
+export type F10ColonizationAdapterReadinessConnector = typeof F10ColonizationAdapterReadinessConnector[keyof typeof F10ColonizationAdapterReadinessConnector];
+
+
+export const F10ColonizationAdapterReadinessConnector = {
+  UNWIRED: 'UNWIRED',
+} as const;
+
+export type F10ColonizationAdapterReadinessAnalyzer = typeof F10ColonizationAdapterReadinessAnalyzer[keyof typeof F10ColonizationAdapterReadinessAnalyzer];
+
+
+export const F10ColonizationAdapterReadinessAnalyzer = {
+  UNWIRED: 'UNWIRED',
+} as const;
+
+export type F10ColonizationAdapterReadinessVault = typeof F10ColonizationAdapterReadinessVault[keyof typeof F10ColonizationAdapterReadinessVault];
+
+
+export const F10ColonizationAdapterReadinessVault = {
+  UNWIRED: 'UNWIRED',
+} as const;
+
+export type F10ColonizationAdapterReadinessConsentGate = typeof F10ColonizationAdapterReadinessConsentGate[keyof typeof F10ColonizationAdapterReadinessConsentGate];
+
+
+export const F10ColonizationAdapterReadinessConsentGate = {
+  UNWIRED: 'UNWIRED',
+} as const;
+
+export type F10ColonizationAdapterReadinessUcgCol = typeof F10ColonizationAdapterReadinessUcgCol[keyof typeof F10ColonizationAdapterReadinessUcgCol];
+
+
+export const F10ColonizationAdapterReadinessUcgCol = {
+  UNWIRED: 'UNWIRED',
+} as const;
+
+export interface F10ColonizationAdapterReadiness {
+  savant: F10ColonizationAdapterReadinessSavant;
+  connector: F10ColonizationAdapterReadinessConnector;
+  analyzer: F10ColonizationAdapterReadinessAnalyzer;
+  vault: F10ColonizationAdapterReadinessVault;
+  consentGate: F10ColonizationAdapterReadinessConsentGate;
+  ucgCol: F10ColonizationAdapterReadinessUcgCol;
+}
+
+export type F10ColonizationRefusalGroMode = typeof F10ColonizationRefusalGroMode[keyof typeof F10ColonizationRefusalGroMode];
+
+
+export const F10ColonizationRefusalGroMode = {
+  SAFE_LIFE: 'SAFE_LIFE',
+  HUMAN_IN_LOOP: 'HUMAN_IN_LOOP',
+  CONTAINMENT: 'CONTAINMENT',
+  KILLZONE: 'KILLZONE',
+} as const;
+
+export interface F10ColonizationRefusal {
+  /**
+     * @minimum 0
+     * @maximum 8
+     */
+  phaseHalted: number;
+  constraintCited: string;
+  invariantCited: string;
+  cause: string;
+  requiredToProceed: string;
+  groMode: F10ColonizationRefusalGroMode;
+}
+
+export interface F10ColonizationRun {
+  id: string;
+  runId: string;
+  artifactRef?: string;
+  artifactHash: string;
+  artifactClass: string;
+  ucgCertificateRef?: string;
+  target: string;
+  targetClass: string;
+  state: F10ColonizationRunState;
+  phase: F10ColonizationRunPhase;
+  maxReachablePhase: F10ColonizationRunMaxReachablePhase;
+  groMode: F10ColonizationRunGroMode;
+  phaseStatuses: F10ColonizationPhaseStatuses;
+  adapterReadiness: F10ColonizationAdapterReadiness;
+  refusal: F10ColonizationRefusal;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type F10BundleDeploymentRequestProvider = typeof F10BundleDeploymentRequestProvider[keyof typeof F10BundleDeploymentRequestProvider];
+
+
+export const F10BundleDeploymentRequestProvider = {
+  AWS: 'AWS',
+  AZURE: 'AZURE',
+  OPENAI_AGENTS: 'OPENAI_AGENTS',
+  GEMINI_AGENTS: 'GEMINI_AGENTS',
+} as const;
+
+export type F10BundleDeploymentRequestTarget = typeof F10BundleDeploymentRequestTarget[keyof typeof F10BundleDeploymentRequestTarget];
+
+
+export const F10BundleDeploymentRequestTarget = {
+  AWS_LAMBDA: 'AWS_LAMBDA',
+  AWS_ECS_FARGATE: 'AWS_ECS_FARGATE',
+  AWS_S3: 'AWS_S3',
+  AZURE_FUNCTIONS: 'AZURE_FUNCTIONS',
+  AZURE_CONTAINER_APPS: 'AZURE_CONTAINER_APPS',
+  AZURE_BLOB_STORAGE: 'AZURE_BLOB_STORAGE',
+  OPENAI_AGENTS_SDK: 'OPENAI_AGENTS_SDK',
+  GEMINI_ADK: 'GEMINI_ADK',
+  GEMINI_VERTEX_AGENT_ENGINE: 'GEMINI_VERTEX_AGENT_ENGINE',
+} as const;
+
+export type F10BundleDeploymentRequestOutputKind = typeof F10BundleDeploymentRequestOutputKind[keyof typeof F10BundleDeploymentRequestOutputKind];
+
+
+export const F10BundleDeploymentRequestOutputKind = {
+  SPC: 'SPC',
+  MA: 'MA',
+  MPDD: 'MPDD',
+  PDD: 'PDD',
+  CODE_DJ: 'CODE_DJ',
+} as const;
+
+export interface F10AwsTargetConfig {
+  /** @minLength 1 */
+  region: string;
+  /** @minLength 1 */
+  resourceName: string;
+  accountId?: string;
+  roleArn?: string;
+}
+
+export interface F10AzureTargetConfig {
+  /** @minLength 1 */
+  subscriptionId: string;
+  tenantId?: string;
+  /** @minLength 1 */
+  resourceGroup: string;
+  /** @minLength 1 */
+  location: string;
+  /** @minLength 1 */
+  resourceName: string;
+}
+
+export interface F10OpenAiTargetConfig {
+  projectId?: string;
+  agentId?: string;
+  /** @minLength 1 */
+  model: string;
+  /** @minLength 1 */
+  environment: string;
+}
+
+export type F10GeminiTargetConfigUseVertex = typeof F10GeminiTargetConfigUseVertex[keyof typeof F10GeminiTargetConfigUseVertex];
+
+
+export const F10GeminiTargetConfigUseVertex = {
+  true: 'true',
+  false: 'false',
+} as const;
+
+export interface F10GeminiTargetConfig {
+  /** @minLength 1 */
+  projectId: string;
+  /** @minLength 1 */
+  location: string;
+  agentId?: string;
+  displayName?: string;
+  /** @minLength 1 */
+  model: string;
+  /** @minLength 1 */
+  environment: string;
+  useVertex?: F10GeminiTargetConfigUseVertex;
+}
+
+export interface F10BundleDeploymentRequest {
+  sourceArtifactId: string;
+  provider: F10BundleDeploymentRequestProvider;
+  target: F10BundleDeploymentRequestTarget;
+  connectionRef: string;
+  outputKind: F10BundleDeploymentRequestOutputKind;
+  /** Provider-specific deployment target. Unknown fields are rejected. */
+  targetConfig: F10AwsTargetConfig | F10AzureTargetConfig | F10OpenAiTargetConfig | F10GeminiTargetConfig;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  releaseIntent: string;
+}
+
+export type F10BundleDeploymentExecutionStatus = typeof F10BundleDeploymentExecutionStatus[keyof typeof F10BundleDeploymentExecutionStatus];
+
+
+export const F10BundleDeploymentExecutionStatus = {
+  NOT_CONFIRMED: 'NOT_CONFIRMED',
+  ACCEPTED: 'ACCEPTED',
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+} as const;
+
+export interface F10BundleDeployment {
+  id: string;
+  provider: string;
+  target: string;
+  state: string;
+  /** @pattern ^[a-f0-9]{64}$ */
+  bundleHash: string;
+  executionStatus: F10BundleDeploymentExecutionStatus;
+  /** @nullable */
+  executionCheckedAt?: string | null;
+  /** @nullable */
+  providerExecutionUpdatedAt?: string | null;
+  /** @nullable */
+  reconciliationPausedAt?: string | null;
+  /** @nullable */
+  reconciliationPauseReason?: string | null;
+}
+
+export type F10BundleReconciliationAcceptance = typeof F10BundleReconciliationAcceptance[keyof typeof F10BundleReconciliationAcceptance];
+
+
+export const F10BundleReconciliationAcceptance = {
+  ACCEPTED: 'ACCEPTED',
+} as const;
+
+export type F10BundleReconciliationExecutionStatus = typeof F10BundleReconciliationExecutionStatus[keyof typeof F10BundleReconciliationExecutionStatus];
+
+
+export const F10BundleReconciliationExecutionStatus = {
+  ACCEPTED: 'ACCEPTED',
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+} as const;
+
+export interface F10BundleReconciliation {
+  acceptance: F10BundleReconciliationAcceptance;
+  executionStatus: F10BundleReconciliationExecutionStatus;
+  checkedAt: string;
+  /** @nullable */
+  providerUpdatedAt?: string | null;
+  changed: boolean;
+}
+
+export type F10BundleDeploymentDetailAuditItem = { [key: string]: unknown };
+
+export type F10BundleDeploymentDetailAttemptsItem = { [key: string]: unknown };
+
+/**
+ * @nullable
+ */
+export type F10BundleDeploymentDetailReceipt = { [key: string]: unknown } | null;
+
+export type F10BundleDeploymentDetail = F10BundleDeployment & {
+  audit: F10BundleDeploymentDetailAuditItem[];
+  attempts: F10BundleDeploymentDetailAttemptsItem[];
+  /** @nullable */
+  receipt: F10BundleDeploymentDetailReceipt;
+};
+
+export interface F10ReleaseRequest {
+  machineArtifactId: string;
+  destinationId: string;
+  releaseIntent: string;
+}
+
+export type F10EnvelopeUcgCertificate = {
+  verdict: string;
+  expires_at: string;
+  signature: string;
+};
+
+export type F10EnvelopeOsirisCustodyAttestation = {
+  osiris_custody: boolean;
+  expires_at: string;
+  signature: string;
+};
+
+export interface F10Envelope {
+  machine_artifact_id: string;
+  mecha_run_id: string;
+  artifact_version: string;
+  media_type: string;
+  ucg_certificate: F10EnvelopeUcgCertificate;
+  spk_id: string;
+  /** @pattern ^[a-f0-9]{64}$ */
+  payload_hash: string;
+  artifact_signature: string;
+  osiris_custody_attestation: F10EnvelopeOsirisCustodyAttestation;
+}
+
+export type F10ReleaseState = typeof F10ReleaseState[keyof typeof F10ReleaseState];
+
+
+export const F10ReleaseState = {
+  REQUESTED: 'REQUESTED',
+  VERIFYING: 'VERIFYING',
+  AUTHORIZED: 'AUTHORIZED',
+  QUEUED: 'QUEUED',
+  DISPATCHING: 'DISPATCHING',
+  ACKNOWLEDGED: 'ACKNOWLEDGED',
+  BLOCKED: 'BLOCKED',
+  FAILED_PERMANENT: 'FAILED_PERMANENT',
+  DEAD_LETTERED: 'DEAD_LETTERED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export type F10ReleaseTransitionsItem = { [key: string]: unknown };
+
+/**
+ * Persisted release metadata and append-only transitions; no artifact bytes or secrets.
+ */
+export interface F10Release {
+  id?: string;
+  state?: F10ReleaseState;
+  idempotencyKey?: string;
+  blockedReasons?: string[];
+  transitions?: F10ReleaseTransitionsItem[];
+}
+
 export type F0Service = typeof F0Service[keyof typeof F0Service];
 
 
@@ -426,6 +1382,8 @@ export const ArtifactType = {
   CODEBASE_BUNDLE: 'CODEBASE_BUNDLE',
   PFP_REPORT: 'PFP_REPORT',
   HOSTING_PLAN: 'HOSTING_PLAN',
+  ATLAS_360_PLAN_VIEW: 'ATLAS_360_PLAN_VIEW',
+  ATLAS_360_SCAN_VIEW: 'ATLAS_360_SCAN_VIEW',
 } as const;
 
 /**
@@ -473,6 +1431,132 @@ export interface HarnessF8Input {
   /** Override the PFP drift gate. Required when the most recent PFP report for the same MVP PDD has any critical findings. */
   acknowledgeDrift?: boolean;
   provider?: LlmProvider;
+}
+
+export type F9PhaseEvidence = { [key: string]: unknown };
+
+export interface F9Phase {
+  /**
+     * @minimum 1
+     * @maximum 7
+     */
+  phase: number;
+  evidence: F9PhaseEvidence;
+}
+
+export interface HarnessF9Input {
+  sessionId: string;
+  sourceArtifactId: string;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  deviceClass: string;
+  /** @pattern ^[0-9]+\.[0-9]+\.[0-9]+$ */
+  artifactVersion?: string;
+  /**
+     * @minItems 7
+     * @maxItems 7
+     */
+  phases: F9Phase[];
+}
+
+export type F9RefusalVerdict = typeof F9RefusalVerdict[keyof typeof F9RefusalVerdict];
+
+
+export const F9RefusalVerdict = {
+  REFUSED: 'REFUSED',
+} as const;
+
+export type F9RefusalGroMode = typeof F9RefusalGroMode[keyof typeof F9RefusalGroMode];
+
+
+export const F9RefusalGroMode = {
+  HUMAN_IN_LOOP: 'HUMAN_IN_LOOP',
+  CONTAINMENT: 'CONTAINMENT',
+  KILLZONE: 'KILLZONE',
+} as const;
+
+export interface F9Refusal {
+  verdict: F9RefusalVerdict;
+  mecha_run_id: string;
+  /**
+     * @minimum 1
+     * @maximum 7
+     */
+  phase_halted: number;
+  constraint_cited: string;
+  invariant_cited: string;
+  cause: string;
+  required_to_proceed: string;
+  gro_mode: F9RefusalGroMode;
+}
+
+export type F9MachineArtifactMmVerdict = typeof F9MachineArtifactMmVerdict[keyof typeof F9MachineArtifactMmVerdict];
+
+
+export const F9MachineArtifactMmVerdict = {
+  MATH_VERIFIED: 'MATH_VERIFIED',
+} as const;
+
+export type F9MachineArtifactUcgCertificate = { [key: string]: unknown };
+
+export type F9MachineArtifactSavantVerdict = typeof F9MachineArtifactSavantVerdict[keyof typeof F9MachineArtifactSavantVerdict];
+
+
+export const F9MachineArtifactSavantVerdict = {
+  FIT: 'FIT',
+  CLUSTER: 'CLUSTER',
+  'N/A': 'N/A',
+} as const;
+
+export type F9MachineArtifactEvidence = { [key: string]: unknown };
+
+export interface F9MachineArtifact {
+  machine_artifact_id: string;
+  mecha_run_id: string;
+  artifact_version: string;
+  source_artifact_id?: string;
+  spk_id: string;
+  mm_verdict: F9MachineArtifactMmVerdict;
+  ucg_certificate: F9MachineArtifactUcgCertificate;
+  savant_verdict?: F9MachineArtifactSavantVerdict;
+  osiris_custody: true;
+  reverification_due: string;
+  /** SHA-256 hash of canonical immutable payload */
+  payload_hash: string;
+  /** HMAC signature; signing key is never returned */
+  artifact_signature: string;
+  regulatory_conformity_asserted: false;
+  evidence?: F9MachineArtifactEvidence;
+}
+
+export type F9RunRecordStatus = typeof F9RunRecordStatus[keyof typeof F9RunRecordStatus];
+
+
+export const F9RunRecordStatus = {
+  RUNNING: 'RUNNING',
+  EMITTED: 'EMITTED',
+  REFUSED: 'REFUSED',
+} as const;
+
+export interface F9RunRecord {
+  id?: string;
+  mechaRunId?: string;
+  sessionId?: string;
+  sourceArtifactId?: string;
+  /** SHA-256 hash of the canonical seven-phase evidence envelope */
+  evidenceHash?: string;
+  /** Stable SHA-256 key derived from source artifact */
+  idempotencyKey?: string;
+  status?: F9RunRecordStatus;
+  phase?: number;
+  evidence?: F9Phase[];
+  refusal?: F9Refusal;
+  payloadHash?: string;
+  artifactSignature?: string;
+  artifactContent?: F9MachineArtifact;
+  osirisCustody?: boolean;
 }
 
 /**
@@ -677,6 +1761,110 @@ export interface AtlasPddJson {
   stack: string[];
   routes: string[];
   deployTarget: string;
+}
+
+export interface Atlas360PddViewPart {
+  /**
+     * @minimum 0
+     * @maximum 11
+     */
+  part: number;
+  title: string;
+  content: string;
+}
+
+export type Atlas360PlanViewSchemaVersion = typeof Atlas360PlanViewSchemaVersion[keyof typeof Atlas360PlanViewSchemaVersion];
+
+
+export const Atlas360PlanViewSchemaVersion = {
+  'atlas-360-plan-v1': 'atlas-360-plan-v1',
+} as const;
+
+export type Atlas360PlanViewView = typeof Atlas360PlanViewView[keyof typeof Atlas360PlanViewView];
+
+
+export const Atlas360PlanViewView = {
+  PLAN: 'PLAN',
+} as const;
+
+export interface Atlas360PlanView {
+  schemaVersion: Atlas360PlanViewSchemaVersion;
+  view: Atlas360PlanViewView;
+  title: string;
+  /**
+     * @minItems 12
+     * @maxItems 12
+     */
+  parts: Atlas360PddViewPart[];
+}
+
+export interface Atlas360ScanStage {
+  /**
+     * @minimum 1
+     * @maximum 8
+     */
+  stage: number;
+  name: string;
+  evidence: string[];
+  assessment: string;
+  actions: string[];
+}
+
+export type Atlas360ScanViewSchemaVersion = typeof Atlas360ScanViewSchemaVersion[keyof typeof Atlas360ScanViewSchemaVersion];
+
+
+export const Atlas360ScanViewSchemaVersion = {
+  'atlas-360-scan-v1': 'atlas-360-scan-v1',
+} as const;
+
+export type Atlas360ScanViewView = typeof Atlas360ScanViewView[keyof typeof Atlas360ScanViewView];
+
+
+export const Atlas360ScanViewView = {
+  SCAN: 'SCAN',
+} as const;
+
+export interface Atlas360ScanView {
+  schemaVersion: Atlas360ScanViewSchemaVersion;
+  view: Atlas360ScanViewView;
+  title: string;
+  /**
+     * @minItems 8
+     * @maxItems 8
+     */
+  stages: Atlas360ScanStage[];
+}
+
+export type Atlas360PddViewResponseSourceArtifactType = typeof Atlas360PddViewResponseSourceArtifactType[keyof typeof Atlas360PddViewResponseSourceArtifactType];
+
+
+export const Atlas360PddViewResponseSourceArtifactType = {
+  ATLAS_PDD: 'ATLAS_PDD',
+  MVP_PDD: 'MVP_PDD',
+} as const;
+
+export type Atlas360PddViewResponseView = typeof Atlas360PddViewResponseView[keyof typeof Atlas360PddViewResponseView];
+
+
+export const Atlas360PddViewResponseView = {
+  PLAN: 'PLAN',
+  SCAN: 'SCAN',
+} as const;
+
+export interface Atlas360PddViewResponse {
+  artifactId: string;
+  sourceArtifactId: string;
+  sourceArtifactType: Atlas360PddViewResponseSourceArtifactType;
+  /** @nullable */
+  sourceCodebaseBundleArtifactId?: string | null;
+  /** @nullable */
+  sourcePfpReportArtifactId?: string | null;
+  disclosure?: string;
+  schemaVersion?: string;
+  view: Atlas360PddViewResponseView;
+  title?: string;
+  parts?: Atlas360PddViewPart[];
+  stages?: Atlas360ScanStage[];
 }
 
 export interface HarnessPfpInput {
@@ -1791,8 +2979,85 @@ export type ExemplarSummaryKind = typeof ExemplarSummaryKind[keyof typeof Exempl
 
 export const ExemplarSummaryKind = {
   SPC: 'SPC',
+  MA: 'MA',
+  MPDD: 'MPDD',
   PDD: 'PDD',
 } as const;
+
+export type ExemplarSummaryMarketplace = typeof ExemplarSummaryMarketplace[keyof typeof ExemplarSummaryMarketplace];
+
+
+export const ExemplarSummaryMarketplace = {
+  curated: 'curated',
+  open: 'open',
+} as const;
+
+export type SpcPlayerPublicationPublicationStatus = typeof SpcPlayerPublicationPublicationStatus[keyof typeof SpcPlayerPublicationPublicationStatus];
+
+
+export const SpcPlayerPublicationPublicationStatus = {
+  legacy: 'legacy',
+  draft: 'draft',
+  published: 'published',
+} as const;
+
+/**
+ * @nullable
+ */
+export type SpcPlayerPublicationPublishedBy = typeof SpcPlayerPublicationPublishedBy[keyof typeof SpcPlayerPublicationPublishedBy] | null;
+
+
+export const SpcPlayerPublicationPublishedBy = {
+  sphinx_engine: 'sphinx_engine',
+} as const;
+
+export type SpcEnvironmentNoteStatus = typeof SpcEnvironmentNoteStatus[keyof typeof SpcEnvironmentNoteStatus];
+
+
+export const SpcEnvironmentNoteStatus = {
+  sketch: 'sketch',
+  verified_integration: 'verified_integration',
+} as const;
+
+export interface SpcEnvironmentNote {
+  environment: string;
+  status: SpcEnvironmentNoteStatus;
+  note: string;
+}
+
+export interface SpcCheatSheet {
+  mission: string;
+  skillSet: string[];
+  useCases: string[];
+  productionProcess: string[];
+  /** @nullable */
+  thirdPartyDefinitions: string[] | null;
+  environmentNotes: SpcEnvironmentNote[];
+}
+
+/**
+ * Three independent advisory axes. Null means the check has not run. No composite score is permitted.
+ */
+export interface SpcQualityScores {
+  /** @nullable */
+  clarity: number | null;
+  /** @nullable */
+  truthfulness: number | null;
+  /** @nullable */
+  detectability: number | null;
+}
+
+export interface SpcPlayerPublication {
+  registryVersion: string;
+  publicationStatus: SpcPlayerPublicationPublicationStatus;
+  cheatSheetPublished: boolean;
+  /** @nullable */
+  publishedBy: SpcPlayerPublicationPublishedBy;
+  /** @nullable */
+  publishedAt: string | null;
+  cheatSheet: SpcCheatSheet | null;
+  qualityScores: SpcQualityScores;
+}
 
 export interface ExemplarSummary {
   id: string;
@@ -1805,16 +3070,74 @@ export interface ExemplarSummary {
   sku: string;
   source: ExemplarSummarySource;
   kind: ExemplarSummaryKind;
+  marketplace: ExemplarSummaryMarketplace;
+  createdAt?: string;
   /**
      * DISC personality profile (Dominance / Influence / Steadiness / Conscientiousness). Every SPC has a unique DISC fingerprint; PDDs are null.
      * @nullable
      */
   disc: string | null;
+  spcPlayer: SpcPlayerPublication | null;
 }
 
 export type Exemplar = ExemplarSummary & {
   body: string;
 };
+
+export interface ExemplarUploadResponse {
+  items: ExemplarSummary[];
+  count: number;
+}
+
+export interface AddArtifactToExemplarLibraryRequest {
+  artifactId: string;
+}
+
+export type SpcDevKitCardStatus = typeof SpcDevKitCardStatus[keyof typeof SpcDevKitCardStatus];
+
+
+export const SpcDevKitCardStatus = {
+  registered_pre_build: 'registered_pre_build',
+} as const;
+
+export interface SpcDevKitCard {
+  key: string;
+  name: string;
+  responsibility: string;
+  status: SpcDevKitCardStatus;
+}
+
+export type SpcPlayerRegistryStatus = typeof SpcPlayerRegistryStatus[keyof typeof SpcPlayerRegistryStatus];
+
+
+export const SpcPlayerRegistryStatus = {
+  pre_build: 'pre_build',
+} as const;
+
+export type SpcPlayerRegistryExecutionAuthority = typeof SpcPlayerRegistryExecutionAuthority[keyof typeof SpcPlayerRegistryExecutionAuthority];
+
+
+export const SpcPlayerRegistryExecutionAuthority = {
+  'user-authorized_REVERB_v3_derivation': 'user-authorized REVERB v3 derivation',
+} as const;
+
+export interface SpcPlayerRegistry {
+  productionId: string;
+  version: string;
+  status: SpcPlayerRegistryStatus;
+  /**
+     * @minItems 6
+     * @maxItems 6
+     */
+  cards: SpcDevKitCard[];
+  /**
+     * @minItems 10
+     * @maxItems 10
+     */
+  environments: string[];
+  qualityPolicy: string;
+  executionAuthority: SpcPlayerRegistryExecutionAuthority;
+}
 
 /**
  * @nullable
@@ -2210,6 +3533,12 @@ export interface CronTargetStatus {
   neverTicked: boolean;
   minutesSinceLastTick: number | null;
   stale: boolean;
+  /** Most recent tick timestamps (newest first), bounded window. */
+  recentTicks: string[];
+  /** Ticks observed in the trailing 24h window. */
+  ticksLast24h: number;
+  /** Ticks the schedule should produce in 24h (0 for schedules coarser than daily). */
+  expectedTicksLast24h: number;
 }
 
 export interface AdminCronStatus {
@@ -2225,6 +3554,469 @@ export interface HarnessEvolveInput {
      */
   maArtifactIds: string[];
   provider?: LlmProvider;
+}
+
+export type SpcDraftCheatSheetGeneralDefinition = {
+  mission: string;
+  skillSet: string[];
+  useCases: string[];
+};
+
+export type SpcDraftCheatSheetGeneralProductionProcessItem = {
+  step: number;
+  description: string;
+};
+
+export type SpcDraftCheatSheetEnvironmentNotesItemStatus = typeof SpcDraftCheatSheetEnvironmentNotesItemStatus[keyof typeof SpcDraftCheatSheetEnvironmentNotesItemStatus];
+
+
+export const SpcDraftCheatSheetEnvironmentNotesItemStatus = {
+  sketch: 'sketch',
+  verified_integration: 'verified_integration',
+} as const;
+
+export type SpcDraftCheatSheetEnvironmentNotesItem = {
+  environment: string;
+  note: string;
+  status: SpcDraftCheatSheetEnvironmentNotesItemStatus;
+};
+
+export type SpcDraftCheatSheetPublishedBy = typeof SpcDraftCheatSheetPublishedBy[keyof typeof SpcDraftCheatSheetPublishedBy];
+
+
+export const SpcDraftCheatSheetPublishedBy = {
+  sphinx_engine: 'sphinx_engine',
+} as const;
+
+export interface SpcDraftCheatSheet {
+  generalDefinition: SpcDraftCheatSheetGeneralDefinition;
+  generalProductionProcess: SpcDraftCheatSheetGeneralProductionProcessItem[];
+  environmentNotes: SpcDraftCheatSheetEnvironmentNotesItem[];
+  thirdPartyDefinitions: string[] | null;
+  publishedBy: SpcDraftCheatSheetPublishedBy;
+}
+
+export type SpcLibraryCardProvenanceMarketplace = typeof SpcLibraryCardProvenanceMarketplace[keyof typeof SpcLibraryCardProvenanceMarketplace];
+
+
+export const SpcLibraryCardProvenanceMarketplace = {
+  curated: 'curated',
+  open: 'open',
+} as const;
+
+export type SpcLibraryCardProvenance = {
+  source: string;
+  version: string;
+  status: string;
+  exemplarId?: string;
+  marketplace?: SpcLibraryCardProvenanceMarketplace;
+  tagline?: string;
+  /** Search-only excerpt used for deterministic Capability Brief matching */
+  searchText?: string;
+};
+
+export type SpcLibraryCardStatus = typeof SpcLibraryCardStatus[keyof typeof SpcLibraryCardStatus];
+
+
+export const SpcLibraryCardStatus = {
+  PRE_BUILD: 'PRE_BUILD',
+} as const;
+
+export interface SpcLibraryCard {
+  id: string;
+  slug: string;
+  name: string;
+  provenance: SpcLibraryCardProvenance;
+  status: SpcLibraryCardStatus;
+  preBuild: boolean;
+  cheatSheetPublished: boolean;
+  cheatSheet: SpcDraftCheatSheet | null;
+  thirdPartyDefinitions: string[] | null;
+}
+
+export type SpcDevKitName = typeof SpcDevKitName[keyof typeof SpcDevKitName];
+
+
+export const SpcDevKitName = {
+  SPC_Dev_Kit: 'SPC Dev Kit',
+} as const;
+
+export interface SpcDevKit {
+  id: string;
+  name: SpcDevKitName;
+  /**
+     * @minItems 6
+     * @maxItems 6
+     */
+  cardIds: string[];
+  /**
+     * @minItems 6
+     * @maxItems 6
+     */
+  cards: SpcLibraryCard[];
+  registrationNote: string;
+  executes: false;
+}
+
+export type CreateSpcPlayerRunInputProfile = typeof CreateSpcPlayerRunInputProfile[keyof typeof CreateSpcPlayerRunInputProfile];
+
+
+export const CreateSpcPlayerRunInputProfile = {
+  full: 'full',
+  rapid: 'rapid',
+} as const;
+
+export interface CreateSpcPlayerRunInput {
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 100000
+     */
+  brief: string;
+  /**
+     * @minItems 1
+     * @maxItems 12
+     */
+  selectedCardIds: string[];
+  profile?: CreateSpcPlayerRunInputProfile;
+}
+
+export type ExecuteSpcPlayerRunInputProvider = typeof ExecuteSpcPlayerRunInputProvider[keyof typeof ExecuteSpcPlayerRunInputProvider];
+
+
+export const ExecuteSpcPlayerRunInputProvider = {
+  claude: 'claude',
+  openai: 'openai',
+  gemini: 'gemini',
+} as const;
+
+export interface ExecuteSpcPlayerRunInput {
+  provider?: ExecuteSpcPlayerRunInputProvider;
+}
+
+/**
+ * Independent nullable 0-100 axes only; composite scores are prohibited.
+ */
+export interface SpcPlayerScores {
+  /**
+     * @minimum 0
+     * @maximum 100
+     * @nullable
+     */
+  clarity?: number | null;
+  /**
+     * @minimum 0
+     * @maximum 100
+     * @nullable
+     */
+  truthfulness?: number | null;
+  /**
+     * @minimum 0
+     * @maximum 100
+     * @nullable
+     */
+  detectability?: number | null;
+}
+
+export interface SpcPlayerStageResult {
+  /** @minimum 0 */
+  stageIndex: number;
+  cardId: string;
+  cardSlug: string;
+  invoked: true;
+  verdict: string;
+  content: string;
+  evidence: string[];
+  /** @nullable */
+  completedAt?: string | null;
+}
+
+export type SpcPlayerGovernanceEvaluationKind = typeof SpcPlayerGovernanceEvaluationKind[keyof typeof SpcPlayerGovernanceEvaluationKind];
+
+
+export const SpcPlayerGovernanceEvaluationKind = {
+  governance_evaluation: 'governance_evaluation',
+} as const;
+
+export interface SpcPlayerGovernanceEvaluation {
+  kind: SpcPlayerGovernanceEvaluationKind;
+  invoked: true;
+  verdict: string;
+  content: string;
+  evidence: string[];
+  scores: SpcPlayerScores;
+  completedAt: string;
+}
+
+export type SpcPlayerExecutionAdvisoryAuthority = typeof SpcPlayerExecutionAdvisoryAuthority[keyof typeof SpcPlayerExecutionAdvisoryAuthority];
+
+
+export const SpcPlayerExecutionAdvisoryAuthority = {
+  'user-authorized_REVERB_v3_derivation': 'user-authorized REVERB v3 derivation',
+} as const;
+
+export type SpcPlayerExecutionAdvisoryStatus = typeof SpcPlayerExecutionAdvisoryStatus[keyof typeof SpcPlayerExecutionAdvisoryStatus];
+
+
+export const SpcPlayerExecutionAdvisoryStatus = {
+  PRE_BUILD: 'PRE_BUILD',
+} as const;
+
+export type SpcPlayerExecutionAdvisoryProfile = typeof SpcPlayerExecutionAdvisoryProfile[keyof typeof SpcPlayerExecutionAdvisoryProfile];
+
+
+export const SpcPlayerExecutionAdvisoryProfile = {
+  full: 'full',
+  rapid: 'rapid',
+} as const;
+
+export type SpcPlayerExecutionAdvisoryDistribution = typeof SpcPlayerExecutionAdvisoryDistribution[keyof typeof SpcPlayerExecutionAdvisoryDistribution];
+
+
+export const SpcPlayerExecutionAdvisoryDistribution = {
+  'plan-only;_no_connector_invoked': 'plan-only; no connector invoked',
+} as const;
+
+export interface SpcPlayerExecutionAdvisory {
+  authority: SpcPlayerExecutionAdvisoryAuthority;
+  status: SpcPlayerExecutionAdvisoryStatus;
+  profile: SpcPlayerExecutionAdvisoryProfile;
+  invokedStages: number[];
+  governanceEvaluationInvoked: boolean;
+  evidenceTrail: string[];
+  distribution: SpcPlayerExecutionAdvisoryDistribution;
+}
+
+export type SpcPlayerDistributionPlanStatus = typeof SpcPlayerDistributionPlanStatus[keyof typeof SpcPlayerDistributionPlanStatus];
+
+
+export const SpcPlayerDistributionPlanStatus = {
+  plan_only: 'plan_only',
+} as const;
+
+export interface SpcPlayerDistributionPlan {
+  status: SpcPlayerDistributionPlanStatus;
+  connectorInvoked: false;
+  externalSend: false;
+}
+
+/**
+ * Completed SPC content plus its non-detachable advisory.
+ */
+export interface SpcPlayerOutputPackage {
+  content: SpcPlayerStageResult[];
+  advisory: SpcPlayerExecutionAdvisory;
+  governanceEvaluation: SpcPlayerGovernanceEvaluation;
+  scores: SpcPlayerScores;
+  distributionPlan: SpcPlayerDistributionPlan;
+}
+
+export type SpcPlayerGovernanceSpecVersion = typeof SpcPlayerGovernanceSpecVersion[keyof typeof SpcPlayerGovernanceSpecVersion];
+
+
+export const SpcPlayerGovernanceSpecVersion = {
+  v40: 'v4.0',
+} as const;
+
+export type SpcPlayerGovernanceScorePolicyAxesItem = typeof SpcPlayerGovernanceScorePolicyAxesItem[keyof typeof SpcPlayerGovernanceScorePolicyAxesItem];
+
+
+export const SpcPlayerGovernanceScorePolicyAxesItem = {
+  clarity: 'clarity',
+  truthfulness: 'truthfulness',
+  detectability: 'detectability',
+} as const;
+
+export type SpcPlayerGovernanceScorePolicy = {
+  /**
+     * @minItems 3
+     * @maxItems 3
+     */
+  axes: SpcPlayerGovernanceScorePolicyAxesItem[];
+};
+
+export interface SpcPlayerGovernance {
+  specVersion: SpcPlayerGovernanceSpecVersion;
+  source: string;
+  scorePolicy: SpcPlayerGovernanceScorePolicy;
+}
+
+export type SpcPlayerRunProfile = typeof SpcPlayerRunProfile[keyof typeof SpcPlayerRunProfile];
+
+
+export const SpcPlayerRunProfile = {
+  full: 'full',
+  rapid: 'rapid',
+} as const;
+
+export type SpcPlayerRunStatus = typeof SpcPlayerRunStatus[keyof typeof SpcPlayerRunStatus];
+
+
+export const SpcPlayerRunStatus = {
+  DRAFT: 'DRAFT',
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+} as const;
+
+/**
+ * Public execution availability without internal attempt credentials.
+ */
+export type SpcPlayerRunExecutionState = typeof SpcPlayerRunExecutionState[keyof typeof SpcPlayerRunExecutionState];
+
+
+export const SpcPlayerRunExecutionState = {
+  IDLE: 'IDLE',
+  ACTIVE: 'ACTIVE',
+  RECOVERABLE: 'RECOVERABLE',
+  FINISHED: 'FINISHED',
+} as const;
+
+export type SpcPlayerRunTransitionsItem = {
+  from: string;
+  to: string;
+  at: string;
+  reason?: string;
+};
+
+export interface SpcPlayerRun {
+  id: string;
+  ownerUserId: string;
+  title: string;
+  brief: string;
+  selectedCardIds: string[];
+  profile: SpcPlayerRunProfile;
+  status: SpcPlayerRunStatus;
+  /** Public execution availability without internal attempt credentials. */
+  executionState: SpcPlayerRunExecutionState;
+  /** Whether a new execution attempt may be claimed now. */
+  canExecute: boolean;
+  /**
+     * When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.
+     * @nullable
+     */
+  retryAvailableAt: string | null;
+  governance: SpcPlayerGovernance;
+  stageResults: SpcPlayerStageResult[];
+  governanceEvaluation: SpcPlayerGovernanceEvaluation | null;
+  /** @nullable */
+  executionAdvisory: SpcPlayerExecutionAdvisory | null;
+  distributionPlan: SpcPlayerDistributionPlan;
+  /** @nullable */
+  error: string | null;
+  transitions: SpcPlayerRunTransitionsItem[];
+  /** @nullable */
+  completedAt: string | null;
+  outputPackage: SpcPlayerOutputPackage | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type SpcPlayerManifestManifestVersion = typeof SpcPlayerManifestManifestVersion[keyof typeof SpcPlayerManifestManifestVersion];
+
+
+export const SpcPlayerManifestManifestVersion = {
+  'spc-player-manifest-v2': 'spc-player-manifest-v2',
+} as const;
+
+export type SpcPlayerManifestCapabilitiesConnectorsItem = typeof SpcPlayerManifestCapabilitiesConnectorsItem[keyof typeof SpcPlayerManifestCapabilitiesConnectorsItem];
+
+
+export const SpcPlayerManifestCapabilitiesConnectorsItem = {
+  download: 'download',
+  webhook: 'webhook',
+} as const;
+
+export type SpcPlayerManifestCapabilitiesActionsItem = typeof SpcPlayerManifestCapabilitiesActionsItem[keyof typeof SpcPlayerManifestCapabilitiesActionsItem];
+
+
+export const SpcPlayerManifestCapabilitiesActionsItem = {
+  execute: 'execute',
+  deliver: 'deliver',
+} as const;
+
+export type SpcPlayerManifestCapabilitiesFormatsItem = typeof SpcPlayerManifestCapabilitiesFormatsItem[keyof typeof SpcPlayerManifestCapabilitiesFormatsItem];
+
+
+export const SpcPlayerManifestCapabilitiesFormatsItem = {
+  json: 'json',
+} as const;
+
+export type SpcPlayerManifestCapabilitiesEntitlement = typeof SpcPlayerManifestCapabilitiesEntitlement[keyof typeof SpcPlayerManifestCapabilitiesEntitlement];
+
+
+export const SpcPlayerManifestCapabilitiesEntitlement = {
+  open_access: 'open_access',
+} as const;
+
+export type SpcPlayerManifestCapabilities = {
+  connectors: SpcPlayerManifestCapabilitiesConnectorsItem[];
+  actions: SpcPlayerManifestCapabilitiesActionsItem[];
+  formats: SpcPlayerManifestCapabilitiesFormatsItem[];
+  entitlement: SpcPlayerManifestCapabilitiesEntitlement;
+};
+
+export interface SpcPlayerManifest {
+  manifestVersion: SpcPlayerManifestManifestVersion;
+  run: SpcPlayerRun;
+  governance: SpcPlayerGovernance;
+  capabilities: SpcPlayerManifestCapabilities;
+}
+
+export interface SpcPlayerWebhookAuthorizationInput {
+  /** Public HTTPS webhook destination; credentials are not accepted or stored. */
+  endpoint: string;
+}
+
+export type SpcPlayerWebhookAuthorizationConnector = typeof SpcPlayerWebhookAuthorizationConnector[keyof typeof SpcPlayerWebhookAuthorizationConnector];
+
+
+export const SpcPlayerWebhookAuthorizationConnector = {
+  webhook: 'webhook',
+} as const;
+
+export interface SpcPlayerWebhookAuthorization {
+  connector: SpcPlayerWebhookAuthorizationConnector;
+  endpoint: string;
+  authorizedAt: string;
+}
+
+export type SpcPlayerWebhookAuthorizationStatusConnector = typeof SpcPlayerWebhookAuthorizationStatusConnector[keyof typeof SpcPlayerWebhookAuthorizationStatusConnector];
+
+
+export const SpcPlayerWebhookAuthorizationStatusConnector = {
+  webhook: 'webhook',
+} as const;
+
+export interface SpcPlayerWebhookAuthorizationStatus {
+  authorized: boolean;
+  connector: SpcPlayerWebhookAuthorizationStatusConnector;
+  /** @nullable */
+  endpoint: string | null;
+  /** @nullable */
+  authorizedAt: string | null;
+}
+
+export type SpcPlayerDeliveryResultConnector = typeof SpcPlayerDeliveryResultConnector[keyof typeof SpcPlayerDeliveryResultConnector];
+
+
+export const SpcPlayerDeliveryResultConnector = {
+  webhook: 'webhook',
+} as const;
+
+export interface SpcPlayerDeliveryResult {
+  runId: string;
+  connector: SpcPlayerDeliveryResultConnector;
+  deliveredAt: string;
+  /**
+     * @minimum 200
+     * @maximum 299
+     */
+  statusCode: number;
 }
 
 /**
@@ -2247,9 +4039,32 @@ export type NotFoundResponse = ErrorResponse;
  */
 export type RateLimitedResponse = ErrorResponse;
 
+export type F10ProviderConnectionCallbackParams = {
+state: string;
+code: string;
+};
+
+export type ListHarnessF9RunsParams = {
+sessionId: string;
+};
+
+export type HarnessPddViewParams = {
+format?: HarnessPddViewFormat;
+};
+
+export type HarnessPddViewFormat = typeof HarnessPddViewFormat[keyof typeof HarnessPddViewFormat];
+
+
+export const HarnessPddViewFormat = {
+  plan: 'plan',
+  scan: 'scan',
+} as const;
+
 export type HarnessEscalationsStreamParams = {
 sessionId: string;
 };
+
+export type CronReconcileF10Deployments200 = { [key: string]: unknown };
 
 export type ListMyPromptsParams = {
 page?: number;
@@ -2287,4 +4102,3 @@ limit?: number;
 export type VerifyCertificateParams = {
 cert: string;
 };
-

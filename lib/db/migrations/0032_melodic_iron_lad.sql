@@ -1,0 +1,1 @@
+ALTER TABLE "f10_bundle_deployments" ADD COLUMN "reconciliation_pause_notification_claimed_at" timestamp with time zone;

@@ -9,6 +9,563 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Honest F10 export families, targets, and delivery modes
+ */
+export const GetF10CatalogResponse = zod.object({
+  "sourceTypes": zod.array(zod.string()),
+  "outputKinds": zod.array(zod.string()),
+  "families": zod.array(zod.object({
+  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
+  "liveMode": zod.enum(['EXPORT', 'INTERNAL_HANDOFF', 'USER_AUTHORIZED']),
+  "fallbackMode": zod.union([zod.literal('EXPORT'),zod.literal(null)]).nullable(),
+  "deployed": zod.boolean(),
+  "configuration": zod.string(),
+  "targets": zod.array(zod.string()),
+  "supportedOutputs": zod.array(zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']))
+})),
+  "httpsRelease": zod.object({
+  "separate": zod.boolean(),
+  "live": zod.boolean(),
+  "mode": zod.enum(['SIGNED_F9_OSIRIS_HTTPS'])
+})
+})
+
+
+/**
+ * @summary List cited, fail-closed SAVANT CONNECTOR colonization runs
+ */
+export const listF10ColonizationRunsResponseRefusalPhaseHaltedMin = 0;
+export const listF10ColonizationRunsResponseRefusalPhaseHaltedMax = 8;
+
+
+
+export const ListF10ColonizationRunsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "runId": zod.string(),
+  "artifactRef": zod.string().optional(),
+  "artifactHash": zod.string(),
+  "artifactClass": zod.string(),
+  "ucgCertificateRef": zod.string().optional(),
+  "target": zod.string(),
+  "targetClass": zod.string(),
+  "state": zod.enum(['RUNNING', 'REFUSED', 'STAGED_ONLY', 'PROMOTED']),
+  "phase": zod.enum(['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8']),
+  "maxReachablePhase": zod.enum(['C4', 'C8']),
+  "groMode": zod.enum(['SAFE_LIFE']),
+  "phaseStatuses": zod.object({
+  "C0": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C1": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C2": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C3": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C4": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C5": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C6": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C7": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C8": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE'])
+}),
+  "adapterReadiness": zod.object({
+  "savant": zod.enum(['UNWIRED']),
+  "connector": zod.enum(['UNWIRED']),
+  "analyzer": zod.enum(['UNWIRED']),
+  "vault": zod.enum(['UNWIRED']),
+  "consentGate": zod.enum(['UNWIRED']),
+  "ucgCol": zod.enum(['UNWIRED'])
+}),
+  "refusal": zod.object({
+  "phaseHalted": zod.number().min(listF10ColonizationRunsResponseRefusalPhaseHaltedMin).max(listF10ColonizationRunsResponseRefusalPhaseHaltedMax),
+  "constraintCited": zod.string(),
+  "invariantCited": zod.string(),
+  "cause": zod.string(),
+  "requiredToProceed": zod.string(),
+  "groMode": zod.enum(['SAFE_LIFE', 'HUMAN_IN_LOOP', 'CONTAINMENT', 'KILLZONE'])
+}),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListF10ColonizationRunsResponse = zod.array(ListF10ColonizationRunsResponseItem)
+
+
+/**
+ * @summary Record and evaluate an F10 colonization protocol run
+ */
+export const createF10ColonizationRunBodyRequestClassDefault = `RUN`;
+export const createF10ColonizationRunBodyArtifactRefMax = 500;
+
+export const createF10ColonizationRunBodyArtifactHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const createF10ColonizationRunBodyUcgCertificateRefMax = 500;
+
+export const createF10ColonizationRunBodyTargetMax = 500;
+
+export const createF10ColonizationRunBodyConnectorAdapterMax = 200;
+
+export const createF10ColonizationRunBodyF9AttestationRefMax = 500;
+
+export const createF10ColonizationRunBodyConsentChannelMax = 200;
+
+
+
+export const CreateF10ColonizationRunBody = zod.object({
+  "requestClass": zod.enum(['RUN', 'SENSE_ONLY', 'RE_VERIFY', 'ROLLBACK']).default(createF10ColonizationRunBodyRequestClassDefault),
+  "artifactRef": zod.string().min(1).max(createF10ColonizationRunBodyArtifactRefMax),
+  "artifactHash": zod.string().regex(createF10ColonizationRunBodyArtifactHashRegExp),
+  "artifactClass": zod.enum(['SPC', 'MA', 'PDD', 'MPDD']),
+  "ucgCertificateRef": zod.string().min(1).max(createF10ColonizationRunBodyUcgCertificateRefMax),
+  "target": zod.string().min(1).max(createF10ColonizationRunBodyTargetMax),
+  "targetClass": zod.enum(['SOFTWARE_PLATFORM', 'AGENT_GATEWAY', 'FIRMWARE', 'ROBOTICS', 'APPLIANCE_IOT']),
+  "connectorAdapter": zod.string().min(1).max(createF10ColonizationRunBodyConnectorAdapterMax),
+  "customizationSet": zod.object({
+  "packaging_fields_only": zod.record(zod.string(), zod.string()).optional()
+}).optional(),
+  "f9AttestationRef": zod.string().max(createF10ColonizationRunBodyF9AttestationRefMax).nullish(),
+  "consentChannel": zod.string().min(1).max(createF10ColonizationRunBodyConsentChannelMax)
+})
+
+
+export const GetF10ColonizationRunParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const getF10ColonizationRunResponseRefusalPhaseHaltedMin = 0;
+export const getF10ColonizationRunResponseRefusalPhaseHaltedMax = 8;
+
+
+
+export const GetF10ColonizationRunResponse = zod.object({
+  "id": zod.string().uuid(),
+  "runId": zod.string(),
+  "artifactRef": zod.string().optional(),
+  "artifactHash": zod.string(),
+  "artifactClass": zod.string(),
+  "ucgCertificateRef": zod.string().optional(),
+  "target": zod.string(),
+  "targetClass": zod.string(),
+  "state": zod.enum(['RUNNING', 'REFUSED', 'STAGED_ONLY', 'PROMOTED']),
+  "phase": zod.enum(['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8']),
+  "maxReachablePhase": zod.enum(['C4', 'C8']),
+  "groMode": zod.enum(['SAFE_LIFE']),
+  "phaseStatuses": zod.object({
+  "C0": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C1": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C2": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C3": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C4": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C5": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C6": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C7": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C8": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE'])
+}),
+  "adapterReadiness": zod.object({
+  "savant": zod.enum(['UNWIRED']),
+  "connector": zod.enum(['UNWIRED']),
+  "analyzer": zod.enum(['UNWIRED']),
+  "vault": zod.enum(['UNWIRED']),
+  "consentGate": zod.enum(['UNWIRED']),
+  "ucgCol": zod.enum(['UNWIRED'])
+}),
+  "refusal": zod.object({
+  "phaseHalted": zod.number().min(getF10ColonizationRunResponseRefusalPhaseHaltedMin).max(getF10ColonizationRunResponseRefusalPhaseHaltedMax),
+  "constraintCited": zod.string(),
+  "invariantCited": zod.string(),
+  "cause": zod.string(),
+  "requiredToProceed": zod.string(),
+  "groMode": zod.enum(['SAFE_LIFE', 'HUMAN_IN_LOOP', 'CONTAINMENT', 'KILLZONE'])
+}),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List owned artifacts eligible for F10 exports
+ */
+export const ListF10SourcesResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "type": zod.enum(['SPC', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE']),
+  "artifactType": zod.enum(['SPC', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE']),
+  "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
+  "name": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListF10SourcesResponse = zod.array(ListF10SourcesResponseItem)
+
+
+/**
+ * @summary Create a deterministic F10 export manifest from an owned artifact
+ */
+export const CreateF10ExportManifestBody = zod.object({
+  "sourceArtifactId": zod.string().uuid(),
+  "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
+  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
+  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE', 'VS Code', 'Cursor', 'Windsurf', 'JetBrains', 'Replit', 'Visual Studio', 'Xcode', 'Android Studio', 'Eclipse', 'Vim/Neovim', 'Replit Agent', 'Lovable', 'Bolt', 'v0', 'Base44', 'TypeScript/Node', 'Python', 'Java', 'C#', 'C++', 'Go', 'Rust', 'PHP', 'Ruby', 'Swift', 'Kotlin', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB']).describe('Closed provider target identifier; provider targets are not arbitrary provider names.'),
+  "deliveryMode": zod.enum(['EXPORT', 'INTERNAL_HANDOFF']).optional()
+})
+
+export const createF10ExportManifestResponseSourceContentSha256RegExp = new RegExp('^[a-f0-9]{64}$');
+export const createF10ExportManifestResponseFilesItemBytesMin = 0;
+
+export const createF10ExportManifestResponseFilesItemSha256RegExp = new RegExp('^[a-f0-9]{64}$');
+export const createF10ExportManifestResponseBundleSha256RegExp = new RegExp('^[a-f0-9]{64}$');
+
+
+export const CreateF10ExportManifestResponse = zod.object({
+  "schemaVersion": zod.string(),
+  "source": zod.object({
+  "id": zod.string().uuid(),
+  "type": zod.string(),
+  "name": zod.string().nullable(),
+  "contentSha256": zod.string().regex(createF10ExportManifestResponseSourceContentSha256RegExp)
+}),
+  "profile": zod.object({
+  "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
+  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
+  "target": zod.string(),
+  "deliveryMode": zod.enum(['EXPORT', 'INTERNAL_HANDOFF'])
+}),
+  "bundleSha256Scope": zod.string().optional(),
+  "files": zod.array(zod.object({
+  "path": zod.string(),
+  "mediaType": zod.string(),
+  "bytes": zod.number().min(createF10ExportManifestResponseFilesItemBytesMin),
+  "sha256": zod.string().regex(createF10ExportManifestResponseFilesItemSha256RegExp),
+  "role": zod.string()
+})),
+  "bundleSha256": zod.string().regex(createF10ExportManifestResponseBundleSha256RegExp)
+})
+
+
+/**
+ * @summary Download a deterministic F10 ZIP export
+ */
+export const DownloadF10ExportBody = zod.object({
+  "sourceArtifactId": zod.string().uuid(),
+  "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
+  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
+  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE', 'VS Code', 'Cursor', 'Windsurf', 'JetBrains', 'Replit', 'Visual Studio', 'Xcode', 'Android Studio', 'Eclipse', 'Vim/Neovim', 'Replit Agent', 'Lovable', 'Bolt', 'v0', 'Base44', 'TypeScript/Node', 'Python', 'Java', 'C#', 'C++', 'Go', 'Rust', 'PHP', 'Ruby', 'Swift', 'Kotlin', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB']).describe('Closed provider target identifier; provider targets are not arbitrary provider names.'),
+  "deliveryMode": zod.enum(['EXPORT', 'INTERNAL_HANDOFF']).optional()
+})
+
+
+/**
+ * File bytes are reconstructed from the owned source artifact and selected profile; caller-supplied files are not accepted.
+ * @summary Rebuild and push an owned F10 handoff to an authorized GitHub repository
+ */
+export const pushF10ExportToGitHubBodyTwoRepositoryRegExp = new RegExp('^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$');
+export const pushF10ExportToGitHubBodyTwoBranchMax = 255;
+
+
+
+export const PushF10ExportToGitHubBody = zod.object({
+  "sourceArtifactId": zod.string().uuid(),
+  "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
+  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
+  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE', 'VS Code', 'Cursor', 'Windsurf', 'JetBrains', 'Replit', 'Visual Studio', 'Xcode', 'Android Studio', 'Eclipse', 'Vim/Neovim', 'Replit Agent', 'Lovable', 'Bolt', 'v0', 'Base44', 'TypeScript/Node', 'Python', 'Java', 'C#', 'C++', 'Go', 'Rust', 'PHP', 'Ruby', 'Swift', 'Kotlin', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB']).describe('Closed provider target identifier; provider targets are not arbitrary provider names.'),
+  "deliveryMode": zod.enum(['EXPORT', 'INTERNAL_HANDOFF']).optional()
+}).and(zod.object({
+  "family": zod.enum(['GITHUB']).optional(),
+  "repository": zod.string().regex(pushF10ExportToGitHubBodyTwoRepositoryRegExp),
+  "branch": zod.string().min(1).max(pushF10ExportToGitHubBodyTwoBranchMax)
+}))
+
+export const pushF10ExportToGitHubResponseBundleSha256RegExp = new RegExp('^[a-f0-9]{64}$');
+
+
+export const PushF10ExportToGitHubResponse = zod.object({
+  "ok": zod.boolean(),
+  "idempotent": zod.boolean(),
+  "idempotencyKey": zod.string(),
+  "repository": zod.string(),
+  "branch": zod.string(),
+  "commitSha": zod.string(),
+  "commitUrl": zod.string().url(),
+  "bundleSha256": zod.string().regex(pushF10ExportToGitHubResponseBundleSha256RegExp),
+  "pushedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List tenant-scoped release destinations
+ */
+export const listF10DestinationsResponseOneNameMax = 120;
+
+export const listF10DestinationsResponseOneSecretRefRegExp = new RegExp('^F10_SECRET_[A-Z0-9_]+$');
+export const listF10DestinationsResponseOneAuthorizationScopesMax = 50;
+
+
+
+export const ListF10DestinationsResponseItem = zod.object({
+  "name": zod.string().min(1).max(listF10DestinationsResponseOneNameMax),
+  "adapterId": zod.enum(['https']),
+  "adapterVersion": zod.enum(['1']),
+  "endpoint": zod.string().url(),
+  "secretRef": zod.string().regex(listF10DestinationsResponseOneSecretRefRegExp),
+  "authorizationScopes": zod.array(zod.string()).max(listF10DestinationsResponseOneAuthorizationScopesMax)
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "active": zod.boolean(),
+  "revokedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+}))
+export const ListF10DestinationsResponse = zod.array(ListF10DestinationsResponseItem)
+
+
+/**
+ * @summary Register an authorized HTTPS release destination
+ */
+export const createF10DestinationBodyNameMax = 120;
+
+export const createF10DestinationBodySecretRefRegExp = new RegExp('^F10_SECRET_[A-Z0-9_]+$');
+export const createF10DestinationBodyAuthorizationScopesMax = 50;
+
+
+
+export const CreateF10DestinationBody = zod.object({
+  "name": zod.string().min(1).max(createF10DestinationBodyNameMax),
+  "adapterId": zod.enum(['https']),
+  "adapterVersion": zod.enum(['1']),
+  "endpoint": zod.string().url(),
+  "secretRef": zod.string().regex(createF10DestinationBodySecretRefRegExp),
+  "authorizationScopes": zod.array(zod.string()).max(createF10DestinationBodyAuthorizationScopesMax)
+})
+
+
+/**
+ * @summary List provider authorization references (credential values are never returned)
+ */
+export const listF10ProviderConnectionsResponseOneNameMax = 120;
+
+export const listF10ProviderConnectionsResponseOneScopesMax = 50;
+
+
+
+export const ListF10ProviderConnectionsResponseItem = zod.object({
+  "provider": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS']),
+  "name": zod.string().min(1).max(listF10ProviderConnectionsResponseOneNameMax),
+  "scopes": zod.array(zod.string()).max(listF10ProviderConnectionsResponseOneScopesMax)
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "active": zod.boolean(),
+  "revokedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+}))
+export const ListF10ProviderConnectionsResponse = zod.array(ListF10ProviderConnectionsResponseItem)
+
+
+export const authorizeF10ProviderConnectionBodyReturnToMax = 500;
+
+
+
+export const AuthorizeF10ProviderConnectionBody = zod.object({
+  "provider": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS']),
+  "returnTo": zod.string().max(authorizeF10ProviderConnectionBodyReturnToMax).optional(),
+  "connectionId": zod.string().uuid().optional()
+})
+
+
+export const F10ProviderConnectionCallbackQueryParams = zod.object({
+  "state": zod.coerce.string(),
+  "code": zod.coerce.string()
+})
+
+
+export const RevokeF10ProviderConnectionParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+
+export const listF10BundleDeploymentsResponseBundleHashRegExp = new RegExp('^[a-f0-9]{64}$');
+
+
+export const ListF10BundleDeploymentsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "provider": zod.string(),
+  "target": zod.string(),
+  "state": zod.string(),
+  "bundleHash": zod.string().regex(listF10BundleDeploymentsResponseBundleHashRegExp),
+  "executionStatus": zod.enum(['NOT_CONFIRMED', 'ACCEPTED', 'RUNNING', 'COMPLETED', 'FAILED']),
+  "executionCheckedAt": zod.coerce.date().nullish(),
+  "providerExecutionUpdatedAt": zod.coerce.date().nullish(),
+  "reconciliationPausedAt": zod.coerce.date().nullish(),
+  "reconciliationPauseReason": zod.string().nullish()
+})
+export const ListF10BundleDeploymentsResponse = zod.array(ListF10BundleDeploymentsResponseItem)
+
+
+/**
+ * @summary Generate a server-owned provider bundle and queue one deployment release
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+export const createF10BundleDeploymentBodyReleaseIntentMax = 200;
+
+
+
+export const CreateF10BundleDeploymentBody = zod.object({
+  "sourceArtifactId": zod.string().uuid(),
+  "provider": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS']),
+  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE']),
+  "connectionRef": zod.string().uuid(),
+  "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
+  "targetConfig": zod.union([zod.object({
+  "region": zod.string().min(1),
+  "resourceName": zod.string().min(1),
+  "accountId": zod.string().optional(),
+  "roleArn": zod.string().optional()
+}),zod.object({
+  "subscriptionId": zod.string().min(1),
+  "tenantId": zod.string().optional(),
+  "resourceGroup": zod.string().min(1),
+  "location": zod.string().min(1),
+  "resourceName": zod.string().min(1)
+}),zod.object({
+  "projectId": zod.string().optional(),
+  "agentId": zod.string().optional(),
+  "model": zod.string().min(1),
+  "environment": zod.string().min(1)
+}),zod.object({
+  "projectId": zod.string().min(1),
+  "location": zod.string().min(1),
+  "agentId": zod.string().optional(),
+  "displayName": zod.string().optional(),
+  "model": zod.string().min(1),
+  "environment": zod.string().min(1),
+  "useVertex": zod.enum(['true', 'false']).optional()
+})]).describe('Provider-specific deployment target. Unknown fields are rejected.'),
+  "releaseIntent": zod.string().min(1).max(createF10BundleDeploymentBodyReleaseIntentMax)
+})
+
+
+export const GetF10BundleDeploymentParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const getF10BundleDeploymentResponseOneBundleHashRegExp = new RegExp('^[a-f0-9]{64}$');
+
+
+export const GetF10BundleDeploymentResponse = zod.object({
+  "id": zod.string().uuid(),
+  "provider": zod.string(),
+  "target": zod.string(),
+  "state": zod.string(),
+  "bundleHash": zod.string().regex(getF10BundleDeploymentResponseOneBundleHashRegExp),
+  "executionStatus": zod.enum(['NOT_CONFIRMED', 'ACCEPTED', 'RUNNING', 'COMPLETED', 'FAILED']),
+  "executionCheckedAt": zod.coerce.date().nullish(),
+  "providerExecutionUpdatedAt": zod.coerce.date().nullish(),
+  "reconciliationPausedAt": zod.coerce.date().nullish(),
+  "reconciliationPauseReason": zod.string().nullish()
+}).and(zod.object({
+  "audit": zod.array(zod.record(zod.string(), zod.unknown())),
+  "attempts": zod.array(zod.record(zod.string(), zod.unknown())),
+  "receipt": zod.record(zod.string(), zod.unknown()).nullable()
+}))
+
+
+export const ProcessF10BundleDeploymentParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+
+/**
+ * @summary Reconcile provider-side execution status through the user's connected account
+ */
+export const ReconcileF10BundleDeploymentParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const ReconcileF10BundleDeploymentResponse = zod.object({
+  "acceptance": zod.enum(['ACCEPTED']),
+  "executionStatus": zod.enum(['ACCEPTED', 'RUNNING', 'COMPLETED', 'FAILED']),
+  "checkedAt": zod.coerce.date(),
+  "providerUpdatedAt": zod.coerce.date().nullish(),
+  "changed": zod.boolean()
+})
+
+
+/**
+ * @summary Revoke a tenant-scoped destination
+ */
+export const RevokeF10DestinationParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const revokeF10DestinationResponseOneNameMax = 120;
+
+export const revokeF10DestinationResponseOneSecretRefRegExp = new RegExp('^F10_SECRET_[A-Z0-9_]+$');
+export const revokeF10DestinationResponseOneAuthorizationScopesMax = 50;
+
+
+
+export const RevokeF10DestinationResponse = zod.object({
+  "name": zod.string().min(1).max(revokeF10DestinationResponseOneNameMax),
+  "adapterId": zod.enum(['https']),
+  "adapterVersion": zod.enum(['1']),
+  "endpoint": zod.string().url(),
+  "secretRef": zod.string().regex(revokeF10DestinationResponseOneSecretRefRegExp),
+  "authorizationScopes": zod.array(zod.string()).max(revokeF10DestinationResponseOneAuthorizationScopesMax)
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "active": zod.boolean(),
+  "revokedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+}))
+
+
+export const ListF10ReleasesResponseItem = zod.object({
+  "id": zod.string().uuid().optional(),
+  "state": zod.enum(['REQUESTED', 'VERIFYING', 'AUTHORIZED', 'QUEUED', 'DISPATCHING', 'ACKNOWLEDGED', 'BLOCKED', 'FAILED_PERMANENT', 'DEAD_LETTERED', 'CANCELLED']).optional(),
+  "idempotencyKey": zod.string().optional(),
+  "blockedReasons": zod.array(zod.string()).optional(),
+  "transitions": zod.array(zod.object({
+
+}).passthrough()).optional()
+}).describe('Persisted release metadata and append-only transitions; no artifact bytes or secrets.')
+export const ListF10ReleasesResponse = zod.array(ListF10ReleasesResponseItem)
+
+
+/**
+ * Artifact bytes are never accepted; F10 retrieves them from OSIRIS custody.
+ * @summary Request release of an immutable signed F9 artifact
+ */
+export const CreateF10ReleaseBody = zod.object({
+  "machineArtifactId": zod.string(),
+  "destinationId": zod.string().uuid(),
+  "releaseIntent": zod.string()
+})
+
+
+/**
+ * @summary Trigger a bounded worker dispatch
+ */
+export const ProcessF10ReleaseParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+
+export const GetF10ReleaseParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetF10ReleaseResponse = zod.object({
+  "id": zod.string().uuid().optional(),
+  "state": zod.enum(['REQUESTED', 'VERIFYING', 'AUTHORIZED', 'QUEUED', 'DISPATCHING', 'ACKNOWLEDGED', 'BLOCKED', 'FAILED_PERMANENT', 'DEAD_LETTERED', 'CANCELLED']).optional(),
+  "idempotencyKey": zod.string().optional(),
+  "blockedReasons": zod.array(zod.string()).optional(),
+  "transitions": zod.array(zod.object({
+
+}).passthrough()).optional()
+}).describe('Persisted release metadata and append-only transitions; no artifact bytes or secrets.')
+
+
+/**
  * @summary Basic liveness
  */
 export const HealthCheckResponse = zod.object({
@@ -230,7 +787,7 @@ export const GetSessionResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "sku": zod.string().nullish(),
@@ -395,7 +952,7 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "sku": zod.string().nullish(),
@@ -480,7 +1037,7 @@ export const GetArtifactResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "sku": zod.string().nullish(),
@@ -519,7 +1076,7 @@ export const RenameArtifactResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "sku": zod.string().nullish(),
@@ -924,6 +1481,110 @@ export const HarnessF8Response = zod.object({
 
 
 /**
+ * Accepts an F8 CODEBASE_BUNDLE whose MVP PDD lineage is SPARTAN-certified. All seven phases and immutable external gate evidence must be supplied in order. Missing, non-passing, or unverifiable evidence produces a cited refusal; MECHA never invents or overrides a gate verdict.
+
+ * @summary Run the deterministic F9 MECHA Machine Floor
+ */
+export const harnessF9MechaBodyDeviceClassMax = 200;
+
+export const harnessF9MechaBodyArtifactVersionDefault = `1.0.0`;
+export const harnessF9MechaBodyArtifactVersionRegExp = new RegExp('^[0-9]+\\.[0-9]+\\.[0-9]+$');
+export const harnessF9MechaBodyPhasesItemPhaseMax = 7;
+
+export const harnessF9MechaBodyPhasesMin = 7;
+export const harnessF9MechaBodyPhasesMax = 7;
+
+
+
+export const HarnessF9MechaBody = zod.object({
+  "sessionId": zod.string().uuid(),
+  "sourceArtifactId": zod.string().uuid(),
+  "deviceClass": zod.string().min(1).max(harnessF9MechaBodyDeviceClassMax),
+  "artifactVersion": zod.string().regex(harnessF9MechaBodyArtifactVersionRegExp).default(harnessF9MechaBodyArtifactVersionDefault),
+  "phases": zod.array(zod.object({
+  "phase": zod.number().min(1).max(harnessF9MechaBodyPhasesItemPhaseMax),
+  "evidence": zod.record(zod.string(), zod.unknown())
+})).min(harnessF9MechaBodyPhasesMin).max(harnessF9MechaBodyPhasesMax)
+})
+
+export const HarnessF9MechaResponse = zod.object({
+  "machine_artifact_id": zod.string(),
+  "mecha_run_id": zod.string(),
+  "artifact_version": zod.string(),
+  "source_artifact_id": zod.string().uuid().optional(),
+  "spk_id": zod.string(),
+  "mm_verdict": zod.enum(['MATH_VERIFIED']),
+  "ucg_certificate": zod.record(zod.string(), zod.unknown()),
+  "savant_verdict": zod.enum(['FIT', 'CLUSTER', 'N/A']).optional(),
+  "osiris_custody": zod.literal(true),
+  "reverification_due": zod.coerce.date(),
+  "payload_hash": zod.string().describe('SHA-256 hash of canonical immutable payload'),
+  "artifact_signature": zod.string().describe('HMAC signature; signing key is never returned'),
+  "regulatory_conformity_asserted": zod.literal(false),
+  "evidence": zod.record(zod.string(), zod.unknown()).optional()
+})
+
+
+/**
+ * @summary List owned F9 MECHA run records
+ */
+export const ListHarnessF9RunsQueryParams = zod.object({
+  "sessionId": zod.coerce.string().uuid()
+})
+
+export const listHarnessF9RunsResponseEvidenceItemPhaseMax = 7;
+
+export const listHarnessF9RunsResponseRefusalPhaseHaltedMax = 7;
+
+
+
+export const ListHarnessF9RunsResponseItem = zod.object({
+  "id": zod.string().uuid().optional(),
+  "mechaRunId": zod.string().optional(),
+  "sessionId": zod.string().uuid().optional(),
+  "sourceArtifactId": zod.string().uuid().optional(),
+  "evidenceHash": zod.string().optional().describe('SHA-256 hash of the canonical seven-phase evidence envelope'),
+  "idempotencyKey": zod.string().optional().describe('Stable SHA-256 key derived from source artifact'),
+  "status": zod.enum(['RUNNING', 'EMITTED', 'REFUSED']).optional(),
+  "phase": zod.number().optional(),
+  "evidence": zod.array(zod.object({
+  "phase": zod.number().min(1).max(listHarnessF9RunsResponseEvidenceItemPhaseMax),
+  "evidence": zod.record(zod.string(), zod.unknown())
+})).optional(),
+  "refusal": zod.object({
+  "verdict": zod.enum(['REFUSED']),
+  "mecha_run_id": zod.string(),
+  "phase_halted": zod.number().min(1).max(listHarnessF9RunsResponseRefusalPhaseHaltedMax),
+  "constraint_cited": zod.string(),
+  "invariant_cited": zod.string(),
+  "cause": zod.string(),
+  "required_to_proceed": zod.string(),
+  "gro_mode": zod.enum(['HUMAN_IN_LOOP', 'CONTAINMENT', 'KILLZONE'])
+}).optional(),
+  "payloadHash": zod.string().optional(),
+  "artifactSignature": zod.string().optional(),
+  "artifactContent": zod.object({
+  "machine_artifact_id": zod.string(),
+  "mecha_run_id": zod.string(),
+  "artifact_version": zod.string(),
+  "source_artifact_id": zod.string().uuid().optional(),
+  "spk_id": zod.string(),
+  "mm_verdict": zod.enum(['MATH_VERIFIED']),
+  "ucg_certificate": zod.record(zod.string(), zod.unknown()),
+  "savant_verdict": zod.enum(['FIT', 'CLUSTER', 'N/A']).optional(),
+  "osiris_custody": zod.literal(true),
+  "reverification_due": zod.coerce.date(),
+  "payload_hash": zod.string().describe('SHA-256 hash of canonical immutable payload'),
+  "artifact_signature": zod.string().describe('HMAC signature; signing key is never returned'),
+  "regulatory_conformity_asserted": zod.literal(false),
+  "evidence": zod.record(zod.string(), zod.unknown()).optional()
+}).optional(),
+  "osirisCustody": zod.boolean().optional()
+})
+export const ListHarnessF9RunsResponse = zod.array(ListHarnessF9RunsResponseItem)
+
+
+/**
  * @summary Host DJ — recommend a host + deployment journey from a certified MVP PDD (Architect tier)
  */
 export const harnessF8HdjBodyNotesMax = 2000;
@@ -1068,6 +1729,51 @@ export const HarnessPfpResponse = zod.object({
   "medium": zod.number(),
   "low": zod.number()
 })
+})
+
+
+/**
+ * Read-only side-step over the latest owned ATLAS_PDD or MVP_PDD artifact. The persisted view never reruns F1-F8. Without format, manual and cartridge sessions default to PLAN and ingested sessions default to SCAN.
+
+ * @summary Render and persist an ATLAS 360 PLAN or SCAN view of the latest F6/F7 PDD
+ */
+export const HarnessPddViewParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const HarnessPddViewQueryParams = zod.object({
+  "format": zod.enum(['plan', 'scan']).optional()
+})
+
+export const harnessPddViewResponsePartsItemPartMin = 0;
+export const harnessPddViewResponsePartsItemPartMax = 11;
+
+export const harnessPddViewResponseStagesItemStageMax = 8;
+
+
+
+export const HarnessPddViewResponse = zod.object({
+  "artifactId": zod.string().uuid(),
+  "sourceArtifactId": zod.string().uuid(),
+  "sourceArtifactType": zod.enum(['ATLAS_PDD', 'MVP_PDD']),
+  "sourceCodebaseBundleArtifactId": zod.string().uuid().nullish(),
+  "sourcePfpReportArtifactId": zod.string().uuid().nullish(),
+  "disclosure": zod.string().optional(),
+  "schemaVersion": zod.string().optional(),
+  "view": zod.enum(['PLAN', 'SCAN']),
+  "title": zod.string().optional(),
+  "parts": zod.array(zod.object({
+  "part": zod.number().min(harnessPddViewResponsePartsItemPartMin).max(harnessPddViewResponsePartsItemPartMax),
+  "title": zod.string(),
+  "content": zod.string()
+})).optional(),
+  "stages": zod.array(zod.object({
+  "stage": zod.number().min(1).max(harnessPddViewResponseStagesItemStageMax),
+  "name": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "assessment": zod.string(),
+  "actions": zod.array(zod.string())
+})).optional()
 })
 
 
@@ -1423,7 +2129,13 @@ export const CronSweepCostCapAlertsResponse = zod.object({
 
 
 /**
- * @summary List canonical and hand-authored SPC / PDD exemplars
+ * @summary Reconcile a bounded batch of accepted or running provider deployments (requires CRON_SECRET header)
+ */
+export const CronReconcileF10DeploymentsResponse = zod.record(zod.string(), zod.unknown())
+
+
+/**
+ * @summary List curated and open-marketplace SPC, MA, MPDD, and PDD exemplars
  */
 export const ListExemplarsResponseItem = zod.object({
   "id": zod.string(),
@@ -1433,10 +2145,71 @@ export const ListExemplarsResponseItem = zod.object({
   "certClass": zod.string().nullable(),
   "sku": zod.string(),
   "source": zod.enum(['canonical', 'hand_authored', 'generated']),
-  "kind": zod.enum(['SPC', 'PDD']),
-  "disc": zod.string().nullable().describe('DISC personality profile (Dominance \/ Influence \/ Steadiness \/ Conscientiousness). Every SPC has a unique DISC fingerprint; PDDs are null.')
+  "kind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD']),
+  "marketplace": zod.enum(['curated', 'open']),
+  "createdAt": zod.coerce.date().optional(),
+  "disc": zod.string().nullable().describe('DISC personality profile (Dominance \/ Influence \/ Steadiness \/ Conscientiousness). Every SPC has a unique DISC fingerprint; PDDs are null.'),
+  "spcPlayer": zod.union([zod.object({
+  "registryVersion": zod.string(),
+  "publicationStatus": zod.enum(['legacy', 'draft', 'published']),
+  "cheatSheetPublished": zod.boolean(),
+  "publishedBy": zod.union([zod.literal('sphinx_engine'),zod.literal(null)]).nullable(),
+  "publishedAt": zod.coerce.date().nullable(),
+  "cheatSheet": zod.union([zod.object({
+  "mission": zod.string(),
+  "skillSet": zod.array(zod.string()),
+  "useCases": zod.array(zod.string()),
+  "productionProcess": zod.array(zod.string()),
+  "thirdPartyDefinitions": zod.array(zod.string()).nullable(),
+  "environmentNotes": zod.array(zod.object({
+  "environment": zod.string(),
+  "status": zod.enum(['sketch', 'verified_integration']),
+  "note": zod.string()
+}))
+}),zod.null()]),
+  "qualityScores": zod.object({
+  "clarity": zod.number().nullable(),
+  "truthfulness": zod.number().nullable(),
+  "detectability": zod.number().nullable()
+}).describe('Three independent advisory axes. Null means the check has not run. No composite score is permitted.')
+}),zod.null()])
 })
 export const ListExemplarsResponse = zod.array(ListExemplarsResponseItem)
+
+
+/**
+ * @summary Fetch the versioned SPC Dev Kit registry and platform publication rules
+ */
+export const getSpcPlayerRegistryResponseCardsMin = 6;
+export const getSpcPlayerRegistryResponseCardsMax = 6;
+
+export const getSpcPlayerRegistryResponseEnvironmentsMin = 10;
+export const getSpcPlayerRegistryResponseEnvironmentsMax = 10;
+
+
+
+export const GetSpcPlayerRegistryResponse = zod.object({
+  "productionId": zod.string(),
+  "version": zod.string(),
+  "status": zod.enum(['pre_build']),
+  "cards": zod.array(zod.object({
+  "key": zod.string(),
+  "name": zod.string(),
+  "responsibility": zod.string(),
+  "status": zod.enum(['registered_pre_build'])
+})).min(getSpcPlayerRegistryResponseCardsMin).max(getSpcPlayerRegistryResponseCardsMax),
+  "environments": zod.array(zod.string()).min(getSpcPlayerRegistryResponseEnvironmentsMin).max(getSpcPlayerRegistryResponseEnvironmentsMax),
+  "qualityPolicy": zod.string(),
+  "executionAuthority": zod.enum(['user-authorized REVERB v3 derivation'])
+})
+
+
+/**
+ * @summary Copy a completed SPC, MA, MPDD, or PDD artifact into the open library
+ */
+export const AddArtifactToExemplarLibraryBody = zod.object({
+  "artifactId": zod.string().uuid()
+})
 
 
 /**
@@ -1454,8 +2227,34 @@ export const GetExemplarResponse = zod.object({
   "certClass": zod.string().nullable(),
   "sku": zod.string(),
   "source": zod.enum(['canonical', 'hand_authored', 'generated']),
-  "kind": zod.enum(['SPC', 'PDD']),
-  "disc": zod.string().nullable().describe('DISC personality profile (Dominance \/ Influence \/ Steadiness \/ Conscientiousness). Every SPC has a unique DISC fingerprint; PDDs are null.')
+  "kind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD']),
+  "marketplace": zod.enum(['curated', 'open']),
+  "createdAt": zod.coerce.date().optional(),
+  "disc": zod.string().nullable().describe('DISC personality profile (Dominance \/ Influence \/ Steadiness \/ Conscientiousness). Every SPC has a unique DISC fingerprint; PDDs are null.'),
+  "spcPlayer": zod.union([zod.object({
+  "registryVersion": zod.string(),
+  "publicationStatus": zod.enum(['legacy', 'draft', 'published']),
+  "cheatSheetPublished": zod.boolean(),
+  "publishedBy": zod.union([zod.literal('sphinx_engine'),zod.literal(null)]).nullable(),
+  "publishedAt": zod.coerce.date().nullable(),
+  "cheatSheet": zod.union([zod.object({
+  "mission": zod.string(),
+  "skillSet": zod.array(zod.string()),
+  "useCases": zod.array(zod.string()),
+  "productionProcess": zod.array(zod.string()),
+  "thirdPartyDefinitions": zod.array(zod.string()).nullable(),
+  "environmentNotes": zod.array(zod.object({
+  "environment": zod.string(),
+  "status": zod.enum(['sketch', 'verified_integration']),
+  "note": zod.string()
+}))
+}),zod.null()]),
+  "qualityScores": zod.object({
+  "clarity": zod.number().nullable(),
+  "truthfulness": zod.number().nullable(),
+  "detectability": zod.number().nullable()
+}).describe('Three independent advisory axes. Null means the check has not run. No composite score is permitted.')
+}),zod.null()])
 }).and(zod.object({
   "body": zod.string()
 }))
@@ -1479,7 +2278,7 @@ export const ListMyPromptsResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "sessionName": zod.string().nullish(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "certTier": zod.string().nullish(),
   "jcseScore": zod.number().nullish(),
   "spcOrigin": zod.union([zod.literal('artisanal'),zod.literal('digitally_evolved'),zod.literal(null)]).nullish(),
@@ -1707,7 +2506,10 @@ export const AdminGetCronStatusResponse = zod.object({
   "tickCount": zod.number(),
   "neverTicked": zod.boolean(),
   "minutesSinceLastTick": zod.number().nullable(),
-  "stale": zod.boolean()
+  "stale": zod.boolean(),
+  "recentTicks": zod.array(zod.coerce.date()).describe('Most recent tick timestamps (newest first), bounded window.'),
+  "ticksLast24h": zod.number().describe('Ticks observed in the trailing 24h window.'),
+  "expectedTicksLast24h": zod.number().describe('Ticks the schedule should produce in 24h (0 for schedules coarser than daily).')
 }))
 })
 
@@ -1730,7 +2532,7 @@ export const HarnessEvolveResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
   "sku": zod.string().nullish(),
@@ -2349,3 +3151,905 @@ export const AcknowledgeF0MonitoringAlertResponse = zod.object({
 })
 
 
+/**
+ * @summary SPC library cards and v4 Cheat Sheet metadata
+ */
+export const GetSpcPlayerCatalogResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "slug": zod.string(),
+  "name": zod.string(),
+  "provenance": zod.object({
+  "source": zod.string(),
+  "version": zod.string(),
+  "status": zod.string(),
+  "exemplarId": zod.string().optional(),
+  "marketplace": zod.enum(['curated', 'open']).optional(),
+  "tagline": zod.string().optional(),
+  "searchText": zod.string().optional().describe('Search-only excerpt used for deterministic Capability Brief matching')
+}),
+  "status": zod.enum(['PRE_BUILD']),
+  "preBuild": zod.boolean(),
+  "cheatSheetPublished": zod.boolean(),
+  "cheatSheet": zod.object({
+  "generalDefinition": zod.object({
+  "mission": zod.string(),
+  "skillSet": zod.array(zod.string()),
+  "useCases": zod.array(zod.string())
+}),
+  "generalProductionProcess": zod.array(zod.object({
+  "step": zod.number(),
+  "description": zod.string()
+})),
+  "environmentNotes": zod.array(zod.object({
+  "environment": zod.string(),
+  "note": zod.string(),
+  "status": zod.enum(['sketch', 'verified_integration'])
+})),
+  "thirdPartyDefinitions": zod.array(zod.string()).nullable(),
+  "publishedBy": zod.enum(['sphinx_engine'])
+}).nullable(),
+  "thirdPartyDefinitions": zod.array(zod.string()).nullable()
+})
+export const GetSpcPlayerCatalogResponse = zod.array(GetSpcPlayerCatalogResponseItem)
+
+
+/**
+ * @summary Named six-card SPC Dev Kit registry
+ */
+export const getSpcDevKitResponseCardIdsMin = 6;
+export const getSpcDevKitResponseCardIdsMax = 6;
+
+export const getSpcDevKitResponseCardsMin = 6;
+export const getSpcDevKitResponseCardsMax = 6;
+
+
+
+export const GetSpcDevKitResponse = zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.enum(['SPC Dev Kit']),
+  "cardIds": zod.array(zod.string().uuid()).min(getSpcDevKitResponseCardIdsMin).max(getSpcDevKitResponseCardIdsMax),
+  "cards": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "slug": zod.string(),
+  "name": zod.string(),
+  "provenance": zod.object({
+  "source": zod.string(),
+  "version": zod.string(),
+  "status": zod.string(),
+  "exemplarId": zod.string().optional(),
+  "marketplace": zod.enum(['curated', 'open']).optional(),
+  "tagline": zod.string().optional(),
+  "searchText": zod.string().optional().describe('Search-only excerpt used for deterministic Capability Brief matching')
+}),
+  "status": zod.enum(['PRE_BUILD']),
+  "preBuild": zod.boolean(),
+  "cheatSheetPublished": zod.boolean(),
+  "cheatSheet": zod.object({
+  "generalDefinition": zod.object({
+  "mission": zod.string(),
+  "skillSet": zod.array(zod.string()),
+  "useCases": zod.array(zod.string())
+}),
+  "generalProductionProcess": zod.array(zod.object({
+  "step": zod.number(),
+  "description": zod.string()
+})),
+  "environmentNotes": zod.array(zod.object({
+  "environment": zod.string(),
+  "note": zod.string(),
+  "status": zod.enum(['sketch', 'verified_integration'])
+})),
+  "thirdPartyDefinitions": zod.array(zod.string()).nullable(),
+  "publishedBy": zod.enum(['sphinx_engine'])
+}).nullable(),
+  "thirdPartyDefinitions": zod.array(zod.string()).nullable()
+})).min(getSpcDevKitResponseCardsMin).max(getSpcDevKitResponseCardsMax),
+  "registrationNote": zod.string(),
+  "executes": zod.literal(false)
+})
+
+
+/**
+ * @summary List the caller's standalone SPC Player drafts
+ */
+export const listSpcPlayerRunsResponseGovernanceScorePolicyAxesMin = 3;
+export const listSpcPlayerRunsResponseGovernanceScorePolicyAxesMax = 3;
+
+export const listSpcPlayerRunsResponseStageResultsItemStageIndexMin = 0;
+
+export const listSpcPlayerRunsResponseGovernanceEvaluationOneScoresClarityMin = 0;
+export const listSpcPlayerRunsResponseGovernanceEvaluationOneScoresClarityMax = 100;
+
+export const listSpcPlayerRunsResponseGovernanceEvaluationOneScoresTruthfulnessMin = 0;
+export const listSpcPlayerRunsResponseGovernanceEvaluationOneScoresTruthfulnessMax = 100;
+
+export const listSpcPlayerRunsResponseGovernanceEvaluationOneScoresDetectabilityMin = 0;
+export const listSpcPlayerRunsResponseGovernanceEvaluationOneScoresDetectabilityMax = 100;
+
+export const listSpcPlayerRunsResponseExecutionAdvisoryOneInvokedStagesItemMin = 0;
+
+export const listSpcPlayerRunsResponseOutputPackageOneContentItemStageIndexMin = 0;
+
+export const listSpcPlayerRunsResponseOutputPackageOneAdvisoryInvokedStagesItemMin = 0;
+
+export const listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresClarityMin = 0;
+export const listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresClarityMax = 100;
+
+export const listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMin = 0;
+export const listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMax = 100;
+
+export const listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMin = 0;
+export const listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMax = 100;
+
+export const listSpcPlayerRunsResponseOutputPackageOneScoresClarityMin = 0;
+export const listSpcPlayerRunsResponseOutputPackageOneScoresClarityMax = 100;
+
+export const listSpcPlayerRunsResponseOutputPackageOneScoresTruthfulnessMin = 0;
+export const listSpcPlayerRunsResponseOutputPackageOneScoresTruthfulnessMax = 100;
+
+export const listSpcPlayerRunsResponseOutputPackageOneScoresDetectabilityMin = 0;
+export const listSpcPlayerRunsResponseOutputPackageOneScoresDetectabilityMax = 100;
+
+
+
+export const ListSpcPlayerRunsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "ownerUserId": zod.string().uuid(),
+  "title": zod.string(),
+  "brief": zod.string(),
+  "selectedCardIds": zod.array(zod.string().uuid()),
+  "profile": zod.enum(['full', 'rapid']),
+  "status": zod.enum(['DRAFT', 'RUNNING', 'COMPLETED', 'FAILED']),
+  "executionState": zod.enum(['IDLE', 'ACTIVE', 'RECOVERABLE', 'FINISHED']).describe('Public execution availability without internal attempt credentials.'),
+  "canExecute": zod.boolean().describe('Whether a new execution attempt may be claimed now.'),
+  "retryAvailableAt": zod.coerce.date().nullable().describe('When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.'),
+  "governance": zod.object({
+  "specVersion": zod.enum(['v4.0']),
+  "source": zod.string(),
+  "scorePolicy": zod.object({
+  "axes": zod.array(zod.enum(['clarity', 'truthfulness', 'detectability'])).min(listSpcPlayerRunsResponseGovernanceScorePolicyAxesMin).max(listSpcPlayerRunsResponseGovernanceScorePolicyAxesMax)
+})
+}),
+  "stageResults": zod.array(zod.object({
+  "stageIndex": zod.number().min(listSpcPlayerRunsResponseStageResultsItemStageIndexMin),
+  "cardId": zod.string().uuid(),
+  "cardSlug": zod.string(),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "completedAt": zod.coerce.date().nullish()
+})),
+  "governanceEvaluation": zod.object({
+  "kind": zod.enum(['governance_evaluation']),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "scores": zod.object({
+  "clarity": zod.number().min(listSpcPlayerRunsResponseGovernanceEvaluationOneScoresClarityMin).max(listSpcPlayerRunsResponseGovernanceEvaluationOneScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(listSpcPlayerRunsResponseGovernanceEvaluationOneScoresTruthfulnessMin).max(listSpcPlayerRunsResponseGovernanceEvaluationOneScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(listSpcPlayerRunsResponseGovernanceEvaluationOneScoresDetectabilityMin).max(listSpcPlayerRunsResponseGovernanceEvaluationOneScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "completedAt": zod.coerce.date()
+}).nullable(),
+  "executionAdvisory": zod.object({
+  "authority": zod.enum(['user-authorized REVERB v3 derivation']),
+  "status": zod.enum(['PRE_BUILD']),
+  "profile": zod.enum(['full', 'rapid']),
+  "invokedStages": zod.array(zod.number().min(listSpcPlayerRunsResponseExecutionAdvisoryOneInvokedStagesItemMin)),
+  "governanceEvaluationInvoked": zod.boolean(),
+  "evidenceTrail": zod.array(zod.string()),
+  "distribution": zod.enum(['plan-only; no connector invoked'])
+}).nullable(),
+  "distributionPlan": zod.object({
+  "status": zod.enum(['plan_only']),
+  "connectorInvoked": zod.literal(false),
+  "externalSend": zod.literal(false)
+}),
+  "error": zod.string().nullable(),
+  "transitions": zod.array(zod.object({
+  "from": zod.string(),
+  "to": zod.string(),
+  "at": zod.coerce.date(),
+  "reason": zod.string().optional()
+})),
+  "completedAt": zod.coerce.date().nullable(),
+  "outputPackage": zod.object({
+  "content": zod.array(zod.object({
+  "stageIndex": zod.number().min(listSpcPlayerRunsResponseOutputPackageOneContentItemStageIndexMin),
+  "cardId": zod.string().uuid(),
+  "cardSlug": zod.string(),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "completedAt": zod.coerce.date().nullish()
+})),
+  "advisory": zod.object({
+  "authority": zod.enum(['user-authorized REVERB v3 derivation']),
+  "status": zod.enum(['PRE_BUILD']),
+  "profile": zod.enum(['full', 'rapid']),
+  "invokedStages": zod.array(zod.number().min(listSpcPlayerRunsResponseOutputPackageOneAdvisoryInvokedStagesItemMin)),
+  "governanceEvaluationInvoked": zod.boolean(),
+  "evidenceTrail": zod.array(zod.string()),
+  "distribution": zod.enum(['plan-only; no connector invoked'])
+}),
+  "governanceEvaluation": zod.object({
+  "kind": zod.enum(['governance_evaluation']),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "scores": zod.object({
+  "clarity": zod.number().min(listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresClarityMin).max(listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMin).max(listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMin).max(listSpcPlayerRunsResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "completedAt": zod.coerce.date()
+}),
+  "scores": zod.object({
+  "clarity": zod.number().min(listSpcPlayerRunsResponseOutputPackageOneScoresClarityMin).max(listSpcPlayerRunsResponseOutputPackageOneScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(listSpcPlayerRunsResponseOutputPackageOneScoresTruthfulnessMin).max(listSpcPlayerRunsResponseOutputPackageOneScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(listSpcPlayerRunsResponseOutputPackageOneScoresDetectabilityMin).max(listSpcPlayerRunsResponseOutputPackageOneScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "distributionPlan": zod.object({
+  "status": zod.enum(['plan_only']),
+  "connectorInvoked": zod.literal(false),
+  "externalSend": zod.literal(false)
+})
+}).describe('Completed SPC content plus its non-detachable advisory.').nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListSpcPlayerRunsResponse = zod.array(ListSpcPlayerRunsResponseItem)
+
+
+/**
+ * @summary Persist a standalone SPC Player draft
+ */
+export const createSpcPlayerRunBodyTitleMax = 255;
+
+export const createSpcPlayerRunBodyBriefMax = 100000;
+
+export const createSpcPlayerRunBodySelectedCardIdsMax = 12;
+
+export const createSpcPlayerRunBodyProfileDefault = `full`;
+
+export const CreateSpcPlayerRunBody = zod.object({
+  "title": zod.string().min(1).max(createSpcPlayerRunBodyTitleMax),
+  "brief": zod.string().min(1).max(createSpcPlayerRunBodyBriefMax),
+  "selectedCardIds": zod.array(zod.string().uuid()).min(1).max(createSpcPlayerRunBodySelectedCardIdsMax),
+  "profile": zod.enum(['full', 'rapid']).default(createSpcPlayerRunBodyProfileDefault)
+})
+
+
+/**
+ * @summary Get one owned standalone SPC Player draft
+ */
+export const GetSpcPlayerRunParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const getSpcPlayerRunResponseGovernanceScorePolicyAxesMin = 3;
+export const getSpcPlayerRunResponseGovernanceScorePolicyAxesMax = 3;
+
+export const getSpcPlayerRunResponseStageResultsItemStageIndexMin = 0;
+
+export const getSpcPlayerRunResponseGovernanceEvaluationOneScoresClarityMin = 0;
+export const getSpcPlayerRunResponseGovernanceEvaluationOneScoresClarityMax = 100;
+
+export const getSpcPlayerRunResponseGovernanceEvaluationOneScoresTruthfulnessMin = 0;
+export const getSpcPlayerRunResponseGovernanceEvaluationOneScoresTruthfulnessMax = 100;
+
+export const getSpcPlayerRunResponseGovernanceEvaluationOneScoresDetectabilityMin = 0;
+export const getSpcPlayerRunResponseGovernanceEvaluationOneScoresDetectabilityMax = 100;
+
+export const getSpcPlayerRunResponseExecutionAdvisoryOneInvokedStagesItemMin = 0;
+
+export const getSpcPlayerRunResponseOutputPackageOneContentItemStageIndexMin = 0;
+
+export const getSpcPlayerRunResponseOutputPackageOneAdvisoryInvokedStagesItemMin = 0;
+
+export const getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresClarityMin = 0;
+export const getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresClarityMax = 100;
+
+export const getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMin = 0;
+export const getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMax = 100;
+
+export const getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMin = 0;
+export const getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMax = 100;
+
+export const getSpcPlayerRunResponseOutputPackageOneScoresClarityMin = 0;
+export const getSpcPlayerRunResponseOutputPackageOneScoresClarityMax = 100;
+
+export const getSpcPlayerRunResponseOutputPackageOneScoresTruthfulnessMin = 0;
+export const getSpcPlayerRunResponseOutputPackageOneScoresTruthfulnessMax = 100;
+
+export const getSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMin = 0;
+export const getSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMax = 100;
+
+
+
+export const GetSpcPlayerRunResponse = zod.object({
+  "id": zod.string().uuid(),
+  "ownerUserId": zod.string().uuid(),
+  "title": zod.string(),
+  "brief": zod.string(),
+  "selectedCardIds": zod.array(zod.string().uuid()),
+  "profile": zod.enum(['full', 'rapid']),
+  "status": zod.enum(['DRAFT', 'RUNNING', 'COMPLETED', 'FAILED']),
+  "executionState": zod.enum(['IDLE', 'ACTIVE', 'RECOVERABLE', 'FINISHED']).describe('Public execution availability without internal attempt credentials.'),
+  "canExecute": zod.boolean().describe('Whether a new execution attempt may be claimed now.'),
+  "retryAvailableAt": zod.coerce.date().nullable().describe('When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.'),
+  "governance": zod.object({
+  "specVersion": zod.enum(['v4.0']),
+  "source": zod.string(),
+  "scorePolicy": zod.object({
+  "axes": zod.array(zod.enum(['clarity', 'truthfulness', 'detectability'])).min(getSpcPlayerRunResponseGovernanceScorePolicyAxesMin).max(getSpcPlayerRunResponseGovernanceScorePolicyAxesMax)
+})
+}),
+  "stageResults": zod.array(zod.object({
+  "stageIndex": zod.number().min(getSpcPlayerRunResponseStageResultsItemStageIndexMin),
+  "cardId": zod.string().uuid(),
+  "cardSlug": zod.string(),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "completedAt": zod.coerce.date().nullish()
+})),
+  "governanceEvaluation": zod.object({
+  "kind": zod.enum(['governance_evaluation']),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "scores": zod.object({
+  "clarity": zod.number().min(getSpcPlayerRunResponseGovernanceEvaluationOneScoresClarityMin).max(getSpcPlayerRunResponseGovernanceEvaluationOneScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(getSpcPlayerRunResponseGovernanceEvaluationOneScoresTruthfulnessMin).max(getSpcPlayerRunResponseGovernanceEvaluationOneScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(getSpcPlayerRunResponseGovernanceEvaluationOneScoresDetectabilityMin).max(getSpcPlayerRunResponseGovernanceEvaluationOneScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "completedAt": zod.coerce.date()
+}).nullable(),
+  "executionAdvisory": zod.object({
+  "authority": zod.enum(['user-authorized REVERB v3 derivation']),
+  "status": zod.enum(['PRE_BUILD']),
+  "profile": zod.enum(['full', 'rapid']),
+  "invokedStages": zod.array(zod.number().min(getSpcPlayerRunResponseExecutionAdvisoryOneInvokedStagesItemMin)),
+  "governanceEvaluationInvoked": zod.boolean(),
+  "evidenceTrail": zod.array(zod.string()),
+  "distribution": zod.enum(['plan-only; no connector invoked'])
+}).nullable(),
+  "distributionPlan": zod.object({
+  "status": zod.enum(['plan_only']),
+  "connectorInvoked": zod.literal(false),
+  "externalSend": zod.literal(false)
+}),
+  "error": zod.string().nullable(),
+  "transitions": zod.array(zod.object({
+  "from": zod.string(),
+  "to": zod.string(),
+  "at": zod.coerce.date(),
+  "reason": zod.string().optional()
+})),
+  "completedAt": zod.coerce.date().nullable(),
+  "outputPackage": zod.object({
+  "content": zod.array(zod.object({
+  "stageIndex": zod.number().min(getSpcPlayerRunResponseOutputPackageOneContentItemStageIndexMin),
+  "cardId": zod.string().uuid(),
+  "cardSlug": zod.string(),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "completedAt": zod.coerce.date().nullish()
+})),
+  "advisory": zod.object({
+  "authority": zod.enum(['user-authorized REVERB v3 derivation']),
+  "status": zod.enum(['PRE_BUILD']),
+  "profile": zod.enum(['full', 'rapid']),
+  "invokedStages": zod.array(zod.number().min(getSpcPlayerRunResponseOutputPackageOneAdvisoryInvokedStagesItemMin)),
+  "governanceEvaluationInvoked": zod.boolean(),
+  "evidenceTrail": zod.array(zod.string()),
+  "distribution": zod.enum(['plan-only; no connector invoked'])
+}),
+  "governanceEvaluation": zod.object({
+  "kind": zod.enum(['governance_evaluation']),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "scores": zod.object({
+  "clarity": zod.number().min(getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresClarityMin).max(getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMin).max(getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMin).max(getSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "completedAt": zod.coerce.date()
+}),
+  "scores": zod.object({
+  "clarity": zod.number().min(getSpcPlayerRunResponseOutputPackageOneScoresClarityMin).max(getSpcPlayerRunResponseOutputPackageOneScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(getSpcPlayerRunResponseOutputPackageOneScoresTruthfulnessMin).max(getSpcPlayerRunResponseOutputPackageOneScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(getSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMin).max(getSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "distributionPlan": zod.object({
+  "status": zod.enum(['plan_only']),
+  "connectorInvoked": zod.literal(false),
+  "externalSend": zod.literal(false)
+})
+}).describe('Completed SPC content plus its non-detachable advisory.').nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Execute an SPC Player run without entitlement or billing gates
+ */
+export const ExecuteSpcPlayerRunParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const ExecuteSpcPlayerRunBody = zod.object({
+  "provider": zod.enum(['claude', 'openai', 'gemini']).optional()
+})
+
+export const executeSpcPlayerRunResponseGovernanceScorePolicyAxesMin = 3;
+export const executeSpcPlayerRunResponseGovernanceScorePolicyAxesMax = 3;
+
+export const executeSpcPlayerRunResponseStageResultsItemStageIndexMin = 0;
+
+export const executeSpcPlayerRunResponseGovernanceEvaluationOneScoresClarityMin = 0;
+export const executeSpcPlayerRunResponseGovernanceEvaluationOneScoresClarityMax = 100;
+
+export const executeSpcPlayerRunResponseGovernanceEvaluationOneScoresTruthfulnessMin = 0;
+export const executeSpcPlayerRunResponseGovernanceEvaluationOneScoresTruthfulnessMax = 100;
+
+export const executeSpcPlayerRunResponseGovernanceEvaluationOneScoresDetectabilityMin = 0;
+export const executeSpcPlayerRunResponseGovernanceEvaluationOneScoresDetectabilityMax = 100;
+
+export const executeSpcPlayerRunResponseExecutionAdvisoryOneInvokedStagesItemMin = 0;
+
+export const executeSpcPlayerRunResponseOutputPackageOneContentItemStageIndexMin = 0;
+
+export const executeSpcPlayerRunResponseOutputPackageOneAdvisoryInvokedStagesItemMin = 0;
+
+export const executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresClarityMin = 0;
+export const executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresClarityMax = 100;
+
+export const executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMin = 0;
+export const executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMax = 100;
+
+export const executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMin = 0;
+export const executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMax = 100;
+
+export const executeSpcPlayerRunResponseOutputPackageOneScoresClarityMin = 0;
+export const executeSpcPlayerRunResponseOutputPackageOneScoresClarityMax = 100;
+
+export const executeSpcPlayerRunResponseOutputPackageOneScoresTruthfulnessMin = 0;
+export const executeSpcPlayerRunResponseOutputPackageOneScoresTruthfulnessMax = 100;
+
+export const executeSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMin = 0;
+export const executeSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMax = 100;
+
+
+
+export const ExecuteSpcPlayerRunResponse = zod.object({
+  "id": zod.string().uuid(),
+  "ownerUserId": zod.string().uuid(),
+  "title": zod.string(),
+  "brief": zod.string(),
+  "selectedCardIds": zod.array(zod.string().uuid()),
+  "profile": zod.enum(['full', 'rapid']),
+  "status": zod.enum(['DRAFT', 'RUNNING', 'COMPLETED', 'FAILED']),
+  "executionState": zod.enum(['IDLE', 'ACTIVE', 'RECOVERABLE', 'FINISHED']).describe('Public execution availability without internal attempt credentials.'),
+  "canExecute": zod.boolean().describe('Whether a new execution attempt may be claimed now.'),
+  "retryAvailableAt": zod.coerce.date().nullable().describe('When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.'),
+  "governance": zod.object({
+  "specVersion": zod.enum(['v4.0']),
+  "source": zod.string(),
+  "scorePolicy": zod.object({
+  "axes": zod.array(zod.enum(['clarity', 'truthfulness', 'detectability'])).min(executeSpcPlayerRunResponseGovernanceScorePolicyAxesMin).max(executeSpcPlayerRunResponseGovernanceScorePolicyAxesMax)
+})
+}),
+  "stageResults": zod.array(zod.object({
+  "stageIndex": zod.number().min(executeSpcPlayerRunResponseStageResultsItemStageIndexMin),
+  "cardId": zod.string().uuid(),
+  "cardSlug": zod.string(),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "completedAt": zod.coerce.date().nullish()
+})),
+  "governanceEvaluation": zod.object({
+  "kind": zod.enum(['governance_evaluation']),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "scores": zod.object({
+  "clarity": zod.number().min(executeSpcPlayerRunResponseGovernanceEvaluationOneScoresClarityMin).max(executeSpcPlayerRunResponseGovernanceEvaluationOneScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(executeSpcPlayerRunResponseGovernanceEvaluationOneScoresTruthfulnessMin).max(executeSpcPlayerRunResponseGovernanceEvaluationOneScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(executeSpcPlayerRunResponseGovernanceEvaluationOneScoresDetectabilityMin).max(executeSpcPlayerRunResponseGovernanceEvaluationOneScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "completedAt": zod.coerce.date()
+}).nullable(),
+  "executionAdvisory": zod.object({
+  "authority": zod.enum(['user-authorized REVERB v3 derivation']),
+  "status": zod.enum(['PRE_BUILD']),
+  "profile": zod.enum(['full', 'rapid']),
+  "invokedStages": zod.array(zod.number().min(executeSpcPlayerRunResponseExecutionAdvisoryOneInvokedStagesItemMin)),
+  "governanceEvaluationInvoked": zod.boolean(),
+  "evidenceTrail": zod.array(zod.string()),
+  "distribution": zod.enum(['plan-only; no connector invoked'])
+}).nullable(),
+  "distributionPlan": zod.object({
+  "status": zod.enum(['plan_only']),
+  "connectorInvoked": zod.literal(false),
+  "externalSend": zod.literal(false)
+}),
+  "error": zod.string().nullable(),
+  "transitions": zod.array(zod.object({
+  "from": zod.string(),
+  "to": zod.string(),
+  "at": zod.coerce.date(),
+  "reason": zod.string().optional()
+})),
+  "completedAt": zod.coerce.date().nullable(),
+  "outputPackage": zod.object({
+  "content": zod.array(zod.object({
+  "stageIndex": zod.number().min(executeSpcPlayerRunResponseOutputPackageOneContentItemStageIndexMin),
+  "cardId": zod.string().uuid(),
+  "cardSlug": zod.string(),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "completedAt": zod.coerce.date().nullish()
+})),
+  "advisory": zod.object({
+  "authority": zod.enum(['user-authorized REVERB v3 derivation']),
+  "status": zod.enum(['PRE_BUILD']),
+  "profile": zod.enum(['full', 'rapid']),
+  "invokedStages": zod.array(zod.number().min(executeSpcPlayerRunResponseOutputPackageOneAdvisoryInvokedStagesItemMin)),
+  "governanceEvaluationInvoked": zod.boolean(),
+  "evidenceTrail": zod.array(zod.string()),
+  "distribution": zod.enum(['plan-only; no connector invoked'])
+}),
+  "governanceEvaluation": zod.object({
+  "kind": zod.enum(['governance_evaluation']),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "scores": zod.object({
+  "clarity": zod.number().min(executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresClarityMin).max(executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMin).max(executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMin).max(executeSpcPlayerRunResponseOutputPackageOneGovernanceEvaluationScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "completedAt": zod.coerce.date()
+}),
+  "scores": zod.object({
+  "clarity": zod.number().min(executeSpcPlayerRunResponseOutputPackageOneScoresClarityMin).max(executeSpcPlayerRunResponseOutputPackageOneScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(executeSpcPlayerRunResponseOutputPackageOneScoresTruthfulnessMin).max(executeSpcPlayerRunResponseOutputPackageOneScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(executeSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMin).max(executeSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "distributionPlan": zod.object({
+  "status": zod.enum(['plan_only']),
+  "connectorInvoked": zod.literal(false),
+  "externalSend": zod.literal(false)
+})
+}).describe('Completed SPC content plus its non-detachable advisory.').nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Read persisted webhook authorization status for an owned run
+ */
+export const GetSpcPlayerWebhookAuthorizationParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetSpcPlayerWebhookAuthorizationResponse = zod.object({
+  "authorized": zod.boolean(),
+  "connector": zod.enum(['webhook']),
+  "endpoint": zod.string().url().nullable(),
+  "authorizedAt": zod.coerce.date().nullable()
+})
+
+
+/**
+ * Stores only public webhook endpoint metadata and a consent timestamp. The endpoint must use HTTPS and resolve exclusively to public addresses. Credentials are never accepted or stored.
+ * @summary Explicitly authorize webhook delivery for an owned run
+ */
+export const AuthorizeSpcPlayerWebhookParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const AuthorizeSpcPlayerWebhookBody = zod.object({
+  "endpoint": zod.string().url().describe('Public HTTPS webhook destination; credentials are not accepted or stored.')
+})
+
+export const AuthorizeSpcPlayerWebhookResponse = zod.object({
+  "connector": zod.enum(['webhook']),
+  "endpoint": zod.string().url(),
+  "authorizedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Deliver completed output to an explicitly authorized webhook
+ */
+export const DeliverSpcPlayerRunParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const deliverSpcPlayerRunResponseStatusCodeMin = 200;
+export const deliverSpcPlayerRunResponseStatusCodeMax = 299;
+
+
+
+export const DeliverSpcPlayerRunResponse = zod.object({
+  "runId": zod.string().uuid(),
+  "connector": zod.enum(['webhook']),
+  "deliveredAt": zod.coerce.date(),
+  "statusCode": zod.number().min(deliverSpcPlayerRunResponseStatusCodeMin).max(deliverSpcPlayerRunResponseStatusCodeMax)
+})
+
+
+/**
+ * @summary Download an owned completed SPC Player output package as JSON
+ */
+export const DownloadSpcPlayerRunParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const downloadSpcPlayerRunResponseContentItemStageIndexMin = 0;
+
+export const downloadSpcPlayerRunResponseAdvisoryInvokedStagesItemMin = 0;
+
+export const downloadSpcPlayerRunResponseGovernanceEvaluationScoresClarityMin = 0;
+export const downloadSpcPlayerRunResponseGovernanceEvaluationScoresClarityMax = 100;
+
+export const downloadSpcPlayerRunResponseGovernanceEvaluationScoresTruthfulnessMin = 0;
+export const downloadSpcPlayerRunResponseGovernanceEvaluationScoresTruthfulnessMax = 100;
+
+export const downloadSpcPlayerRunResponseGovernanceEvaluationScoresDetectabilityMin = 0;
+export const downloadSpcPlayerRunResponseGovernanceEvaluationScoresDetectabilityMax = 100;
+
+export const downloadSpcPlayerRunResponseScoresClarityMin = 0;
+export const downloadSpcPlayerRunResponseScoresClarityMax = 100;
+
+export const downloadSpcPlayerRunResponseScoresTruthfulnessMin = 0;
+export const downloadSpcPlayerRunResponseScoresTruthfulnessMax = 100;
+
+export const downloadSpcPlayerRunResponseScoresDetectabilityMin = 0;
+export const downloadSpcPlayerRunResponseScoresDetectabilityMax = 100;
+
+
+
+export const DownloadSpcPlayerRunResponse = zod.object({
+  "content": zod.array(zod.object({
+  "stageIndex": zod.number().min(downloadSpcPlayerRunResponseContentItemStageIndexMin),
+  "cardId": zod.string().uuid(),
+  "cardSlug": zod.string(),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "completedAt": zod.coerce.date().nullish()
+})),
+  "advisory": zod.object({
+  "authority": zod.enum(['user-authorized REVERB v3 derivation']),
+  "status": zod.enum(['PRE_BUILD']),
+  "profile": zod.enum(['full', 'rapid']),
+  "invokedStages": zod.array(zod.number().min(downloadSpcPlayerRunResponseAdvisoryInvokedStagesItemMin)),
+  "governanceEvaluationInvoked": zod.boolean(),
+  "evidenceTrail": zod.array(zod.string()),
+  "distribution": zod.enum(['plan-only; no connector invoked'])
+}),
+  "governanceEvaluation": zod.object({
+  "kind": zod.enum(['governance_evaluation']),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "scores": zod.object({
+  "clarity": zod.number().min(downloadSpcPlayerRunResponseGovernanceEvaluationScoresClarityMin).max(downloadSpcPlayerRunResponseGovernanceEvaluationScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(downloadSpcPlayerRunResponseGovernanceEvaluationScoresTruthfulnessMin).max(downloadSpcPlayerRunResponseGovernanceEvaluationScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(downloadSpcPlayerRunResponseGovernanceEvaluationScoresDetectabilityMin).max(downloadSpcPlayerRunResponseGovernanceEvaluationScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "completedAt": zod.coerce.date()
+}),
+  "scores": zod.object({
+  "clarity": zod.number().min(downloadSpcPlayerRunResponseScoresClarityMin).max(downloadSpcPlayerRunResponseScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(downloadSpcPlayerRunResponseScoresTruthfulnessMin).max(downloadSpcPlayerRunResponseScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(downloadSpcPlayerRunResponseScoresDetectabilityMin).max(downloadSpcPlayerRunResponseScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "distributionPlan": zod.object({
+  "status": zod.enum(['plan_only']),
+  "connectorInvoked": zod.literal(false),
+  "externalSend": zod.literal(false)
+})
+}).describe('Completed SPC content plus its non-detachable advisory.')
+
+
+/**
+ * @summary Download a supported SPC Player run manifest
+ */
+export const GetSpcPlayerRunManifestParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const getSpcPlayerRunManifestResponseRunGovernanceScorePolicyAxesMin = 3;
+export const getSpcPlayerRunManifestResponseRunGovernanceScorePolicyAxesMax = 3;
+
+export const getSpcPlayerRunManifestResponseRunStageResultsItemStageIndexMin = 0;
+
+export const getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresClarityMin = 0;
+export const getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresClarityMax = 100;
+
+export const getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresTruthfulnessMin = 0;
+export const getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresTruthfulnessMax = 100;
+
+export const getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresDetectabilityMin = 0;
+export const getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresDetectabilityMax = 100;
+
+export const getSpcPlayerRunManifestResponseRunExecutionAdvisoryOneInvokedStagesItemMin = 0;
+
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneContentItemStageIndexMin = 0;
+
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneAdvisoryInvokedStagesItemMin = 0;
+
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresClarityMin = 0;
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresClarityMax = 100;
+
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresTruthfulnessMin = 0;
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresTruthfulnessMax = 100;
+
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresDetectabilityMin = 0;
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresDetectabilityMax = 100;
+
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneScoresClarityMin = 0;
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneScoresClarityMax = 100;
+
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneScoresTruthfulnessMin = 0;
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneScoresTruthfulnessMax = 100;
+
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneScoresDetectabilityMin = 0;
+export const getSpcPlayerRunManifestResponseRunOutputPackageOneScoresDetectabilityMax = 100;
+
+export const getSpcPlayerRunManifestResponseGovernanceScorePolicyAxesMin = 3;
+export const getSpcPlayerRunManifestResponseGovernanceScorePolicyAxesMax = 3;
+
+
+
+export const GetSpcPlayerRunManifestResponse = zod.object({
+  "manifestVersion": zod.enum(['spc-player-manifest-v2']),
+  "run": zod.object({
+  "id": zod.string().uuid(),
+  "ownerUserId": zod.string().uuid(),
+  "title": zod.string(),
+  "brief": zod.string(),
+  "selectedCardIds": zod.array(zod.string().uuid()),
+  "profile": zod.enum(['full', 'rapid']),
+  "status": zod.enum(['DRAFT', 'RUNNING', 'COMPLETED', 'FAILED']),
+  "executionState": zod.enum(['IDLE', 'ACTIVE', 'RECOVERABLE', 'FINISHED']).describe('Public execution availability without internal attempt credentials.'),
+  "canExecute": zod.boolean().describe('Whether a new execution attempt may be claimed now.'),
+  "retryAvailableAt": zod.coerce.date().nullable().describe('When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.'),
+  "governance": zod.object({
+  "specVersion": zod.enum(['v4.0']),
+  "source": zod.string(),
+  "scorePolicy": zod.object({
+  "axes": zod.array(zod.enum(['clarity', 'truthfulness', 'detectability'])).min(getSpcPlayerRunManifestResponseRunGovernanceScorePolicyAxesMin).max(getSpcPlayerRunManifestResponseRunGovernanceScorePolicyAxesMax)
+})
+}),
+  "stageResults": zod.array(zod.object({
+  "stageIndex": zod.number().min(getSpcPlayerRunManifestResponseRunStageResultsItemStageIndexMin),
+  "cardId": zod.string().uuid(),
+  "cardSlug": zod.string(),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "completedAt": zod.coerce.date().nullish()
+})),
+  "governanceEvaluation": zod.object({
+  "kind": zod.enum(['governance_evaluation']),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "scores": zod.object({
+  "clarity": zod.number().min(getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresClarityMin).max(getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresTruthfulnessMin).max(getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresDetectabilityMin).max(getSpcPlayerRunManifestResponseRunGovernanceEvaluationOneScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "completedAt": zod.coerce.date()
+}).nullable(),
+  "executionAdvisory": zod.object({
+  "authority": zod.enum(['user-authorized REVERB v3 derivation']),
+  "status": zod.enum(['PRE_BUILD']),
+  "profile": zod.enum(['full', 'rapid']),
+  "invokedStages": zod.array(zod.number().min(getSpcPlayerRunManifestResponseRunExecutionAdvisoryOneInvokedStagesItemMin)),
+  "governanceEvaluationInvoked": zod.boolean(),
+  "evidenceTrail": zod.array(zod.string()),
+  "distribution": zod.enum(['plan-only; no connector invoked'])
+}).nullable(),
+  "distributionPlan": zod.object({
+  "status": zod.enum(['plan_only']),
+  "connectorInvoked": zod.literal(false),
+  "externalSend": zod.literal(false)
+}),
+  "error": zod.string().nullable(),
+  "transitions": zod.array(zod.object({
+  "from": zod.string(),
+  "to": zod.string(),
+  "at": zod.coerce.date(),
+  "reason": zod.string().optional()
+})),
+  "completedAt": zod.coerce.date().nullable(),
+  "outputPackage": zod.object({
+  "content": zod.array(zod.object({
+  "stageIndex": zod.number().min(getSpcPlayerRunManifestResponseRunOutputPackageOneContentItemStageIndexMin),
+  "cardId": zod.string().uuid(),
+  "cardSlug": zod.string(),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "completedAt": zod.coerce.date().nullish()
+})),
+  "advisory": zod.object({
+  "authority": zod.enum(['user-authorized REVERB v3 derivation']),
+  "status": zod.enum(['PRE_BUILD']),
+  "profile": zod.enum(['full', 'rapid']),
+  "invokedStages": zod.array(zod.number().min(getSpcPlayerRunManifestResponseRunOutputPackageOneAdvisoryInvokedStagesItemMin)),
+  "governanceEvaluationInvoked": zod.boolean(),
+  "evidenceTrail": zod.array(zod.string()),
+  "distribution": zod.enum(['plan-only; no connector invoked'])
+}),
+  "governanceEvaluation": zod.object({
+  "kind": zod.enum(['governance_evaluation']),
+  "invoked": zod.literal(true),
+  "verdict": zod.string(),
+  "content": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "scores": zod.object({
+  "clarity": zod.number().min(getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresClarityMin).max(getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresTruthfulnessMin).max(getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresDetectabilityMin).max(getSpcPlayerRunManifestResponseRunOutputPackageOneGovernanceEvaluationScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "completedAt": zod.coerce.date()
+}),
+  "scores": zod.object({
+  "clarity": zod.number().min(getSpcPlayerRunManifestResponseRunOutputPackageOneScoresClarityMin).max(getSpcPlayerRunManifestResponseRunOutputPackageOneScoresClarityMax).nullish(),
+  "truthfulness": zod.number().min(getSpcPlayerRunManifestResponseRunOutputPackageOneScoresTruthfulnessMin).max(getSpcPlayerRunManifestResponseRunOutputPackageOneScoresTruthfulnessMax).nullish(),
+  "detectability": zod.number().min(getSpcPlayerRunManifestResponseRunOutputPackageOneScoresDetectabilityMin).max(getSpcPlayerRunManifestResponseRunOutputPackageOneScoresDetectabilityMax).nullish()
+}).describe('Independent nullable 0-100 axes only; composite scores are prohibited.'),
+  "distributionPlan": zod.object({
+  "status": zod.enum(['plan_only']),
+  "connectorInvoked": zod.literal(false),
+  "externalSend": zod.literal(false)
+})
+}).describe('Completed SPC content plus its non-detachable advisory.').nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),
+  "governance": zod.object({
+  "specVersion": zod.enum(['v4.0']),
+  "source": zod.string(),
+  "scorePolicy": zod.object({
+  "axes": zod.array(zod.enum(['clarity', 'truthfulness', 'detectability'])).min(getSpcPlayerRunManifestResponseGovernanceScorePolicyAxesMin).max(getSpcPlayerRunManifestResponseGovernanceScorePolicyAxesMax)
+})
+}),
+  "capabilities": zod.object({
+  "connectors": zod.array(zod.enum(['download', 'webhook'])),
+  "actions": zod.array(zod.enum(['execute', 'deliver'])),
+  "formats": zod.array(zod.enum(['json'])),
+  "entitlement": zod.enum(['open_access'])
+})
+})

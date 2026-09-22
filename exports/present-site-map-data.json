@@ -1,0 +1,161 @@
+{
+  "caveats": [
+    "Most active routes require a staff session via login.",
+    "Subscription and billing routes are intentionally dormant in this deployment.",
+    "Proposed features like full GitHub integration reliability are currently incomplete.",
+    "Some UI features like Ark import are grace-gated by environment configuration."
+  ],
+  "generatedFrom": "sitemap-frontend-audit, sitemap-backend-audit, sitemap-product-flow-audit",
+  "groups": [
+    {
+      "items": [
+        {
+          "detail": "Certificate-ID lookup, supports ?cert= parameter, returns tier, status, and details.",
+          "label": "Certificate Verification",
+          "route": "/verify",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "Public prompt test-kit, email capture, and API submission tool.",
+          "label": "Test-Your-Agent",
+          "route": "/test-your-agent",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "Public savings calculator and lead capture call to action.",
+          "label": "Savings Calculator",
+          "route": "/calculate-your-savings",
+          "status": "ACTIVE"
+        }
+      ],
+      "name": "Public"
+    },
+    {
+      "items": [
+        {
+          "detail": "Dashboard for session metrics, engine health, and active task progress.",
+          "label": "Command Deck",
+          "route": "/command",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "Searchable list of sessions and entry to detail views.",
+          "label": "Session Management",
+          "route": "/sessions",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "Status and workspace cockpit with artifact/engine progression tracking.",
+          "label": "Session Detail",
+          "route": "/session/:id",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "Onboarding materials, recommended paths, and exemplar links.",
+          "label": "Operator Guide",
+          "route": "/guide",
+          "status": "ACTIVE"
+        }
+      ],
+      "name": "Core Command Centre"
+    },
+    {
+      "items": [
+        {
+          "detail": "Advisory and seed prompt dashboard; separate from the main F-pipeline.",
+          "label": "F0 Advisory",
+          "route": "/f0",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "Merged release intent, destination management, and processing status UI.",
+          "label": "F10 Release Gateway",
+          "route": "/f10",
+          "status": "ACTIVE"
+        }
+      ],
+      "name": "F0/F1-F10"
+    },
+    {
+      "items": [
+        {
+          "detail": "Tool for parsing and uploading documents into session workflows.",
+          "label": "Document Ingest",
+          "route": "/ingest",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "Ingestion and packaging interface for document cartridges.",
+          "label": "Cartridge Workflow",
+          "route": "/cartridge",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "Browse, search, and view library of model exemplars.",
+          "label": "Exemplar Library",
+          "route": "/exemplars",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "Dashboard for SPC run status, creation, and output package downloads.",
+          "label": "SPC Player",
+          "route": "/spc-player",
+          "status": "ACTIVE"
+        }
+      ],
+      "name": "Libraries and Side-Steps"
+    },
+    {
+      "items": [
+        {
+          "detail": "Profile, preferences, data exports, and account deletion controls.",
+          "label": "Account Profile",
+          "route": "/account",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "Admin interface for badge revocation preview and execution.",
+          "label": "Badge Administration",
+          "route": "/admin/badges",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "View for cron operations status and refresh health.",
+          "label": "Operations Health",
+          "route": "/admin/ops",
+          "status": "ACTIVE"
+        },
+        {
+          "detail": "Personal audit log with filtering, restricted to admins/owners.",
+          "label": "Activity Log",
+          "route": "/me/activity",
+          "status": "ACTIVE"
+        }
+      ],
+      "name": "Account/Admin/Ops"
+    },
+    {
+      "items": [
+        {
+          "detail": "Tier progression interface; Ark import currently shows 'coming soon' if disconnected.",
+          "label": "Ascension Progression",
+          "route": "/ascension",
+          "status": "GATED"
+        },
+        {
+          "detail": "Unregistered route; subscription features are currently dormant.",
+          "label": "Pricing/Billing",
+          "route": "/pricing",
+          "status": "INACTIVE"
+        },
+        {
+          "detail": "Legacy code component exists, but route is not registered.",
+          "label": "F1000 Redemption",
+          "route": "/f1000",
+          "status": "INCOMPLETE"
+        }
+      ],
+      "name": "Integrations"
+    }
+  ]
+}

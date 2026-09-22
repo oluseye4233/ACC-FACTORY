@@ -1,0 +1,2 @@
+ALTER TABLE "spc_player_runs" ADD COLUMN "transitions" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
+ALTER TABLE "spc_player_draft_runs" ADD COLUMN "profile" text DEFAULT 'full' NOT NULL;

@@ -25,12 +25,12 @@ const LIGHT = "#e5e7eb";
 
 // ----- Engine glossary used in every persona -----
 const ENGINE_BLURB = {
-  F1: "Diagnose — the app reads your raw idea and tells you exactly what's vague, missing, or contradictory.",
+  F1: "Diagnose — the ATOMIC UI stage cockpit reads your raw idea and tells you exactly what's vague, missing, or contradictory.",
   F2: "Atomic Prompt — it rewrites your idea as a single, unambiguous prompt a model can't misread.",
   F3: "Agent Birth Package — it grows that prompt into a CELL: a small, repeatable AI worker with a clear job.",
   F4: "Micro PDD — it writes the short product spec for that worker (who, what, why, success criteria).",
   F5: "SPC — it writes the full system blueprint: inputs, outputs, edge cases, rails, evaluation.",
-  F6: "ATLAS PDD — it formats the blueprint into the 4-part ATLAS deliverable (and recommends a VIBE DJ).",
+  F6: "ATLAS PDD — it formats the blueprint into the 4-part ATLAS deliverable (and recommends a VIBE DJ). You can also render 360 PLAN/SCAN views here.",
   F7: "MVP-PDD Certification — it compresses everything into the SPARTAN-certified MVP-PDD with a public verify URL you can share."
 };
 
@@ -359,9 +359,16 @@ p("Each persona walks through the engines they have access to, in order. For eac
 h3("Plan-to-engine quick reference");
 bullets([
   "EXPLORER (free): F1 + F2.",
-  "PRACTITIONER ($49/mo): F1 through F6.",
-  "ARCHITECT ($199/mo): F1 through F7, plus DE-SPC (evolve an existing SPC).",
+  "PRACTITIONER ($49/mo): F1 through F6, plus ATLAS 360 PLAN/SCAN views and Exemplar uploads (SPC, MA, MPDD, PDD).",
+  "ARCHITECT ($199/mo): F1 through F7, plus DE-SPC (evolve an existing SPC). SPC Player execution and delivery are open access.",
   "INSTITUTION (custom): F1 through F7 at any scale, on-prem if needed."
+]);
+
+h3("Key Ecosystem Additions");
+bullets([
+  "Exemplar Library: You can upload your own files (SPC, MA, MPDD, PDD) to the open backend marketplace or fork canonical references directly to your session.",
+  "ATLAS 360 Views: Project a PDD into a 12-part technical execution PLAN or an 8-stage assurance SCAN, exportable as one ZIP (Markdown + JSON).",
+  "SPC Player: An open-access cockpit for registering and executing capability briefs, downloading final JSON packages, and explicitly authorizing per-run public HTTPS webhook delivery. It has no tier, entitlement, credit, billing, or LLM gate; environment sketches are not live integrations."
 ]);
 
 h3("Engine glossary");

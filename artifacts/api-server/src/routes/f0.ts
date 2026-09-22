@@ -1,5 +1,5 @@
 import { Router, type IRouter, type RequestHandler } from "express";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import {
   db,
   f0EngagementsTable,
@@ -9,6 +9,8 @@ import {
   f0RetainerTasksTable,
   harnessArtifactsTable,
   harnessSessionsTable,
+  osirisCustodiesTable,
+  osirisDeviationsTable,
 } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { requireCostBudget } from "../lib/cost-budget";
@@ -58,7 +60,7 @@ function f0LlmRoute(handler: RequestHandler): RequestHandler[] {
 
 router.get("/f0/dashboard", requireAuth, async (req, res): Promise<void> => {
   const userId = req.localUser!.id;
-  const [engagements, retainers, reportAgg, taskAgg, lastRunAgg, openAlertRows] =
+  const [engagements, retainers, reportAgg, taskAgg, lastRunAgg, openAlertRows, osirisAgg] =
     await Promise.all([
       db
         .select()
@@ -106,6 +108,22 @@ router.get("/f0/dashboard", requireAuth, async (req, res): Promise<void> => {
           ),
         )
         .orderBy(desc(f0MonitoringRunsTable.createdAt)),
+      db
+        .select({
+          custodyCount: sql<number>`count(distinct ${osirisCustodiesTable.id})::int`,
+          activeCount: sql<number>`count(distinct ${osirisCustodiesTable.id}) filter (where ${osirisCustodiesTable.custodyState} in ('active', 'recovered'))::int`,
+          openDeviationCount: sql<number>`count(distinct ${osirisDeviationsTable.id}) filter (where ${osirisDeviationsTable.resolvedAt} is null)::int`,
+        })
+        .from(osirisCustodiesTable)
+        .leftJoin(osirisDeviationsTable, eq(osirisDeviationsTable.custodyId, osirisCustodiesTable.id))
+        .where(
+          or(
+            eq(osirisCustodiesTable.ownerUserId, userId),
+            sql`${osirisCustodiesTable.organizationId} in (
+              select organization_id from organization_members where user_id = ${userId}
+            )`,
+          ),
+        ),
     ]);
 
   // Latest monitoring run per retainer (for the per-retainer "last run" chip).
@@ -146,6 +164,11 @@ router.get("/f0/dashboard", requireAuth, async (req, res): Promise<void> => {
         retainerId: r.retainerId,
         lastRunAt: new Date(r.lastRunAt).toISOString(),
       })),
+    },
+    osiris: {
+      custodyCount: osirisAgg[0]?.custodyCount ?? 0,
+      activeCount: osirisAgg[0]?.activeCount ?? 0,
+      openDeviationCount: osirisAgg[0]?.openDeviationCount ?? 0,
     },
   });
 });

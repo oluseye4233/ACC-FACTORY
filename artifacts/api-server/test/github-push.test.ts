@@ -21,6 +21,7 @@ import {
   harnessSessionsTable,
   harnessArtifactsTable,
   integrationCredentialsTable,
+  f10GitHubPushesTable,
 } from "@workspace/db";
 
 // The push route loads the caller's encrypted GitHub credential and decrypts it
@@ -41,9 +42,11 @@ const mockGh = vi.hoisted(() => {
     authThrows: false,
     createRepoStatus: null as number | null,
     treeThrows: false,
+    treeDelayMs: 0,
     owner: "octo-tester",
     createdCalls: [] as Array<{ name: string; private: boolean }>,
     treeFiles: [] as Array<{ path: string; content: string }>,
+    baseTrees: [] as string[],
     refCalls: 0,
     // ── "existing"-mode controls ────────────────────────────────────────────
     // `repos.get` lookup result / failure for a named target repo.
@@ -80,9 +83,11 @@ const mockGh = vi.hoisted(() => {
       this.authThrows = false;
       this.createRepoStatus = null;
       this.treeThrows = false;
+      this.treeDelayMs = 0;
       this.owner = "octo-tester";
       this.createdCalls = [];
       this.treeFiles = [];
+      this.baseTrees = [];
       this.refCalls = 0;
       this.repoGetStatus = null;
       this.repoInfo = {
@@ -178,6 +183,7 @@ function buildFakeGitHubClient() {
                   full_name: `${owner}/${name}`,
                   html_url: `https://github.com/${owner}/${name}`,
                   private: priv,
+                  permissions: { push: true },
                 },
               };
             },
@@ -193,10 +199,14 @@ function buildFakeGitHubClient() {
               }
               return { data: { object: { sha: "head-sha" } } };
             },
+            getCommit: async () => ({ data: { tree: { sha: "base-tree-sha" } } }),
             createTree: async (args: {
+              base_tree?: string;
               tree: Array<{ path: string; content: string }>;
             }) => {
               if (mockGh.treeThrows) throw new Error("github tree error");
+              if (mockGh.treeDelayMs) await new Promise(resolve => setTimeout(resolve, mockGh.treeDelayMs));
+              if (args.base_tree) mockGh.baseTrees.push(args.base_tree);
               mockGh.treeFiles = args.tree.map((t) => ({
                 path: t.path,
                 content: t.content,
@@ -456,7 +466,9 @@ beforeAll(async () => {
   // thing under test. See the BUNDLE_TOO_LARGE test below.
   app.use(express.json({ limit: "10mb" }));
   const integrationsRouter = (await import("../src/routes/integrations")).default;
+  const f10Router = (await import("../src/routes/f10")).default;
   app.use("/api", integrationsRouter);
+  app.use("/api", f10Router);
   srv = await startApp(app);
 });
 
@@ -490,6 +502,85 @@ const validFiles = {
   "README.md": "# Scaffold\n",
   "src/index.ts": "export const hi = 1;\n",
 };
+
+function pushF10(userId: string, artifactId: string, extra: Record<string, unknown> = {}) {
+  return fetch(`${srv.url}/api/f10/exports/github`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-test-user-id": userId },
+    body: JSON.stringify({
+      sourceArtifactId: artifactId,
+      outputKind: "CODE_DJ",
+      family: "GITHUB",
+      target: "GITHUB",
+      deliveryMode: "EXPORT",
+      repository: "octo-tester/existing-repo",
+      branch: "main",
+      ...extra,
+    }),
+  });
+}
+
+describe("POST /f10/exports/github", () => {
+  test("rebuilds files on the server, persists the result, and replays idempotently", async () => {
+    const first = await pushF10(architectId, bundleArtifactId, {
+      files: { "../caller-supplied.txt": "must never be trusted" },
+    });
+    expect(first.status).toBe(200);
+    const firstBody = await first.json() as Record<string, unknown>;
+    expect(firstBody.idempotent).toBe(false);
+    expect(firstBody.commitSha).toBe("commit-sha");
+    expect(mockGh.treeFiles.some(file => file.path.includes("caller-supplied"))).toBe(false);
+    expect(mockGh.baseTrees).toEqual(["base-tree-sha"]);
+    expect(mockGh.updateRefCalls).toBe(1);
+
+    const second = await pushF10(architectId, bundleArtifactId);
+    expect(second.status).toBe(200);
+    expect((await second.json() as Record<string, unknown>).idempotent).toBe(true);
+    expect(mockGh.updateRefCalls).toBe(1);
+
+    const pushes = await db.select().from(f10GitHubPushesTable).where(and(
+      eq(f10GitHubPushesTable.userId, architectId),
+      eq(f10GitHubPushesTable.sourceArtifactId, bundleArtifactId),
+    ));
+    expect(pushes.filter(push => push.status === "COMPLETED")).toHaveLength(1);
+  });
+
+  test("atomically fences concurrent identical pushes", async () => {
+    const branch = `concurrent-${Date.now()}`;
+    mockGh.treeDelayMs = 50;
+    const [a, b] = await Promise.all([
+      pushF10(architectId, bundleArtifactId, { branch }),
+      pushF10(architectId, bundleArtifactId, { branch }),
+    ]);
+    expect([a.status, b.status].sort()).toEqual([200, 409]);
+    expect(mockGh.updateRefCalls).toBe(1);
+  });
+
+  test("does not expose another user's source artifact", async () => {
+    const response = await pushF10(architectId, noGhBundleArtifactId);
+    expect(response.status).toBe(404);
+    expect(mockGh.treeFiles).toHaveLength(0);
+  });
+
+  test("returns an actionable authorization error without another user's credential", async () => {
+    const response = await pushF10(architectNoGhId, noGhBundleArtifactId);
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ code: "GITHUB_NOT_CONNECTED" });
+    expect(mockGh.treeFiles).toHaveLength(0);
+  });
+
+  test("validates repository and branch before GitHub I/O", async () => {
+    for (const extra of [
+      { repository: "../escape" },
+      { branch: "../main" },
+      { branch: "refs/heads/main.lock" },
+    ]) {
+      const response = await pushF10(architectId, bundleArtifactId, extra);
+      expect(response.status).toBe(400);
+    }
+    expect(mockGh.treeFiles).toHaveLength(0);
+  });
+});
 
 // ---------- Tests ----------
 describe("POST /integrations/github/push-codebase", () => {

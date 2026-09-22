@@ -18,6 +18,8 @@ import {
 const STAFF_LINKS: Array<{ href: string; label: string }> = [
   { href: "/command", label: "Command" },
   { href: "/guide", label: "Guide" },
+  { href: "/spc-player", label: "SPC Player" },
+  { href: "/f10", label: "F10 Release" },
   { href: "/sessions", label: "Sessions" },
   { href: "/ingest", label: "Ingest" },
   { href: "/cartridge", label: "Cartridge" },

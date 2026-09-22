@@ -1,0 +1,1 @@
+ALTER TABLE "spc_player_runs" ADD COLUMN "governance_evaluation" jsonb;

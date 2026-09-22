@@ -1,0 +1,5 @@
+DO $$ BEGIN
+  ALTER TYPE "public"."f10_attempt_state" ADD VALUE 'ACKNOWLEDGED' BEFORE 'SUCCEEDED';
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;

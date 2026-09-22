@@ -4,6 +4,7 @@ import { runWeeklyDigest } from "../lib/notification-dispatch";
 import { runF0MonitoringSweep } from "../engines/f0";
 import { runCostCapAlertSweepOnce } from "../lib/cost-cap-sweeper";
 import { recordCronTick } from "../lib/cron-heartbeat";
+import { runF10ReconciliationSweep } from "../lib/f10-reconciliation";
 
 const router: IRouter = Router();
 
@@ -65,6 +66,13 @@ router.post("/cron/sweep-cost-cap-alerts", async (req, res): Promise<void> => {
   await runCostCapAlertSweepOnce();
   await recordCronTick("sweep-cost-cap-alerts");
   res.json({ ok: true });
+});
+
+router.post("/cron/reconcile-f10-deployments", async (req, res): Promise<void> => {
+  if (!requireCronSecret(req, res)) return;
+  const result = await runF10ReconciliationSweep();
+  await recordCronTick("reconcile-f10-deployments");
+  res.json({ ok: true, ...result });
 });
 
 export default router;

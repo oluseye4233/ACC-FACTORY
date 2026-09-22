@@ -6,7 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ExemplarSummaryKind } from './exemplarSummaryKind';
+import type { ExemplarSummaryMarketplace } from './exemplarSummaryMarketplace';
 import type { ExemplarSummarySource } from './exemplarSummarySource';
+import type { SpcPlayerPublication } from './spcPlayerPublication';
 
 export interface ExemplarSummary {
   id: string;
@@ -19,9 +21,12 @@ export interface ExemplarSummary {
   sku: string;
   source: ExemplarSummarySource;
   kind: ExemplarSummaryKind;
+  marketplace: ExemplarSummaryMarketplace;
+  createdAt?: Date;
   /**
      * DISC personality profile (Dominance / Influence / Steadiness / Conscientiousness). Every SPC has a unique DISC fingerprint; PDDs are null.
      * @nullable
      */
   disc: string | null;
+  spcPlayer: SpcPlayerPublication | null;
 }

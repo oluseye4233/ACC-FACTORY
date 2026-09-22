@@ -23,4 +23,16 @@
 - [Shared-DB global-SUM gates in tests](test-shared-db-cost-cap.md) — neutralise live aggregate gates (cost cap) in vitest setup; intentional logger.warn tests must mock the pino singleton or output misattributes across suites.
 - [Headless capture pipeline](headless-capture-pipeline.md) — nohup children die when a bash call ends; long capture scripts must be resumable + run in foreground chunks; nix chromium + puppeteer-core + in-page fetch login works.
 - [Exactly-once alert stamps](exactly-once-alert-stamps.md) — threshold emails: UNIQUE(period,threshold) insert-before-send, never stamp with empty recipients; toISOString month keys break past year 9999.
+- [EmailResult ok contract](email-result-ok-contract.md) — send() never throws provider errors; every caller must check .ok before stamping sent-markers; email mocks must return {ok:true}; esc() all template HTML.
 - [GitHub repo mirror](github-repo-mirror.md) — auto-sync to GitHub uses the Data API (connector token lacks workflow scope, so git push with .github/workflows changes is rejected); trailer on remote head = resume point.
+- [Exemplar open marketplace](exemplar-open-marketplace.md) — staff library copies SPC/MA/MPDD/PDD content independently; keep it separate from paid Sphinx publishing.
+- [ATOMIC UI stage cockpit](atomic-ui-stage-cockpit.md) — each implemented F-stage shows previous/current/next plus top progress; keep engine complexity under the hood.
+- [ATLAS 360 PDD views](atlas-360-pdd-views.md) — PLAN/SCAN are Practitioner-gated F6/F7 side-steps; origin selects the default and F10 stays retired.
+- [SPC Player](spc-player-contract-deferral.md) — REVERB runtime: sequential, advisory, plan-only; open JSON download + consented DNS-pinned public HTTPS webhook; no entitlement/credit/billing.
+- [SPC Player Exemplar KIT DECKS](spc-player-exemplar-kit-decks.md) — unified Exemplar catalog; deterministic brief matching + manual choice; 1–12 unique ordered SPCs; optional F5 side-step.
+- [F10 release gateway](f10-connector-release-gateway.md) — contract requires immutable signed F9 artifacts under active OSIRIS custody; receipts prove delivery only.
+- [F10 colonization operator](f10-colonization-operator.md) — keep SAVANT CONNECTOR separate from delivery lanes; it owns no verdict and stays fail-closed until qualified external gates are wired.
+
+- [Credit reservation fencing](credit-reservation-fencing.md) — expiring/reclaiming reservations need per-claim ownership tokens; age alone cannot stop stale requests mutating a newer claim.
+- [Provider authorization key rotation](provider-authorization-key-rotation.md) — F10 grants use a dedicated current+previous keyring; decrypt with old keys only to re-encrypt under current, and fail closed to reconnect.
+- [ATLAS PDF pagination](atlas-pdf-pagination.md) — with the shared PDFKit theme, buffer pages and add footers after content; pageAdded footer mutations can recurse.

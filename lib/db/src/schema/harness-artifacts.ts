@@ -16,6 +16,8 @@ export const ARTIFACT_TYPES = [
   "CODEBASE_BUNDLE",
   "PFP_REPORT",
   "HOSTING_PLAN",
+  "ATLAS_360_PLAN_VIEW",
+  "ATLAS_360_SCAN_VIEW",
 ] as const;
 export type ArtifactType = (typeof ARTIFACT_TYPES)[number];
 

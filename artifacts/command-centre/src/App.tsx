@@ -31,6 +31,7 @@ import F0Dashboard from "@/pages/f0";
 import AdminBadges from "@/pages/admin-badges";
 import AdminOps from "@/pages/admin-ops";
 import Ascension from "@/pages/ascension";
+import F10Console from "@/pages/f10";
 import Activity from "@/pages/activity";
 import MeCosts from "@/pages/me-costs";
 import TestYourAgent from "@/pages/test-your-agent";
@@ -42,6 +43,9 @@ import {
   useStaffSessionQuery,
 } from "@/lib/staff-session";
 import { Redirect } from "wouter";
+import SpcPlayerDashboard from "@/pages/spc-player/dashboard";
+import SpcPlayerNew from "@/pages/spc-player/new";
+import SpcPlayerDetail from "@/pages/spc-player/detail";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -96,6 +100,10 @@ function AuthenticatedRoutes() {
       <Route path="/me/costs" component={MeCosts} />
       <Route path="/exemplars" component={Exemplars} />
       <Route path="/exemplars/:id" component={Exemplars} />
+      <Route path="/spc-player" component={SpcPlayerDashboard} />
+      <Route path="/spc-player/new" component={SpcPlayerNew} />
+      <Route path="/spc-player/:id" component={SpcPlayerDetail} />
+      <Route path="/f10" component={F10Console} />
       <Route component={NotFound} />
     </Switch>
   );

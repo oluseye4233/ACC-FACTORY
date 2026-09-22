@@ -4,6 +4,8 @@ import { assertMigrationsApplied } from "./lib/migration-guard";
 import { startTestFixtureSweeper } from "./lib/test-fixture-sweeper";
 import { startCostCapAlertSweeper } from "./lib/cost-cap-sweeper";
 import { startCronHeartbeatMonitor } from "./lib/cron-heartbeat";
+import { startIngestionCreditReconciler } from "./lib/ingestion-credits";
+import { startF10ReconciliationSweeper } from "./lib/f10-reconciliation";
 
 const rawPort = process.env["PORT"];
 
@@ -51,4 +53,13 @@ app.listen(port, (err) => {
   // within its overdue window — so a never-created / mis-secreted / walled
   // schedule becomes visible instead of silently degrading.
   startCronHeartbeatMonitor();
+
+  // Recover consumed ingestion credits that were never linked because both the
+  // request and its immediate release retries failed. A lease prevents active
+  // ingestions from being reclaimed.
+  startIngestionCreditReconciler();
+
+  // Keep accepted/running provider operations current while this service is
+  // awake. The matching external cron target wakes autoscaled deployments.
+  startF10ReconciliationSweeper();
 });

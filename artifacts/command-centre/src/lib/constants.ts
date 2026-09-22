@@ -1,3 +1,87 @@
+export type FProcessStatus = "operational" | "contract_defined";
+
+export interface FProcessRole {
+  id: "F0" | "F1" | "F2" | "F3" | "F4" | "F5" | "F6" | "F7" | "F8" | "F9" | "F9.5" | "F10";
+  title: string;
+  description: string;
+  status: FProcessStatus;
+}
+
+export const F_PROCESS_ROLES: FProcessRole[] = [
+  {
+    id: "F0",
+    title: "ADVISORY / SOLVA",
+    description: "Advisory layer and SOLVA return point for deviations.",
+    status: "operational",
+  },
+  {
+    id: "F1",
+    title: "JCSE DIAGNOSIS",
+    description: "Diagnose raw ideas against the 7-pillar JCSE rubric.",
+    status: "operational",
+  },
+  {
+    id: "F2",
+    title: "ATOMIC PROMPT",
+    description: "Create executable Atomic Prompts.",
+    status: "operational",
+  },
+  {
+    id: "F3",
+    title: "CELL MICRO AGENT",
+    description: "Build a CELL Micro Agent birth package.",
+    status: "operational",
+  },
+  {
+    id: "F4",
+    title: "MICRO PDD",
+    description: "Create Audit and Specification documentation (Micro PDD).",
+    status: "operational",
+  },
+  {
+    id: "F5",
+    title: "SPC",
+    description: "Build a Super Prompt Card (SPC) system contract.",
+    status: "operational",
+  },
+  {
+    id: "F6",
+    title: "ATLAS PDD",
+    description: "Draft an ATLAS PDD for comprehensive audit and implementation.",
+    status: "operational",
+  },
+  {
+    id: "F7",
+    title: "SPARTAN",
+    description: "SPARTAN compression and MVP PDD certification.",
+    status: "operational",
+  },
+  {
+    id: "F8",
+    title: "CODE DJ",
+    description: "CODE DJ codebase/IDE handoff and implementation generation.",
+    status: "operational",
+  },
+  {
+    id: "F9",
+    title: "MECHA ULTRA SI",
+    description: "Contract-defined Machine Floor emitting bounded/versioned/signed Machine Artifact or refusal.",
+    status: "operational",
+  },
+  {
+    id: "F9.5",
+    title: "OSIRIS",
+    description: "Contract-defined custody/continuous monitoring routing deviations through SOLVA to F0.",
+    status: "operational",
+  },
+  {
+    id: "F10",
+    title: "CONNECTOR",
+    description: "Contract-defined gateway for authorized release of immutable F9 artifacts with auditable delivery receipts.",
+    status: "operational",
+  },
+];
+
 export const ENGINES = [
   {
     id: 1,
@@ -86,5 +170,13 @@ export const ENGINES = [
       "Profile a session's measurable variables (F0.5) and build its Mathematical Applicability Profile (MAP) to compute the MATHMON score behind the FORGE VERIFIED gate.",
     explainer:
       "Math-verification side-step. F0.5 intake extracts measurable variables, constraints, and optimisation targets; the MAP scores math coherence, applicability, and predictive reliability into a single MATHMON score. FORGE VERIFIED requires JCSE ≥ 45 AND MATHMON ≥ 70 at F7. Advisory — does not block the F1 → F7 sequence.",
+  },
+  {
+    id: 11,
+    name: "F9",
+    title: "MECHA MACHINE FLOOR",
+    description: "Turn an approved F8 lineage into a bounded, signed Machine Artifact or cited refusal.",
+    explainer:
+      "Runs the seven ordered MECHA phases. F9 is locked until a SPARTAN-certified MVP PDD and its downstream F8 Code Oracle lineage are present in this session.",
   },
 ];

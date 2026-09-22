@@ -20,6 +20,8 @@
  *                            sweeper can't fire on a machine that isn't
  *                            running); exactly-once stamping makes the two
  *                            paths safe to coexist
+ *   - reconcile-f10-deployments every 5 minutes — checks a bounded batch of
+ *                            accepted/running provider operations
  *
  * Required env:
  *   - CRON_SECRET            shared secret matching the API server
@@ -29,7 +31,8 @@
  *   - CRON_TARGETS           comma-separated list of targets to run
  *                            (used when no CLI args are given):
  *                            "weekly-digest", "reset-harness-limits",
- *                            "run-f0-monitoring", "sweep-cost-cap-alerts".
+ *                            "run-f0-monitoring", "sweep-cost-cap-alerts",
+ *                            "reconcile-f10-deployments".
  *                            Defaults to "weekly-digest".
  *   - CRON_TIMEOUT_MS        per-request timeout, default 60000
  *
@@ -42,6 +45,7 @@ const TARGETS: Record<string, string> = {
   "reset-harness-limits": "/api/cron/reset-harness-limits",
   "run-f0-monitoring": "/api/cron/run-f0-monitoring",
   "sweep-cost-cap-alerts": "/api/cron/sweep-cost-cap-alerts",
+  "reconcile-f10-deployments": "/api/cron/reconcile-f10-deployments",
 };
 
 function envOrDie(name: string): string {

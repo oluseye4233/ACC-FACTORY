@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
+import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 import { WorkspaceShell, ErrorBanner } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
 import {
@@ -35,6 +36,8 @@ import {
 import { streamSse, extractApiError } from "@/lib/sse";
 import { downloadZip } from "@/lib/zipExport";
 import { Download, Layers, Sparkles } from "lucide-react";
+
+import { Atlas360ViewPanel } from "./Atlas360ViewPanel";
 
 const PHASES = ["AUDIT", "TRIANGULATE", "LAYOUT", "ASSEMBLE", "STAMP"] as const;
 
@@ -48,10 +51,11 @@ const TABS = [
 
 interface Props {
   sessionId: string;
+  sessionOrigin?: import("@workspace/api-client-react").HarnessSessionOrigin;
   artifacts: HarnessArtifact[];
 }
 
-export function F6DraftPdd({ sessionId, artifacts }: Props) {
+export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
   const qc = useQueryClient();
 
   const spcSources = useMemo(
@@ -331,15 +335,22 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
                 )}
               </div>
               {pdd && (
-                <Button
-                  onClick={exportZip}
-                  size="sm"
-                  variant="outline"
-                  className="font-mono text-xs"
-                  data-testid="f6-export"
-                >
-                  <Download className="h-3 w-3 mr-1" /> EXPORT
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  {(pddArtifactId || latestPddArtifact?.id) && (
+                    <SaveToExemplarLibraryButton
+                      artifactId={(pddArtifactId || latestPddArtifact?.id)!}
+                    />
+                  )}
+                  <Button
+                    onClick={exportZip}
+                    size="sm"
+                    variant="outline"
+                    className="font-mono text-xs"
+                    data-testid="f6-export"
+                  >
+                    <Download className="h-3 w-3 mr-1" /> EXPORT
+                  </Button>
+                </div>
               )}
             </div>
             {pdd ? (
@@ -488,6 +499,15 @@ export function F6DraftPdd({ sessionId, artifacts }: Props) {
             )}
           </Card>
         </div>
+
+        {(pddArtifactId || latestPddArtifact?.id) && (
+          <Atlas360ViewPanel
+            sessionId={sessionId}
+            sessionOrigin={sessionOrigin}
+            sourceArtifactId={(pddArtifactId || latestPddArtifact?.id)!}
+            artifacts={artifacts}
+          />
+        )}
       </div>
       <UpgradeCTA
         open={upgrade}

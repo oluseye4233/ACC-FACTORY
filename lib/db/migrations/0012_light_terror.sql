@@ -1,0 +1,1 @@
+ALTER TABLE "ingestion_credits" ADD COLUMN "reservation_token" uuid;

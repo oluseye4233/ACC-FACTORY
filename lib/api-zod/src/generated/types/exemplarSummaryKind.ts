@@ -11,5 +11,7 @@ export type ExemplarSummaryKind = typeof ExemplarSummaryKind[keyof typeof Exempl
 
 export const ExemplarSummaryKind = {
   SPC: 'SPC',
+  MA: 'MA',
+  MPDD: 'MPDD',
   PDD: 'PDD',
 } as const;

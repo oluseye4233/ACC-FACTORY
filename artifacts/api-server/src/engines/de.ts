@@ -12,6 +12,10 @@ import {
   type RunContext,
 } from "./shared";
 import { logger } from "../lib/logger";
+import {
+  EMPTY_SPC_QUALITY_SCORES,
+  SPC_PLAYER_REGISTRY_VERSION,
+} from "../lib/spc-player";
 
 const DE_SYSTEM = `You are the DE-SPC SYNTHESIZER (Digitally Evolved Standard Prompt Card generator).
 
@@ -180,7 +184,12 @@ export async function handleEvolve(req: Request, res: Response): Promise<void> {
     userId: owns.userId,
     featureId: 5,
     artifactType: "SPC",
-    artifactContent: { ...synth, sourceMaIds: orderedMas.map((m) => m.id) },
+    artifactContent: {
+      ...synth,
+      sourceMaIds: orderedMas.map((m) => m.id),
+      spcDevKitRegistryVersion: SPC_PLAYER_REGISTRY_VERSION,
+      qualityScores: { ...EMPTY_SPC_QUALITY_SCORES },
+    },
     jcseScore: synth.jcse.total,
     certTier: certTierForJcse(synth.jcse.total),
     groState: "SAFE_LIFE",

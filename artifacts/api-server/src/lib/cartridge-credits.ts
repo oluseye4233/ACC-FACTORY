@@ -37,11 +37,16 @@ export async function releaseCartridgeCredit(creditId: string): Promise<void> {
 export async function linkCreditToCartridge(
   creditId: string,
   cartridgePackageId: string,
+  client: Pick<typeof db, "update"> = db,
 ): Promise<void> {
-  await db
+  const linked = await client
     .update(cartridgeCreditsTable)
     .set({ cartridgePackageId })
-    .where(eq(cartridgeCreditsTable.id, creditId));
+    .where(eq(cartridgeCreditsTable.id, creditId))
+    .returning({ id: cartridgeCreditsTable.id });
+  if (linked.length !== 1) {
+    throw new Error("Reserved cartridge credit could not be linked");
+  }
 }
 
 export interface CartridgeCreditsSummary {

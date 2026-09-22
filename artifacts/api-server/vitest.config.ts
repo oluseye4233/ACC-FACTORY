@@ -1,5 +1,7 @@
 import { defineConfig } from "vitest/config";
 
+// Focus one file with:
+// pnpm --filter @workspace/api-server run test -- test/f9-mecha.test.ts
 export default defineConfig({
   test: {
     setupFiles: ["./test/setup.ts"],

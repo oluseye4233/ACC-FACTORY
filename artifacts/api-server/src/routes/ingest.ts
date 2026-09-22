@@ -1,4 +1,10 @@
-import { Router, type IRouter, type Request, type Response } from "express";
+import {
+  Router,
+  type IRouter,
+  type NextFunction,
+  type Request,
+  type Response,
+} from "express";
 import multer from "multer";
 import { and, eq } from "drizzle-orm";
 import { createHash } from "node:crypto";
@@ -17,8 +23,10 @@ import { subscriptionsEnabled } from "../lib/feature-flags";
 import {
   claimIngestionCredit,
   getIngestionCreditsSummary,
+  IngestionCreditReservationLostError,
   linkCreditToDocument,
   releaseIngestionCredit,
+  type IngestionCreditReservation,
 } from "../lib/ingestion-credits";
 import {
   callLlmJson,
@@ -28,15 +36,52 @@ import {
 } from "../engines/shared";
 import type { LlmProvider } from "@workspace/db";
 import { serializeSession } from "./sessions";
+import {
+  DocumentExtractionError,
+  documentExtractionErrorResponse,
+  prepareUploadedDocument,
+} from "../lib/document-extraction";
 
 const MAX_UPLOAD_BYTES = 1 * 1024 * 1024; // 1 MB
 const MAX_EXTRACTED_CHARS = 200_000;
 const MIN_EXTRACTED_CHARS = 50;
+const CREDIT_RELEASE_ATTEMPTS = 3;
+const CREDIT_RELEASE_RETRY_MS = 50;
+
+type UploadRequest = Request & { uploadFilename?: string };
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 },
+  fileFilter: (req, file, callback) => {
+    (req as UploadRequest).uploadFilename = file.originalname;
+    callback(null, true);
+  },
 });
+
+function uploadSingleFile(req: Request, res: Response, next: NextFunction): void {
+  upload.single("file")(req, res, (err: unknown) => {
+    if (!err) {
+      next();
+      return;
+    }
+    if (err instanceof multer.MulterError) {
+      const fileLimitError = err.code === "LIMIT_FILE_SIZE";
+      const filename = (req as UploadRequest).uploadFilename;
+      res.status(400).json({
+        error: fileLimitError
+          ? filename
+            ? `"${filename}" is too large. Maximum upload size is 1 MB.`
+            : "File is too large. Maximum upload size is 1 MB."
+          : "Upload rejected. Submit one file only.",
+        code: fileLimitError ? "FILE_TOO_LARGE" : "UPLOAD_LIMIT_EXCEEDED",
+        ...(fileLimitError && filename ? { filename } : {}),
+      });
+      return;
+    }
+    next(err);
+  });
+}
 
 const router: IRouter = Router();
 
@@ -84,65 +129,6 @@ Return ONLY a JSON object, no prose, no fences:
   "seedPrompt": "..."
 }`;
 
-interface ExtractResult {
-  text: string;
-  mimeType: string;
-}
-
-async function extractText(
-  buffer: Buffer,
-  filename: string,
-  declaredMime: string | undefined,
-): Promise<ExtractResult> {
-  const lower = filename.toLowerCase();
-  const mime = declaredMime ?? "application/octet-stream";
-
-  // Plain text / markdown
-  if (
-    lower.endsWith(".txt") ||
-    lower.endsWith(".md") ||
-    lower.endsWith(".markdown") ||
-    mime.startsWith("text/")
-  ) {
-    return { text: buffer.toString("utf8"), mimeType: mime };
-  }
-
-  // PDF — pdf-parse is externalized in build.mjs so Node loads it via CJS at
-  // runtime; the package's debug self-test only runs when `!module.parent`,
-  // which is false when required from our bundle.
-  if (lower.endsWith(".pdf") || mime === "application/pdf") {
-    const pdfParseMod = (await import("pdf-parse")) as unknown as
-      | ((data: Buffer) => Promise<{ text: string }>)
-      | { default: (data: Buffer) => Promise<{ text: string }> };
-    const pdfParse =
-      typeof pdfParseMod === "function" ? pdfParseMod : pdfParseMod.default;
-    const parsed = await pdfParse(buffer);
-    return { text: parsed.text, mimeType: "application/pdf" };
-  }
-
-  // DOCX
-  if (
-    lower.endsWith(".docx") ||
-    mime ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  ) {
-    const mammothMod = await import("mammoth");
-    const mammoth = (mammothMod.default ?? mammothMod) as {
-      extractRawText: (opts: { buffer: Buffer }) => Promise<{ value: string }>;
-    };
-    const result = await mammoth.extractRawText({ buffer });
-    return {
-      text: result.value,
-      mimeType:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    };
-  }
-
-  throw new Error(
-    "Unsupported file type. Accepted: .txt, .md, .pdf, .docx (or paste text directly).",
-  );
-}
-
 function serializeIngestion(row: typeof ingestionDocumentsTable.$inferSelect) {
   return {
     id: row.id,
@@ -180,7 +166,7 @@ router.post(
   "/ingest",
   requireAuth,
   requireCostBudget,
-  upload.single("file"),
+  uploadSingleFile,
   async (req: Request, res: Response): Promise<void> => {
     const userId = req.localUser!.id;
 
@@ -190,10 +176,10 @@ router.post(
     // purchase. When subscriptions are disabled the credit machinery is bypassed
     // entirely — staff ingest freely, but the LLM spend is still bounded by the
     // company-wide monthly cost cap (`requireCostBudget` above).
-    let creditId: string | null = null;
+    let creditReservation: IngestionCreditReservation | null = null;
     if (subscriptionsEnabled()) {
-      creditId = await claimIngestionCredit(userId);
-      if (!creditId) {
+      creditReservation = await claimIngestionCredit(userId);
+      if (!creditReservation) {
         res.status(402).json({
           error:
             "No ingestion credits available. Purchase a project credit to ingest a document.",
@@ -224,10 +210,23 @@ router.post(
       let fileSizeBytes: number;
 
       if (file) {
-        const result = await extractText(file.buffer, file.originalname, file.mimetype);
-        extractedText = result.text;
+        try {
+          const result = await prepareUploadedDocument(file, {
+            minChars: MIN_EXTRACTED_CHARS,
+            maxChars: MAX_EXTRACTED_CHARS,
+          });
+          extractedText = result.text;
+          mimeType = result.mimeType;
+        } catch (err) {
+          req.log.warn(
+            { err, filename: file.originalname },
+            "Ingestion document extraction failed",
+          );
+          if (!(err instanceof DocumentExtractionError)) throw err;
+          res.status(400).json(documentExtractionErrorResponse(err));
+          return;
+        }
         filename = file.originalname;
-        mimeType = result.mimeType;
         fileSizeBytes = file.size;
       } else if (pastedText && pastedText.trim().length >= MIN_EXTRACTED_CHARS) {
         extractedText = pastedText;
@@ -245,7 +244,9 @@ router.post(
       const cleaned = extractedText.replace(/\u0000/g, "").trim();
       if (cleaned.length < MIN_EXTRACTED_CHARS) {
         res.status(400).json({
-          error: `Extracted document is too short (${cleaned.length} chars). Need at least ${MIN_EXTRACTED_CHARS}.`,
+          error: `"${filename}" contains too little extractable text. At least ${MIN_EXTRACTED_CHARS} characters are required.`,
+          code: "FILE_TOO_SHORT",
+          filename,
         });
         return;
       }
@@ -303,35 +304,33 @@ router.post(
 
       const finalKind: SourceDocKind = declaredKind ?? normalized.sourceDocKind;
 
-      const [row] = await db
-        .insert(ingestionDocumentsTable)
-        .values({
-          userId,
-          originalFilename: filename,
-          mimeType,
-          fileSizeBytes,
-          sourceDocKind: finalKind,
-          detectedTitle: normalized.detectedTitle.slice(0, 500),
-          extractedTextSha256: hash,
-          extractedTextChars: truncated.length,
-          summary: normalized.summary,
-          seedPrompt: normalized.seedPrompt,
-        })
-        .returning();
+      const row = await db.transaction(async (tx) => {
+        const [persisted] = await tx
+          .insert(ingestionDocumentsTable)
+          .values({
+            userId,
+            originalFilename: filename,
+            mimeType,
+            fileSizeBytes,
+            sourceDocKind: finalKind,
+            detectedTitle: normalized.detectedTitle.slice(0, 500),
+            extractedTextSha256: hash,
+            extractedTextChars: truncated.length,
+            summary: normalized.summary,
+            seedPrompt: normalized.seedPrompt,
+          })
+          .returning();
 
-      // Permanently bind the claimed credit to the document it paid for.
-      // Best-effort: a failure here doesn't roll back the ingestion (the
-      // credit is already marked consumed, just unlinked).
-      if (creditId) {
-        try {
-          await linkCreditToDocument(creditId, row!.id);
-        } catch (linkErr) {
-          req.log.warn({ err: linkErr, creditId, documentId: row!.id }, "Failed to link ingestion credit to document");
+        // A paid ingestion is only durable when its consumed credit points to
+        // the same document. Any link failure rolls this insert back.
+        if (creditReservation) {
+          await linkCreditToDocument(creditReservation, persisted!.id, tx);
         }
-      }
+        return persisted!;
+      });
 
       success = true;
-      res.status(201).json(serializeIngestion(row!));
+      res.status(201).json(serializeIngestion(row));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Ingestion failed";
       req.log.error({ err }, "Ingestion request failed");
@@ -342,11 +341,37 @@ router.post(
       // inside the try block (invalid input, too-short text, normalisation
       // failure, etc.). The user is only charged when an ingestion_document
       // row is persisted.
-      if (!success && creditId) {
-        try {
-          await releaseIngestionCredit(creditId);
-        } catch (releaseErr) {
-          req.log.error({ err: releaseErr, creditId }, "Failed to release ingestion credit after error");
+      if (!success && creditReservation) {
+        for (let attempt = 1; attempt <= CREDIT_RELEASE_ATTEMPTS; attempt += 1) {
+          try {
+            await releaseIngestionCredit(creditReservation);
+            break;
+          } catch (releaseErr) {
+            if (releaseErr instanceof IngestionCreditReservationLostError) {
+              req.log.warn(
+                { creditId: creditReservation.id },
+                "Ingestion credit reservation ownership was already lost; skipping release",
+              );
+              break;
+            }
+            const willRetry = attempt < CREDIT_RELEASE_ATTEMPTS;
+            req.log.error(
+              {
+                err: releaseErr,
+                creditId: creditReservation.id,
+                attempt,
+                willRetry,
+              },
+              willRetry
+                ? "Failed to release ingestion credit after error; retrying"
+                : "Failed to release ingestion credit after retries; stale reservation reconciler will recover it",
+            );
+            if (willRetry) {
+              await new Promise((resolve) =>
+                setTimeout(resolve, CREDIT_RELEASE_RETRY_MS * attempt),
+              );
+            }
+          }
         }
       }
     }
@@ -427,24 +452,27 @@ router.post(
         .where(eq(ingestionDocumentsTable.id, ingestion.id));
     }
 
-    const [created] = await db
-      .insert(harnessSessionsTable)
-      .values({
-        userId,
-        sessionName: requestedName,
-        origin: "ingested",
-        ingestionId: ingestion.id,
-      })
-      .returning();
-    await db.insert(harnessFeatureStateTable).values(
-      [1, 2, 3, 4, 5, 6, 7].map((featureId) => ({
-        sessionId: created!.id,
-        featureId,
-        status: featureId === 1 ? ("AVAILABLE" as const) : ("LOCKED" as const),
-        unlockedAt: featureId === 1 ? new Date() : null,
-      })),
-    );
-    res.status(201).json(serializeSession(created!));
+    const created = await db.transaction(async (tx) => {
+      const [session] = await tx
+        .insert(harnessSessionsTable)
+        .values({
+          userId,
+          sessionName: requestedName,
+          origin: "ingested",
+          ingestionId: ingestion.id,
+        })
+        .returning();
+      await tx.insert(harnessFeatureStateTable).values(
+        [1, 2, 3, 4, 5, 6, 7].map((featureId) => ({
+          sessionId: session!.id,
+          featureId,
+          status: featureId === 1 ? ("AVAILABLE" as const) : ("LOCKED" as const),
+          unlockedAt: featureId === 1 ? new Date() : null,
+        })),
+      );
+      return session!;
+    });
+    res.status(201).json(serializeSession(created));
   },
 );
 

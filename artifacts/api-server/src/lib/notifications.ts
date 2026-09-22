@@ -1,13 +1,15 @@
 import { randomBytes } from "node:crypto";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
 import {
   db,
+  f10BundleDeploymentsTable,
   notificationPreferencesTable,
   organizationMembersTable,
   organizationsTable,
   usersTable,
   type NotificationPreference,
 } from "@workspace/db";
+import { sendF10ReconciliationPaused } from "@workspace/email";
 import { logger } from "./logger";
 
 function newToken(): string {
@@ -62,6 +64,89 @@ export function activityUrl(orgId: string | null): string {
 
 export function billingUrl(orgId: string | null): string {
   return orgId ? `${publicBaseUrl()}/orgs/${orgId}/billing` : `${publicBaseUrl()}/billing`;
+}
+
+export async function notifyF10ReconciliationPaused(args: {
+  deploymentId: string;
+  ownerUserId: string;
+  provider: string;
+  target: string;
+  reason: string;
+  pausedAt: Date;
+}): Promise<boolean> {
+  const claimedAt = new Date();
+  const expiredClaimBefore = new Date(claimedAt.getTime() - 10 * 60_000);
+  try {
+    const [claimed] = await db
+      .update(f10BundleDeploymentsTable)
+      .set({ reconciliationPauseNotificationClaimedAt: claimedAt })
+      .where(and(
+        eq(f10BundleDeploymentsTable.id, args.deploymentId),
+        eq(f10BundleDeploymentsTable.reconciliationPausedAt, args.pausedAt),
+        eq(f10BundleDeploymentsTable.reconciliationPauseNotificationRequired, true),
+        isNull(f10BundleDeploymentsTable.reconciliationPauseNotifiedAt),
+        or(
+          isNull(f10BundleDeploymentsTable.reconciliationPauseNotificationClaimedAt),
+          lt(f10BundleDeploymentsTable.reconciliationPauseNotificationClaimedAt, expiredClaimBefore),
+        ),
+      ))
+      .returning({ id: f10BundleDeploymentsTable.id });
+    if (!claimed) return false;
+
+    const [owner] = await db
+      .select({ email: usersTable.email })
+      .from(usersTable)
+      .where(eq(usersTable.id, args.ownerUserId))
+      .limit(1);
+    if (!owner?.email) {
+      await releaseF10PauseNotificationClaim(args.deploymentId, claimedAt);
+      return false;
+    }
+
+    const result = await sendF10ReconciliationPaused({
+      to: owner.email,
+      provider: args.provider,
+      target: args.target,
+      reason: args.reason,
+      reconnectUrl: `${publicBaseUrl()}/f10`,
+    });
+    if (!result.ok) {
+      logger.warn(
+        { deploymentId: args.deploymentId, error: result.error },
+        "F10 reconciliation pause notification failed",
+      );
+      await releaseF10PauseNotificationClaim(args.deploymentId, claimedAt);
+      return false;
+    }
+    await db
+      .update(f10BundleDeploymentsTable)
+      .set({
+        reconciliationPauseNotifiedAt: new Date(),
+        reconciliationPauseNotificationClaimedAt: null,
+      })
+      .where(and(
+        eq(f10BundleDeploymentsTable.id, args.deploymentId),
+        eq(f10BundleDeploymentsTable.reconciliationPauseNotificationClaimedAt, claimedAt),
+      ));
+    return true;
+  } catch (err) {
+    await releaseF10PauseNotificationClaim(args.deploymentId, claimedAt).catch(() => undefined);
+    logger.warn(
+      { err, deploymentId: args.deploymentId },
+      "F10 reconciliation pause notification failed",
+    );
+    return false;
+  }
+}
+
+async function releaseF10PauseNotificationClaim(deploymentId: string, claimedAt: Date): Promise<void> {
+  await db
+    .update(f10BundleDeploymentsTable)
+    .set({ reconciliationPauseNotificationClaimedAt: null })
+    .where(and(
+      eq(f10BundleDeploymentsTable.id, deploymentId),
+      eq(f10BundleDeploymentsTable.reconciliationPauseNotificationClaimedAt, claimedAt),
+    ));
 }
 
 export interface OwnerAdminContact {
@@ -129,11 +214,23 @@ export async function ownerAdminContactsForStripeCustomer(
 }
 
 /**
- * Fire-and-forget wrapper: never throws, always logs.
+ * Fire-and-forget wrapper: never throws, always logs. The email lib's send()
+ * converts provider errors into `{ ok: false }` instead of rejecting, so a
+ * resolved-but-failed result must be inspected too — otherwise failed sends
+ * are silently treated as delivered.
  */
 export async function safeFire(label: string, p: Promise<unknown>): Promise<void> {
   try {
-    await p;
+    const result = await p;
+    if (
+      typeof result === "object" &&
+      result !== null &&
+      "ok" in result &&
+      (result as { ok: unknown }).ok === false
+    ) {
+      const error = (result as { error?: unknown }).error;
+      logger.warn({ label, error }, "notification dispatch failed (provider error)");
+    }
   } catch (err) {
     logger.warn({ err, label }, "notification dispatch failed");
   }

@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
+import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import {
   ProviderOverride,
@@ -321,7 +322,7 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
 
             {pkg && (
               <Card className="p-5 bg-card/50">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between gap-3 mb-3">
                   <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
                     Birth Package
                   </h4>
@@ -331,6 +332,9 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
                       modelId={latestArtifact.modelId}
                       testId="f3-generated-by"
                     />
+                  )}
+                  {latestArtifact?.id && (
+                    <SaveToExemplarLibraryButton artifactId={latestArtifact.id} />
                   )}
                 </div>
                 <Tabs defaultValue="overview">

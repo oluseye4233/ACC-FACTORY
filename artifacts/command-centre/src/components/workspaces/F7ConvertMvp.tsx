@@ -32,6 +32,9 @@ import { streamSse, extractApiError } from "@/lib/sse";
 import { downloadZip } from "@/lib/zipExport";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Sparkles, ShieldCheck, Download } from "lucide-react";
+import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
+
+import { Atlas360ViewPanel } from "./Atlas360ViewPanel";
 
 const SPARTAN_STEPS = [
   "SCAN",
@@ -47,10 +50,11 @@ const COLORS = ["#1A6B3A", "#C9A227", "#9C2A2A"];
 
 interface Props {
   sessionId: string;
+  sessionOrigin?: import("@workspace/api-client-react").HarnessSessionOrigin;
   artifacts: HarnessArtifact[];
 }
 
-export function F7ConvertMvp({ sessionId, artifacts }: Props) {
+export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
   const qc = useQueryClient();
   const { toast } = useToast();
 
@@ -308,6 +312,11 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
                   />
                 </div>
               )}
+              {latestArtifact?.id && (
+                <div className="mt-3">
+                  <SaveToExemplarLibraryButton artifactId={latestArtifact.id} />
+                </div>
+              )}
               {donutData.length > 0 && (
                 <div className="w-full h-[180px] mt-4">
                   <ResponsiveContainer>
@@ -397,6 +406,15 @@ export function F7ConvertMvp({ sessionId, artifacts }: Props) {
               </p>
             </div>
           </Card>
+        )}
+
+        {(result?.artifactId || latestArtifact?.id) && (
+          <Atlas360ViewPanel
+            sessionId={sessionId}
+            sessionOrigin={sessionOrigin}
+            sourceArtifactId={(result?.artifactId || latestArtifact?.id)!}
+            artifacts={artifacts}
+          />
         )}
       </div>
       <UpgradeCTA

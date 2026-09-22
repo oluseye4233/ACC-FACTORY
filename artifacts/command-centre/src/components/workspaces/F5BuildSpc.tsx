@@ -25,9 +25,11 @@ import {
 import { streamSse, extractApiError } from "@/lib/sse";
 import { Download, Send } from "lucide-react";
 import { PublishToSphinxButton } from "@/components/shared/PublishToSphinxButton";
+import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 import { SpcLineage } from "@/components/shared/SpcLineage";
 import { SuggestSpcPanel } from "@/components/shared/SuggestSpcPanel";
 import { downloadZip } from "@/lib/zipExport";
+import { SpcPlayerAdvisoryPrompt } from "@/components/shared/SpcPlayerAdvisoryPrompt";
 
 const FORGE_STEPS = [
   "CHARTER",
@@ -279,6 +281,7 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
   return (
     <WorkspaceShell>
       <div className="flex flex-col gap-4 h-full">
+        <SpcPlayerAdvisoryPrompt dismissKey={sessionId} sessionId={sessionId} />
         <Card className="p-5 bg-card/50">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
             <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -415,19 +418,22 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
               {spc && (
                 <div className="flex items-center gap-2">
                   {latestArtifact?.id && (
-                    <PublishToSphinxButton
-                      artifactId={latestArtifact.id}
-                      artifactType="SPC"
-                      existing={
-                        (latestArtifact.artifactContent as {
-                          sphinxListing?: {
-                            listingId: string | null;
-                            listingUrl: string | null;
-                            publishedAt: string;
-                          };
-                        })?.sphinxListing ?? null
-                      }
-                    />
+                    <>
+                      <SaveToExemplarLibraryButton artifactId={latestArtifact.id} />
+                      <PublishToSphinxButton
+                        artifactId={latestArtifact.id}
+                        artifactType="SPC"
+                        existing={
+                          (latestArtifact.artifactContent as {
+                            sphinxListing?: {
+                              listingId: string | null;
+                              listingUrl: string | null;
+                              publishedAt: string;
+                            };
+                          })?.sphinxListing ?? null
+                        }
+                      />
+                    </>
                   )}
                   <Button
                     onClick={exportSpc}

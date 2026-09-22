@@ -68,6 +68,22 @@ const DEMOS: DemoTile[] = [
     icon: Workflow,
     accent: "from-primary/20 via-primary/5",
   },
+  {
+    href: "/guide",
+    code: "DEMO · 04",
+    title: "FULL PLATFORM GUIDE",
+    blurb:
+      "A complete walkthrough of the currently shipped product, including the ATOMIC UI stage cockpit, ATLAS 360 PLAN/SCAN views, the open Exemplar Library, and open-access SPC Player execution and delivery.",
+    bullets: [
+      "ATOMIC UI linear stage guidance",
+      "ATLAS 360 PLAN and SCAN generation",
+      "Exemplar Library contribution workflow",
+      "SPC Player execution, final JSON downloads, and authorized webhook delivery"
+    ],
+    cta: "Read the Platform Guide",
+    icon: Workflow,
+    accent: "from-secondary/20 via-secondary/5",
+  },
 ];
 
 export default function DemosIndex() {

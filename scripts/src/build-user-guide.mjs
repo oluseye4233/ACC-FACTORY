@@ -52,6 +52,7 @@ const TIERS = [
     features: [
       "Everything in EXPLORER, plus:",
       "Full F1 → F6 pipeline: diagnose, atomic prompt, agent birth package, micro PDD, full SPC, 4-Part ATLAS PDD.",
+      "ATLAS 360: Generate 12-part PLAN execution and 8-stage SCAN assurance views.",
       "SPARTAN compression preview — see your work distilled to its minimum viable form.",
       "Advanced diagnostics: per-engine telemetry so you understand why a run scored what it scored.",
       "Priority email support (usually < 1 business day).",
@@ -191,7 +192,7 @@ h3("What this document is");
 p("This is the friendly, no-jargon manual for the ATANDA Command Centre. If you've ever opened the app and thought \"okay… but what does this thing actually DO for me?\" — this is for you. We cover what each of the four plans gives you, who it's for, what you can't do on it yet, and the very first thing you should try.");
 
 h3("What the Command Centre is, in one paragraph");
-p("The Command Centre is a guided workspace that turns a vague idea (\"I want an AI that summarises support tickets\") into a structured, repeatable, certifiable blueprint. It does this through a sequence of seven steps called the HARNESS (F1 → F7). You don't need to memorise those — you just click 'Next' and the app walks you through. By the end you get a clean, portable document that describes your AI system precisely enough that you (or anyone else) can build it.");
+p("The Command Centre is a guided workspace that turns a vague idea (\"I want an AI that summarises support tickets\") into a structured, repeatable, certifiable blueprint. It does this through a sequence of seven steps called the HARNESS (F1 → F7), now driven by the ATOMIC UI stage cockpit. You don't need to memorise those — the linear track guides you, keeping the engine under the hood. By the end you get a clean, portable document that describes your AI system precisely enough that you (or anyone else) can build it.");
 
 h3("The seven HARNESS steps, in plain English");
 bullets([
@@ -200,10 +201,17 @@ bullets([
   "F3 — Agent Birth Package: \"Turn that prompt into an actual little worker.\"",
   "F4 — Micro PDD: \"Write the short product spec for that worker.\"",
   "F5 — SPC: \"Write the full system blueprint.\"",
-  "F6 — ATLAS PDD: \"Format that blueprint as the 4-part deliverable.\"",
+  "F6 — ATLAS PDD: \"Format that blueprint as the 4-part deliverable. Optionally render ATLAS 360 PLAN/SCAN views.\"",
   "F7 — MVP-PDD Certification: \"Compress, stamp, and give it a public verify URL.\""
 ]);
 p("Lower-numbered steps are quick; higher-numbered steps are the real deliverable. The free plan lets you try the first few. The paid plans unlock progressively more.");
+
+h3("Key Ecosystem Features");
+bullets([
+  "Exemplar Library: Browse canonical HARNESS references, fork them to your session, or upload your own files (SPC, MA, MPDD, PDD) to the open backend marketplace.",
+  "ATLAS 360 Views: Project a PDD into a 12-part technical execution PLAN or an 8-stage assurance SCAN, then export as a single ZIP (Markdown + JSON).",
+  "SPC Player: Open-access cockpit for registering and executing capability briefs, downloading final JSON packages, and explicitly authorizing per-run public HTTPS webhook delivery. It has no tier, entitlement, credit, billing, or LLM gate. Environment sketches are documentation, not live integrations."
+]);
 
 doc.addPage();
 

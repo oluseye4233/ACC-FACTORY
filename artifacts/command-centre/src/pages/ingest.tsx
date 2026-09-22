@@ -434,11 +434,18 @@ export default function Ingest() {
                 <Button
                   onClick={handleIngest}
                   disabled={
-                    !inputReady || submitting || Boolean(ingestion) || available < 1
+                    !inputReady ||
+                    submitting ||
+                    Boolean(ingestion) ||
+                    (BILLING_ENABLED && available < 1)
                   }
                   className="font-display tracking-wider w-full sm:w-auto"
                   data-testid="button-ingest"
-                  title={available < 1 ? "Purchase a project credit to ingest" : undefined}
+                  title={
+                    BILLING_ENABLED && available < 1
+                      ? "Purchase a project credit to ingest"
+                      : undefined
+                  }
                 >
                   {submitting ? (
                     <>

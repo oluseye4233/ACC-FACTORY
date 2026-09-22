@@ -1,4 +1,10 @@
-import { Router, type IRouter, type Request, type Response } from "express";
+import {
+  Router,
+  type IRouter,
+  type NextFunction,
+  type Request,
+  type Response,
+} from "express";
 import multer from "multer";
 import { and, asc, eq } from "drizzle-orm";
 import {
@@ -30,6 +36,11 @@ import { invalidateCartridgeContext } from "../lib/cartridge-context";
 import { callLlmJson, isLlmProvider, resolveProvider, sendProviderTierError } from "../engines/shared";
 import type { LlmProvider } from "@workspace/db";
 import { z } from "zod/v4";
+import {
+  DocumentExtractionError,
+  documentExtractionErrorResponse,
+  prepareUploadedDocument,
+} from "../lib/document-extraction";
 
 const MAX_FILES = 5;
 const MAX_FILE_BYTES = 1 * 1024 * 1024;
@@ -38,10 +49,44 @@ const MIN_SCOPE_CHARS = 80;
 const MIN_OUTCOME_CHARS = 12;
 const MAX_SPC_BODY_CHARS = 12_000;
 
+type UploadRequest = Request & { uploadFilename?: string };
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_FILE_BYTES, files: MAX_FILES },
+  fileFilter: (req, file, callback) => {
+    (req as UploadRequest).uploadFilename = file.originalname;
+    callback(null, true);
+  },
 });
+
+function uploadCartridgeFiles(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  upload.array("files", MAX_FILES)(req, res, (err: unknown) => {
+    if (!err) {
+      next();
+      return;
+    }
+    if (err instanceof multer.MulterError) {
+      const fileLimitError = err.code === "LIMIT_FILE_SIZE";
+      const filename = (req as UploadRequest).uploadFilename;
+      res.status(400).json({
+        error: fileLimitError
+          ? filename
+            ? `"${filename}" is too large. Each file must be 1 MB or smaller.`
+            : "A file is too large. Each file must be 1 MB or smaller."
+          : `Upload rejected. Submit no more than ${MAX_FILES} files.`,
+        code: fileLimitError ? "FILE_TOO_LARGE" : "UPLOAD_LIMIT_EXCEEDED",
+        ...(fileLimitError && filename ? { filename } : {}),
+      });
+      return;
+    }
+    next(err);
+  });
+}
 
 const router: IRouter = Router();
 
@@ -104,51 +149,6 @@ function parseLinks(raw: unknown): ParsedLinkInput[] {
     });
   }
   return out.slice(0, 10);
-}
-
-async function extractText(
-  buffer: Buffer,
-  filename: string,
-  declaredMime: string | undefined,
-): Promise<{ text: string; mimeType: string }> {
-  const lower = filename.toLowerCase();
-  const mime = declaredMime ?? "application/octet-stream";
-  if (
-    lower.endsWith(".txt") ||
-    lower.endsWith(".md") ||
-    lower.endsWith(".markdown") ||
-    mime.startsWith("text/")
-  ) {
-    return { text: buffer.toString("utf8"), mimeType: mime };
-  }
-  if (lower.endsWith(".pdf") || mime === "application/pdf") {
-    const pdfParseMod = (await import("pdf-parse")) as unknown as
-      | ((data: Buffer) => Promise<{ text: string }>)
-      | { default: (data: Buffer) => Promise<{ text: string }> };
-    const pdfParse =
-      typeof pdfParseMod === "function" ? pdfParseMod : pdfParseMod.default;
-    const parsed = await pdfParse(buffer);
-    return { text: parsed.text, mimeType: "application/pdf" };
-  }
-  if (
-    lower.endsWith(".docx") ||
-    mime ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  ) {
-    const mammothMod = await import("mammoth");
-    const mammoth = (mammothMod.default ?? mammothMod) as {
-      extractRawText: (opts: { buffer: Buffer }) => Promise<{ value: string }>;
-    };
-    const result = await mammoth.extractRawText({ buffer });
-    return {
-      text: result.value,
-      mimeType:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    };
-  }
-  throw new Error(
-    "Unsupported file type. Accepted: .txt, .md, .pdf, .docx (one file may be skipped).",
-  );
 }
 
 const DocSummarySchema = z.object({
@@ -260,7 +260,7 @@ router.post(
   "/cartridge",
   requireAuth,
   requireCostBudget,
-  upload.array("files", MAX_FILES),
+  uploadCartridgeFiles,
   async (req: Request, res: Response): Promise<void> => {
     const userId = req.localUser!.id;
 
@@ -343,7 +343,12 @@ router.post(
         throw err;
       }
 
-      // ── Step 3: extract + summarise documents ──
+      // ── Step 3: extract every document before spending on summaries ──
+      interface ExtractedDoc {
+        file: Express.Multer.File;
+        text: string;
+        mimeType: string;
+      }
       interface DocPlan {
         filename: string;
         mimeType: string;
@@ -351,21 +356,31 @@ router.post(
         chars: number;
         summary: string;
       }
-      const docPlans: DocPlan[] = [];
+      const extractedDocs: ExtractedDoc[] = [];
       for (const f of files) {
-        let extracted: { text: string; mimeType: string };
+        let extracted: Awaited<ReturnType<typeof prepareUploadedDocument>>;
         try {
-          extracted = await extractText(f.buffer, f.originalname, f.mimetype);
+          extracted = await prepareUploadedDocument(f, {
+            minChars: 50,
+            maxChars: MAX_EXTRACTED_CHARS,
+          });
         } catch (err) {
           req.log.warn({ err, filename: f.originalname }, "Cartridge doc extraction failed");
-          continue;
+          if (!(err instanceof DocumentExtractionError)) throw err;
+          res.status(400).json(documentExtractionErrorResponse(err));
+          return;
         }
-        const cleaned = extracted.text.replace(/\u0000/g, "").trim();
-        if (cleaned.length < 50) continue;
-        const truncated =
-          cleaned.length > MAX_EXTRACTED_CHARS
-            ? cleaned.slice(0, MAX_EXTRACTED_CHARS)
-            : cleaned;
+        extractedDocs.push({
+          file: f,
+          text: extracted.text,
+          mimeType: extracted.mimeType,
+        });
+      }
+
+      const docPlans: DocPlan[] = [];
+      for (const extracted of extractedDocs) {
+        const f = extracted.file;
+        const truncated = extracted.text;
         let summary = truncated.slice(0, 400);
         try {
           const out = await callLlmJson(
@@ -459,38 +474,39 @@ router.post(
             })),
           );
         }
-        return pkg!;
-      });
-      cartridgeId = persisted.id;
-
-      if (creditId) {
-        try {
-          await linkCreditToCartridge(creditId, persisted.id);
-        } catch (err) {
-          req.log.warn({ err, creditId, cartridgeId: persisted.id }, "Failed to link cartridge credit");
+        if (creditId) {
+          await linkCreditToCartridge(creditId, id, tx);
         }
-      }
-
-      const [docs, spcs, links] = await Promise.all([
-        db
+        const docs = await tx
           .select()
           .from(cartridgeDocumentsTable)
-          .where(eq(cartridgeDocumentsTable.cartridgeId, persisted.id))
-          .orderBy(asc(cartridgeDocumentsTable.createdAt)),
-        db
+          .where(eq(cartridgeDocumentsTable.cartridgeId, id))
+          .orderBy(asc(cartridgeDocumentsTable.createdAt));
+        const spcs = await tx
           .select()
           .from(cartridgeSpcsTable)
-          .where(eq(cartridgeSpcsTable.cartridgeId, persisted.id))
-          .orderBy(asc(cartridgeSpcsTable.createdAt)),
-        db
+          .where(eq(cartridgeSpcsTable.cartridgeId, id))
+          .orderBy(asc(cartridgeSpcsTable.createdAt));
+        const links = await tx
           .select()
           .from(cartridgeLinksTable)
-          .where(eq(cartridgeLinksTable.cartridgeId, persisted.id))
-          .orderBy(asc(cartridgeLinksTable.createdAt)),
-      ]);
+          .where(eq(cartridgeLinksTable.cartridgeId, id))
+          .orderBy(asc(cartridgeLinksTable.createdAt));
+        return { pkg: pkg!, docs, spcs, links };
+      });
+      cartridgeId = persisted.pkg.id;
 
       success = true;
-      res.status(201).json(serializeCartridge(persisted, docs, spcs, links));
+      res
+        .status(201)
+        .json(
+          serializeCartridge(
+            persisted.pkg,
+            persisted.docs,
+            persisted.spcs,
+            persisted.links,
+          ),
+        );
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Cartridge creation failed";
       req.log.error({ err }, "Cartridge create failed");
@@ -536,29 +552,32 @@ router.post(
         ? req.body.sessionName.trim().slice(0, 255)
         : `Cartridge: ${pkg.projectName}`.slice(0, 255);
 
-    const [created] = await db
-      .insert(harnessSessionsTable)
-      .values({
-        userId,
-        sessionName: requestedName,
-        origin: "cartridge",
-        cartridgeId: pkg.id,
-      })
-      .returning();
+    const created = await db.transaction(async (tx) => {
+      const [session] = await tx
+        .insert(harnessSessionsTable)
+        .values({
+          userId,
+          sessionName: requestedName,
+          origin: "cartridge",
+          cartridgeId: pkg.id,
+        })
+        .returning();
 
-    // Unlock F1..F7 all at once. The auto-run kicks F1 in the background; the
-    // operator can still pause / step manually from the workspace UI.
-    const now = new Date();
-    await db.insert(harnessFeatureStateTable).values(
-      [1, 2, 3, 4, 5, 6, 7].map((featureId) => ({
-        sessionId: created!.id,
-        featureId,
-        status: "AVAILABLE" as const,
-        unlockedAt: now,
-      })),
-    );
+      // Cartridge sessions are operator-driven: F1..F7 are available
+      // immediately, but no engine is started automatically.
+      const now = new Date();
+      await tx.insert(harnessFeatureStateTable).values(
+        [1, 2, 3, 4, 5, 6, 7].map((featureId) => ({
+          sessionId: session!.id,
+          featureId,
+          status: "AVAILABLE" as const,
+          unlockedAt: now,
+        })),
+      );
+      return session!;
+    });
 
-    res.status(201).json(serializeSession(created!));
+    res.status(201).json(serializeSession(created));
   },
 );
 

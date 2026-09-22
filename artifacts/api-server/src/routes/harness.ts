@@ -19,6 +19,8 @@ import { handleF8Hdj } from "../engines/f8hdj";
 import { handleEvolve } from "../engines/de";
 import { handleAtlasCrystallise } from "../engines/atlas-crystallise";
 import { handlePfp } from "../engines/pfp";
+import { handlePddView } from "../engines/pdd-view";
+import { handleF9Mecha, handleF9Run } from "../engines/f9mecha";
 
 const router: IRouter = Router();
 
@@ -116,6 +118,12 @@ router.post(
   "/harness/pfp",
   ...harnessRoute({ featureId: null, tier: "PRACTITIONER", handler: handlePfp }),
 );
+// PDD PLAN/SCAN views are persisted read-only side-steps over an existing F6/F7
+// artifact, so this is POST rather than the source PDD's proposed GET.
+router.post(
+  "/harness/sessions/:id/pdd-view",
+  ...harnessRoute({ featureId: null, tier: "PRACTITIONER", handler: handlePddView }),
+);
 router.post(
   "/harness/evolve",
   ...harnessRoute({
@@ -124,6 +132,11 @@ router.post(
     handler: handleEvolve,
   }),
 );
+router.post(
+  "/harness/f9",
+  ...harnessRoute({ featureId: null, tier: "ARCHITECT", handler: handleF9Mecha }),
+);
+router.get("/harness/f9/runs", requireAuth, handleF9Run);
 
 router.get("/harness/escalations/stream", requireAuth, async (req, res): Promise<void> => {
   const sessionId = typeof req.query.sessionId === "string" ? req.query.sessionId : "";

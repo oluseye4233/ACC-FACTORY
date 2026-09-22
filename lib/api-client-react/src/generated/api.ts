@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AddArtifactToExemplarLibraryRequest,
   AdminBadgeRevocationPreview,
   AdminBadgeRevocationsList,
   AdminCronStatus,
@@ -31,6 +32,7 @@ import type {
   AdminRevokeBadgeResult,
   AiseClaimInput,
   AscensionJourney,
+  Atlas360PddViewResponse,
   AtlasPdd,
   AtlasPddJson,
   AtomicPrompt,
@@ -48,11 +50,14 @@ import type {
   CreateF0EngagementInput,
   CreateF0RetainerInput,
   CreateF0RetainerTaskInput,
+  CreateSpcPlayerRunInput,
+  CronReconcileF10Deployments200,
   DeepHealth,
   DeleteAccountInput,
   DeleteAccountResult,
   EngineerClaimInput,
   ErrorResponse,
+  ExecuteSpcPlayerRunInput,
   Exemplar,
   ExemplarSummary,
   F0Commentary,
@@ -69,7 +74,29 @@ import type {
   F1000RedeemInput,
   F1000RedeemResult,
   F1000StatusResult,
+  F10BundleDeployment,
+  F10BundleDeploymentDetail,
+  F10BundleDeploymentRequest,
+  F10BundleReconciliation,
+  F10Catalog,
+  F10ColonizationInput,
+  F10ColonizationRun,
+  F10Destination,
+  F10DestinationRequest,
+  F10ExportInput,
+  F10ExportManifest,
+  F10GitHubPushInput,
+  F10GitHubPushResult,
+  F10ProviderAuthorizeRequest,
+  F10ProviderConnection,
+  F10ProviderConnectionCallbackParams,
+  F10Release,
+  F10ReleaseRequest,
+  F10Source,
   F5StepOutcome,
+  F9MachineArtifact,
+  F9Refusal,
+  F9RunRecord,
   FeatureState,
   ForbiddenResponse,
   GenerateF0ChallengeInput,
@@ -94,7 +121,9 @@ import type {
   HarnessF7Input,
   HarnessF8HdjInput,
   HarnessF8Input,
+  HarnessF9Input,
   HarnessMapInput,
+  HarnessPddViewParams,
   HarnessPfpInput,
   HarnessSession,
   HealthStatus,
@@ -105,6 +134,7 @@ import type {
   IngestionDocument,
   JstInput,
   JstSummary,
+  ListHarnessF9RunsParams,
   ListMyPromptsParams,
   MagnetCalculatorInput,
   MagnetCalculatorResult,
@@ -132,6 +162,16 @@ import type {
   SessionDetail,
   SessionInput,
   SessionUpdate,
+  SpcDevKit,
+  SpcLibraryCard,
+  SpcPlayerDeliveryResult,
+  SpcPlayerManifest,
+  SpcPlayerOutputPackage,
+  SpcPlayerRegistry,
+  SpcPlayerRun,
+  SpcPlayerWebhookAuthorization,
+  SpcPlayerWebhookAuthorizationInput,
+  SpcPlayerWebhookAuthorizationStatus,
   StripeWebhookPayload,
   UnauthorizedResponse,
   UpdateF0RetainerTaskInput,
@@ -151,6 +191,1726 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+export const getGetF10CatalogUrl = () => {
+
+
+
+
+  return `/api/f10/catalog`
+}
+
+/**
+ * @summary Honest F10 export families, targets, and delivery modes
+ */
+export const getF10Catalog = async ( options?: RequestInit): Promise<F10Catalog> => {
+
+  return customFetch<F10Catalog>(getGetF10CatalogUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetF10CatalogQueryKey = () => {
+    return [
+    `/api/f10/catalog`
+    ] as const;
+    }
+
+
+export const getGetF10CatalogQueryOptions = <TData = Awaited<ReturnType<typeof getF10Catalog>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF10Catalog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetF10CatalogQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getF10Catalog>>> = ({ signal }) => getF10Catalog({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getF10Catalog>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetF10CatalogQueryResult = NonNullable<Awaited<ReturnType<typeof getF10Catalog>>>
+export type GetF10CatalogQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary Honest F10 export families, targets, and delivery modes
+ */
+
+export function useGetF10Catalog<TData = Awaited<ReturnType<typeof getF10Catalog>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF10Catalog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetF10CatalogQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListF10ColonizationRunsUrl = () => {
+
+
+
+
+  return `/api/f10/colonization-runs`
+}
+
+/**
+ * @summary List cited, fail-closed SAVANT CONNECTOR colonization runs
+ */
+export const listF10ColonizationRuns = async ( options?: RequestInit): Promise<F10ColonizationRun[]> => {
+
+  return customFetch<F10ColonizationRun[]>(getListF10ColonizationRunsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListF10ColonizationRunsQueryKey = () => {
+    return [
+    `/api/f10/colonization-runs`
+    ] as const;
+    }
+
+
+export const getListF10ColonizationRunsQueryOptions = <TData = Awaited<ReturnType<typeof listF10ColonizationRuns>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10ColonizationRuns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListF10ColonizationRunsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listF10ColonizationRuns>>> = ({ signal }) => listF10ColonizationRuns({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listF10ColonizationRuns>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListF10ColonizationRunsQueryResult = NonNullable<Awaited<ReturnType<typeof listF10ColonizationRuns>>>
+export type ListF10ColonizationRunsQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary List cited, fail-closed SAVANT CONNECTOR colonization runs
+ */
+
+export function useListF10ColonizationRuns<TData = Awaited<ReturnType<typeof listF10ColonizationRuns>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10ColonizationRuns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListF10ColonizationRunsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateF10ColonizationRunUrl = () => {
+
+
+
+
+  return `/api/f10/colonization-runs`
+}
+
+/**
+ * @summary Record and evaluate an F10 colonization protocol run
+ */
+export const createF10ColonizationRun = async (f10ColonizationInput: F10ColonizationInput, options?: RequestInit): Promise<F10ColonizationRun> => {
+
+  return customFetch<F10ColonizationRun>(getCreateF10ColonizationRunUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      f10ColonizationInput,)
+  }
+);}
+
+
+
+
+export const getCreateF10ColonizationRunMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF10ColonizationRun>>, TError,{data: BodyType<F10ColonizationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createF10ColonizationRun>>, TError,{data: BodyType<F10ColonizationInput>}, TContext> => {
+
+const mutationKey = ['createF10ColonizationRun'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createF10ColonizationRun>>, {data: BodyType<F10ColonizationInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createF10ColonizationRun(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateF10ColonizationRunMutationResult = NonNullable<Awaited<ReturnType<typeof createF10ColonizationRun>>>
+    export type CreateF10ColonizationRunMutationBody = BodyType<F10ColonizationInput>
+    export type CreateF10ColonizationRunMutationError = ErrorType<void>
+
+    /**
+ * @summary Record and evaluate an F10 colonization protocol run
+ */
+export const useCreateF10ColonizationRun = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF10ColonizationRun>>, TError,{data: BodyType<F10ColonizationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createF10ColonizationRun>>,
+        TError,
+        {data: BodyType<F10ColonizationInput>},
+        TContext
+      > => {
+      return useMutation(getCreateF10ColonizationRunMutationOptions(options));
+    }
+
+export const getGetF10ColonizationRunUrl = (id: string,) => {
+
+
+
+
+  return `/api/f10/colonization-runs/${id}`
+}
+
+export const getF10ColonizationRun = async (id: string, options?: RequestInit): Promise<F10ColonizationRun> => {
+
+  return customFetch<F10ColonizationRun>(getGetF10ColonizationRunUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetF10ColonizationRunQueryKey = (id: string,) => {
+    return [
+    `/api/f10/colonization-runs/${id}`
+    ] as const;
+    }
+
+
+export const getGetF10ColonizationRunQueryOptions = <TData = Awaited<ReturnType<typeof getF10ColonizationRun>>, TError = ErrorType<NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF10ColonizationRun>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetF10ColonizationRunQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getF10ColonizationRun>>> = ({ signal }) => getF10ColonizationRun(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getF10ColonizationRun>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetF10ColonizationRunQueryResult = NonNullable<Awaited<ReturnType<typeof getF10ColonizationRun>>>
+export type GetF10ColonizationRunQueryError = ErrorType<NotFoundResponse>
+
+
+
+export function useGetF10ColonizationRun<TData = Awaited<ReturnType<typeof getF10ColonizationRun>>, TError = ErrorType<NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF10ColonizationRun>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetF10ColonizationRunQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListF10SourcesUrl = () => {
+
+
+
+
+  return `/api/f10/sources`
+}
+
+/**
+ * @summary List owned artifacts eligible for F10 exports
+ */
+export const listF10Sources = async ( options?: RequestInit): Promise<F10Source[]> => {
+
+  return customFetch<F10Source[]>(getListF10SourcesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListF10SourcesQueryKey = () => {
+    return [
+    `/api/f10/sources`
+    ] as const;
+    }
+
+
+export const getListF10SourcesQueryOptions = <TData = Awaited<ReturnType<typeof listF10Sources>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10Sources>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListF10SourcesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listF10Sources>>> = ({ signal }) => listF10Sources({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listF10Sources>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListF10SourcesQueryResult = NonNullable<Awaited<ReturnType<typeof listF10Sources>>>
+export type ListF10SourcesQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary List owned artifacts eligible for F10 exports
+ */
+
+export function useListF10Sources<TData = Awaited<ReturnType<typeof listF10Sources>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10Sources>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListF10SourcesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateF10ExportManifestUrl = () => {
+
+
+
+
+  return `/api/f10/exports/manifest`
+}
+
+/**
+ * @summary Create a deterministic F10 export manifest from an owned artifact
+ */
+export const createF10ExportManifest = async (f10ExportInput: F10ExportInput, options?: RequestInit): Promise<F10ExportManifest> => {
+
+  return customFetch<F10ExportManifest>(getCreateF10ExportManifestUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      f10ExportInput,)
+  }
+);}
+
+
+
+
+export const getCreateF10ExportManifestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF10ExportManifest>>, TError,{data: BodyType<F10ExportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createF10ExportManifest>>, TError,{data: BodyType<F10ExportInput>}, TContext> => {
+
+const mutationKey = ['createF10ExportManifest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createF10ExportManifest>>, {data: BodyType<F10ExportInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createF10ExportManifest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateF10ExportManifestMutationResult = NonNullable<Awaited<ReturnType<typeof createF10ExportManifest>>>
+    export type CreateF10ExportManifestMutationBody = BodyType<F10ExportInput>
+    export type CreateF10ExportManifestMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a deterministic F10 export manifest from an owned artifact
+ */
+export const useCreateF10ExportManifest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF10ExportManifest>>, TError,{data: BodyType<F10ExportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createF10ExportManifest>>,
+        TError,
+        {data: BodyType<F10ExportInput>},
+        TContext
+      > => {
+      return useMutation(getCreateF10ExportManifestMutationOptions(options));
+    }
+
+export const getDownloadF10ExportUrl = () => {
+
+
+
+
+  return `/api/f10/exports/download`
+}
+
+/**
+ * @summary Download a deterministic F10 ZIP export
+ */
+export const downloadF10Export = async (f10ExportInput: F10ExportInput, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadF10ExportUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      f10ExportInput,)
+  }
+);}
+
+
+
+
+export const getDownloadF10ExportMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof downloadF10Export>>, TError,{data: BodyType<F10ExportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof downloadF10Export>>, TError,{data: BodyType<F10ExportInput>}, TContext> => {
+
+const mutationKey = ['downloadF10Export'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof downloadF10Export>>, {data: BodyType<F10ExportInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  downloadF10Export(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DownloadF10ExportMutationResult = NonNullable<Awaited<ReturnType<typeof downloadF10Export>>>
+    export type DownloadF10ExportMutationBody = BodyType<F10ExportInput>
+    export type DownloadF10ExportMutationError = ErrorType<void>
+
+    /**
+ * @summary Download a deterministic F10 ZIP export
+ */
+export const useDownloadF10Export = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof downloadF10Export>>, TError,{data: BodyType<F10ExportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof downloadF10Export>>,
+        TError,
+        {data: BodyType<F10ExportInput>},
+        TContext
+      > => {
+      return useMutation(getDownloadF10ExportMutationOptions(options));
+    }
+
+export const getPushF10ExportToGitHubUrl = () => {
+
+
+
+
+  return `/api/f10/exports/github`
+}
+
+/**
+ * File bytes are reconstructed from the owned source artifact and selected profile; caller-supplied files are not accepted.
+ * @summary Rebuild and push an owned F10 handoff to an authorized GitHub repository
+ */
+export const pushF10ExportToGitHub = async (f10GitHubPushInput: F10GitHubPushInput, options?: RequestInit): Promise<F10GitHubPushResult> => {
+
+  return customFetch<F10GitHubPushResult>(getPushF10ExportToGitHubUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      f10GitHubPushInput,)
+  }
+);}
+
+
+
+
+export const getPushF10ExportToGitHubMutationOptions = <TError = ErrorType<void | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pushF10ExportToGitHub>>, TError,{data: BodyType<F10GitHubPushInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof pushF10ExportToGitHub>>, TError,{data: BodyType<F10GitHubPushInput>}, TContext> => {
+
+const mutationKey = ['pushF10ExportToGitHub'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof pushF10ExportToGitHub>>, {data: BodyType<F10GitHubPushInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  pushF10ExportToGitHub(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PushF10ExportToGitHubMutationResult = NonNullable<Awaited<ReturnType<typeof pushF10ExportToGitHub>>>
+    export type PushF10ExportToGitHubMutationBody = BodyType<F10GitHubPushInput>
+    export type PushF10ExportToGitHubMutationError = ErrorType<void | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse>
+
+    /**
+ * @summary Rebuild and push an owned F10 handoff to an authorized GitHub repository
+ */
+export const usePushF10ExportToGitHub = <TError = ErrorType<void | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pushF10ExportToGitHub>>, TError,{data: BodyType<F10GitHubPushInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof pushF10ExportToGitHub>>,
+        TError,
+        {data: BodyType<F10GitHubPushInput>},
+        TContext
+      > => {
+      return useMutation(getPushF10ExportToGitHubMutationOptions(options));
+    }
+
+export const getListF10DestinationsUrl = () => {
+
+
+
+
+  return `/api/f10/destinations`
+}
+
+/**
+ * @summary List tenant-scoped release destinations
+ */
+export const listF10Destinations = async ( options?: RequestInit): Promise<F10Destination[]> => {
+
+  return customFetch<F10Destination[]>(getListF10DestinationsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListF10DestinationsQueryKey = () => {
+    return [
+    `/api/f10/destinations`
+    ] as const;
+    }
+
+
+export const getListF10DestinationsQueryOptions = <TData = Awaited<ReturnType<typeof listF10Destinations>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10Destinations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListF10DestinationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listF10Destinations>>> = ({ signal }) => listF10Destinations({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listF10Destinations>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListF10DestinationsQueryResult = NonNullable<Awaited<ReturnType<typeof listF10Destinations>>>
+export type ListF10DestinationsQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary List tenant-scoped release destinations
+ */
+
+export function useListF10Destinations<TData = Awaited<ReturnType<typeof listF10Destinations>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10Destinations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListF10DestinationsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateF10DestinationUrl = () => {
+
+
+
+
+  return `/api/f10/destinations`
+}
+
+/**
+ * @summary Register an authorized HTTPS release destination
+ */
+export const createF10Destination = async (f10DestinationRequest: F10DestinationRequest, options?: RequestInit): Promise<F10Destination> => {
+
+  return customFetch<F10Destination>(getCreateF10DestinationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      f10DestinationRequest,)
+  }
+);}
+
+
+
+
+export const getCreateF10DestinationMutationOptions = <TError = ErrorType<void | UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF10Destination>>, TError,{data: BodyType<F10DestinationRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createF10Destination>>, TError,{data: BodyType<F10DestinationRequest>}, TContext> => {
+
+const mutationKey = ['createF10Destination'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createF10Destination>>, {data: BodyType<F10DestinationRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createF10Destination(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateF10DestinationMutationResult = NonNullable<Awaited<ReturnType<typeof createF10Destination>>>
+    export type CreateF10DestinationMutationBody = BodyType<F10DestinationRequest>
+    export type CreateF10DestinationMutationError = ErrorType<void | UnauthorizedResponse>
+
+    /**
+ * @summary Register an authorized HTTPS release destination
+ */
+export const useCreateF10Destination = <TError = ErrorType<void | UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF10Destination>>, TError,{data: BodyType<F10DestinationRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createF10Destination>>,
+        TError,
+        {data: BodyType<F10DestinationRequest>},
+        TContext
+      > => {
+      return useMutation(getCreateF10DestinationMutationOptions(options));
+    }
+
+export const getListF10ProviderConnectionsUrl = () => {
+
+
+
+
+  return `/api/f10/connections`
+}
+
+/**
+ * @summary List provider authorization references (credential values are never returned)
+ */
+export const listF10ProviderConnections = async ( options?: RequestInit): Promise<F10ProviderConnection[]> => {
+
+  return customFetch<F10ProviderConnection[]>(getListF10ProviderConnectionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListF10ProviderConnectionsQueryKey = () => {
+    return [
+    `/api/f10/connections`
+    ] as const;
+    }
+
+
+export const getListF10ProviderConnectionsQueryOptions = <TData = Awaited<ReturnType<typeof listF10ProviderConnections>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10ProviderConnections>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListF10ProviderConnectionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listF10ProviderConnections>>> = ({ signal }) => listF10ProviderConnections({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listF10ProviderConnections>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListF10ProviderConnectionsQueryResult = NonNullable<Awaited<ReturnType<typeof listF10ProviderConnections>>>
+export type ListF10ProviderConnectionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List provider authorization references (credential values are never returned)
+ */
+
+export function useListF10ProviderConnections<TData = Awaited<ReturnType<typeof listF10ProviderConnections>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10ProviderConnections>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListF10ProviderConnectionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAuthorizeF10ProviderConnectionUrl = () => {
+
+
+
+
+  return `/api/f10/connections/authorize`
+}
+
+export const authorizeF10ProviderConnection = async (f10ProviderAuthorizeRequest: F10ProviderAuthorizeRequest, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getAuthorizeF10ProviderConnectionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      f10ProviderAuthorizeRequest,)
+  }
+);}
+
+
+
+
+export const getAuthorizeF10ProviderConnectionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authorizeF10ProviderConnection>>, TError,{data: BodyType<F10ProviderAuthorizeRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authorizeF10ProviderConnection>>, TError,{data: BodyType<F10ProviderAuthorizeRequest>}, TContext> => {
+
+const mutationKey = ['authorizeF10ProviderConnection'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authorizeF10ProviderConnection>>, {data: BodyType<F10ProviderAuthorizeRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authorizeF10ProviderConnection(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthorizeF10ProviderConnectionMutationResult = NonNullable<Awaited<ReturnType<typeof authorizeF10ProviderConnection>>>
+    export type AuthorizeF10ProviderConnectionMutationBody = BodyType<F10ProviderAuthorizeRequest>
+    export type AuthorizeF10ProviderConnectionMutationError = ErrorType<unknown>
+
+    export const useAuthorizeF10ProviderConnection = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authorizeF10ProviderConnection>>, TError,{data: BodyType<F10ProviderAuthorizeRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof authorizeF10ProviderConnection>>,
+        TError,
+        {data: BodyType<F10ProviderAuthorizeRequest>},
+        TContext
+      > => {
+      return useMutation(getAuthorizeF10ProviderConnectionMutationOptions(options));
+    }
+
+export const getF10ProviderConnectionCallbackUrl = (params: F10ProviderConnectionCallbackParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/f10/connections/callback?${stringifiedParams}` : `/api/f10/connections/callback`
+}
+
+export const f10ProviderConnectionCallback = async (params: F10ProviderConnectionCallbackParams, options?: RequestInit): Promise<unknown> => {
+
+  return customFetch<unknown>(getF10ProviderConnectionCallbackUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getF10ProviderConnectionCallbackQueryKey = (params?: F10ProviderConnectionCallbackParams,) => {
+    return [
+    `/api/f10/connections/callback`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getF10ProviderConnectionCallbackQueryOptions = <TData = Awaited<ReturnType<typeof f10ProviderConnectionCallback>>, TError = ErrorType<void>>(params: F10ProviderConnectionCallbackParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof f10ProviderConnectionCallback>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getF10ProviderConnectionCallbackQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof f10ProviderConnectionCallback>>> = ({ signal }) => f10ProviderConnectionCallback(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof f10ProviderConnectionCallback>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type F10ProviderConnectionCallbackQueryResult = NonNullable<Awaited<ReturnType<typeof f10ProviderConnectionCallback>>>
+export type F10ProviderConnectionCallbackQueryError = ErrorType<void>
+
+
+
+export function useF10ProviderConnectionCallback<TData = Awaited<ReturnType<typeof f10ProviderConnectionCallback>>, TError = ErrorType<void>>(
+ params: F10ProviderConnectionCallbackParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof f10ProviderConnectionCallback>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getF10ProviderConnectionCallbackQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRevokeF10ProviderConnectionUrl = (id: string,) => {
+
+
+
+
+  return `/api/f10/connections/${id}/revoke`
+}
+
+export const revokeF10ProviderConnection = async (id: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRevokeF10ProviderConnectionUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRevokeF10ProviderConnectionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeF10ProviderConnection>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeF10ProviderConnection>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['revokeF10ProviderConnection'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeF10ProviderConnection>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  revokeF10ProviderConnection(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeF10ProviderConnectionMutationResult = NonNullable<Awaited<ReturnType<typeof revokeF10ProviderConnection>>>
+
+    export type RevokeF10ProviderConnectionMutationError = ErrorType<unknown>
+
+    export const useRevokeF10ProviderConnection = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeF10ProviderConnection>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof revokeF10ProviderConnection>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getRevokeF10ProviderConnectionMutationOptions(options));
+    }
+
+export const getListF10BundleDeploymentsUrl = () => {
+
+
+
+
+  return `/api/f10/deployments`
+}
+
+export const listF10BundleDeployments = async ( options?: RequestInit): Promise<F10BundleDeployment[]> => {
+
+  return customFetch<F10BundleDeployment[]>(getListF10BundleDeploymentsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListF10BundleDeploymentsQueryKey = () => {
+    return [
+    `/api/f10/deployments`
+    ] as const;
+    }
+
+
+export const getListF10BundleDeploymentsQueryOptions = <TData = Awaited<ReturnType<typeof listF10BundleDeployments>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10BundleDeployments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListF10BundleDeploymentsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listF10BundleDeployments>>> = ({ signal }) => listF10BundleDeployments({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listF10BundleDeployments>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListF10BundleDeploymentsQueryResult = NonNullable<Awaited<ReturnType<typeof listF10BundleDeployments>>>
+export type ListF10BundleDeploymentsQueryError = ErrorType<unknown>
+
+
+
+export function useListF10BundleDeployments<TData = Awaited<ReturnType<typeof listF10BundleDeployments>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10BundleDeployments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListF10BundleDeploymentsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateF10BundleDeploymentUrl = () => {
+
+
+
+
+  return `/api/f10/deployments`
+}
+
+/**
+ * @summary Generate a server-owned provider bundle and queue one deployment release
+ */
+export const createF10BundleDeployment = async (f10BundleDeploymentRequest: F10BundleDeploymentRequest, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateF10BundleDeploymentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      f10BundleDeploymentRequest,)
+  }
+);}
+
+
+
+
+export const getCreateF10BundleDeploymentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF10BundleDeployment>>, TError,{data: BodyType<F10BundleDeploymentRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createF10BundleDeployment>>, TError,{data: BodyType<F10BundleDeploymentRequest>}, TContext> => {
+
+const mutationKey = ['createF10BundleDeployment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createF10BundleDeployment>>, {data: BodyType<F10BundleDeploymentRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createF10BundleDeployment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateF10BundleDeploymentMutationResult = NonNullable<Awaited<ReturnType<typeof createF10BundleDeployment>>>
+    export type CreateF10BundleDeploymentMutationBody = BodyType<F10BundleDeploymentRequest>
+    export type CreateF10BundleDeploymentMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate a server-owned provider bundle and queue one deployment release
+ */
+export const useCreateF10BundleDeployment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF10BundleDeployment>>, TError,{data: BodyType<F10BundleDeploymentRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createF10BundleDeployment>>,
+        TError,
+        {data: BodyType<F10BundleDeploymentRequest>},
+        TContext
+      > => {
+      return useMutation(getCreateF10BundleDeploymentMutationOptions(options));
+    }
+
+export const getGetF10BundleDeploymentUrl = (id: string,) => {
+
+
+
+
+  return `/api/f10/deployments/${id}`
+}
+
+export const getF10BundleDeployment = async (id: string, options?: RequestInit): Promise<F10BundleDeploymentDetail> => {
+
+  return customFetch<F10BundleDeploymentDetail>(getGetF10BundleDeploymentUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetF10BundleDeploymentQueryKey = (id: string,) => {
+    return [
+    `/api/f10/deployments/${id}`
+    ] as const;
+    }
+
+
+export const getGetF10BundleDeploymentQueryOptions = <TData = Awaited<ReturnType<typeof getF10BundleDeployment>>, TError = ErrorType<unknown>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF10BundleDeployment>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetF10BundleDeploymentQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getF10BundleDeployment>>> = ({ signal }) => getF10BundleDeployment(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getF10BundleDeployment>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetF10BundleDeploymentQueryResult = NonNullable<Awaited<ReturnType<typeof getF10BundleDeployment>>>
+export type GetF10BundleDeploymentQueryError = ErrorType<unknown>
+
+
+
+export function useGetF10BundleDeployment<TData = Awaited<ReturnType<typeof getF10BundleDeployment>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF10BundleDeployment>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetF10BundleDeploymentQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getProcessF10BundleDeploymentUrl = (id: string,) => {
+
+
+
+
+  return `/api/f10/deployments/${id}/process`
+}
+
+export const processF10BundleDeployment = async (id: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getProcessF10BundleDeploymentUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getProcessF10BundleDeploymentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof processF10BundleDeployment>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof processF10BundleDeployment>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['processF10BundleDeployment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof processF10BundleDeployment>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  processF10BundleDeployment(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProcessF10BundleDeploymentMutationResult = NonNullable<Awaited<ReturnType<typeof processF10BundleDeployment>>>
+
+    export type ProcessF10BundleDeploymentMutationError = ErrorType<void>
+
+    export const useProcessF10BundleDeployment = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof processF10BundleDeployment>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof processF10BundleDeployment>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getProcessF10BundleDeploymentMutationOptions(options));
+    }
+
+export const getReconcileF10BundleDeploymentUrl = (id: string,) => {
+
+
+
+
+  return `/api/f10/deployments/${id}/reconcile`
+}
+
+/**
+ * @summary Reconcile provider-side execution status through the user's connected account
+ */
+export const reconcileF10BundleDeployment = async (id: string, options?: RequestInit): Promise<F10BundleReconciliation> => {
+
+  return customFetch<F10BundleReconciliation>(getReconcileF10BundleDeploymentUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getReconcileF10BundleDeploymentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reconcileF10BundleDeployment>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reconcileF10BundleDeployment>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['reconcileF10BundleDeployment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reconcileF10BundleDeployment>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  reconcileF10BundleDeployment(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReconcileF10BundleDeploymentMutationResult = NonNullable<Awaited<ReturnType<typeof reconcileF10BundleDeployment>>>
+
+    export type ReconcileF10BundleDeploymentMutationError = ErrorType<void>
+
+    /**
+ * @summary Reconcile provider-side execution status through the user's connected account
+ */
+export const useReconcileF10BundleDeployment = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reconcileF10BundleDeployment>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reconcileF10BundleDeployment>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getReconcileF10BundleDeploymentMutationOptions(options));
+    }
+
+export const getRevokeF10DestinationUrl = (id: string,) => {
+
+
+
+
+  return `/api/f10/destinations/${id}/revoke`
+}
+
+/**
+ * @summary Revoke a tenant-scoped destination
+ */
+export const revokeF10Destination = async (id: string, options?: RequestInit): Promise<F10Destination> => {
+
+  return customFetch<F10Destination>(getRevokeF10DestinationUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRevokeF10DestinationMutationOptions = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeF10Destination>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeF10Destination>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['revokeF10Destination'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeF10Destination>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  revokeF10Destination(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeF10DestinationMutationResult = NonNullable<Awaited<ReturnType<typeof revokeF10Destination>>>
+
+    export type RevokeF10DestinationMutationError = ErrorType<NotFoundResponse>
+
+    /**
+ * @summary Revoke a tenant-scoped destination
+ */
+export const useRevokeF10Destination = <TError = ErrorType<NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeF10Destination>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof revokeF10Destination>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getRevokeF10DestinationMutationOptions(options));
+    }
+
+export const getListF10ReleasesUrl = () => {
+
+
+
+
+  return `/api/f10/releases`
+}
+
+export const listF10Releases = async ( options?: RequestInit): Promise<F10Release[]> => {
+
+  return customFetch<F10Release[]>(getListF10ReleasesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListF10ReleasesQueryKey = () => {
+    return [
+    `/api/f10/releases`
+    ] as const;
+    }
+
+
+export const getListF10ReleasesQueryOptions = <TData = Awaited<ReturnType<typeof listF10Releases>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10Releases>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListF10ReleasesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listF10Releases>>> = ({ signal }) => listF10Releases({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listF10Releases>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListF10ReleasesQueryResult = NonNullable<Awaited<ReturnType<typeof listF10Releases>>>
+export type ListF10ReleasesQueryError = ErrorType<unknown>
+
+
+
+export function useListF10Releases<TData = Awaited<ReturnType<typeof listF10Releases>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listF10Releases>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListF10ReleasesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateF10ReleaseUrl = () => {
+
+
+
+
+  return `/api/f10/releases`
+}
+
+/**
+ * Artifact bytes are never accepted; F10 retrieves them from OSIRIS custody.
+ * @summary Request release of an immutable signed F9 artifact
+ */
+export const createF10Release = async (f10ReleaseRequest: F10ReleaseRequest, options?: RequestInit): Promise<F10Release> => {
+
+  return customFetch<F10Release>(getCreateF10ReleaseUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      f10ReleaseRequest,)
+  }
+);}
+
+
+
+
+export const getCreateF10ReleaseMutationOptions = <TError = ErrorType<void | UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF10Release>>, TError,{data: BodyType<F10ReleaseRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createF10Release>>, TError,{data: BodyType<F10ReleaseRequest>}, TContext> => {
+
+const mutationKey = ['createF10Release'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createF10Release>>, {data: BodyType<F10ReleaseRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createF10Release(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateF10ReleaseMutationResult = NonNullable<Awaited<ReturnType<typeof createF10Release>>>
+    export type CreateF10ReleaseMutationBody = BodyType<F10ReleaseRequest>
+    export type CreateF10ReleaseMutationError = ErrorType<void | UnauthorizedResponse>
+
+    /**
+ * @summary Request release of an immutable signed F9 artifact
+ */
+export const useCreateF10Release = <TError = ErrorType<void | UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createF10Release>>, TError,{data: BodyType<F10ReleaseRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createF10Release>>,
+        TError,
+        {data: BodyType<F10ReleaseRequest>},
+        TContext
+      > => {
+      return useMutation(getCreateF10ReleaseMutationOptions(options));
+    }
+
+export const getProcessF10ReleaseUrl = (id: string,) => {
+
+
+
+
+  return `/api/f10/releases/${id}/process`
+}
+
+/**
+ * @summary Trigger a bounded worker dispatch
+ */
+export const processF10Release = async (id: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getProcessF10ReleaseUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getProcessF10ReleaseMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof processF10Release>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof processF10Release>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['processF10Release'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof processF10Release>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  processF10Release(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProcessF10ReleaseMutationResult = NonNullable<Awaited<ReturnType<typeof processF10Release>>>
+
+    export type ProcessF10ReleaseMutationError = ErrorType<void>
+
+    /**
+ * @summary Trigger a bounded worker dispatch
+ */
+export const useProcessF10Release = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof processF10Release>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof processF10Release>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getProcessF10ReleaseMutationOptions(options));
+    }
+
+export const getGetF10ReleaseUrl = (id: string,) => {
+
+
+
+
+  return `/api/f10/releases/${id}`
+}
+
+export const getF10Release = async (id: string, options?: RequestInit): Promise<F10Release> => {
+
+  return customFetch<F10Release>(getGetF10ReleaseUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetF10ReleaseQueryKey = (id: string,) => {
+    return [
+    `/api/f10/releases/${id}`
+    ] as const;
+    }
+
+
+export const getGetF10ReleaseQueryOptions = <TData = Awaited<ReturnType<typeof getF10Release>>, TError = ErrorType<NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF10Release>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetF10ReleaseQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getF10Release>>> = ({ signal }) => getF10Release(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getF10Release>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetF10ReleaseQueryResult = NonNullable<Awaited<ReturnType<typeof getF10Release>>>
+export type GetF10ReleaseQueryError = ErrorType<NotFoundResponse>
+
+
+
+export function useGetF10Release<TData = Awaited<ReturnType<typeof getF10Release>>, TError = ErrorType<NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getF10Release>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetF10ReleaseQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
 
 
 
@@ -2977,6 +4737,163 @@ export const useHarnessF8 = <TError = ErrorType<ForbiddenResponse | NotFoundResp
       return useMutation(getHarnessF8MutationOptions(options));
     }
 
+export const getHarnessF9MechaUrl = () => {
+
+
+
+
+  return `/api/harness/f9`
+}
+
+/**
+ * Accepts an F8 CODEBASE_BUNDLE whose MVP PDD lineage is SPARTAN-certified. All seven phases and immutable external gate evidence must be supplied in order. Missing, non-passing, or unverifiable evidence produces a cited refusal; MECHA never invents or overrides a gate verdict.
+
+ * @summary Run the deterministic F9 MECHA Machine Floor
+ */
+export const harnessF9Mecha = async (harnessF9Input: HarnessF9Input, options?: RequestInit): Promise<F9MachineArtifact> => {
+
+  return customFetch<F9MachineArtifact>(getHarnessF9MechaUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      harnessF9Input,)
+  }
+);}
+
+
+
+
+export const getHarnessF9MechaMutationOptions = <TError = ErrorType<void | F9Refusal>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF9Mecha>>, TError,{data: BodyType<HarnessF9Input>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof harnessF9Mecha>>, TError,{data: BodyType<HarnessF9Input>}, TContext> => {
+
+const mutationKey = ['harnessF9Mecha'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof harnessF9Mecha>>, {data: BodyType<HarnessF9Input>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  harnessF9Mecha(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HarnessF9MechaMutationResult = NonNullable<Awaited<ReturnType<typeof harnessF9Mecha>>>
+    export type HarnessF9MechaMutationBody = BodyType<HarnessF9Input>
+    export type HarnessF9MechaMutationError = ErrorType<void | F9Refusal>
+
+    /**
+ * @summary Run the deterministic F9 MECHA Machine Floor
+ */
+export const useHarnessF9Mecha = <TError = ErrorType<void | F9Refusal>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessF9Mecha>>, TError,{data: BodyType<HarnessF9Input>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof harnessF9Mecha>>,
+        TError,
+        {data: BodyType<HarnessF9Input>},
+        TContext
+      > => {
+      return useMutation(getHarnessF9MechaMutationOptions(options));
+    }
+
+export const getListHarnessF9RunsUrl = (params: ListHarnessF9RunsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/harness/f9/runs?${stringifiedParams}` : `/api/harness/f9/runs`
+}
+
+/**
+ * @summary List owned F9 MECHA run records
+ */
+export const listHarnessF9Runs = async (params: ListHarnessF9RunsParams, options?: RequestInit): Promise<F9RunRecord[]> => {
+
+  return customFetch<F9RunRecord[]>(getListHarnessF9RunsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListHarnessF9RunsQueryKey = (params?: ListHarnessF9RunsParams,) => {
+    return [
+    `/api/harness/f9/runs`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListHarnessF9RunsQueryOptions = <TData = Awaited<ReturnType<typeof listHarnessF9Runs>>, TError = ErrorType<unknown>>(params: ListHarnessF9RunsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listHarnessF9Runs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListHarnessF9RunsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listHarnessF9Runs>>> = ({ signal }) => listHarnessF9Runs(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listHarnessF9Runs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListHarnessF9RunsQueryResult = NonNullable<Awaited<ReturnType<typeof listHarnessF9Runs>>>
+export type ListHarnessF9RunsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List owned F9 MECHA run records
+ */
+
+export function useListHarnessF9Runs<TData = Awaited<ReturnType<typeof listHarnessF9Runs>>, TError = ErrorType<unknown>>(
+ params: ListHarnessF9RunsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listHarnessF9Runs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListHarnessF9RunsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getHarnessF8HdjUrl = () => {
 
 
@@ -3188,6 +5105,87 @@ export const useHarnessPfp = <TError = ErrorType<ForbiddenResponse | NotFoundRes
         TContext
       > => {
       return useMutation(getHarnessPfpMutationOptions(options));
+    }
+
+export const getHarnessPddViewUrl = (id: string,
+    params?: HarnessPddViewParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/harness/sessions/${id}/pdd-view?${stringifiedParams}` : `/api/harness/sessions/${id}/pdd-view`
+}
+
+/**
+ * Read-only side-step over the latest owned ATLAS_PDD or MVP_PDD artifact. The persisted view never reruns F1-F8. Without format, manual and cartridge sessions default to PLAN and ingested sessions default to SCAN.
+
+ * @summary Render and persist an ATLAS 360 PLAN or SCAN view of the latest F6/F7 PDD
+ */
+export const harnessPddView = async (id: string,
+    params?: HarnessPddViewParams, options?: RequestInit): Promise<Atlas360PddViewResponse> => {
+
+  return customFetch<Atlas360PddViewResponse>(getHarnessPddViewUrl(id,params),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getHarnessPddViewMutationOptions = <TError = ErrorType<ErrorResponse | ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessPddView>>, TError,{id: string;params?: HarnessPddViewParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof harnessPddView>>, TError,{id: string;params?: HarnessPddViewParams}, TContext> => {
+
+const mutationKey = ['harnessPddView'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof harnessPddView>>, {id: string;params?: HarnessPddViewParams}> = (props) => {
+          const {id,params} = props ?? {};
+
+          return  harnessPddView(id,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HarnessPddViewMutationResult = NonNullable<Awaited<ReturnType<typeof harnessPddView>>>
+
+    export type HarnessPddViewMutationError = ErrorType<ErrorResponse | ForbiddenResponse | NotFoundResponse>
+
+    /**
+ * @summary Render and persist an ATLAS 360 PLAN or SCAN view of the latest F6/F7 PDD
+ */
+export const useHarnessPddView = <TError = ErrorType<ErrorResponse | ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof harnessPddView>>, TError,{id: string;params?: HarnessPddViewParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof harnessPddView>>,
+        TError,
+        {id: string;params?: HarnessPddViewParams},
+        TContext
+      > => {
+      return useMutation(getHarnessPddViewMutationOptions(options));
     }
 
 export const getHarnessEscalationsStreamUrl = (params: HarnessEscalationsStreamParams,) => {
@@ -4643,6 +6641,76 @@ export const useCronSweepCostCapAlerts = <TError = ErrorType<UnauthorizedRespons
       return useMutation(getCronSweepCostCapAlertsMutationOptions(options));
     }
 
+export const getCronReconcileF10DeploymentsUrl = () => {
+
+
+
+
+  return `/api/cron/reconcile-f10-deployments`
+}
+
+/**
+ * @summary Reconcile a bounded batch of accepted or running provider deployments (requires CRON_SECRET header)
+ */
+export const cronReconcileF10Deployments = async ( options?: RequestInit): Promise<CronReconcileF10Deployments200> => {
+
+  return customFetch<CronReconcileF10Deployments200>(getCronReconcileF10DeploymentsUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCronReconcileF10DeploymentsMutationOptions = <TError = ErrorType<UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cronReconcileF10Deployments>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cronReconcileF10Deployments>>, TError,void, TContext> => {
+
+const mutationKey = ['cronReconcileF10Deployments'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cronReconcileF10Deployments>>, void> = () => {
+
+
+          return  cronReconcileF10Deployments(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CronReconcileF10DeploymentsMutationResult = NonNullable<Awaited<ReturnType<typeof cronReconcileF10Deployments>>>
+
+    export type CronReconcileF10DeploymentsMutationError = ErrorType<UnauthorizedResponse>
+
+    /**
+ * @summary Reconcile a bounded batch of accepted or running provider deployments (requires CRON_SECRET header)
+ */
+export const useCronReconcileF10Deployments = <TError = ErrorType<UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cronReconcileF10Deployments>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cronReconcileF10Deployments>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCronReconcileF10DeploymentsMutationOptions(options));
+    }
+
 export const getListExemplarsUrl = () => {
 
 
@@ -4652,7 +6720,7 @@ export const getListExemplarsUrl = () => {
 }
 
 /**
- * @summary List canonical and hand-authored SPC / PDD exemplars
+ * @summary List curated and open-marketplace SPC, MA, MPDD, and PDD exemplars
  */
 export const listExemplars = async ( options?: RequestInit): Promise<ExemplarSummary[]> => {
 
@@ -4699,7 +6767,7 @@ export type ListExemplarsQueryError = ErrorType<unknown>
 
 
 /**
- * @summary List canonical and hand-authored SPC / PDD exemplars
+ * @summary List curated and open-marketplace SPC, MA, MPDD, and PDD exemplars
  */
 
 export function useListExemplars<TData = Awaited<ReturnType<typeof listExemplars>>, TError = ErrorType<unknown>>(
@@ -4719,6 +6787,154 @@ export function useListExemplars<TData = Awaited<ReturnType<typeof listExemplars
 
 
 
+
+export const getGetSpcPlayerRegistryUrl = () => {
+
+
+
+
+  return `/api/spc-player/registry`
+}
+
+/**
+ * @summary Fetch the versioned SPC Dev Kit registry and platform publication rules
+ */
+export const getSpcPlayerRegistry = async ( options?: RequestInit): Promise<SpcPlayerRegistry> => {
+
+  return customFetch<SpcPlayerRegistry>(getGetSpcPlayerRegistryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSpcPlayerRegistryQueryKey = () => {
+    return [
+    `/api/spc-player/registry`
+    ] as const;
+    }
+
+
+export const getGetSpcPlayerRegistryQueryOptions = <TData = Awaited<ReturnType<typeof getSpcPlayerRegistry>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerRegistry>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSpcPlayerRegistryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSpcPlayerRegistry>>> = ({ signal }) => getSpcPlayerRegistry({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerRegistry>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSpcPlayerRegistryQueryResult = NonNullable<Awaited<ReturnType<typeof getSpcPlayerRegistry>>>
+export type GetSpcPlayerRegistryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Fetch the versioned SPC Dev Kit registry and platform publication rules
+ */
+
+export function useGetSpcPlayerRegistry<TData = Awaited<ReturnType<typeof getSpcPlayerRegistry>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerRegistry>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSpcPlayerRegistryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddArtifactToExemplarLibraryUrl = () => {
+
+
+
+
+  return `/api/exemplars/from-artifact`
+}
+
+/**
+ * @summary Copy a completed SPC, MA, MPDD, or PDD artifact into the open library
+ */
+export const addArtifactToExemplarLibrary = async (addArtifactToExemplarLibraryRequest: AddArtifactToExemplarLibraryRequest, options?: RequestInit): Promise<ExemplarSummary> => {
+
+  return customFetch<ExemplarSummary>(getAddArtifactToExemplarLibraryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      addArtifactToExemplarLibraryRequest,)
+  }
+);}
+
+
+
+
+export const getAddArtifactToExemplarLibraryMutationOptions = <TError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addArtifactToExemplarLibrary>>, TError,{data: BodyType<AddArtifactToExemplarLibraryRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addArtifactToExemplarLibrary>>, TError,{data: BodyType<AddArtifactToExemplarLibraryRequest>}, TContext> => {
+
+const mutationKey = ['addArtifactToExemplarLibrary'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addArtifactToExemplarLibrary>>, {data: BodyType<AddArtifactToExemplarLibraryRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addArtifactToExemplarLibrary(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddArtifactToExemplarLibraryMutationResult = NonNullable<Awaited<ReturnType<typeof addArtifactToExemplarLibrary>>>
+    export type AddArtifactToExemplarLibraryMutationBody = BodyType<AddArtifactToExemplarLibraryRequest>
+    export type AddArtifactToExemplarLibraryMutationError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse | void>
+
+    /**
+ * @summary Copy a completed SPC, MA, MPDD, or PDD artifact into the open library
+ */
+export const useAddArtifactToExemplarLibrary = <TError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addArtifactToExemplarLibrary>>, TError,{data: BodyType<AddArtifactToExemplarLibraryRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addArtifactToExemplarLibrary>>,
+        TError,
+        {data: BodyType<AddArtifactToExemplarLibraryRequest>},
+        TContext
+      > => {
+      return useMutation(getAddArtifactToExemplarLibraryMutationOptions(options));
+    }
 
 export const getGetExemplarUrl = (id: string,) => {
 
@@ -7311,3 +9527,821 @@ export const useAcknowledgeF0MonitoringAlert = <TError = ErrorType<NotFoundRespo
       return useMutation(getAcknowledgeF0MonitoringAlertMutationOptions(options));
     }
 
+export const getGetSpcPlayerCatalogUrl = () => {
+
+
+
+
+  return `/api/spc-player/catalog`
+}
+
+/**
+ * @summary SPC library cards and v4 Cheat Sheet metadata
+ */
+export const getSpcPlayerCatalog = async ( options?: RequestInit): Promise<SpcLibraryCard[]> => {
+
+  return customFetch<SpcLibraryCard[]>(getGetSpcPlayerCatalogUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSpcPlayerCatalogQueryKey = () => {
+    return [
+    `/api/spc-player/catalog`
+    ] as const;
+    }
+
+
+export const getGetSpcPlayerCatalogQueryOptions = <TData = Awaited<ReturnType<typeof getSpcPlayerCatalog>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerCatalog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSpcPlayerCatalogQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSpcPlayerCatalog>>> = ({ signal }) => getSpcPlayerCatalog({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerCatalog>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSpcPlayerCatalogQueryResult = NonNullable<Awaited<ReturnType<typeof getSpcPlayerCatalog>>>
+export type GetSpcPlayerCatalogQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary SPC library cards and v4 Cheat Sheet metadata
+ */
+
+export function useGetSpcPlayerCatalog<TData = Awaited<ReturnType<typeof getSpcPlayerCatalog>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerCatalog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSpcPlayerCatalogQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetSpcDevKitUrl = () => {
+
+
+
+
+  return `/api/spc-player/dev-kit`
+}
+
+/**
+ * @summary Named six-card SPC Dev Kit registry
+ */
+export const getSpcDevKit = async ( options?: RequestInit): Promise<SpcDevKit> => {
+
+  return customFetch<SpcDevKit>(getGetSpcDevKitUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSpcDevKitQueryKey = () => {
+    return [
+    `/api/spc-player/dev-kit`
+    ] as const;
+    }
+
+
+export const getGetSpcDevKitQueryOptions = <TData = Awaited<ReturnType<typeof getSpcDevKit>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcDevKit>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSpcDevKitQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSpcDevKit>>> = ({ signal }) => getSpcDevKit({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSpcDevKit>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSpcDevKitQueryResult = NonNullable<Awaited<ReturnType<typeof getSpcDevKit>>>
+export type GetSpcDevKitQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary Named six-card SPC Dev Kit registry
+ */
+
+export function useGetSpcDevKit<TData = Awaited<ReturnType<typeof getSpcDevKit>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcDevKit>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSpcDevKitQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListSpcPlayerRunsUrl = () => {
+
+
+
+
+  return `/api/spc-player/runs`
+}
+
+/**
+ * @summary List the caller's standalone SPC Player drafts
+ */
+export const listSpcPlayerRuns = async ( options?: RequestInit): Promise<SpcPlayerRun[]> => {
+
+  return customFetch<SpcPlayerRun[]>(getListSpcPlayerRunsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSpcPlayerRunsQueryKey = () => {
+    return [
+    `/api/spc-player/runs`
+    ] as const;
+    }
+
+
+export const getListSpcPlayerRunsQueryOptions = <TData = Awaited<ReturnType<typeof listSpcPlayerRuns>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSpcPlayerRuns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSpcPlayerRunsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSpcPlayerRuns>>> = ({ signal }) => listSpcPlayerRuns({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSpcPlayerRuns>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListSpcPlayerRunsQueryResult = NonNullable<Awaited<ReturnType<typeof listSpcPlayerRuns>>>
+export type ListSpcPlayerRunsQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary List the caller's standalone SPC Player drafts
+ */
+
+export function useListSpcPlayerRuns<TData = Awaited<ReturnType<typeof listSpcPlayerRuns>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSpcPlayerRuns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListSpcPlayerRunsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateSpcPlayerRunUrl = () => {
+
+
+
+
+  return `/api/spc-player/runs`
+}
+
+/**
+ * @summary Persist a standalone SPC Player draft
+ */
+export const createSpcPlayerRun = async (createSpcPlayerRunInput: CreateSpcPlayerRunInput, options?: RequestInit): Promise<SpcPlayerRun> => {
+
+  return customFetch<SpcPlayerRun>(getCreateSpcPlayerRunUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createSpcPlayerRunInput,)
+  }
+);}
+
+
+
+
+export const getCreateSpcPlayerRunMutationOptions = <TError = ErrorType<ErrorResponse | UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSpcPlayerRun>>, TError,{data: BodyType<CreateSpcPlayerRunInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSpcPlayerRun>>, TError,{data: BodyType<CreateSpcPlayerRunInput>}, TContext> => {
+
+const mutationKey = ['createSpcPlayerRun'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSpcPlayerRun>>, {data: BodyType<CreateSpcPlayerRunInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createSpcPlayerRun(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateSpcPlayerRunMutationResult = NonNullable<Awaited<ReturnType<typeof createSpcPlayerRun>>>
+    export type CreateSpcPlayerRunMutationBody = BodyType<CreateSpcPlayerRunInput>
+    export type CreateSpcPlayerRunMutationError = ErrorType<ErrorResponse | UnauthorizedResponse>
+
+    /**
+ * @summary Persist a standalone SPC Player draft
+ */
+export const useCreateSpcPlayerRun = <TError = ErrorType<ErrorResponse | UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSpcPlayerRun>>, TError,{data: BodyType<CreateSpcPlayerRunInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createSpcPlayerRun>>,
+        TError,
+        {data: BodyType<CreateSpcPlayerRunInput>},
+        TContext
+      > => {
+      return useMutation(getCreateSpcPlayerRunMutationOptions(options));
+    }
+
+export const getGetSpcPlayerRunUrl = (id: string,) => {
+
+
+
+
+  return `/api/spc-player/runs/${id}`
+}
+
+/**
+ * @summary Get one owned standalone SPC Player draft
+ */
+export const getSpcPlayerRun = async (id: string, options?: RequestInit): Promise<SpcPlayerRun> => {
+
+  return customFetch<SpcPlayerRun>(getGetSpcPlayerRunUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSpcPlayerRunQueryKey = (id: string,) => {
+    return [
+    `/api/spc-player/runs/${id}`
+    ] as const;
+    }
+
+
+export const getGetSpcPlayerRunQueryOptions = <TData = Awaited<ReturnType<typeof getSpcPlayerRun>>, TError = ErrorType<UnauthorizedResponse | NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerRun>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSpcPlayerRunQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSpcPlayerRun>>> = ({ signal }) => getSpcPlayerRun(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerRun>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSpcPlayerRunQueryResult = NonNullable<Awaited<ReturnType<typeof getSpcPlayerRun>>>
+export type GetSpcPlayerRunQueryError = ErrorType<UnauthorizedResponse | NotFoundResponse>
+
+
+/**
+ * @summary Get one owned standalone SPC Player draft
+ */
+
+export function useGetSpcPlayerRun<TData = Awaited<ReturnType<typeof getSpcPlayerRun>>, TError = ErrorType<UnauthorizedResponse | NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerRun>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSpcPlayerRunQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getExecuteSpcPlayerRunUrl = (id: string,) => {
+
+
+
+
+  return `/api/spc-player/runs/${id}/execute`
+}
+
+/**
+ * @summary Execute an SPC Player run without entitlement or billing gates
+ */
+export const executeSpcPlayerRun = async (id: string,
+    executeSpcPlayerRunInput?: ExecuteSpcPlayerRunInput, options?: RequestInit): Promise<SpcPlayerRun> => {
+
+  return customFetch<SpcPlayerRun>(getExecuteSpcPlayerRunUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      executeSpcPlayerRunInput,)
+  }
+);}
+
+
+
+
+export const getExecuteSpcPlayerRunMutationOptions = <TError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse | SpcPlayerRun>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executeSpcPlayerRun>>, TError,{id: string;data?: BodyType<ExecuteSpcPlayerRunInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof executeSpcPlayerRun>>, TError,{id: string;data?: BodyType<ExecuteSpcPlayerRunInput>}, TContext> => {
+
+const mutationKey = ['executeSpcPlayerRun'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof executeSpcPlayerRun>>, {id: string;data?: BodyType<ExecuteSpcPlayerRunInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  executeSpcPlayerRun(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExecuteSpcPlayerRunMutationResult = NonNullable<Awaited<ReturnType<typeof executeSpcPlayerRun>>>
+    export type ExecuteSpcPlayerRunMutationBody = BodyType<ExecuteSpcPlayerRunInput> | undefined
+    export type ExecuteSpcPlayerRunMutationError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse | SpcPlayerRun>
+
+    /**
+ * @summary Execute an SPC Player run without entitlement or billing gates
+ */
+export const useExecuteSpcPlayerRun = <TError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse | SpcPlayerRun>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executeSpcPlayerRun>>, TError,{id: string;data?: BodyType<ExecuteSpcPlayerRunInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof executeSpcPlayerRun>>,
+        TError,
+        {id: string;data?: BodyType<ExecuteSpcPlayerRunInput>},
+        TContext
+      > => {
+      return useMutation(getExecuteSpcPlayerRunMutationOptions(options));
+    }
+
+export const getGetSpcPlayerWebhookAuthorizationUrl = (id: string,) => {
+
+
+
+
+  return `/api/spc-player/runs/${id}/authorize`
+}
+
+/**
+ * @summary Read persisted webhook authorization status for an owned run
+ */
+export const getSpcPlayerWebhookAuthorization = async (id: string, options?: RequestInit): Promise<SpcPlayerWebhookAuthorizationStatus> => {
+
+  return customFetch<SpcPlayerWebhookAuthorizationStatus>(getGetSpcPlayerWebhookAuthorizationUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSpcPlayerWebhookAuthorizationQueryKey = (id: string,) => {
+    return [
+    `/api/spc-player/runs/${id}/authorize`
+    ] as const;
+    }
+
+
+export const getGetSpcPlayerWebhookAuthorizationQueryOptions = <TData = Awaited<ReturnType<typeof getSpcPlayerWebhookAuthorization>>, TError = ErrorType<UnauthorizedResponse | NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerWebhookAuthorization>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSpcPlayerWebhookAuthorizationQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSpcPlayerWebhookAuthorization>>> = ({ signal }) => getSpcPlayerWebhookAuthorization(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerWebhookAuthorization>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSpcPlayerWebhookAuthorizationQueryResult = NonNullable<Awaited<ReturnType<typeof getSpcPlayerWebhookAuthorization>>>
+export type GetSpcPlayerWebhookAuthorizationQueryError = ErrorType<UnauthorizedResponse | NotFoundResponse>
+
+
+/**
+ * @summary Read persisted webhook authorization status for an owned run
+ */
+
+export function useGetSpcPlayerWebhookAuthorization<TData = Awaited<ReturnType<typeof getSpcPlayerWebhookAuthorization>>, TError = ErrorType<UnauthorizedResponse | NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerWebhookAuthorization>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSpcPlayerWebhookAuthorizationQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAuthorizeSpcPlayerWebhookUrl = (id: string,) => {
+
+
+
+
+  return `/api/spc-player/runs/${id}/authorize`
+}
+
+/**
+ * Stores only public webhook endpoint metadata and a consent timestamp. The endpoint must use HTTPS and resolve exclusively to public addresses. Credentials are never accepted or stored.
+ * @summary Explicitly authorize webhook delivery for an owned run
+ */
+export const authorizeSpcPlayerWebhook = async (id: string,
+    spcPlayerWebhookAuthorizationInput: SpcPlayerWebhookAuthorizationInput, options?: RequestInit): Promise<SpcPlayerWebhookAuthorization> => {
+
+  return customFetch<SpcPlayerWebhookAuthorization>(getAuthorizeSpcPlayerWebhookUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      spcPlayerWebhookAuthorizationInput,)
+  }
+);}
+
+
+
+
+export const getAuthorizeSpcPlayerWebhookMutationOptions = <TError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authorizeSpcPlayerWebhook>>, TError,{id: string;data: BodyType<SpcPlayerWebhookAuthorizationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authorizeSpcPlayerWebhook>>, TError,{id: string;data: BodyType<SpcPlayerWebhookAuthorizationInput>}, TContext> => {
+
+const mutationKey = ['authorizeSpcPlayerWebhook'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authorizeSpcPlayerWebhook>>, {id: string;data: BodyType<SpcPlayerWebhookAuthorizationInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  authorizeSpcPlayerWebhook(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthorizeSpcPlayerWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof authorizeSpcPlayerWebhook>>>
+    export type AuthorizeSpcPlayerWebhookMutationBody = BodyType<SpcPlayerWebhookAuthorizationInput>
+    export type AuthorizeSpcPlayerWebhookMutationError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse>
+
+    /**
+ * @summary Explicitly authorize webhook delivery for an owned run
+ */
+export const useAuthorizeSpcPlayerWebhook = <TError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authorizeSpcPlayerWebhook>>, TError,{id: string;data: BodyType<SpcPlayerWebhookAuthorizationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof authorizeSpcPlayerWebhook>>,
+        TError,
+        {id: string;data: BodyType<SpcPlayerWebhookAuthorizationInput>},
+        TContext
+      > => {
+      return useMutation(getAuthorizeSpcPlayerWebhookMutationOptions(options));
+    }
+
+export const getDeliverSpcPlayerRunUrl = (id: string,) => {
+
+
+
+
+  return `/api/spc-player/runs/${id}/deliver`
+}
+
+/**
+ * @summary Deliver completed output to an explicitly authorized webhook
+ */
+export const deliverSpcPlayerRun = async (id: string, options?: RequestInit): Promise<SpcPlayerDeliveryResult> => {
+
+  return customFetch<SpcPlayerDeliveryResult>(getDeliverSpcPlayerRunUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getDeliverSpcPlayerRunMutationOptions = <TError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverSpcPlayerRun>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deliverSpcPlayerRun>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deliverSpcPlayerRun'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deliverSpcPlayerRun>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deliverSpcPlayerRun(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeliverSpcPlayerRunMutationResult = NonNullable<Awaited<ReturnType<typeof deliverSpcPlayerRun>>>
+
+    export type DeliverSpcPlayerRunMutationError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse>
+
+    /**
+ * @summary Deliver completed output to an explicitly authorized webhook
+ */
+export const useDeliverSpcPlayerRun = <TError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverSpcPlayerRun>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deliverSpcPlayerRun>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeliverSpcPlayerRunMutationOptions(options));
+    }
+
+export const getDownloadSpcPlayerRunUrl = (id: string,) => {
+
+
+
+
+  return `/api/spc-player/runs/${id}/download`
+}
+
+/**
+ * @summary Download an owned completed SPC Player output package as JSON
+ */
+export const downloadSpcPlayerRun = async (id: string, options?: RequestInit): Promise<SpcPlayerOutputPackage> => {
+
+  return customFetch<SpcPlayerOutputPackage>(getDownloadSpcPlayerRunUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadSpcPlayerRunQueryKey = (id: string,) => {
+    return [
+    `/api/spc-player/runs/${id}/download`
+    ] as const;
+    }
+
+
+export const getDownloadSpcPlayerRunQueryOptions = <TData = Awaited<ReturnType<typeof downloadSpcPlayerRun>>, TError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadSpcPlayerRun>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadSpcPlayerRunQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadSpcPlayerRun>>> = ({ signal }) => downloadSpcPlayerRun(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadSpcPlayerRun>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadSpcPlayerRunQueryResult = NonNullable<Awaited<ReturnType<typeof downloadSpcPlayerRun>>>
+export type DownloadSpcPlayerRunQueryError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse>
+
+
+/**
+ * @summary Download an owned completed SPC Player output package as JSON
+ */
+
+export function useDownloadSpcPlayerRun<TData = Awaited<ReturnType<typeof downloadSpcPlayerRun>>, TError = ErrorType<ErrorResponse | UnauthorizedResponse | NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadSpcPlayerRun>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadSpcPlayerRunQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetSpcPlayerRunManifestUrl = (id: string,) => {
+
+
+
+
+  return `/api/spc-player/runs/${id}/manifest`
+}
+
+/**
+ * @summary Download a supported SPC Player run manifest
+ */
+export const getSpcPlayerRunManifest = async (id: string, options?: RequestInit): Promise<SpcPlayerManifest> => {
+
+  return customFetch<SpcPlayerManifest>(getGetSpcPlayerRunManifestUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSpcPlayerRunManifestQueryKey = (id: string,) => {
+    return [
+    `/api/spc-player/runs/${id}/manifest`
+    ] as const;
+    }
+
+
+export const getGetSpcPlayerRunManifestQueryOptions = <TData = Awaited<ReturnType<typeof getSpcPlayerRunManifest>>, TError = ErrorType<UnauthorizedResponse | NotFoundResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerRunManifest>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSpcPlayerRunManifestQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSpcPlayerRunManifest>>> = ({ signal }) => getSpcPlayerRunManifest(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerRunManifest>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSpcPlayerRunManifestQueryResult = NonNullable<Awaited<ReturnType<typeof getSpcPlayerRunManifest>>>
+export type GetSpcPlayerRunManifestQueryError = ErrorType<UnauthorizedResponse | NotFoundResponse>
+
+
+/**
+ * @summary Download a supported SPC Player run manifest
+ */
+
+export function useGetSpcPlayerRunManifest<TData = Awaited<ReturnType<typeof getSpcPlayerRunManifest>>, TError = ErrorType<UnauthorizedResponse | NotFoundResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSpcPlayerRunManifest>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSpcPlayerRunManifestQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

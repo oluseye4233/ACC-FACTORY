@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
+import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import {
   ProviderOverride,
@@ -192,15 +193,20 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
                   />
                 )}
               </div>
-              <Button
-                onClick={exportZip}
-                size="sm"
-                variant="outline"
-                className="font-mono text-xs"
-                data-testid="f4-export"
-              >
-                <Download className="h-3 w-3 mr-1" /> EXPORT ZIP
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                {latestArtifact?.id && (
+                  <SaveToExemplarLibraryButton artifactId={latestArtifact.id} />
+                )}
+                <Button
+                  onClick={exportZip}
+                  size="sm"
+                  variant="outline"
+                  className="font-mono text-xs"
+                  data-testid="f4-export"
+                >
+                  <Download className="h-3 w-3 mr-1" /> EXPORT ZIP
+                </Button>
+              </div>
             </div>
             <Tabs defaultValue="cheatSheet" className="flex-1 flex flex-col min-h-0">
               <TabsList className="grid grid-cols-4">

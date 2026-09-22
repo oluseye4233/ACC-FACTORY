@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetF0Dashboard,
@@ -55,6 +56,8 @@ import {
   Clock,
   BellRing,
   Check,
+  ArrowRight,
+  Upload,
 } from "lucide-react";
 
 const F0_SERVICE_GROUPS: { group: string; services: { value: string; label: string }[] }[] = [
@@ -132,6 +135,72 @@ export default function F0Dashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <TopNav />
+      <section className="border-b bg-card" aria-label="ATOMIC UI stage context">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <img
+              src={`${import.meta.env.BASE_URL}atanda-mark.png`}
+              alt=""
+              className="h-8 w-auto shrink-0"
+            />
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
+                ATOMIC UI · F0 cockpit
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                Advisory intelligence before, during, or after the production floor.
+              </p>
+            </div>
+          </div>
+          <Link href="/ingest">
+            <Button size="sm" variant="outline" className="font-mono text-[10px]">
+              <Upload className="mr-1.5 h-3.5 w-3.5" /> Upload document
+            </Button>
+          </Link>
+        </div>
+        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-2 px-4 pb-3 sm:grid-cols-3 md:px-8">
+          <div className="rounded-md border border-border/60 bg-background px-3 py-2">
+            <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+              1 · Where you came from
+            </p>
+            <p className="mt-1 text-xs font-semibold">Idea, prompt, document, or live venture</p>
+          </div>
+          <div className="rounded-md border border-primary/40 bg-primary/10 px-3 py-2">
+            <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-primary">
+              2 · What you are doing now
+            </p>
+            <p className="mt-1 text-xs font-semibold">Pressure-testing the business case</p>
+          </div>
+          <Link
+            href="/command"
+            className="group rounded-md border border-border/60 bg-background px-3 py-2 transition-colors hover:border-primary/50"
+          >
+            <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+              3 · Where you are going next
+            </p>
+            <p className="mt-1 flex items-center justify-between gap-2 text-xs font-semibold">
+              F1 production workflow
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </p>
+          </Link>
+        </div>
+        <div className="mx-auto flex w-full max-w-6xl items-center gap-1 overflow-x-auto px-4 pb-3 md:px-8">
+          {["F0", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"].map((stage, index) => (
+            <div key={stage} className="flex min-w-0 flex-1 items-center gap-1">
+              <span
+                className={`min-w-8 rounded px-2 py-1 text-center font-mono text-[9px] font-bold ${
+                  index === 0
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border/60 text-muted-foreground"
+                }`}
+              >
+                {stage}
+              </span>
+              {index < 8 && <span className="h-px min-w-2 flex-1 bg-border" />}
+            </div>
+          ))}
+        </div>
+      </section>
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 py-8">
         <header className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -162,6 +231,11 @@ export default function F0Dashboard() {
             <MonitoringBanner
               monitoring={dash?.monitoring}
               onOpenRetainer={(id) => setRetainerId(id)}
+            />
+            <OsirisStatus
+              status={(dash as typeof dash & {
+                osiris?: { custodyCount: number; activeCount: number; openDeviationCount: number };
+              })?.osiris}
             />
 
             <div className="grid lg:grid-cols-2 gap-6 mt-6">
@@ -275,6 +349,40 @@ export default function F0Dashboard() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+function OsirisStatus({
+  status,
+}: {
+  status?: { custodyCount: number; activeCount: number; openDeviationCount: number };
+}) {
+  if (!status) return null;
+  return (
+    <Card className="mt-3 border-primary/30 bg-primary/5 p-4" data-testid="osiris-status">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-primary">
+            F9.5 · OSIRIS custody
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Continuous custody status and SOLVA deviation routing.
+          </p>
+        </div>
+        <ShieldAlert className="h-5 w-5 text-primary" />
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2 text-center font-mono text-[10px]">
+        <div className="rounded border border-border/60 bg-background p-2">
+          <strong className="block text-base">{status.custodyCount}</strong> registered
+        </div>
+        <div className="rounded border border-border/60 bg-background p-2">
+          <strong className="block text-base text-emerald-500">{status.activeCount}</strong> active
+        </div>
+        <div className="rounded border border-border/60 bg-background p-2">
+          <strong className="block text-base text-amber-500">{status.openDeviationCount}</strong> open deviations
+        </div>
+      </div>
+    </Card>
   );
 }
 
