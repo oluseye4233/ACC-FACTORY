@@ -8,7 +8,13 @@ import express, {
 } from "express";
 import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { eq, inArray } from "drizzle-orm";
-import { db, spcPlayerRunsTable, usersTable } from "@workspace/db";
+import {
+  db,
+  harnessArtifactsTable,
+  harnessSessionsTable,
+  spcPlayerRunsTable,
+  usersTable,
+} from "@workspace/db";
 import { ensureStaffSubscriber, ensureStaffUser } from "../src/lib/staff-auth";
 
 const { callLlmJsonMock, resolveProviderMock } = vi.hoisted(() => ({
@@ -319,6 +325,105 @@ describe("SPC Player supported backend foundation", () => {
     const strangerList = await api("/api/spc-player/runs", {}, otherCookie);
     const strangerRuns = (await strangerList.json()) as Array<{ id: string }>;
     expect(strangerRuns.some((run) => run.id === created.id)).toBe(false);
+  });
+
+  test("passes the selected owned artifact to SPC providers and rejects cross-user selection", async () => {
+    const [owner] = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.clerkUserId, ownerClerkId))
+      .limit(1);
+    const [other] = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.clerkUserId, otherClerkId))
+      .limit(1);
+    expect(owner).toBeDefined();
+    expect(other).toBeDefined();
+
+    const [ownerSession] = await db
+      .insert(harnessSessionsTable)
+      .values({
+        userId: owner!.id,
+        sessionName: `SPC artifact context ${randomUUID()}`,
+        preferredModelProvider: "claude",
+      })
+      .returning();
+    const [ownerArtifact] = await db
+      .insert(harnessArtifactsTable)
+      .values({
+        sessionId: ownerSession!.id,
+        userId: owner!.id,
+        featureId: 5,
+        artifactType: "SPC",
+        name: "Selected SPC source",
+        artifactContent: {
+          product: "Artifact-grounded product",
+          marker: "spc-artifact-context-regression",
+        },
+      })
+      .returning();
+    const [otherSession] = await db
+      .insert(harnessSessionsTable)
+      .values({
+        userId: other!.id,
+        sessionName: `Foreign SPC artifact ${randomUUID()}`,
+        preferredModelProvider: "claude",
+      })
+      .returning();
+    const [foreignArtifact] = await db
+      .insert(harnessArtifactsTable)
+      .values({
+        sessionId: otherSession!.id,
+        userId: other!.id,
+        featureId: 5,
+        artifactType: "SPC",
+        name: "Foreign SPC source",
+        artifactContent: { marker: "foreign-artifact-must-be-rejected" },
+      })
+      .returning();
+    expect(ownerArtifact).toBeDefined();
+    expect(foreignArtifact).toBeDefined();
+
+    const catalog = (await (await api("/api/spc-player/catalog")).json()) as Array<{ id: string }>;
+    const foreignSelection = await api("/api/spc-player/runs", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: `Foreign artifact ${randomUUID()}`,
+        brief: "This must not be accepted.",
+        selectedCardIds: [catalog[0]!.id],
+        sourceArtifactId: foreignArtifact!.id,
+      }),
+    });
+    expect(foreignSelection.status).toBe(404);
+
+    const createResponse = await api("/api/spc-player/runs", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: `Owned artifact ${randomUUID()}`,
+        brief: "Execute against the selected project artifact.",
+        selectedCardIds: [catalog[0]!.id],
+        sourceArtifactId: ownerArtifact!.id,
+      }),
+    });
+    expect(createResponse.status).toBe(201);
+    const created = (await createResponse.json()) as {
+      id: string;
+      sourceArtifactId: string | null;
+    };
+    expect(created.sourceArtifactId).toBe(ownerArtifact!.id);
+
+    const executeResponse = await api(`/api/spc-player/runs/${created.id}/execute`, {
+      method: "POST",
+    });
+    expect(executeResponse.status).toBe(200);
+
+    const stagePrompt = String(callLlmJsonMock.mock.calls[0]?.[2]);
+    expect(stagePrompt).toContain("SOURCE PROJECT ARTIFACT (SPC · Selected SPC source)");
+    expect(stagePrompt).toContain("spc-artifact-context-regression");
+    expect(stagePrompt).toContain("Artifact-grounded product");
   });
 
   test("execution is owner-protected and persists ordered stages, governance scores, advisory, and plan", async () => {

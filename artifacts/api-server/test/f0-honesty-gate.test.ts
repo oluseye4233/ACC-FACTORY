@@ -21,7 +21,7 @@ import {
 // with a swapped-in Anthropic client that returns a controllable canned body —
 // no network, fully deterministic — so we can assert the gate rejects dishonest
 // reports and that valid reports anchor their code to the artifact SKU.
-const llm = vi.hoisted(() => ({ responseText: "" }));
+const llm = vi.hoisted(() => ({ responseText: "", prompts: [] as string[] }));
 
 // The report handler kicks off the LLM promise, then streams ~1.5s of SSE step
 // events before awaiting it. If the mock resolves-then-rejects synchronously
@@ -38,7 +38,8 @@ vi.mock("@workspace/integrations-anthropic-ai", async (importOriginal) => {
     ...actual,
     getAnthropic: () => ({
       messages: {
-        create: async () => {
+        create: async (params: unknown) => {
+          llm.prompts.push(JSON.stringify(params));
           await new Promise((r) => setTimeout(r, LLM_DELAY_MS));
           return {
             content: [{ type: "text", text: llm.responseText }],
@@ -50,7 +51,11 @@ vi.mock("@workspace/integrations-anthropic-ai", async (importOriginal) => {
   };
 });
 
-const { handleF0GenerateReportStream } = await import("../src/engines/f0");
+const {
+  handleF0GenerateChallenge,
+  handleF0GenerateDiscovery,
+  handleF0GenerateReportStream,
+} = await import("../src/engines/f0");
 
 // A fully honest, schema-valid report body: 3 findings, a SOLVA bear-case with
 // 3 arguments, all three (bear/base/bull) financial scenarios, the Honesty Gate
@@ -109,7 +114,9 @@ function buildApp(localUser: User, subscriber: Subscriber): Express {
   const app = express();
   app.use(express.json({ limit: "2mb" }));
   app.use(attachContext(localUser, subscriber));
+  app.post("/api/f0/engagements/:id/discovery/generate", handleF0GenerateDiscovery);
   app.post("/api/f0/engagements/:id/reports", handleF0GenerateReportStream);
+  app.post("/api/f0/engagements/:id/challenge", handleF0GenerateChallenge);
   return app;
 }
 
@@ -190,7 +197,11 @@ async function seed(
       userId: user.id,
       featureId: 5,
       artifactType: "SPC",
-      artifactContent: { title: "The SPC this engagement advises on" },
+      name: "F0 source artifact",
+      artifactContent: {
+        title: "F0 artifact-grounded product",
+        marker: "f0-artifact-context-regression",
+      },
       sku: artifactSku,
     })
     .returning();
@@ -289,6 +300,13 @@ async function cleanup(userId: string): Promise<void> {
   await db.delete(usersTable).where(eq(usersTable.id, userId));
 }
 
+function expectArtifactContextPrompt(prompt: string, artifactId: string): void {
+  expect(prompt).toContain("SELECTED PROJECT ARTIFACT: SPC · F0 source artifact");
+  expect(prompt).toContain(`ARTIFACT ID: ${artifactId}`);
+  expect(prompt).toContain("f0-artifact-context-regression");
+  expect(prompt).toContain("F0 artifact-grounded product");
+}
+
 async function startServer(app: Express): Promise<{ url: string; close: () => Promise<void> }> {
   const server = app.listen(0);
   await new Promise<void>((resolve) => server.once("listening", () => resolve()));
@@ -337,7 +355,76 @@ async function postReport(
 describe("F0 Honesty Gate — non-suppressible on every report", () => {
   beforeEach(() => {
     llm.responseText = "";
+    llm.prompts.length = 0;
   });
+
+  test("passes the owned artifact context to discovery, challenge, and report providers", async () => {
+    const discoveryFx = await seed(null);
+    const discoveryServer = await startServer(buildApp(discoveryFx.user, discoveryFx.subscriber));
+    try {
+      llm.responseText = JSON.stringify({
+        intro: "Discovery intro",
+        questions: Array.from({ length: 7 }, (_, i) => ({
+          id: `q${i + 1}`,
+          prompt: `Question ${i + 1}?`,
+          why: `Why ${i + 1}`,
+        })),
+      });
+      const response = await fetch(
+        `${discoveryServer.url}/api/f0/engagements/${discoveryFx.engagementId}/discovery/generate`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ provider: "claude" }),
+        },
+      );
+      expect(response.status).toBe(200);
+      expectArtifactContextPrompt(llm.prompts.at(-1)!, discoveryFx.artifactId);
+    } finally {
+      await discoveryServer.close();
+      await cleanup(discoveryFx.user.id);
+    }
+
+    const challengeFx = await seed();
+    const challengeServer = await startServer(buildApp(challengeFx.user, challengeFx.subscriber));
+    try {
+      llm.responseText = JSON.stringify({
+        challenge: "What would make this fail?",
+        killCriteria: ["No demand", "No differentiation", "No viable economics"],
+        proceedConditions: ["Validate demand", "Prove unit economics"],
+        closingCounsel: "Validate before committing.",
+      });
+      const response = await fetch(
+        `${challengeServer.url}/api/f0/engagements/${challengeFx.engagementId}/challenge`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ provider: "claude" }),
+        },
+      );
+      expect(response.status).toBe(200);
+      expectArtifactContextPrompt(llm.prompts.at(-1)!, challengeFx.artifactId);
+    } finally {
+      await challengeServer.close();
+      await cleanup(challengeFx.user.id);
+    }
+
+    const reportFx = await seed();
+    const reportServer = await startServer(buildApp(reportFx.user, reportFx.subscriber));
+    try {
+      llm.responseText = JSON.stringify(validReport());
+      const response = await postReport(reportServer.url, reportFx.engagementId, {
+        service: "PRODUCT_VIABILITY",
+        provider: "claude",
+      });
+      expect(response.status).toBe(200);
+      expect(response.events.find((event) => event.event === "complete")).toBeDefined();
+      expectArtifactContextPrompt(llm.prompts.at(-1)!, reportFx.artifactId);
+    } finally {
+      await reportServer.close();
+      await cleanup(reportFx.user.id);
+    }
+  }, 15_000);
 
   test("a report missing the SOLVA bear-case is rejected and never persisted", async () => {
     const report = validReport();
