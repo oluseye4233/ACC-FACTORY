@@ -19,6 +19,9 @@
  *   pnpm --filter @workspace/scripts run sync-github -- --base=<sha>
  *     # first run / recovery: explicitly state which local commit the remote
  *     # tree currently corresponds to (when no Replit-Commit trailer exists).
+ *   pnpm --filter @workspace/scripts run sync-github -- --snapshot
+ *     # one-time recovery: reconcile the complete remote tree to the current
+ *     # local HEAD when the local history no longer contains the trailer SHA.
  */
 
 import { execFile } from "node:child_process";
@@ -108,6 +111,12 @@ interface Change {
   path: string;
 }
 
+interface TreeEntry {
+  path: string;
+  type: "blob" | "tree";
+  sha: string;
+}
+
 async function parseChanges(baseSha: string, headSha: string): Promise<Change[]> {
   const raw = (await git([
     "diff",
@@ -129,6 +138,45 @@ async function parseChanges(baseSha: string, headSha: string): Promise<Change[]>
   return changes;
 }
 
+async function parseSnapshotChanges(api: Api, remoteTreeSha: string, headSha: string): Promise<Change[]> {
+  const remoteTree = await api<{ tree: TreeEntry[]; truncated?: boolean }>(
+    "GET",
+    `/repos/${OWNER}/${REPO}/git/trees/${remoteTreeSha}?recursive=1`,
+  );
+  if (remoteTree.truncated) {
+    throw new Error("GitHub returned a truncated remote tree; refusing snapshot reconciliation");
+  }
+
+  const localRaw = (await git([
+    "ls-tree",
+    "-r",
+    headSha,
+    "--format=%(objectname)\\t%(path)",
+  ])) as string;
+  const localBlobs = new Map<string, string>();
+  for (const line of localRaw.split("\n").filter(Boolean)) {
+    const literalSeparator = line.indexOf("\\t");
+    const actualSeparator = line.indexOf("\t");
+    const separator = literalSeparator >= 0 ? literalSeparator : actualSeparator;
+    if (separator < 0) continue;
+    localBlobs.set(line.slice(separator + (literalSeparator >= 0 ? 2 : 1)), line.slice(0, separator));
+  }
+
+  const remoteBlobs = new Map(
+    remoteTree.tree
+      .filter((entry) => entry.type === "blob" && !isExcluded(entry.path))
+      .map((entry) => [entry.path, entry.sha]),
+  );
+  const changes: Change[] = [];
+  for (const [path, sha] of localBlobs) {
+    if (remoteBlobs.get(path) !== sha) changes.push({ status: "upsert", path });
+  }
+  for (const path of remoteBlobs.keys()) {
+    if (!localBlobs.has(path)) changes.push({ status: "delete", path });
+  }
+  return changes;
+}
+
 async function fileMode(headSha: string, path: string): Promise<string> {
   const line = (await git(["ls-tree", headSha, "--", path])) as string;
   const mode = line.trim().split(/\s+/)[0];
@@ -138,7 +186,12 @@ async function fileMode(headSha: string, path: string): Promise<string> {
 
 type Api = ReturnType<typeof makeApi>;
 
-async function syncOnce(api: Api, baseArg: string | undefined, headSha: string): Promise<void> {
+async function syncOnce(
+  api: Api,
+  baseArg: string | undefined,
+  headSha: string,
+  snapshot: boolean,
+): Promise<void> {
   const remoteRef = await api<{ object: { sha: string } }>("GET", `/repos/${OWNER}/${REPO}/git/ref/heads/${BRANCH}`);
   const remoteHeadSha = remoteRef.object.sha;
   const remoteHead = await api<{ tree: { sha: string }; message: string }>(
@@ -148,31 +201,42 @@ async function syncOnce(api: Api, baseArg: string | undefined, headSha: string):
 
   const trailerMatch = remoteHead.message.match(new RegExp(`${TRAILER}\\s*([0-9a-f]{7,40})`));
   const baseSha = baseArg ?? trailerMatch?.[1];
-  if (!baseSha) {
+  if (!snapshot && !baseSha) {
     throw new Error(
       `Cannot determine the last synced local commit: the remote head commit has no "${TRAILER}" trailer. ` +
         `Re-run with --base=<local sha whose tree matches the remote> once; subsequent runs are automatic.`,
     );
   }
 
-  const fullBaseSha = ((await git(["rev-parse", baseSha])) as string).trim();
-  if (fullBaseSha === headSha) {
-    console.log(`[sync-github] up to date (remote already at local ${headSha.slice(0, 7)})`);
-    return;
-  }
-  try {
-    await git(["merge-base", "--is-ancestor", fullBaseSha, headSha]);
-  } catch {
-    throw new Error(
-      `Last synced commit ${fullBaseSha.slice(0, 7)} is not an ancestor of HEAD ${headSha.slice(0, 7)} ` +
-        `(history rewritten?). Re-run with an explicit --base=<sha>.`,
+  let changes: Change[];
+  let fullBaseSha: string | undefined;
+  if (snapshot) {
+    changes = await parseSnapshotChanges(api, remoteHead.tree.sha, headSha);
+    console.log(`[sync-github] reconciling remote snapshot to ${headSha.slice(0, 7)}: ${changes.length} changed file(s)`);
+    if (changes.length === 0) {
+      console.log(`[sync-github] snapshot already matches local ${headSha.slice(0, 7)}`);
+      return;
+    }
+  } else {
+    fullBaseSha = ((await git(["rev-parse", baseSha!])) as string).trim();
+    if (fullBaseSha === headSha) {
+      console.log(`[sync-github] up to date (remote already at local ${headSha.slice(0, 7)})`);
+      return;
+    }
+    try {
+      await git(["merge-base", "--is-ancestor", fullBaseSha, headSha]);
+    } catch {
+      throw new Error(
+        `Last synced commit ${fullBaseSha.slice(0, 7)} is not an ancestor of HEAD ${headSha.slice(0, 7)} ` +
+          `(history rewritten?). Re-run with an explicit --base=<sha> or --snapshot.`,
+      );
+    }
+
+    changes = await parseChanges(fullBaseSha, headSha);
+    console.log(
+      `[sync-github] syncing ${fullBaseSha.slice(0, 7)}..${headSha.slice(0, 7)}: ${changes.length} changed file(s)`,
     );
   }
-
-  const changes = await parseChanges(fullBaseSha, headSha);
-  console.log(
-    `[sync-github] syncing ${fullBaseSha.slice(0, 7)}..${headSha.slice(0, 7)}: ${changes.length} changed file(s)`,
-  );
 
   // Create blobs for upserts with limited concurrency.
   const treeEntries: Array<{ path: string; mode: string; type: "blob"; sha: string | null }> = [];
@@ -214,19 +278,24 @@ async function syncOnce(api: Api, baseArg: string | undefined, headSha: string):
     newTreeSha = tree.sha;
   }
 
-  const subjects = ((await git(["log", "--format=%s", "--reverse", `${fullBaseSha}..${headSha}`])) as string)
-    .trim()
-    .split("\n")
-    .filter(Boolean);
-  const shown = subjects.slice(0, 20);
-  const extra = subjects.length - shown.length;
-  const title = shown.length === 1 ? shown[0] : `Sync ${subjects.length} commits from Replit`;
-  const bodyLines = shown.length === 1 ? [] : shown.map((s) => `- ${s}`);
-  if (extra > 0) bodyLines.push(`- …and ${extra} more`);
-  const message =
-    bodyLines.length > 0
-      ? [title, "", ...bodyLines, "", `${TRAILER} ${headSha}`].join("\n")
-      : [title, "", `${TRAILER} ${headSha}`].join("\n");
+  let message: string;
+  if (snapshot) {
+    message = [`Reconcile Replit snapshot to ${headSha.slice(0, 7)}`, "", `${TRAILER} ${headSha}`].join("\n");
+  } else {
+    const subjects = ((await git(["log", "--format=%s", "--reverse", `${fullBaseSha!}..${headSha}`])) as string)
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+    const shown = subjects.slice(0, 20);
+    const extra = subjects.length - shown.length;
+    const title = shown.length === 1 ? shown[0] : `Sync ${subjects.length} commits from Replit`;
+    const bodyLines = shown.length === 1 ? [] : shown.map((s) => `- ${s}`);
+    if (extra > 0) bodyLines.push(`- …and ${extra} more`);
+    message =
+      bodyLines.length > 0
+        ? [title, "", ...bodyLines, "", `${TRAILER} ${headSha}`].join("\n")
+        : [title, "", `${TRAILER} ${headSha}`].join("\n");
+  }
 
   const commit = await api<{ sha: string }>("POST", `/repos/${OWNER}/${REPO}/git/commits`, {
     message,
@@ -250,11 +319,12 @@ function isNonFastForwardError(error: unknown): boolean {
 
 async function main(): Promise<void> {
   const baseArg = process.argv.find((a) => a.startsWith("--base="))?.slice("--base=".length);
+  const snapshot = process.argv.includes("--snapshot");
   const headSha = ((await git(["rev-parse", "HEAD"])) as string).trim();
   const api = makeApi(await getGithubToken());
 
   try {
-    await syncOnce(api, baseArg, headSha);
+    await syncOnce(api, baseArg, headSha, snapshot);
   } catch (error) {
     // Two syncs can race (post-merge hook vs the periodic workflow). force:false
     // makes the loser fail with a non-fast-forward 422 — re-read the remote head
@@ -266,7 +336,7 @@ async function main(): Promise<void> {
     // fail the ancestor check; the fresh HEAD resumes cleanly from the new
     // remote trailer.
     const freshHeadSha = ((await git(["rev-parse", "HEAD"])) as string).trim();
-    await syncOnce(api, undefined, freshHeadSha);
+    await syncOnce(api, undefined, freshHeadSha, snapshot);
   }
 }
 
