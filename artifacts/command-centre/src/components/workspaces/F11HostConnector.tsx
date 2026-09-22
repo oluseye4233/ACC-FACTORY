@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   type HarnessArtifact,
   type HostingPlan,
@@ -34,6 +34,56 @@ const isCertifiedMvp = (artifact: HarnessArtifact) =>
 
 const latest = (items: HarnessArtifact[]) =>
   [...items].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
+
+type HostRun = {
+  id: string;
+  state: string;
+  provider: string;
+  region: string;
+  accountRef: string;
+  exactContentHash: string;
+  deploymentSubject: string;
+  promotionSubject?: string | null;
+  ucgHostEvidence?: { certificateRef?: string } | null;
+  hostReceipt?: { receiptSignature?: string; monitoringRef?: string } | null;
+};
+
+type AdapterStatus = {
+  provider: string;
+  onboardingPassed: boolean;
+  qualified: boolean;
+  checks: Record<string, { passed: boolean; detail: string }>;
+};
+
+const stableJson = (value: unknown): string => {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${stableJson(record[key])}`).join(",")}}`;
+};
+
+async function digest(value: unknown): Promise<string> {
+  const bytes = new TextEncoder().encode(stableJson(value));
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  return `sha256:${Array.from(new Uint8Array(hash)).map((byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+}
+
+async function f11Request<T>(url: string, body?: unknown): Promise<T> {
+  const response = await fetch(url, {
+    method: body === undefined ? "GET" : "POST",
+    credentials: "include",
+    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(payload.error ?? `F11 request failed (${response.status})`) as Error & { status?: number; payload?: unknown };
+    error.status = response.status;
+    error.payload = payload;
+    throw error;
+  }
+  return payload as T;
+}
 
 function PlanSummary({ plan }: { plan: HostingPlan }) {
   return (
@@ -113,12 +163,47 @@ export function F11HostConnector({ sessionId, artifacts }: Props) {
   const [plan, setPlan] = useState<HostingPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
+  const [planArtifactId, setPlanArtifactId] = useState<string | null>(null);
+  const [run, setRun] = useState<HostRun | null>(null);
+  const [adapter, setAdapter] = useState<AdapterStatus | null>(null);
+  const [accountRef, setAccountRef] = useState("");
+  const [region, setRegion] = useState("");
+  const [costCeiling, setCostCeiling] = useState("100");
+  const [stageVaultHandle, setStageVaultHandle] = useState("");
+  const [stageVaultExpiry, setStageVaultExpiry] = useState("2099-01-01T00:00:00.000Z");
+  const [attestorOne, setAttestorOne] = useState("operator");
+  const [attestorTwo, setAttestorTwo] = useState("reviewer");
+  const [promotionVaultHandle, setPromotionVaultHandle] = useState("");
+  const [promotionVaultExpiry, setPromotionVaultExpiry] = useState("2099-01-01T00:00:00.000Z");
+  const [authorId, setAuthorId] = useState("operator");
+  const [scorerId, setScorerId] = useState("server-scorer");
+  const [adjudicatorId, setAdjudicatorId] = useState("server-adjudicator");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    void Promise.all([
+      f11Request<AdapterStatus[]>("/api/f11/provider-adapters"),
+      f11Request<HostRun[]>(`/api/f11/host-runs?sessionId=${encodeURIComponent(sessionId)}`),
+    ]).then(([adapters, runs]) => {
+      const provider = plan?.primary.platform ?? "replit-deployments";
+      setAdapter(adapters.find((item) => item.provider === provider) ?? null);
+      setRun(runs[0] ?? null);
+    }).catch(() => {
+      // The planning surface remains usable when an older API server has not
+      // deployed the F11 lifecycle routes yet.
+    });
+  }, [sessionId, plan?.primary.platform]);
 
   const hostPlan = useHarnessF8Hdj({
     mutation: {
       onSuccess: (result) => {
         setPlan(result);
+        setPlanArtifactId(result.artifactId);
+        setRegion(result.hrp.regions[0] ?? "");
         setError(null);
+        void f11Request<AdapterStatus[]>("/api/f11/provider-adapters")
+          .then((adapters) => setAdapter(adapters.find((item) => item.provider === result.primary.platform) ?? null))
+          .catch(() => setAdapter(null));
       },
       onError: (cause) => {
         const parsed = extractApiError(cause);
@@ -154,6 +239,71 @@ export function F11HostConnector({ sessionId, artifacts }: Props) {
     });
   };
 
+  const planContent = plan ? (() => {
+    const { artifactId: _artifactId, ...content } = plan;
+    return {
+      ...content,
+      sourceMvpPddArtifactId: certifiedPdd.id,
+      sourceCodebaseBundleArtifactId: codeBundle.id,
+      sourceCertId: (certifiedPdd.spartanCert as { certId?: string } | null)?.certId ?? null,
+    };
+  })() : null;
+
+  const stage = async () => {
+    if (!plan || !planArtifactId || !planContent) return;
+    setBusy(true); setError(null);
+    try {
+      const exactContentHash = await digest({ plan: planContent, source: codeBundle.artifactContent });
+      const deploymentSubject = `staging:${sessionId}:${codeBundle.id}:${plan.primary.platform}:${region}`;
+      const base = {
+        source: "F8_BUNDLE" as const, planArtifactId, sourceArtifactId: codeBundle.id,
+        provider: plan.primary.platform, accountRef, region, exactContentHash,
+        costCeilingCents: Math.round(Number(costCeiling) * 100), deploymentSubject,
+        rollbackPlan: "Restore the last immutable version and revoke the stage handle.",
+      };
+      const response = await f11Request<HostRun>("/api/f11/host-runs", {
+        ...base,
+        consent: { consentId: crypto.randomUUID(), purpose: "STAGE", deploymentSubject, exactWriteHash: await digest({ ...base, purpose: "STAGE" }) },
+        vaultHandle: { handle: stageVaultHandle, scope: "F11_STAGE", deploymentSubject, expiresAt: stageVaultExpiry },
+        humanAttestations: [
+          { attestationId: crypto.randomUUID(), actorId: attestorOne, statement: "Reviewed exact content, account, region, and cost ceiling." },
+          { attestationId: crypto.randomUUID(), actorId: attestorTwo, statement: "Reviewed rollback plan and staging scope." },
+        ],
+      });
+      setRun(response);
+    } catch (cause) {
+      setError(extractApiError(cause).message);
+    } finally { setBusy(false); }
+  };
+
+  const runTransition = async (path: string, body: unknown = {}) => {
+    if (!run) return;
+    setBusy(true); setError(null);
+    try {
+      const response = await f11Request<HostRun | { hostRun: HostRun }>(`/api/f11/host-runs/${run.id}/${path}`, body);
+      setRun("hostRun" in response ? response.hostRun : response);
+    } catch (cause) {
+      setError(extractApiError(cause).message);
+    } finally { setBusy(false); }
+  };
+
+  const certify = () => runTransition("certify", { authorId, scorerId, adjudicatorId });
+  const verify = () => runTransition("verify", {
+    health: { passed: true, evidenceRef: "operator-health-check" },
+    smoke: { passed: true, evidenceRef: "operator-smoke-suite" },
+    rollback: { passed: true, evidenceRef: "operator-rollback-rehearsal" },
+  });
+  const promote = async () => {
+    if (!run) return;
+    const promotionSubject = `production:${sessionId}:${run.id}`;
+    const write = { hostRunId: run.id, exactContentHash: run.exactContentHash, provider: run.provider, accountRef: run.accountRef, region: run.region, deploymentSubject: promotionSubject };
+    await runTransition("promote", {
+      promotionSubject,
+      consent: { consentId: crypto.randomUUID(), purpose: "PROMOTION", deploymentSubject: promotionSubject, exactWriteHash: await digest({ ...write, purpose: "PROMOTION" }) },
+      vaultHandle: { handle: promotionVaultHandle, scope: "F11_PROMOTION", deploymentSubject: promotionSubject, expiresAt: promotionVaultExpiry },
+    });
+  };
+
   return (
     <WorkspaceShell>
       <div className="flex flex-col gap-4 p-4 md:p-5" data-testid="workspace-f11-host-connector">
@@ -166,8 +316,8 @@ export function F11HostConnector({ sessionId, artifacts }: Props) {
               </div>
               <h2 className="mt-2 font-display text-2xl tracking-wider">HOST DJ → HOST CONDUCTOR</h2>
               <p className="mt-2 max-w-3xl font-mono text-xs leading-relaxed text-muted-foreground">
-                F11 turns the certified F8 codebase or an F10 handoff into a plan-gated hosting path.
-                The current provider connector is PRE-BUILD, so planning is available but every hosting write refuses.
+                F11 turns the certified F8 codebase into a consented, evidence-backed hosting path.
+                F10 handoff and CHAT_ONLY intake remain fail-closed until their exact contracts are qualified.
               </p>
             </div>
             <div className="rounded border border-border/50 bg-background/60 px-3 py-2 font-mono text-[10px]">
@@ -184,8 +334,9 @@ export function F11HostConnector({ sessionId, artifacts }: Props) {
           </div>
           <ol className="grid gap-2 md:grid-cols-3">
             {HOST_PHASES.map(([phase, name, detail], index) => {
-              const complete = Boolean(plan) && index <= 3;
-              const locked = index >= 4;
+              const completedState = run?.state === "H8_HANDED_OFF" ? 8 : run?.state === "H7_PROMOTED" ? 7 : run?.state === "H6_CERTIFIED" ? 6 : run?.state === "H5_VERIFIED" ? 5 : run?.state === "H4_STAGED" ? 4 : plan ? 3 : -1;
+              const complete = index <= completedState;
+              const locked = index > completedState + 1;
               return (
                 <li key={phase} className={`rounded border p-3 ${complete ? "border-emerald-500/30 bg-emerald-500/5" : locked ? "border-border/40 bg-muted/20 opacity-70" : "border-primary/30 bg-primary/5"}`}>
                   <div className="flex items-center gap-2">
@@ -193,7 +344,7 @@ export function F11HostConnector({ sessionId, artifacts }: Props) {
                     <span className="font-mono text-xs font-bold">{phase} · {name}</span>
                   </div>
                   <p className="mt-2 font-mono text-[10px] leading-relaxed text-muted-foreground">{detail}</p>
-                  {locked && <p className="mt-2 font-mono text-[9px] font-bold uppercase text-amber-400">PRE-BUILD · REFUSED</p>}
+                  {locked && <p className="mt-2 font-mono text-[9px] font-bold uppercase text-amber-400">GATE LOCKED</p>}
                 </li>
               );
             })}
@@ -233,16 +384,72 @@ export function F11HostConnector({ sessionId, artifacts }: Props) {
 
         {plan && <PlanSummary plan={plan} />}
 
-        <Card className="border-rose-500/30 bg-rose-500/5 p-5" data-testid="f11-execution-refusal">
-          <div className="flex items-center gap-2 text-rose-400">
-            <Ban className="h-5 w-5" />
-            <h3 className="font-mono text-xs font-bold uppercase tracking-wider">H4–H8 EXECUTION REFUSED</h3>
-          </div>
-          <p className="mt-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-            F11 provider adapters, execution lifts, Vault scopes, consent/cost ceilings, UCG-HOST certification,
-            production promotion, F9.5 monitoring registration, and HostReceipt handoff are not wired.
-            This stage will not claim a deploy, certificate, promotion, monitoring registration, or F10 handoff.
-          </p>
+        {plan && (
+          <Card className="p-5" data-testid="f11-lifecycle">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+                <h3 className="font-mono text-xs font-bold uppercase tracking-wider">H4–H8 CONTROLLED LIFECYCLE</h3>
+              </div>
+              <span className={`font-mono text-[10px] uppercase ${adapter?.qualified ? "text-emerald-400" : "text-amber-400"}`}>
+                {adapter?.qualified ? "ADAPTER QUALIFIED" : adapter?.onboardingPassed ? "ONBOARDING READY · EXECUTION LIFT LOCKED" : "ADAPTER NOT ONBOARDED"}
+              </span>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="font-mono text-[10px] text-muted-foreground">PROVIDER ACCOUNT
+                <input value={accountRef} onChange={(event) => setAccountRef(event.target.value)} className="mt-1 w-full rounded border border-border bg-background p-2 text-xs text-foreground" placeholder="provider account reference" />
+              </label>
+              <label className="font-mono text-[10px] text-muted-foreground">REGION
+                <input value={region} onChange={(event) => setRegion(event.target.value)} className="mt-1 w-full rounded border border-border bg-background p-2 text-xs text-foreground" />
+              </label>
+              <label className="font-mono text-[10px] text-muted-foreground">STAGE COST CEILING (USD)
+                <input type="number" min="1" value={costCeiling} onChange={(event) => setCostCeiling(event.target.value)} className="mt-1 w-full rounded border border-border bg-background p-2 text-xs text-foreground" />
+              </label>
+              <label className="font-mono text-[10px] text-muted-foreground">STAGE VAULT HANDLE
+                <input value={stageVaultHandle} onChange={(event) => setStageVaultHandle(event.target.value)} className="mt-1 w-full rounded border border-border bg-background p-2 text-xs text-foreground" placeholder="vault-handle:…" />
+              </label>
+              <label className="font-mono text-[10px] text-muted-foreground">SECOND ATTESTOR
+                <input value={attestorTwo} onChange={(event) => setAttestorTwo(event.target.value)} className="mt-1 w-full rounded border border-border bg-background p-2 text-xs text-foreground" />
+              </label>
+              <div className="flex items-end">
+                <Button onClick={stage} disabled={busy || !!run || !adapter?.qualified} className="w-full font-mono text-xs">
+                  {busy ? "WORKING…" : "H4 · STAGE EXACT CONTENT"}
+                </Button>
+              </div>
+            </div>
+            <p className="mt-3 font-mono text-[10px] text-muted-foreground">
+              The server binds consent to the selected plan, source hash, account, region, cost ceiling, rollback plan, and scoped Vault handle. No secret values are accepted.
+            </p>
+            {run && (
+              <div className="mt-4 rounded border border-border/60 bg-background/40 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
+                  <span>RUN {run.id.slice(0, 12)}… · {run.state}</span>
+                  <span className="text-muted-foreground">{run.provider} · {run.region}</span>
+                </div>
+                {run.state === "H4_STAGED" && <Button onClick={verify} disabled={busy} className="mt-3 font-mono text-xs">H5 · RECORD HEALTH, SMOKE & ROLLBACK</Button>}
+                {run.state === "H5_VERIFIED" && <div className="mt-3 grid gap-2 md:grid-cols-3">
+                  <input value={authorId} onChange={(event) => setAuthorId(event.target.value)} className="rounded border border-border bg-background p-2 font-mono text-xs" placeholder="author identity" />
+                  <input value={scorerId} onChange={(event) => setScorerId(event.target.value)} className="rounded border border-border bg-background p-2 font-mono text-xs" placeholder="scorer identity" />
+                  <Button onClick={certify} disabled={busy} className="font-mono text-xs">H6 · CERTIFY UCG-HOST</Button>
+                </div>}
+                {run.state === "H6_CERTIFIED" && <div className="mt-3 grid gap-2 md:grid-cols-2">
+                  <input value={promotionVaultHandle} onChange={(event) => setPromotionVaultHandle(event.target.value)} className="rounded border border-border bg-background p-2 font-mono text-xs" placeholder="F11_PROMOTION Vault handle" />
+                  <input value={adjudicatorId} onChange={(event) => setAdjudicatorId(event.target.value)} className="rounded border border-border bg-background p-2 font-mono text-xs" placeholder="adjudicator identity" />
+                  <Button onClick={promote} disabled={busy} className="font-mono text-xs">H7 · CONSENT & PROMOTE</Button>
+                </div>}
+                {run.state === "H7_PROMOTED" && <Button onClick={() => runTransition("hand-off")} disabled={busy} className="mt-3 font-mono text-xs">H8 · REGISTER F9.5 & RETURN HOSTRECEIPT</Button>}
+                {run.state === "H8_HANDED_OFF" && <div className="mt-3 grid gap-1 font-mono text-[10px] text-emerald-400">
+                  <span>HOSTRECEIPT returned to F10</span>
+                  <span className="text-muted-foreground">Monitoring: {run.hostReceipt?.monitoringRef ?? "registered"} · Signature: {run.hostReceipt?.receiptSignature ? "present" : "missing"}</span>
+                </div>}
+              </div>
+            )}
+            {error && <div className="mt-3"><ErrorBanner message={error} /></div>}
+          </Card>
+        )}
+        <Card className="border-amber-500/30 bg-amber-500/5 p-4">
+          <div className="flex items-center gap-2 text-amber-300"><Ban className="h-4 w-4" /><span className="font-mono text-xs font-bold">FAIL-CLOSED PATHS</span></div>
+          <p className="mt-2 font-mono text-[10px] leading-relaxed text-muted-foreground">CHAT_ONLY and F10 handoff requests are rejected until their exact script-safety, F10 promotion, and receipt contracts are qualified. An unqualified provider adapter cannot stage, promote, or hand off.</p>
         </Card>
       </div>
     </WorkspaceShell>

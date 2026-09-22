@@ -260,6 +260,13 @@
       "when": 1790078583275,
       "tag": "0036_superb_sunspot",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1790086937369,
+      "tag": "0037_lonely_wolverine",
+      "breakpoints": true
     }
   ]
 }

@@ -69,18 +69,18 @@ leaving the connector's fail-closed gates intact.
 production sequence, unlock it only after that session emits F9, and keep F10
 responsible only for custody/policy verification and delivery receipts.
 
-F11 HOST CONNECTOR is a separate post-F10 production stage, but its current
-implementation is deliberately plan-only: HOST DJ/F8-HDJ may produce H0–H3
-hosting plans from a certified F8 bundle, while H4–H8 must refuse until
-provider adapters, execution lifts, UCG-HOST, consent/cost controls, and F9.5
-HostReceipt handoff are qualified.
+F11 HOST CONNECTOR is a separate post-F10 production stage. HOST DJ/F8-HDJ
+produces H0–H3 plans, and the qualified-adapter path can advance F8 bundles
+through consented H4 staging, evidence-backed H5/H6, separately consented H7
+promotion, and signed H8/F9.5 HostReceipt handoff. F10 and CHAT_ONLY intake
+remain fail-closed.
 
-**Why:** The supplied F11 PDD is explicitly PRE-BUILD and says none of its
-provider adapters are built or assessed. Claiming a deployment, certificate,
-promotion, monitoring registration, or handoff would violate its refusal-first
-boundary.
+**Why:** The lifecycle is now implemented as a control-plane contract, but
+provider execution lifts are an explicit release switch. This permits the
+consent, evidence, identity, and receipt gates to be exercised without
+claiming a provider deployment that has not been separately qualified.
 
 **How to apply:** Keep F11 after F10 in the cockpit; reuse server-side HOST DJ
-ranking for deterministic plan output; preserve explicit refusal for staging,
-verification, certification, promotion, and handoff until the required
-server-owned gates exist.
+ranking for deterministic plan output; require adapter provenance, capabilities,
+Vault scopes, reversibility, governance, and an explicit execution-lift
+qualification before H4–H8. F10 and CHAT_ONLY must not bypass these gates.

@@ -2,7 +2,8 @@ import { Router, type IRouter } from "express";
 import { randomUUID, createHmac, timingSafeEqual } from "node:crypto";
 import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod/v4";
-import { db, f10DestinationsTable, f10ReleaseRequestsTable, f10ReleaseTransitionsTable, f10AttemptsTable, f10ReceiptsTable, f10DlqTable, f9MechaRunsTable, osirisCustodiesTable, harnessArtifactsTable, f10ProviderConnectionsTable, f10BundleDeploymentsTable, f10BundleDeploymentAuditTable, f10BundleDeploymentAttemptsTable, f10BundleDeploymentReceiptsTable, integrationCredentialsTable, f10GitHubPushesTable, f10ColonizationRunsTable, f10ColonizationConsentsTable } from "@workspace/db";
+import { db, f10DestinationsTable, f10ReleaseRequestsTable, f10ReleaseTransitionsTable, f10AttemptsTable, f10ReceiptsTable, f10DlqTable, f9MechaRunsTable, osirisCustodiesTable, harnessArtifactsTable, f10ProviderConnectionsTable, f10BundleDeploymentsTable, f10BundleDeploymentAuditTable, f10BundleDeploymentAttemptsTable, f10BundleDeploymentReceiptsTable, integrationCredentialsTable, f10GitHubPushesTable, f10ColonizationRunsTable, f10ColonizationConsentsTable, f11HostRunsTable } from "@workspace/db";
+import { signHostReceipt } from "../lib/f11-host";
 import { requireAuth } from "../lib/auth";
 import { deterministicIdempotencyKey, retryDelay, validateHttpsDestination, verifyF9Hmac, verifyPrerequisites } from "../lib/f10";
 import { createF10Adapters, createF10CustodyProvider, createF10ProductionStore, envSecretProvider } from "../lib/f10-production";
@@ -738,5 +739,32 @@ router.get("/f10/releases/:id", requireAuth, async (req, res): Promise<void> => 
     db.select().from(f10DlqTable).where(eq(f10DlqTable.releaseId, release.id)),
   ]);
   res.json({ ...release, transitions, attempts, receipt: receipts[0]?.receiptPayload ?? null, dlq: dlq[0] ?? null });
+});
+
+/**
+ * F11 H8 is a receipt handoff, not an F10 release. F10 can inspect the
+ * server-signed receipt without treating it as a deployment acknowledgement
+ * or bypassing the signed F9/OSIRIS release gateway.
+ */
+router.get("/f10/host-receipts/:hostRunId", requireAuth, async (req, res): Promise<void> => {
+  const hostRunId = typeof req.params.hostRunId === "string" ? req.params.hostRunId : req.params.hostRunId[0]!;
+  const [run] = await db.select().from(f11HostRunsTable).where(and(
+    eq(f11HostRunsTable.id, hostRunId),
+    eq(f11HostRunsTable.tenantId, req.localUser!.id),
+  )).limit(1);
+  if (!run) { res.status(404).json({ error: "Host run not found" }); return; }
+  if (run.state !== "H8_HANDED_OFF" || !run.hostReceipt || typeof run.hostReceipt !== "object" || Array.isArray(run.hostReceipt)) {
+    res.status(409).json({ error: "HostReceipt is unavailable until H8 monitoring registration completes", code: "HOST_RECEIPT_UNAVAILABLE" });
+    return;
+  }
+  const receipt = run.hostReceipt as Record<string, unknown>;
+  const signature = typeof receipt.receiptSignature === "string" ? receipt.receiptSignature : "";
+  const unsigned = { ...receipt };
+  delete unsigned.receiptSignature;
+  if (!signature || signature !== signHostReceipt(unsigned, process.env.SESSION_SECRET ?? "")) {
+    res.status(409).json({ error: "HostReceipt signature is invalid", code: "HOST_RECEIPT_INVALID" });
+    return;
+  }
+  res.json({ receipt, handoffType: "F11_TO_F10_RECEIPT_ONLY", releaseRequired: true });
 });
 export default router;

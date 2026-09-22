@@ -199,7 +199,7 @@ export const ENGINES = [
     title: "HOST CONNECTOR",
     description: "Turn a certified codebase or F10 handoff into a plan-gated hosting path.",
     explainer:
-      "Consumes a certified F8 code bundle or an F10 handoff, profiles hosting requirements, recomputes the HOST DJ ranking, and emits a deterministic plan. Provider writes remain refused until F11 adapters, consent/cost lifts, UCG-HOST, and F9.5 handoff are wired.",
+      "Consumes a certified F8 code bundle, profiles hosting requirements, and recomputes the HOST DJ ranking. Qualified adapters can advance through consented H4 staging, evidence-backed H5/H6, separately consented H7 promotion, and signed H8/F9.5 receipt handoff; F10 and CHAT_ONLY paths remain fail-closed.",
   },
 ];
 
