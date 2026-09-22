@@ -3599,6 +3599,83 @@ export function useGetArtifact<TData = Awaited<ReturnType<typeof getArtifact>>, 
 
 
 
+export const getListArtifactsUrl = () => {
+
+
+
+
+  return `/api/artifacts`
+}
+
+/**
+ * @summary List the caller's owned project artifacts for advisory tools
+ */
+export const listArtifacts = async ( options?: RequestInit): Promise<HarnessArtifact[]> => {
+
+  return customFetch<HarnessArtifact[]>(getListArtifactsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListArtifactsQueryKey = () => {
+    return [
+    `/api/artifacts`
+    ] as const;
+    }
+
+
+export const getListArtifactsQueryOptions = <TData = Awaited<ReturnType<typeof listArtifacts>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listArtifacts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListArtifactsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listArtifacts>>> = ({ signal }) => listArtifacts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listArtifacts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListArtifactsQueryResult = NonNullable<Awaited<ReturnType<typeof listArtifacts>>>
+export type ListArtifactsQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary List the caller's owned project artifacts for advisory tools
+ */
+
+export function useListArtifacts<TData = Awaited<ReturnType<typeof listArtifacts>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listArtifacts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListArtifactsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getRenameArtifactUrl = (id: string,) => {
 
 

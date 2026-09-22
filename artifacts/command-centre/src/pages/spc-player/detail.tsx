@@ -23,6 +23,7 @@ import { ArrowLeft, Download, Play, Shield, Activity, Package, FileJson, Loader2
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ArtifactPicker } from "@/components/shared/ArtifactPicker";
 
 export default function SpcPlayerDetail() {
   const { id } = useParams<{ id: string }>();
@@ -207,6 +208,18 @@ export default function SpcPlayerDetail() {
                 </div>
                 <h1 className="font-display text-3xl md:text-4xl tracking-wider text-foreground mb-3">{run.title}</h1>
                 <p className="text-sm text-muted-foreground max-w-3xl leading-relaxed whitespace-pre-wrap">{run.brief}</p>
+                  {run.sourceArtifactId && (
+                    <div className="mt-4 max-w-3xl">
+                      <ArtifactPicker
+                        value={run.sourceArtifactId}
+                        onChange={() => undefined}
+                        label="Project file / artifact"
+                        description="This saved artifact is automatically supplied to every SPC stage."
+                        testId="select-saved-source-artifact"
+                        disabled
+                      />
+                    </div>
+                  )}
               </div>
 
               <div className="flex flex-col gap-3 sm:shrink-0 min-w-[200px]">

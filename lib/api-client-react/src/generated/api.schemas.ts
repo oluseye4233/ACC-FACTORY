@@ -3817,6 +3817,8 @@ export interface CreateSpcPlayerRunInput {
      * @maxItems 12
      */
   selectedCardIds: string[];
+  /** Optional owned project artifact used as the run's primary context. */
+  sourceArtifactId?: string;
   profile?: CreateSpcPlayerRunInputProfile;
 }
 
@@ -4021,6 +4023,8 @@ export type SpcPlayerRunTransitionsItem = {
 export interface SpcPlayerRun {
   id: string;
   ownerUserId: string;
+  /** @nullable */
+  sourceArtifactId?: string | null;
   title: string;
   brief: string;
   selectedCardIds: string[];

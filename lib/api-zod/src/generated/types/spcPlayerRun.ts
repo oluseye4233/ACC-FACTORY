@@ -19,6 +19,8 @@ import type { SpcPlayerStageResult } from './spcPlayerStageResult';
 export interface SpcPlayerRun {
   id: string;
   ownerUserId: string;
+  /** @nullable */
+  sourceArtifactId?: string | null;
   title: string;
   brief: string;
   selectedCardIds: string[];

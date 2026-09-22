@@ -130,13 +130,41 @@ export async function ownedRetainerOr404(
 }
 
 /** Compose the engagement context block every F0 prompt is grounded in. */
-function engagementContext(engagement: F0Engagement, extra?: string | null): string {
+async function engagementContext(engagement: F0Engagement, extra?: string | null): Promise<string> {
+  let artifactContext: string | null = null;
+  if (engagement.artifactId) {
+    const rows = await db
+      .select({
+        id: harnessArtifactsTable.id,
+        artifactType: harnessArtifactsTable.artifactType,
+        name: harnessArtifactsTable.name,
+        artifactContent: harnessArtifactsTable.artifactContent,
+      })
+      .from(harnessArtifactsTable)
+      .where(
+        and(
+          eq(harnessArtifactsTable.id, engagement.artifactId),
+          eq(harnessArtifactsTable.userId, engagement.userId),
+        ),
+      )
+      .limit(1);
+    const artifact = rows[0];
+    if (artifact) {
+      artifactContext = [
+        `SELECTED PROJECT ARTIFACT: ${artifact.artifactType}${artifact.name ? ` · ${artifact.name}` : ""}`,
+        `ARTIFACT ID: ${artifact.id}`,
+        `ARTIFACT CONTENT:\n${JSON.stringify(artifact.artifactContent)}`,
+        "Treat this selected artifact as the primary project source for the requested advisory service.",
+      ].join("\n");
+    }
+  }
   return [
     `ENGAGEMENT TITLE: ${engagement.title}`,
     engagement.discoveryTranscript
       ? `SOCRATES DISCOVERY TRANSCRIPT:\n${JSON.stringify(engagement.discoveryTranscript, null, 2)}`
       : "SOCRATES DISCOVERY TRANSCRIPT: (not yet recorded)",
     extra ? `OPERATOR NOTES: ${extra}` : null,
+    artifactContext,
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -174,7 +202,7 @@ export async function handleF0GenerateDiscovery(req: Request, res: Response): Pr
     out = await callLlmJson(
       provider,
       F0_SOCRATES_DISCOVERY_SYSTEM,
-      engagementContext(guard.engagement, parsed.data.notes),
+       await engagementContext(guard.engagement, parsed.data.notes),
       DiscoverySchema,
       { sessionId: guard.engagement.sessionId, userId: guard.engagement.userId, engineId: F0_ENGINE.DISCOVERY },
     );
@@ -226,7 +254,7 @@ export async function handleF0GenerateChallenge(req: Request, res: Response): Pr
     .from(f0ReportsTable)
     .where(eq(f0ReportsTable.engagementId, guard.engagement.id));
   const userPrompt = [
-    engagementContext(guard.engagement, parsed.data.notes),
+    await engagementContext(guard.engagement, parsed.data.notes),
     reports.length
       ? `GENERATED REPORTS SO FAR:\n${JSON.stringify(reports, null, 2)}`
       : "GENERATED REPORTS SO FAR: (none)",
@@ -368,7 +396,7 @@ export async function handleF0GenerateReportStream(req: Request, res: Response):
   const userPrompt = [
     `REQUESTED SERVICE: ${service}`,
     guidance ? `SERVICE BRIEF:\n${guidance}` : null,
-    engagementContext(engagement, parsed.data.notes),
+    await engagementContext(engagement, parsed.data.notes),
   ]
     .filter(Boolean)
     .join("\n\n");

@@ -23,5 +23,7 @@ export interface CreateSpcPlayerRunInput {
      * @maxItems 12
      */
   selectedCardIds: string[];
+  /** Optional owned project artifact used as the run's primary context. */
+  sourceArtifactId?: string;
   profile?: CreateSpcPlayerRunInputProfile;
 }

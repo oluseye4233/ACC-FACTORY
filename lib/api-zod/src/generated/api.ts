@@ -1341,6 +1341,34 @@ export const GetArtifactResponse = zod.object({
 
 
 /**
+ * @summary List the caller's owned project artifacts for advisory tools
+ */
+export const ListArtifactsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "sessionId": zod.string().uuid(),
+  "featureId": zod.number(),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "name": zod.string().nullish(),
+  "artifactContent": zod.record(zod.string(), zod.unknown()),
+  "sku": zod.string().nullish(),
+  "jcseScore": zod.number().nullish(),
+  "certTier": zod.string().nullish(),
+  "groState": zod.string().optional(),
+  "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "mathmonScore": zod.number().nullish(),
+  "forgeVerified": zod.boolean().optional(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "modelId": zod.string().nullish(),
+  "runDurationMs": zod.number().nullish(),
+  "runInputTokens": zod.number().nullish(),
+  "runOutputTokens": zod.number().nullish(),
+  "runAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListArtifactsResponse = zod.array(ListArtifactsResponseItem)
+
+
+/**
  * @summary Rename an artifact (e.g. name your SPC)
  */
 export const RenameArtifactParams = zod.object({
@@ -3578,6 +3606,7 @@ export const listSpcPlayerRunsResponseOutputPackageOneScoresDetectabilityMax = 1
 export const ListSpcPlayerRunsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "ownerUserId": zod.string().uuid(),
+  "sourceArtifactId": zod.string().uuid().nullish(),
   "title": zod.string(),
   "brief": zod.string(),
   "selectedCardIds": zod.array(zod.string().uuid()),
@@ -3703,6 +3732,7 @@ export const CreateSpcPlayerRunBody = zod.object({
   "title": zod.string().min(1).max(createSpcPlayerRunBodyTitleMax),
   "brief": zod.string().min(1).max(createSpcPlayerRunBodyBriefMax),
   "selectedCardIds": zod.array(zod.string().uuid()).min(1).max(createSpcPlayerRunBodySelectedCardIdsMax),
+  "sourceArtifactId": zod.string().uuid().optional().describe('Optional owned project artifact used as the run\'s primary context.'),
   "profile": zod.enum(['full', 'rapid']).default(createSpcPlayerRunBodyProfileDefault)
 })
 
@@ -3757,6 +3787,7 @@ export const getSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMax = 100
 export const GetSpcPlayerRunResponse = zod.object({
   "id": zod.string().uuid(),
   "ownerUserId": zod.string().uuid(),
+  "sourceArtifactId": zod.string().uuid().nullish(),
   "title": zod.string(),
   "brief": zod.string(),
   "selectedCardIds": zod.array(zod.string().uuid()),
@@ -3920,6 +3951,7 @@ export const executeSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMax =
 export const ExecuteSpcPlayerRunResponse = zod.object({
   "id": zod.string().uuid(),
   "ownerUserId": zod.string().uuid(),
+  "sourceArtifactId": zod.string().uuid().nullish(),
   "title": zod.string(),
   "brief": zod.string(),
   "selectedCardIds": zod.array(zod.string().uuid()),
@@ -4215,6 +4247,7 @@ export const GetSpcPlayerRunManifestResponse = zod.object({
   "run": zod.object({
   "id": zod.string().uuid(),
   "ownerUserId": zod.string().uuid(),
+  "sourceArtifactId": zod.string().uuid().nullish(),
   "title": zod.string(),
   "brief": zod.string(),
   "selectedCardIds": zod.array(zod.string().uuid()),

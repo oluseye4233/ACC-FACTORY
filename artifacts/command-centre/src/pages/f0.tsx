@@ -45,6 +45,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { streamSse, extractApiError } from "@/lib/sse";
+import { ArtifactPicker } from "@/components/shared/ArtifactPicker";
 import {
   Briefcase,
   Sparkles,
@@ -114,12 +115,19 @@ export default function F0Dashboard() {
   const createEngagement = useCreateF0Engagement();
   const createRetainer = useCreateF0Retainer();
   const [newEngTitle, setNewEngTitle] = useState("");
+  const [newEngArtifactId, setNewEngArtifactId] = useState<string | undefined>();
   const [newRetTitle, setNewRetTitle] = useState("");
 
   const openEngagement = async () => {
     if (!newEngTitle.trim()) return;
-    const eng = await createEngagement.mutateAsync({ data: { title: newEngTitle.trim() } });
+    const eng = await createEngagement.mutateAsync({
+      data: {
+        title: newEngTitle.trim(),
+        artifactId: newEngArtifactId,
+      },
+    });
     setNewEngTitle("");
+    setNewEngArtifactId(undefined);
     qc.invalidateQueries({ queryKey: getGetF0DashboardQueryKey() });
     setEngagementId(eng.id);
   };
@@ -261,6 +269,15 @@ export default function F0Dashboard() {
                   >
                     <Plus className="h-3 w-3 mr-1" /> OPEN
                   </Button>
+                </div>
+                <div className="mb-4">
+                  <ArtifactPicker
+                    value={newEngArtifactId}
+                    onChange={setNewEngArtifactId}
+                    label="Project file / artifact"
+                    description="This artifact is automatically supplied to SOCRATES and the selected F0 service."
+                    testId="select-f0-source-artifact"
+                  />
                 </div>
                 <div className="space-y-2">
                   {(dash?.engagements ?? []).length === 0 && (
@@ -667,6 +684,18 @@ function EngagementPanel({
               CLOSE
             </Button>
           </div>
+          {engagement.artifactId && (
+            <div className="mb-4 rounded border border-secondary/30 bg-secondary/5 p-3">
+              <ArtifactPicker
+                value={engagement.artifactId}
+                onChange={() => undefined}
+                label="Selected project file / artifact"
+                description="SOCRATES, the chosen service, and the closing challenge receive this artifact as context."
+                testId="select-saved-f0-source-artifact"
+                disabled
+              />
+            </div>
+          )}
 
           {/* Step 1 — SOCRATES discovery */}
           <section className="mb-6">

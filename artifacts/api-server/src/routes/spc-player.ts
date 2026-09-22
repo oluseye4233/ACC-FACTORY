@@ -13,6 +13,7 @@ import {
   spcPlayerDraftRunsTable,
   spcPlayerRunsTable,
   spcPlayerWebhookAuthorizationsTable,
+    harnessArtifactsTable,
   type LlmProvider,
 } from "@workspace/db";
 import {
@@ -330,6 +331,7 @@ function runResponse(row: DraftRow, execution?: ExecutionRow) {
   return {
     id: row.id,
     ownerUserId: row.ownerUserId,
+    sourceArtifactId: row.sourceArtifactId,
     title: row.title,
     brief: row.brief,
     selectedCardIds: row.selectedCardIds,
@@ -774,10 +776,29 @@ router.post(
       return;
     }
 
+    let sourceArtifact: typeof harnessArtifactsTable.$inferSelect | undefined;
+    if (parsed.data.sourceArtifactId) {
+      [sourceArtifact] = await db
+        .select()
+        .from(harnessArtifactsTable)
+        .where(
+          and(
+            eq(harnessArtifactsTable.id, parsed.data.sourceArtifactId),
+            eq(harnessArtifactsTable.userId, req.localUser!.id),
+          ),
+        )
+        .limit(1);
+      if (!sourceArtifact) {
+        res.status(404).json({ error: "Source artifact not found" });
+        return;
+      }
+    }
+
     const [run] = await db
       .insert(spcPlayerDraftRunsTable)
       .values({
         ownerUserId: req.localUser!.id,
+        sourceArtifactId: parsed.data.sourceArtifactId ?? null,
         title: parsed.data.title,
         brief: parsed.data.brief,
         selectedCardIds,
@@ -830,6 +851,24 @@ router.post(
     }
     const profile = (owned.execution?.profile ?? owned.draft.profile ?? "full") as "full" | "rapid";
 
+    let sourceArtifact: typeof harnessArtifactsTable.$inferSelect | undefined;
+    if (owned.draft.sourceArtifactId) {
+      [sourceArtifact] = await db
+        .select()
+        .from(harnessArtifactsTable)
+        .where(
+          and(
+            eq(harnessArtifactsTable.id, owned.draft.sourceArtifactId),
+            eq(harnessArtifactsTable.userId, req.localUser!.id),
+          ),
+        )
+        .limit(1);
+      if (!sourceArtifact) {
+        res.status(404).json({ error: "Source artifact not found" });
+        return;
+      }
+    }
+
     const cardRows = await db
       .select()
       .from(spcLibraryCardsTable)
@@ -853,6 +892,15 @@ router.post(
       ...classifyIntake(owned.draft.brief),
       title: owned.draft.title,
       selectedCardOrder: owned.draft.selectedCardIds,
+      sourceArtifact: sourceArtifact
+        ? {
+            id: sourceArtifact.id,
+            sessionId: sourceArtifact.sessionId,
+            artifactType: sourceArtifact.artifactType,
+            name: sourceArtifact.name,
+            artifactContent: sourceArtifact.artifactContent,
+          }
+        : null,
     };
     const claim = await claimExecution(
       owned.draft,
@@ -883,7 +931,17 @@ router.post(
         const result = await callLlmJson(
           provider,
           `You are executing one generic SPC Player card in a conservative PRE_BUILD runtime derived from a user-authorized REVERB v3 source. Do not invent card-specific editorial behavior. Return the card's own verdict unchanged, concise useful content, and evidence. Execution profile: ${profile}.`,
-          `Brief:\n${owned.draft.brief}\n\nCard: ${card.name} (${card.slug})\nCard responsibility metadata: ${JSON.stringify(card.provenance)}\n\nExecute only this card. Do not claim any other stage was invoked.`,
+          [
+            `Brief:\n${owned.draft.brief}`,
+            `Card: ${card.name} (${card.slug})`,
+            `Card responsibility metadata: ${JSON.stringify(card.provenance)}`,
+            "Execute only this card. Do not claim any other stage was invoked.",
+            sourceArtifact
+              ? `SOURCE PROJECT ARTIFACT (${sourceArtifact.artifactType}${sourceArtifact.name ? ` · ${sourceArtifact.name}` : ""}):\n${JSON.stringify(sourceArtifact.artifactContent)}\nUse this artifact as the primary project context for this card.`
+              : null,
+          ]
+            .filter(Boolean)
+            .join("\n\n"),
           StageOutputSchema,
           { sessionId: null, userId: req.localUser!.id, engineId: 30 },
         );

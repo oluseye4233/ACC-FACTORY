@@ -1,11 +1,20 @@
 import { Router, type IRouter } from "express";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db, harnessArtifactsTable } from "@workspace/db";
 import { RenameArtifactBody } from "@workspace/api-zod";
 import { requireAuth } from "../lib/auth";
 import { serializeArtifact, loadArtifactRunMap } from "./sessions";
 
 const router: IRouter = Router();
+
+router.get("/artifacts", requireAuth, async (req, res): Promise<void> => {
+  const rows = await db
+    .select()
+    .from(harnessArtifactsTable)
+    .where(eq(harnessArtifactsTable.userId, req.localUser!.id))
+    .orderBy(desc(harnessArtifactsTable.createdAt));
+  res.json(rows.map((artifact) => serializeArtifact(artifact, null)));
+});
 
 router.get("/artifacts/:id", requireAuth, async (req, res): Promise<void> => {
   const id = String(req.params.id);

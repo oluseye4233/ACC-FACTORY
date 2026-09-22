@@ -1,0 +1,2 @@
+ALTER TABLE "spc_player_draft_runs" ADD COLUMN "source_artifact_id" uuid;--> statement-breakpoint
+ALTER TABLE "spc_player_draft_runs" ADD CONSTRAINT "spc_player_draft_runs_source_artifact_id_harness_artifacts_id_fk" FOREIGN KEY ("source_artifact_id") REFERENCES "public"."harness_artifacts"("id") ON DELETE set null ON UPDATE no action;

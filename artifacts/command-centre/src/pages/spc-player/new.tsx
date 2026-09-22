@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArtifactPicker } from "@/components/shared/ArtifactPicker";
 
 const getTokens = (text: string) =>
   text.toLowerCase().split(/[^a-z0-9]+/).filter((token) => token.length > 2);
@@ -63,6 +64,7 @@ export default function SpcPlayerNew() {
   const [title, setTitle] = useState("");
   const [brief, setBrief] = useState("");
   const [profile, setProfile] = useState<"full" | "rapid">("full");
+  const [sourceArtifactId, setSourceArtifactId] = useState<string | undefined>();
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [dropdownKey, setDropdownKey] = useState(0);
@@ -158,6 +160,7 @@ export default function SpcPlayerNew() {
           brief,
           selectedCardIds: selectedCards,
           profile,
+          sourceArtifactId,
         },
       },
       {
@@ -271,6 +274,13 @@ export default function SpcPlayerNew() {
                     data-testid="input-title"
                   />
                 </div>
+
+                <ArtifactPicker
+                  value={sourceArtifactId}
+                  onChange={setSourceArtifactId}
+                  label="Project file / artifact"
+                  description="The selected artifact is passed into every SPC stage as the primary project context."
+                />
 
                 <div className="space-y-3">
                   <Label htmlFor="brief" className="font-mono text-[10px] uppercase tracking-wider text-primary font-bold">

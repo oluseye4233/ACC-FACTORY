@@ -12,6 +12,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
+import { harnessArtifactsTable } from "./harness-artifacts";
 
 export const spcLibraryCardsTable = pgTable(
   "spc_library_cards",
@@ -54,6 +55,9 @@ export const spcPlayerDraftRunsTable = pgTable(
     ownerUserId: uuid("owner_user_id")
       .notNull()
       .references(() => usersTable.id, { onDelete: "cascade" }),
+    sourceArtifactId: uuid("source_artifact_id").references(() => harnessArtifactsTable.id, {
+      onDelete: "set null",
+    }),
     title: text("title").notNull(),
     brief: text("brief").notNull(),
     selectedCardIds: jsonb("selected_card_ids").notNull(),
