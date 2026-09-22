@@ -103,6 +103,9 @@ vi.mock("@/components/workspaces/F9MachineFloor", () => ({
 vi.mock("@/pages/f10", () => ({
   default: () => <div data-testid="workspace-F10Console" />,
 }));
+vi.mock("@/components/workspaces/F11HostConnector", () => ({
+  F11HostConnector: () => <div data-testid="workspace-F11HostConnector" />,
+}));
 
 import SessionDetail from "./session-detail";
 
@@ -421,10 +424,13 @@ describe("SessionDetail — side-step engines stay navigable", () => {
     await waitFor(() => {
       expect((screen.getByTestId("feature-nav-f10") as HTMLButtonElement).disabled).toBe(false);
     });
+    expect((screen.getByTestId("feature-nav-f11") as HTMLButtonElement).disabled).toBe(false);
     gotoStage("f9");
     expect(screen.getByTestId("workspace-F9MachineFloor")).toBeTruthy();
     gotoStage("f10");
     expect(screen.getByTestId("workspace-F10Console")).toBeTruthy();
+    gotoStage("f11");
+    expect(screen.getByTestId("workspace-F11HostConnector")).toBeTruthy();
   });
 });
 

@@ -38,6 +38,7 @@ import { F8CodeDj } from "@/components/workspaces/F8CodeDj";
 import { MathmonLayer } from "@/components/workspaces/MathmonLayer";
 import { F9MachineFloor } from "@/components/workspaces/F9MachineFloor";
 import F10Console from "@/pages/f10";
+import { F11HostConnector } from "@/components/workspaces/F11HostConnector";
 import { ProviderSelector } from "@/components/shared/ProviderSelector";
 import { SessionOrgVisibility } from "@/components/shared/SessionOrgVisibility";
 
@@ -135,6 +136,15 @@ export default function SessionDetail() {
     }
     if (engineId === 12) {
       return hasEmittedF9 ? FeatureStatus.AVAILABLE : FeatureStatus.LOCKED;
+    }
+    if (engineId === 13) {
+      const hasCertifiedMvp = artifacts?.some(
+        (artifact) =>
+          artifact.artifactType === "MVP_PDD" &&
+          Boolean((artifact as unknown as { spartanCert?: unknown }).spartanCert),
+      );
+      const hasCodeBundle = artifacts?.some((artifact) => artifact.artifactType === "CODEBASE_BUNDLE");
+      return hasCertifiedMvp && hasCodeBundle ? FeatureStatus.AVAILABLE : FeatureStatus.LOCKED;
     }
     if (engineId > 7) return FeatureStatus.AVAILABLE;
     const state = featureStates?.find(fs => fs.featureId === engineId);
@@ -340,6 +350,9 @@ export default function SessionDetail() {
               )}
               {activeEngineId === 12 && getFeatureStatus(12) !== FeatureStatus.LOCKED && (
                 <F10Console embedded sessionId={id} />
+              )}
+              {activeEngineId === 13 && getFeatureStatus(13) !== FeatureStatus.LOCKED && (
+                <F11HostConnector sessionId={id} artifacts={artifacts || []} />
               )}
             </>
           )}

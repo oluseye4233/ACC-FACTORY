@@ -1,0 +1,4908 @@
+
+
+===== PAGE 1 =====
+THE ARK HARNESS — F11 HOST
+CONNECTOR
+ATLAS Omnibus PDD · v1.4 · Domain 37
+Hosting Integration · Plan-Gated · Consent-Gated · Handed
+Off From F10
+JNGL-ARKH-F11HC-2026-005 · v1.4 · Supersedes v1.3 · Upgrades
+OMNIBUS ALPHA, F9 MACHINE FLOOR PDD v2.1 and F10
+CONNECTOR PDD v3.1
+"A hosting plan is advice. A hosting connection is money, exposure
+and a credential. The whole design question is how a plan
+becomes a connection without skipping the moment someone
+says yes."
+v1.3 lets a user name a host outside the registry and supply
+documents about it. Those documents are a lower-trust source:
+they can support advice and can make F11 more cautious, and they
+can never clear a compliance requirement or lead to a write.
+v1.4 adds a third path for a host whose only setup surface is its
+own chat assistant: HOST DJ composes a curated, sourced, safety-
+checked prompt script for the human to run there themselves,
+under their own login, and never F11's.
+DOCUMENT CONTROL
+
+
+===== PAGE 2 =====
+Field
+Value
+Document
+THE ARK HARNESS — F11 HOST CONNECTOR ·
+ATLAS Omnibus PDD v1.4
+Reference
+JNGL-ARKH-F11HC-2026-005 · v1.4
+Supersedes
+JNGL-ARKH-F11HC-2026-004 (v1.3), and through it
+-003, -002, -001. Issued together with F10
+CONNECTOR PDD v3.1, which introduces and owns
+the shared Invariants #32 and #33 this document
+adopts
+Upgrades
+OMNIBUS ALPHA (34 domains) as extended by F9
+MACHINE FLOOR PDD v2.1 (D35) and F10
+CONNECTOR ATLAS PDD v3.0 (D36, IP-151–169,
+27 invariants)
+New domain
+D37 — F11 HOST CONNECTOR (Hosting
+Integration)
+New IPs
+none within D37's own block; IP-193 – IP-197 (5)
+taken from the frontier reserved for D38 — see the
+IP Allocation Ruling in F10 PDD v3.1 §Document
+Control, which this document mirrors
+New
+invariants
+#28 Plan-Gated Hosting · #29 Consent-Gated
+Hosting Writes · #30 F10 Handoff Integrity · #31
+The Single Operator (D37)
+Name
+F11 HOST CONNECTOR. Working name: the Owner
+asked for a PDD for "hosting connections" and did
+not name the domain. No F11 or D37 was found in
+the sources checked.
+Operating
+SPC
+HOST DJ — SPC-HOSTDJ-IF-2026-001 v1.0 (May
+2026), SI Fusion Class, JCSE 47/50 on the card's
+own rubric, Seat #7 per the card, DISC CD, LIFE-
+mode only, HIVE 14D certification pending per the
+
+
+===== PAGE 3 =====
+Field
+Value
+card. Supplied by the Owner and integrated in v1.1
+(§3.2)
+Engine
+precedent
+F8-HDJ, the HOST DJ engine live in the ATANDA
+Command Centre product. Advisory only (§3.2.2)
+Conductor
+F11 Host Conductor — the deterministic runtime
+that enforces the plan-and-connect protocol. No
+LLM call. Not an SPC
+Handoff
+partner
+F10 CONNECTOR (D36) — §3.9
+Reserved
+next
+D38 / IP-198 onward (superseded from IP-188 by
+this document — see §3.15)
+Date
+September 2026 · PRE-BUILD
+Certification
+Self-assigned, Tier 0 — NOT HIVE-certified · not
+scored
+GRO State
+SAFE_LIFE
+Honesty
+Gate
+G3 enforced — see §1.8, §2.5, §3.16
+Owner
+Oluseye Shay Amusa / Koncentric Labs Inc.
+PART 1 — CHEAT SHEET
+All stakeholders
+1.1 Atomic Solution Summary
+
+
+===== PAGE 4 =====
+F11 HOST CONNECTOR takes a codebase, or a runtime that a
+colonization needs, and connects it to a hosting provider. It profiles
+the requirement, senses the providers, produces a scored hosting
+plan, stages the deployment, verifies it, certifies it, promotes it, and
+hands it to monitoring.
+HOST DJ is the operating SPC, through its three documented
+features: the Hosting Selector Engine (HSE), the Deployment
+Journey Generator (DJG) and the Seamless Deployment Facilitator
+(SDF). HOST DJ serves a request in one of two advice modes
+(§3.5A): it advises the best hosting environment, or the user names
+an environment and HOST DJ writes a cheat sheet for hosting on it,
+or advises against it in a technical report and falls back to the first
+mode. F10 hands work to F11 when a colonized artifact needs
+somewhere to run. F11 hands the running system to F9.5 for
+monitoring.
+1.2 HOST DJ Plans. F11 Connects.
+HOST DJ, as documented, is an advisory capability: it normalises a
+Hosting Requirements Profile, scores hosts, proposes a journey and
+emits deployment files. The card describes a journey the human
+executes, and the product engine that implements it holds no cloud
+credentials and executes no deploy. [ARK] F11 keeps that
+boundary at the operator and puts the connection machinery around
+it.
+Role
+Holder
+Authority
+Hosting decision: host
+ranking, primary and
+fallback, journey,
+deployment files
+HOST DJ
+(operator)
+Advisory; the ranking
+is recomputed
+deterministically
+Sequence, refusal,
+ledger, capability types
+F11 Host
+Conductor
+Procedural only
+
+
+===== PAGE 5 =====
+Role
+Holder
+Authority
+(runtime)
+Consent to write to a
+provider, and to spend
+The human
+creator
+Sole
+Credentials
+The shared
+Vault (F10 IP-
+157)
+Sole
+Certificate for the
+hosted deployment
+UCG ( UCG-
+HOST ,
+proposed)
+Sole
+Production readiness
+standard
+OSIRIS (D33)
+Sole
+Monitoring custody
+F9.5 (D32)
+Sole
+Verdict on a
+colonization that needs
+the host
+SAVANT via
+F10
+Sole; F11 reads it
+HOST DJ does not execute. The Conductor and its provider adapters
+do, under consent, with credentials HOST DJ never sees. That is how
+the operator's documented boundary survives a domain that acts.
+1.3 What F11 Handles
+Source
+F11 handling
+F8 code bundle (an MVP-PDD
+scaffolded by Code DJ)
+Direct intake. HOST DJ
+plans, F11 connects
+A project brief (an SDD, a PDD, a
+repository description, a stack list,
+PLAN_ONLY only. It can
+never proceed past H3 and
+
+
+===== PAGE 6 =====
+Source
+F11 handling
+or plain language, the input forms
+the card accepts)
+needs no certificate,
+because nothing is deployed
+F10 handoff: PCE codebase (a PDD
+or Micro PDD converted for a
+software target)
+Intake through the F10
+Handoff Port (§3.9)
+F10 handoff: runtime for a
+colonization (for example an MCP
+server, an agent-framework runtime,
+or a self-hosted workflow platform
+that a colonization needs)
+Intake through the F10
+Handoff Port. Staging host
+before F10 stages;
+production host only after
+F10 has certified
+A Machine Artifact (firmware,
+robotics)
+Refused. Nothing here is
+hosted; physical targets
+belong to F9
+An artifact with no certificate
+record
+Refused at intake (Invariant
+#22)
+1.4 The Nine-Phase Run
+ H0 INTAKE ─► H1 PROFILE ─► H2 SENSE ─► H3 PLAN
+                HRP           providers    HSE · 
+journey · SDF
+                                             │  
+(PLAN_ONLY ends here without an Execution Lift)
+        ┌────────────────────────────────────┘
+        ▼
+ H4 CONSENT & STAGE ─► H5 VERIFY IN STAGE ─► H6 
+CERTIFY ─► H7 CONSENT & PROMOTE ─► H8 HAND OFF
+   consent #1 + cost     health · smoke ·       UCG-
+HOST      consent #2 + cost        F9.5 · F10 receipt
+   staging host          rollback rehearsal     
+readiness     production host          hosting record
+
+
+===== PAGE 7 =====
+Phase
+What runs
+H0 INTAKE
+Eligibility: source, certificate record, artifact class.
+F10 handoffs are validated here
+H1 PROFILE
+The Hosting Requirements Profile: stack, database
+fit, compliance, region, traffic ceiling, budget
+H2 SENSE
+Provider capabilities, pricing, regions and terms,
+each with provenance and retrieval time. In
+USER_SELECTED mode, the requested host and
+the candidate set
+H3 PLAN
+HSE ranking (recomputed), primary and fallback,
+deployment journey, deployment files. In
+USER_SELECTED mode, the Suitability Check, then
+a cheat sheet or a technical report and at most one
+devolution. Produces a HostingPlan
+H4
+CONSENT &
+STAGE
+Consent #1 with a cost ceiling; provision and
+deploy into a staging host
+H5 VERIFY
+IN STAGE
+Health checks, smoke tests, and a rehearsed
+rollback, all labelled STAGE
+H6 CERTIFY
+UCG-HOST request with the production-standard
+evidence
+H7
+CONSENT &
+PROMOTE
+Consent #2; provision and cut over to production
+H8 HAND
+OFF
+Register with F9.5, return the receipt to F10, write
+the hosting record
+1.4A The Two Advice Modes
+
+
+===== PAGE 8 =====
+Mode
+The request
+What HOST DJ
+returns
+AUTO
+"Advise the best
+hosting
+environment for
+this."
+A scored
+HostingPlan :
+primary, fallback,
+journey, deployment
+files
+USER_SELECTED ,
+verdict HOSTABLE
+"I want to host on
+X."
+A cheat sheet for
+hosting on X, plus a
+HostingPlan with X
+as primary and the
+best other host as
+fallback
+USER_SELECTED ,
+verdict
+ADVISE_AGAINST
+"I want to host on
+X," and X has a
+blocking problem
+A technical report on
+X, then devolution to
+AUTO : the best host,
+offered for the
+human's confirmation
+USER_SELECTED ,
+verdict
+UNDETERMINED
+"I want to host on
+X," and X cannot
+be evidenced:
+nothing sensed
+and no accepted
+supplied
+document, or a
+compliance
+requirement that
+only a supplied
+document could
+support
+A cited refusal that
+says what is missing.
+Nothing is advised
+for or against X
+USER_SELECTED ,
+outside the registry
+"I want to host on
+X," and X is not in
+the registry
+The same three
+outcomes, built on
+documents the user
+
+
+===== PAGE 9 =====
+Mode
+The request
+What HOST DJ
+returns
+supplies. Lower-trust,
+graded, and advice
+only: never a
+connector step, never
+execution (§3.5B)
+USER_SELECTED ,
+chat-only host
+"I want to host on
+X," and X's only
+documented setup
+surface is its own
+chat assistant (for
+example a hosting
+AI assistant with
+no separate API
+for this task)
+The same Suitability
+Check, then a
+Curated Prompt
+Script instead of, or
+alongside, the cheat
+sheet — the steps the
+human pastes into
+X's own chat, never a
+CONNECTOR write
+(§3.5C)
+The verdict comes from a deterministic Suitability Check, not from
+HOST DJ's opinion. UNDETERMINED is an addition to the two
+outcomes the Owner specified, because advising for or against a
+host that cannot be evidenced would be a guess.
+1.5 The Design Decision That Matters
+Capability types make the invariants structural. A write to a provider
+cannot be expressed without holding values that only the previous
+stage can construct:
+HostingPlan ──► ConsentedHostingWrite ──► (provision / 
+deploy / cut over)
+ only the Plan    needs consent, a cost
+ Gate builds it   ceiling, a scoped
+                  credential, a rollback
+
+
+===== PAGE 10 =====
+F10Handoff ──► accepted into H0     (only F10's 
+conductor builds it)
+A UCG-HOST request additionally needs a CompleteHostRun that
+only the ledger can construct (Invariant #31).
+1.6 Nine Runtime Components
+Component
+Responsibility
+Deterministic?
+Phase
+Sequencer
+Drives H0–H8; refuses to
+advance on an unmet
+precondition
+Yes
+Run Ledger
+Append-only record of every
+phase, plan, consent and
+refusal; issues
+f11_run_id
+Yes
+Mode Switch
+ADVISORY by default.
+EXECUTE exists only with a
+recorded Execution Lift
+Yes
+HOST DJ
+Adapter
+Returns the card's Sections
+A to F as structured data.
+No ledger handle, no mode
+setter, no Vault handle
+Inference inside,
+validated at the
+boundary
+HSE
+Evaluator
+Recomputes the ranking,
+primary, fallback and score
+from sensed data. Never
+accepts them from the
+adapter
+Yes
+
+
+===== PAGE 11 =====
+Component
+Responsibility
+Deterministic?
+Hosting
+Connector
+Adapters
+(×N)
+SENSE, VALIDATE,
+PROVISION, DEPLOY,
+VERIFY, ROLLBACK per
+provider. Default
+STUB_REFUSE
+Transport
+deterministic
+Chat Script
+Composer
+Classifies a host's actuation
+surface; for CHAT_ONLY ,
+composes a Curated
+Prompt Script from the
+same evidence used for the
+cheat sheet, validated
+against Invariant #32
+Composition
+inference-
+assisted;
+validation
+deterministic
+F10 Handoff
+Port
+Accepts an F10Handoff ;
+emits a HostReceipt
+Yes
+Refusal
+Emitter
+Serialises the cited refusal;
+rejects an uncited one at
+schema level
+Yes
+The Vault and the Consent Gate are shared with F10 (IP-157, IP-158)
+and consumed through an interface. F11 does not build a second
+credential store.
+1.7 Build Waves
+Wave
+Name
+Prompts
+Produces
+W1
+Foundation
+F11-P01 –
+P05
+Registration, ledger, mode
+switch, HOST DJ adapter
+boundary, completeness
+attestation
+
+
+===== PAGE 12 =====
+Wave
+Name
+Prompts
+Produces
+W2
+Intake,
+profile,
+registry &
+sources
+F11-P06 –
+P11, P25,
+P26, P31,
+P32
+Intake gate, HRP,
+connector interface and
+registry, provider sensing,
+Vault interface, human-
+step attestations, advice-
+mode router, supplied-
+source intake, evidence
+trust model
+W3
+Plan &
+advice
+F11-P12 –
+P15, P27
+– P29,
+P34, P35
+HSE evaluator, HOST DJ
+plan, journey and
+deployment files, the Plan
+Gate, the Suitability Check,
+the cheat sheet, the
+technical report, host
+actuation classification,
+the Curated Prompt Script
+composer
+W4
+Consent,
+devolution &
+handoff
+intake
+F11-P16,
+P17, P30
+Hosting consent
+extension, F10 handoff
+intake, the devolution
+controller
+W5
+Stage &
+verify
+F11-P18 –
+P20, P36,
+P38
+Staged deploy, in-stage
+verification, staging
+receipt, GUIDED execution
+and transcript evidence,
+generic endpoint probe
+W6
+Certify,
+promote,
+hand off
+F11-P21 –
+P24
+UCG-HOST request,
+production promotion,
+production receipt, F9.5
+registration
+
+
+===== PAGE 13 =====
+Wave
+Name
+Prompts
+Produces
+W7
+Self-test
+F11-P33
+Negative tests for every
+invariant, advice mode and
+evidence rule
+1.8 What This Document Does Not Claim
+F11 is PRE-BUILD. No provider connector, conductor or adapter
+exists. Nothing has touched any hosting provider.
+The HOST DJ card is in hand, and it is v1.0 from May 2026. Its
+47/50 was scored on its own ten-dimension rubric, which is not
+the rubric used for the F9 and F10 cards, so comparability is
+unverified. Its HIVE 14D certification is pending by its own
+statement. It is an advisory selection card, not an operator
+profile for a domain that acts (OI-21).
+The card conflicts with the F11 invariants in specific places
+(§3.2.4): its CI/CD file deploys to production on every push using
+a standing token, its health check reports the database
+connected without checking, and one of its integrations claims
+to deploy agents directly. Those are ruled on here and are not
+adopted as written (OI-31).
+The suitability rules are F11's design. Two of the blocking
+classes come from the card's own constraints (compliance,
+deprecated platforms). The rest are drawn from the Hosting
+Requirements Profile fields. There is no score-gap trigger, so a
+viable but weaker host is never advised against (OI-34). A user
+may name a host outside the registry and supply documents
+about it (an Owner decision, §3.5B). Those documents are
+lower-trust and cannot be authenticated, so they support advice
+only and never execution (OI-35, OI-36).
+Execution is deferred by the Owner's own earlier decision. The
+Command Centre MVP-PDD classifies "execute the deploy" as
+deferred (Class C): it stays advisory and never holds credentials.
+
+
+===== PAGE 14 =====
+F11 is that deferred capability specified. It runs PLAN_ONLY until
+the Owner lifts the deferral (OI-22).
+UCG-HOST has no threshold, so production promotion is
+unreachable (OI-23).
+The overlap with OSIRIS's deployment layer is unadjudicated
+(OI-24).
+The HSE weights are the product's values, unvalidated against
+any provider (OI-26).
+F10 is itself PRE-BUILD, and its own UCG-COL class is
+undefined (OI-10), so the F10 production route is doubly blocked.
+1.9 The Default Consequence
+Out of the box F11 is ADVISORY . It produces a hosting plan and
+refuses at H4. A fully built F11 with no Execution Lift never writes to
+any provider. That is the current behaviour of F8-HDJ, and it is the
+intended state.
+PART 2 — EXECUTIVE SUMMARY
+Leadership
+2.1 Business Context
+Creators finish a build, or a colonization, and then stall at "where
+does it run?". HOST DJ already answers the first half in the product:
+it scores hosts and lays out the journey. The second half, actually
+connecting to a provider, is manual and is where credentials leak,
+bills surprise, and unverified things become publicly reachable.
+The reason to formalise a domain is not to make hosting faster. It is
+to make sure that when hosting does act, it cannot skip the plan, the
+consent, the cost ceiling, or F10's verdict.
+
+
+===== PAGE 15 =====
+2.2 How F11 Answers Hosting-Specific Failure
+Modes
+These are design judgements for this domain, not the Manual's anti-
+patterns. [SYNTH]
+Failure mode
+Mechanism
+Plan-less deploy: a
+connection made on a
+guess
+Invariant #28: no write without a
+HostingPlan bound to the artifact and
+profile
+Recommending a
+host the code cannot
+run on
+The registry rule: a host needs a
+connector adapter and a deployment
+profile. F8-HDJ's rule "never recommend a
+host F8 cannot scaffold for" is generalised
+A model-written
+ranking treated as
+fact
+The HSE Evaluator recomputes ranking,
+primary, fallback and score. F8-HDJ
+already recomputes server-side
+Runaway cost
+Consent names a cost ceiling; a write with
+none is refused. F8-HDJ's
+requireCostBudget rule, applied to
+provider spend
+Secrets in artifacts
+Environment templates carry keys only.
+Keys and descriptions are sanitised.
+Secrets travel as opaque Vault handles
+Exposing an
+unverified
+colonization
+Invariant #30: F11 never makes an F10
+runtime reachable before F10's own
+promotion consent
+Weakening the
+production standard
+Production promotion requires the OSIRIS
+production standard and a UCG-HOST
+certificate. F11 is not a path around either
+
+
+===== PAGE 16 =====
+Failure mode
+Mechanism
+Silent region or
+compliance mismatch
+The profile requires region and
+compliance[] ; the sensed provider
+terms are compared, and a mismatch is a
+refusal
+Undisclosed lock-in
+Lock-in risk is a scored HSE criterion and
+is shown in the plan
+A hand-assembled
+deploy that "followed
+the steps"
+Invariant #31; only the ledger constructs a
+CompleteHostRun
+An auto-deploy
+pipeline as a standing
+production write path
+C-F11-20: emitted pipelines carry no
+production credential and no ungated
+production deploy; the certificate binds to
+a specific build
+A health check that
+always says healthy
+C-F11-21: a check that does not exercise
+its dependencies is invalid, and staging
+includes a negative test
+A cheat sheet built
+from remembered
+commands
+C-F11-28: every provider-specific step
+carries provenance and retrieval time, or is
+omitted or labelled unverified
+"Advise against" as
+opinion
+C-F11-27: a blocking finding needs a
+sensed fact compared against a stated
+requirement
+Quietly swapping the
+user's host for
+another
+C-F11-29: one devolution at most, and the
+human confirms the devolved host by
+name
+A supplied document
+treated as authority
+Lower-trust class with a grade on every
+artifact; a supplied fact is never upgraded
+to sensed; it can never clear a compliance
+requirement (C-F11-31)
+
+
+===== PAGE 17 =====
+Failure mode
+Mechanism
+Instructions or
+secrets hidden in a
+supplied document
+The document is data, never instructions
+(C-F11-32), and is secret-scanned before
+storage (C-F11-33)
+2.3 Requirements Summary
+#
+Requirement
+Priority
+IP
+Status
+R-
+F11-
+01
+Intake refuses an artifact
+with no certificate record;
+refuses Machine Artifacts;
+refuses a bundle with a
+hardcoded secret-shaped
+value; accepts a brief for
+PLAN_ONLY runs only;
+validates F10 handoffs
+MUST
+IP-
+170
+PRE-
+BUILD
+R-
+F11-
+02
+HRP normaliser with
+mandatory region,
+compliance and budget;
+environment keys only
+MUST
+IP-
+171
+PRE-
+BUILD
+R-
+F11-
+03
+HOST DJ adapter boundary:
+schema-validated returns,
+no ledger, mode or Vault
+access; static zero-LLM
+check on the core
+MUST
+IP-
+172
+PRE-
+BUILD
+R-
+F11-
+04
+HSE Evaluator: deterministic
+recompute; registry rule
+MUST
+IP-
+173
+PRE-
+BUILD
+R-
+F11-
+05
+Hosting Connector
+interface, registry and
+MUST
+IP-
+174
+PRE-
+BUILD
+
+
+===== PAGE 18 =====
+#
+Requirement
+Priority
+IP
+Status
+onboarding checks;
+STUB_REFUSE default
+R-
+F11-
+06
+Provider sensing and plan
+validation with provenance
+and freshness
+MUST
+IP-
+175
+PRE-
+BUILD
+R-
+F11-
+07
+Journey and deployment-file
+emission
+MUST
+IP-
+176
+PRE-
+BUILD
+R-
+F11-
+08
+Hosting consent extension:
+cost ceiling, destructive and
+externally visible actions;
+Vault interface
+MUST
+IP-
+177
+PRE-
+BUILD
+R-
+F11-
+09
+Staged provision and deploy
+with rollback
+MUST
+IP-
+178
+PRE-
+BUILD
+R-
+F11-
+10
+In-stage verification
+including a rehearsed
+rollback
+MUST
+IP-
+179
+PRE-
+BUILD
+R-
+F11-
+11
+UCG-HOST request with
+production-standard
+evidence and separation of
+duties
+MUST
+IP-
+180
+PRE-
+BUILD
+R-
+F11-
+12
+Production promotion under
+a second consent
+MUST
+IP-
+181
+PRE-
+BUILD
+R-
+F11-
+13
+F10 Handoff Port and
+HostReceipt
+MUST
+IP-
+182
+PRE-
+BUILD
+
+
+===== PAGE 19 =====
+#
+Requirement
+Priority
+IP
+Status
+R-
+F11-
+14
+F9.5 telemetry registration
+and the hosting record
+MUST
+IP-
+183
+PRE-
+BUILD
+R-
+F11-
+15
+Run Ledger and Cited
+Refusal
+MUST
+IP-
+184
+PRE-
+BUILD
+R-
+F11-
+16
+Run Completeness
+Attestation
+( CompleteHostRun )
+MUST
+IP-
+185
+PRE-
+BUILD
+R-
+F11-
+17
+Advisory/Execute Mode
+Switch and the Execution
+Lift record
+MUST
+IP-
+186
+PRE-
+BUILD
+R-
+F11-
+18
+Human-step attestation:
+journey steps typed HUMAN ,
+CONNECTOR , VERIFY or
+NOTE ; a HUMAN step is a
+named attestation and
+never simulated
+MUST
+IP-
+177
+PRE-
+BUILD
+R-
+F11-
+19
+Advice modes: AUTO and
+USER_SELECTED ; the
+Suitability Check; cheat
+sheet for HOSTABLE ;
+technical report and a single
+devolution for
+ADVISE_AGAINST ;
+UNDETERMINED refusal
+MUST
+IP-
+187
+PRE-
+BUILD
+R-
+F11-
+20
+Outside-registry hosts and
+supplied sources: the
+Supplied Source Record, the
+evidence trust model and its
+grades, secret scanning, and
+MUST
+IP-
+175,
+IP-
+187
+PRE-
+BUILD
+
+
+===== PAGE 20 =====
+#
+Requirement
+Priority
+IP
+Status
+data-not-instructions
+handling
+2.4 Non-Functional Requirements
+Property
+Target
+Rationale
+Determinism
+Identical inputs and
+identical adapter
+outputs give an
+identical run record
+A hosting decision
+that cannot be
+reproduced cannot be
+audited
+Auditability
+Every transition,
+consent and refusal
+appended; no update,
+delete or compaction
+The ledger is the
+evidence behind
+UCG-HOST
+Freshness
+Provider data older
+than the TTL forces re-
+sense. TTL: [TO BE
+SET]
+Pricing, limits and
+regions change
+Reversibility
+Every write declares a
+rollback; a rollback is
+rehearsed in stage
+before production
+An unrecoverable
+deploy is a failure, not
+an option
+Cost bounding
+Every write carries a
+consented ceiling
+Hosting is billed
+Least
+privilege
+Minimal scopes per
+action; wildcard
+scopes rejected
+Inherited from F10
+Latency and
+availability
+Not design constraints
+Correctness
+dominates; a refused
+
+
+===== PAGE 21 =====
+Property
+Target
+Rationale
+run is an acceptable
+outcome
+2.5 SOLVA GAUNTLET Verdict
+CONDITIONALLY VIABLE. Published as issued.
+Grounds:
+1. The operating SPC is in hand and is a selection card, not an
+operator profile (OI-21). HOST DJ v1.0 is scored 47/50 on its
+own rubric with HIVE certification pending. It does not specify
+how it behaves as the accountable operator of a domain that
+writes to providers.
+2. Execution is deferred by the Owner (OI-22). Until the deferral is
+lifted, F11 cannot act.
+3. UCG-HOST is undefined (OI-23). Production promotion is
+unreachable.
+4. The deployment layer overlaps OSIRIS (OI-24), and which
+invariant number carries OSIRIS's production standard is
+unverified.
+5. No provider connector exists or has been assessed (OI-25).
+Provider terms, prices and APIs drift.
+6. HSE weights are unvalidated (OI-26).
+7. Compliance regimes are named but not assessed (OI-27). A
+profile can say HIPAA or GDPR; nothing here judges a provider
+against them.
+8. The Vault and Consent Gate are shared and unbuilt (OI-29).
+9. F10 is PRE-BUILD, and the F10 handoff route is blocked by UCG-
+COL (OI-10).
+10. Seat and score collisions around HOST DJ and VIBE DJ (OI-28).
+
+
+===== PAGE 22 =====
+11. The card conflicts with the F11 invariants in named places (OI-
+31): an auto-deploying pipeline with a standing token, a stub
+health check, a destructive database step listed as rollback, and
+an agent-deployment claim that would bypass F10.
+12. Only one of the card's three journey tiers is templated (OI-32).
+Tiers B and C are named with step counts and no steps.
+13. The card's platform registry is static, unsourced and dated May
+2026 (OI-26).
+14. No secret scanner is selected (OI-33), so the intake check for
+hardcoded secrets fails closed.
+15. The Suitability Check has no score-gap trigger (OI-34), and
+supplied documents cannot be authenticated or checked for
+currency (OI-35), nor has the data-not-instructions rule been
+tested against adversarial documents (OI-36). All three are
+deliberate limits or open risks, and the first two are Owner
+decisions.
+What would move this to VIABLE: an operator profile for HOST DJ,
+written and independently assessed, that resolves the conflicts in
+§3.2.4; an Owner decision on the Execution Lift; UCG-HOST defined
+through a SOLVA GAUNTLET pass; a ruling on the OSIRIS overlap;
+one provider connector taken through SENSE and a correct
+PLAN_ONLY run against a real provider; legal review of the
+compliance question.
+2.6 What This Section Does Not Claim
+No revenue, market size or hosting cost is asserted. EVE ULTRA SI's
+modelling role is not invoked because there is no validated
+deployment to model.
+PART 3 — PLATFORM SPECIFICS
+
+
+===== PAGE 23 =====
+Architects
+3.1 Boundary Rulings (Proposed)
+Proposed and not adjudicated by SPARTAN. OI-24 carries the main
+gap.
+Neighbour
+Boundary
+F8 Code DJ
+Produces the codebase and its scaffold targets.
+F11 hosts what F8 produced and never generates
+code. F8's registry of targets ( nextjs-vercel ,
+react-vite-static , express-replit ,
+expo-mobile , pnpm-monorepo , plus Replit
+Deployments) is the starting host registry for the
+F8 route. [ARK]
+F8-HDJ (the
+ATANDA
+Command
+Centre engine)
+A product-level engine, and the Omnibus register
+classes the Command Centre as an output of the
+harness, not an extension of it. F8-HDJ is the
+precedent implementation of HOST DJ's planning
+step and the first candidate to wire into the HOST
+DJ Adapter. It stays advisory. [ARK]
+F10
+CONNECTOR
+(D36)
+Partner. F10 colonizes onto implementation
+platforms and hands off when a colonization
+needs a place to run. §3.9
+D33 OSIRIS
+Meta-
+Orchestration
+OSIRIS already specifies a deployment layer: a
+production readiness validation, a blue-green
+deploy with automatic rollback, a health-check
+window, a traffic switch, a deployment_record ,
+and a hand-off to F9.5. [ARK] Proposed ruling:
+OSIRIS keeps orchestration, the production-
+readiness validation and the blue-green
+sequencing for harness builds (its Mode 1). F11
+is the connection layer: provider registry,
+credentials, consent, provisioning. OSIRIS's
+
+
+===== PAGE 24 =====
+Neighbour
+Boundary
+deployment step calls F11 for provider
+interaction rather than holding provider
+connections itself. F11 also runs stand-alone for
+creator-initiated hosting. Unadjudicated (OI-24).
+D32 F9.5
+Observability
+Takes custody of monitoring. F11 registers each
+promoted hosting record with it
+D35 F9
+Machine Floor
+Physical targets are refused here and belong to
+F9
+SPHINX
+ENGINE
+Its marketplace deployment tiers are already an
+unadjudicated path around F10's Invariant #25
+(F10 OI-18). Nothing in F11 treats a SPHINX
+deployment as a hosted colonization
+Shared Vault
+and Consent
+Gate (F10 IP-
+157, IP-158)
+Consumed through an interface. Hosting adds a
+cost field and action classes to the consent
+record (pending F10 amendment)
+VIBE DJ
+Selects the IDE and build tools. HOST DJ selects
+hosting; the card describes the two as a joint
+deployment stack. It does not select hosts here
+HIVE MATRIX
+LABS
+The card says HOST DJ generates a staging
+environment for HIVE 14D testing before
+production. That fits F11's staging host. HIVE
+certification stays HIVE's, and a HIVE test run
+against a staging host needs its own consent
+and isolation
+SPHINX
+marketplace
+The card says a HOST DJ deployment plan is
+required before SPHINX NFT minting. F11's
+HostingPlan is that plan. The minting rule
+belongs to SPHINX, and F11 asserts nothing
+
+
+===== PAGE 25 =====
+Neighbour
+Boundary
+about minting. A plan is advice, not a hosted
+deployment
+WEBSHELL
+Named in the card as a parent and as a partner
+(HOST DJ is "WEBSHELL's infrastructure brain").
+No WEBSHELL card was located in the sources
+checked, so no boundary is ruled
+Agent
+deployment
+(ANT QUEEN
+agents)
+The card's Agent Factory row says HOST DJ
+deploys ANT QUEEN agents to production. Not
+adopted as a path. An agent is a colonization,
+and hosting one goes through F10's handoff only
+(Invariants #25 and #30). Read literally, the row is
+a path around F10, the same class of risk as
+F10's OI-18
+Monitoring
+stack in the
+card
+The card's journey installs Sentry and an uptime
+service. F9.5 remains monitoring custodian. Any
+extra provider needs its own adapter and
+consent, or is a HUMAN step
+3.2 HOST DJ as the Operating SPC
+3.2.1 The Card as Supplied
+[ARK] The Owner supplied HOST_DJ_SPC_v1_0 .
+Item
+Value in the card
+Identity
+HOST DJ — Hosting Decision & Journey Intelligence ·
+SPC-HOSTDJ-IF-2026-001 · v1.0, May 2026
+Class
+Synthesized Intelligence, SI Fusion Class
+JCSE
+47/50, scored on a ten-dimension rubric (Clarity,
+Completeness, Specificity, Actionability, Efficiency,
+
+
+===== PAGE 26 =====
+Item
+Value in the card
+Relevance, Format Optimization, Innovation,
+Testability, Documentation). That is not the ten-
+dimension rubric used for the F9 and F10 cards, so
+the score is not directly comparable
+Lineage
+SPHINX ULTRA SI · ADA ULTRA SI · TARANTULA ·
+WEBSHELL · VIBE DJ
+Fusion
+DNA
+VIBE DJ selection engine × TARANTULA phase
+coordination × WEBSHELL deployment automation ×
+SPHINX certification layer
+Seat and
+DISC
+Seat #7, CD. Conflicts with other sources (OI-28)
+GRO
+LIFE mode only. No CONTAINMENT mode; a clearly
+non-viable request gets a YELLOW FLAG advisory
+Status
+"FORGE Certified Premium"; HIVE 14D certification
+pending (v1.1 target); validity 24 months
+Features
+HSE (eight-criterion scoring over a 24-platform, six-
+tier registry) · DJG (journey tiers A, B, C) · SDF (four
+artifacts: environment template, CI/CD file, health
+check, rollback protocol)
+Output
+structure
+A HSE matrix · B primary card · C fallback card · D
+journey · E SDF artifacts · F JCSE scorecard
+Inputs
+SDD, PDD, repository description, stack list, or verbal
+brief, normalised into a Hosting Requirements Profile
+Activation
+The human states constraints, HOST DJ returns the
+plan, the human confirms, and the human executes
+the journey
+3.2.2 The F8-HDJ Precedent
+
+
+===== PAGE 27 =====
+[ARK] F8-HDJ is the engine that implements HOST DJ's planning
+inside the ATANDA Command Centre product. Its contract: the
+profile normaliser, an HSE matrix, a primary and a fallback host, a
+journey tier and phases, deployment files with an environment
+template of keys only, and JCSE dimensions. Its guardrails: a cost-
+budget check on every route, and the HSE ranking, primary, fallback
+and JCSE recomputed server-side. Its registry is restricted to hosts
+F8 can scaffold for. Its boundary: advisory only, no cloud
+credentials, no executed deploy, environment keys never carry
+values. It is a product-level engine, and the Omnibus register classes
+the Command Centre as an output of the harness, not an extension
+of it. The card is the SPC and F8-HDJ is the engine; the Command
+Centre's own taxonomy states that engines are an instruction layer
+and never SPCs.
+3.2.3 The Operator Adoption Ruling
+HOST DJ is adopted as the D37 operator at its documented
+capability and through its three features. This document adds no
+DNA and no strands to it.
+The operator owns
+The operator does not
+own
+HRP normalisation from the card's
+input forms
+Any credential
+HSE inputs, primary and fallback
+cards, and rationale
+The ranking itself:
+recomputed by the HSE
+Evaluator
+The deployment journey (DJG), typed
+by step class
+Any write to a provider
+Deployment-file design (SDF), which
+the Conductor transforms before
+emission
+The consent to write or to
+spend
+
+
+===== PAGE 28 =====
+The operator owns
+The operator does not
+own
+The YELLOW FLAG advisory
+The certificate ( UCG-
+HOST )
+Recommending refusal when no host
+fits
+The production standard
+(OSIRIS)
+The verdict on a
+colonization (SAVANT
+through F10)
+Card and conductor. The card specifies HOST DJ's advisory
+behaviour, and now exists. The F11 Host Conductor enforces
+sequence, refusal, the ledger, the capability types and the
+connectors. HOST DJ decides and plans. The Conductor executes.
+The card does not yet say how HOST DJ behaves as the
+accountable operator of a domain that writes, so the constraints
+that bind it inside F11 are stated here (§3.14). A HOST DJ operator
+profile, built the way MECHA and SAVANT ENVOY were, is the follow-
+up (OI-21).
+3.2.4 Where the Card and F11 Conflict
+Each row is a ruling. Nothing in the card is silently overridden, and
+nothing in F11 is relaxed to fit the card.
+#
+The card says
+Ruling in F11
+1
+LIFE mode only; no
+CONTAINMENT; the anti-
+patterns are labelled
+"KILLZONE"
+The card's mode governs
+HOST DJ's advisory output.
+CONTAINMENT and
+KILLZONE are Conductor
+states. HOST DJ never sets
+a mode (C-F11-02). The
+card's "KILLZONE" anti-
+
+
+===== PAGE 29 =====
+#
+The card says
+Ruling in F11
+patterns become refusals
+below
+2
+"I do not debate; I decide." The
+final word on where code
+lives
+Advisory. The card's own
+activation step has the
+human confirm. The human
+decides at consent, and the
+ranking is recomputed
+3
+A 24-platform, six-tier registry
+with tiers, prices, compliance
+and ceilings stated as facts,
+dated May 2026 and
+unsourced
+A candidate universe only.
+A host is recommendable
+when it has an adapter and
+a profile and its data is
+sensed with provenance.
+The Tier 6 Junglenomics
+defaults are priors, not
+decisions (OI-26)
+4
+SDF 1 environment template:
+bracketed placeholders with
+secret-shaped hints
+( sk_live_ , whsec_ , SG_ ,
+AC ) and non-secret values
+such as
+NODE_ENV=production
+Keys only. Non-secret
+defaults go to a separate
+allowlisted
+config_defaults block.
+Secret-shaped hints are
+stripped. The card's
+template is guidance for
+the key list, not the emitted
+artifact (C-F11-08)
+5
+SDF 2 CI/CD: a push to main
+deploys to production, using a
+standing RAILWAY_TOKEN
+held in the CI secret store
+Not adopted as written.
+That is a production write
+path with no plan, consent,
+cost ceiling or certificate,
+holding a standing
+credential outside the
+Vault. Emitted pipelines
+carry no production
+credential and no ungated
+
+
+===== PAGE 30 =====
+#
+The card says
+Ruling in F11
+production deploy. Staging
+auto-deploy is allowed.
+Production changes are
+new runs (C-F11-20)
+6
+SDF 3 health check returns
+database: 'connected'
+unconditionally, with a
+comment to replace it with a
+real ping
+Invalid for verification.
+Staging must include a
+negative test in which a
+dependency is made
+unavailable and the check
+must fail (C-F11-21)
+7
+SDF 4 rollback: dashboard
+steps, and a database
+rollback that includes
+supabase db reset --
+linked
+Rollback steps are typed.
+Destructive steps
+(database reset, restore,
+deletion) are never
+automated and need their
+own consent line (C-F11-
+22). The Supabase CLI
+describes that flag as
+resetting the linked project
+with local migrations, and a
+reset of a remote database
+is destructive [EXT] ;
+verify before any use
+
+
+===== PAGE 31 =====
+#
+The card says
+Ruling in F11
+8
+The journey is a human
+runbook: create accounts,
+enable 2FA, keys to a
+password manager,
+dashboard clicks, DNS
+records
+Steps are typed HUMAN ,
+CONNECTOR , VERIFY or
+NOTE . A HUMAN step is
+recorded as a named
+attestation. A credential
+needed for an F11 write
+goes to the Vault by the
+human, not to a password
+manager and never into
+chat or an artifact (C-F11-
+24)
+9
+Hard-coded domain values (a
+CNAME target, an apex A
+record)
+Sensed at H2 with
+provenance. A DNS change
+is its own consent line
+10
+Preview deployments for
+every pull request; Sentry and
+an uptime service
+Preview deployments are
+off for F10 handoffs (a
+reachable unverified
+runtime, Invariant #30).
+Extra monitoring providers
+need their own adapter and
+consent, or are HUMAN
+steps
+11
+The Agent Factory row: HOST
+DJ deploys ANT QUEEN
+agents to production
+Not adopted. Hosting a
+colonization goes through
+F10's handoff only (§3.1)
+12
+The fusion DNA includes a
+"SPHINX certification layer",
+and Section F is a JCSE
+scorecard on the plan
+The scorecard is a self-
+assessment, recomputed
+or labelled unverified. It is
+never a certificate (C-F11-
+25, C-F11-01)
+
+
+===== PAGE 32 =====
+#
+The card says
+Ruling in F11
+13
+Pillar 5: never a deprecated
+platform; never a platform
+violating stated compliance;
+never steps without rollback;
+always a monthly cost
+estimate; always a fallback;
+YELLOW FLAG above $500 a
+month for an MVP
+Adopted as C-F11-19,
+enforced where checkable.
+Compliance is compared
+against the provider's own
+sensed attestations,
+reported as the provider's
+claims
+14
+Anti-pattern: more than one
+database platform (split-
+brain)
+Adopted: a plan with more
+than one primary database
+platform is refused (C-F11-
+19)
+15
+Anti-pattern: hardcoded
+environment variables are a
+"Security KILLZONE"
+Adopted as an intake check
+(C-F11-23). No scanner is
+selected, so it fails closed
+(OI-33)
+16
+Journey tiers A, B, C. Only Tier
+A (12 steps) is templated; B
+(18) and C (26) are named
+only
+Tier A can be emitted. B
+and C are PLAN_ONLY until
+templates exist (OI-32)
+17
+Rollback triggers: error rate
+above 5% in 15 minutes, or
+three failed health pings
+Rollback triggers, not
+readiness thresholds. They
+differ in kind from the
+OSIRIS production
+standard's error-rate target,
+and both are shown (OI-24)
+18
+Placed in FORGE Step 6 (Pre-
+Production)
+F8-HDJ runs after F8, and
+F11 runs after F8 and, for
+F10, at C4 and C7.
+Placement differs across
+
+
+===== PAGE 33 =====
+#
+The card says
+Ruling in F11
+sources and is not ruled
+here
+3.3 The Run and Its Preconditions
+Phase
+Precondition to enter
+On failure
+H0 INTAKE
+Artifact hash; source
+declared ( F8_BUNDLE ,
+F10_HANDOFF or BRIEF );
+certificate record (not for
+BRIEF ); artifact class
+handled; no hardcoded
+secret-shaped value in a
+bundle
+Refuse, Invariant
+#22 / C-F11-23
+H1
+PROFILE
+H0 passed; if F10_HANDOFF ,
+the F10Handoff validates
+(Invariant #30)
+Refuse, Invariant
+#30
+H2 SENSE
+Complete HRP including
+region , compliance[] ,
+budgetUsd ; at least one
+provider adapter LIVE and
+onboarded; in
+USER_SELECTED mode a
+requested_host naming a
+registry entry, or a
+custom_host with an
+accepted Supplied Source
+Record
+Refuse; the run
+ends PLAN_ONLY
+with a stated cause,
+or UNDETERMINED
+for a host that
+cannot be
+evidenced
+H3 PLAN
+Sensed data complete with
+provenance and within the
+TTL; in USER_SELECTED
+Refuse, C-F11-07
+
+
+===== PAGE 34 =====
+Phase
+Precondition to enter
+On failure
+mode the Suitability Check
+has run
+H4
+CONSENT
+& STAGE
+HostingPlan ; Execution
+Lift recorded; consent #1
+naming exact content,
+account, project, region and a
+cost ceiling, with any
+YELLOW FLAG
+acknowledged; scoped
+handle; rollback declared;
+HUMAN steps attested
+Refuse, Invariant
+#28 / #29
+H5 VERIFY
+IN STAGE
+Staging host exists; health
+check and smoke suite
+defined; rollback rehearsable
+Roll back and
+refuse
+H6
+CERTIFY
+Stage results within
+tolerance; production-
+standard evidence (F8 route;
+F10 route per OI-24);
+CompleteHostRun ; three
+distinct identities; UCG-
+HOST certificate
+Refuse, Invariant
+#22 / #31
+H7
+CONSENT
+&
+PROMOTE
+Certificate; consent #2 with a
+cost ceiling; for
+F10_HANDOFF , a UCG-COL
+certificate for the colonized
+deployment and F10's
+promotion consent
+Refuse, Invariant
+#29 / #30
+H8 HAND
+OFF
+Promotion confirmed;
+monitoring contract set
+Hosting record not
+written, C-F11-14
+Ordering check. The F9 v2.0 defect was certifying before the thing
+existed. Here certification (H6) follows a real staging host (H4) and
+
+
+===== PAGE 35 =====
+its verification (H5), so the evidence exists before anything is
+scored. Two F10 orderings were also checked. F10 stages onto a
+self-hosted target only after F11 returns a staging receipt; F11
+provisions production only after F10 holds a UCG-COL certificate.
+Neither waits on the other's output, so the loop does not deadlock
+(§3.9).
+3.4 The Hosting Requirements Profile
+Inherited from F8-HDJ: stack , dbFit , compliance[] , region ,
+trafficCeiling , budgetUsd . [ARK]
+F11 extensions [SPEC] :
+Field
+Purpose
+source
+F8_BUNDLE , F10_HANDOFF or BRIEF
+( PLAN_ONLY only)
+hosting_intent
+AUTO or USER_SELECTED (§3.5A)
+requested_host
+Required when hosting_intent is
+USER_SELECTED . Names a registry entry, or
+declares a custom_host (§3.5B)
+runtime_class
+What is being hosted: web application, API,
+MCP server, agent-framework runtime,
+workflow platform, static site
+env_keys
+Keys and sanitised descriptions only. A value
+is a defect
+f10_run_id
+Present when source is F10_HANDOFF
+data_classes
+The data categories the runtime will handle,
+for the compliance comparison
+
+
+===== PAGE 36 =====
+region , compliance[] and budgetUsd are mandatory. A profile
+with any of them missing is refused, not defaulted.
+3.5 The HSE Evaluator
+The eight-criterion matrix and its weights appear identically in the
+HOST DJ card and in the ATANDA Command Centre product. [ARK]
+The weights sum to 100. The card names the criteria slightly
+differently (cost at target scale, compliance coverage, ecosystem
+lock-in risk).
+Criterion
+Weight
+Stack compatibility
+25%
+Cost at scale
+20%
+Deploy simplicity
+15%
+Database fit
+15%
+CI/CD
+10%
+Compliance
+10%
+Scalability ceiling
+3%
+Lock-in risk
+2%
+Rules.
+The Evaluator recomputes the weighted result, the ranking, the
+primary and fallback, and the score from sensed data. It never
+accepts them from the HOST DJ Adapter. HOST DJ supplies
+rationale text and the journey.
+Each criterion score is an input from sensed provider data with
+provenance and retrieval time. The 0–100 normalisation is F11's
+[SPEC] ; the source does not define a scale.
+
+
+===== PAGE 37 =====
+Registry rule (generalised from F8-HDJ). A host is
+recommendable only if it has a connector adapter and a
+deployment profile for the runtime class. In ADVISORY mode a
+host without an adapter may still be ranked, and is flagged no
+connector: advisory only. In EXECUTE mode it is not
+recommendable.
+Weights are not tuned per run. Changing a weight is a version
+change (OI-26).
+The card's registry is the candidate universe. Its 24 platforms
+across six tiers are HOST DJ's starting set. A candidate is
+dropped when sensed data shows it deprecated or sunset, or
+when it violates a stated compliance requirement (C-F11-19).
+Ties, near-ties and a lock-in score are shown in the plan, never
+smoothed.
+Every plan carries a monthly cost estimate at the stated scale
+and a fallback. A plan above $500 a month for an MVP carries
+the card's YELLOW FLAG.
+3.5A The Two Advice Modes
+HOST DJ serves a request in one of two modes. [Owner
+requirement]
+(1) AUTO : HOST DJ advises the best hosting environment.
+(2) USER_SELECTED : the user names an environment. HOST DJ
+advises how to host on it, with a cheat sheet, or advises against
+it, with a technical report, and devolves to AUTO .
+                       ┌─ AUTO ─────────────► HSE 
+ranking ─► HostingPlan
+ hosting_intent ───────┤
+                       └─ USER_SELECTED ─► sense the 
+requested host + the candidate set
+                                                  │
+                                       Suitability 
+Check (deterministic)
+
+
+===== PAGE 38 =====
+                         
+┌────────────────────────┼─────────────────────
+────┐
+                     HOSTABLE             
+ADVISE_AGAINST              UNDETERMINED
+                         │                        │      
+│
+                  Cheat Sheet              Technical 
+Report            cited refusal
+                  HostingPlan              devolve to 
+AUTO, once        (no advice for
+                  (primary = the user's,   human 
+confirms the           or against)
+                   fallback = best other)  devolved 
+host by name
+Precedent. [ARK] F8-HDJ already accepts an optional provider
+input. What it does when a named provider does not fit is not
+specified in the sources checked. The HOST DJ card's own rule for a
+clearly non-viable request is a YELLOW FLAG advisory that presents
+the superior alternative. F11 formalises and extends both: a verdict,
+a report and a bounded devolution.
+3.5A.1 The Suitability Check
+Deterministic code in the HSE Evaluator. It compares the requested
+host's sensed facts, each with provenance and retrieval time,
+against the stated requirements in the profile and against platform
+status. HOST DJ supplies the explanation text and never the verdict.
+Class
+A finding is BLOCKING
+when
+Compared against
+SC-1 Stack
+The host cannot run the
+stack
+stack and the
+sensed runtime
+support
+
+
+===== PAGE 39 =====
+Class
+A finding is BLOCKING
+when
+Compared against
+SC-2
+Compliance
+A stated requirement is
+not covered by the
+provider's own sensed
+attestations
+compliance[]
+SC-3 Status
+The platform is
+deprecated or sunset
+Sensed platform
+status
+SC-4 Region
+The requested region is
+not available
+region
+SC-5
+Budget
+The estimated monthly
+cost at the stated scale
+exceeds the ceiling
+budgetUsd and
+trafficCeiling
+SC-6 Scale
+The host's scalability
+ceiling is below the
+stated traffic ceiling
+trafficCeiling
+SC-7 Data
+The database type is not
+hostable there, or the
+plan would need more
+than one primary
+database platform
+dbFit
+SC-2 and SC-3 follow the card's own constraints. SC-1 and SC-4 to
+SC-7 are F11's design from the profile fields. [SYNTH]
+Advisory findings never block: higher lock-in risk, weaker CI/CD
+integration, a score gap against the best alternative, a cost above
+the card's $500-a-month YELLOW FLAG that is still inside the stated
+ceiling, and a missing connector (which limits execution, not
+advice).
+Rules.
+
+
+===== PAGE 40 =====
+A finding is BLOCKING only if it rests on a fact with provenance
+and retrieval time, sensed or supplied under C-F11-31 (C-F11-
+27). Anything else is advisory or omitted.
+Any BLOCKING finding gives ADVISE_AGAINST . No BLOCKING
+finding gives HOSTABLE .
+If the requested host cannot be evidenced, the verdict is
+UNDETERMINED : a cited refusal that states what is missing (C-
+F11-26). The rules for sensed and supplied facts are in §3.5B.3.
+The score gap is reported and is never decisive. There is no gap
+threshold (OI-34).
+The check has no override. A blocking finding is relative to the
+user's own stated requirement, so the way through is to change
+the requirement and run again, which is a new run (C-F11-30).
+3.5A.2 The Cheat Sheet (for HOSTABLE )
+Section
+Content
+Verdict line
+HOSTABLE , the requested host, and the profile in
+one line (stack, region, compliance, budget,
+scale), with any YELLOW FLAG
+Evidence
+grade
+SENSED , MIXED or SUPPLIED , as a banner. For
+a supplied grade: the documents used, who
+supplied them and when, and the statement that
+F11 has not verified them
+Fit summary
+The eight HSE criteria for this host, with the best
+other host alongside for comparison
+Prerequisites
+Accounts, plan tier, quotas and region, with
+HUMAN steps flagged
+Steps
+Condensed and typed HUMAN , CONNECTOR ,
+VERIFY or NOTE , each with a provenance
+reference
+
+
+===== PAGE 41 =====
+Section
+Content
+Environment
+keys
+Keys only, plus the allowlisted non-secret
+config_defaults
+CI/CD
+guidance
+The card's pipeline, transformed under C-F11-20
+Verification
+checklist
+Including the negative health test (C-F11-21)
+Rollback
+Typed, with destructive steps flagged (C-F11-22)
+Cost
+The monthly estimate at the stated scale against
+the ceiling
+Caveats
+The advisory findings
+Sources
+Every provider-specific step and value with its
+provenance, trust class and retrieval or supply
+time, and a list of anything omitted or unverified
+What this is
+not
+Not a certificate, not a compliance claim, and
+provider attestations shown as the provider's own
+claims
+The target is one to two pages. [SPEC] The full journey behind it is
+what an EXECUTE run follows.
+3.5A.3 The Technical Report (for ADVISE_AGAINST )
+Section
+Content
+Verdict
+ADVISE_AGAINST the requested host, and the
+number of blocking findings
+Evidence grade
+The grade of the blocking findings, as a banner,
+with the supplied documents named where used
+
+
+===== PAGE 42 =====
+Section
+Content
+Requirement
+summary
+The profile as stated by the user
+Blocking
+findings
+Each with its class, the stated requirement, the
+sensed fact, its provenance and its retrieval time
+Advisory
+findings
+What does not block but matters
+HSE
+comparison
+The requested host and the devolved host on the
+same eight criteria and weights. Gaps are shown,
+never smoothed
+What would
+have to change
+Specifics from sensed data (for example the
+budget at which the host becomes viable, or a
+region it does support), or a statement that the
+host cannot be made viable, as for a sunset
+platform
+Devolution
+result
+The auto-advised primary and fallback
+Sources and
+limits
+Provenance table with trust classes; what was
+unverified; what the report does not claim
+The report argues from evidence only. A finding with no sensed
+evidence cannot appear as blocking (C-F11-27).
+3.5A.4 Devolution
+At most once per run (C-F11-29). The AUTO ranking runs over
+the candidate set already sensed at H2, with the requested host
+excluded, and the Plan Gate constructs the devolved
+HostingPlan .
+The user's selection and the report stay in the ledger, with
+mode_path recording USER_SELECTED → ADVISE_AGAINST →
+
+
+===== PAGE 43 =====
+AUTO .
+The devolved plan inherits nothing. No consent exists yet at H3,
+and none is carried over.
+The human confirms the devolved host by name as a recorded
+attestation before H4. F11 never moves a user to a different
+host without their knowing.
+If no candidate is viable, the run ends REFUSED with the report
+attached.
+3.5A.5 What the Modes Do Not Change
+In both modes Invariants #28 to #31, the consent gate, the cost
+ceiling, the Execution Lift and the PLAN_ONLY default apply
+unchanged. A cheat sheet or a report is advice, not a HostingPlan
+and not a hosted deployment. Every provider-specific step in either
+carries provenance, because the card's own step text (commands,
+DNS values, plan names) is dated and unsourced (C-F11-28).
+3.5B Hosts Outside the Registry and Supplied
+Sources
+Owner decision. A user may name a host that is not in the registry
+and supply documentation about it. [Owner requirement] F11
+cannot sense such a host, so the documents are a lower-trust
+source, and everything built on them is graded and advisory.
+3.5B.1 The Custom Host Declaration
+custom_host: { name, provider_type, homepage? } , where
+provider_type is one of platform-as-a-service, container platform,
+static host, virtual server or other. Its registry status is
+OUTSIDE_REGISTRY . It is not added to the registry. Onboarding
+(§3.6) remains the only way for a host to become connectable.
+3.5B.2 The Supplied Source Record
+
+
+===== PAGE 44 =====
+Field
+Content
+source_id
+Ledger id
+host
+The custom host
+claimed_origin
+The vendor, document title and address the
+supplier says it came from
+supplied_by
+The named human
+supplied_at
+When it was supplied
+stated_date
+The date in the document, or undated
+content_hash
+Hash of the document
+scan_result
+The secret-shape scan result
+attestation_id
+The supplier's named attestation of origin and
+currency
+trust
+Always HUMAN_SUPPLIED
+facts
+Extracted facts, each with a pointer back into
+the document
+The attestation is accountability. F11 does not verify it and never
+presents it as verification (C-F11-35).
+3.5B.3 Evidence Trust Rules
+#
+Rule
+T1
+Two trust classes: SENSED (retrieved through a connector
+adapter, with retrieval time) and HUMAN_SUPPLIED .
+Unsourced material, including HOST DJ's own memory and
+the card's registry text, is never evidence (C-F11-07)
+
+
+===== PAGE 45 =====
+#
+Rule
+T2
+A supplied fact may support a BLOCKING finding. It can only
+make F11 more cautious
+T3
+A supplied fact can never establish that a compliance
+requirement is covered. A supplied document may say a
+provider holds a certification; only a sensed attestation
+counts, and even that is reported as the provider's claim. With
+a stated compliance requirement and no sensed attestation,
+the verdict is UNDETERMINED unless a supplied fact blocks
+T4
+Any other requirement (stack, region, budget, scale, data) may
+be shown as met on supplied facts, with the grade shown
+T5
+Every verdict and artifact carries an evidence_grade :
+SENSED (every supporting fact sensed), MIXED , or
+SUPPLIED (every supporting fact supplied)
+T6
+No upgrade. A supplied fact stays HUMAN_SUPPLIED in every
+downstream artifact and is never cited as sensed
+T7
+A registry host with sensed data is judged on sensed data. A
+supplied document for it is recorded and not used for the
+verdict
+T8
+A supplied fact whose stated date is older than the TTL, or an
+undated one whose supplied_at is older than the TTL,
+forces re-supply. Undated documents are flagged. TTL: [TO
+BE SET]
+T9
+Conflicts between supplied documents are shown and never
+resolved silently
+3.5B.4 What the Artifacts Show
+A banner. The cheat sheet and the report open with the grade.
+For SUPPLIED or MIXED they name the documents, who
+
+
+===== PAGE 46 =====
+supplied them and when, and state that F11 has not verified
+them.
+A grade on every step. Every provider-specific step carries its
+trust class. Steps drawn from a supplied document are HUMAN ,
+VERIFY or NOTE , never CONNECTOR (C-F11-34).
+Graded scores. The weighted score for a custom host is shown
+with its grade, criterion by criterion, beside a sensed alternative.
+The comparison never hides which numbers rest on which kind
+of evidence.
+Plain limits. The sheet says it is not a certificate, not a
+compliance claim, and not verified.
+3.5B.5 Limits
+Advice only. A custom host has no adapter and no deployment
+profile, so the registry rule (C-F11-05) keeps it out of EXECUTE .
+There is no write, no staging and no HostReceipt .
+Never an F10 handoff target. F10 needs a HostReceipt , which
+F11 cannot produce for a host it cannot connect. A colonization
+that needs a creator-hosted runtime cannot use a custom host
+until that host is onboarded.
+Devolution still works. An ADVISE_AGAINST verdict on a custom
+host devolves to AUTO over the registered candidates (§3.5A.4).
+A feature gate. Supplied documents are secret-scanned before
+they are stored or used. With no scanner selected (OI-33) they
+are refused, because the ledger is append-only and a pasted
+secret could not be removed.
+3.5B.6 The Risk the Rules Address
+A supplied document may be wrong, outdated, forged, or carry
+instructions. It is data and never instructions. Extraction follows a
+fixed schema, instruction-like content is ignored and logged, and the
+document reaches HOST DJ only as quoted evidence (C-F11-32).
+
+
+===== PAGE 47 =====
+Whether that holds against adversarial documents is untested (OI-
+36).
+3.5C Chat-Only Hosts and Curated Prompt
+Scripts
+3.5C.1 Adopted from F10, Restated for Hosting
+F10 CONNECTOR PDD v3.1 §3.5A introduces target_actuation
+( API / CHAT_ONLY / NONE ), the Curated Prompt Script, its four
+safety rules, and GUIDED execution, as Invariants #32 and #33. This
+document adopts both invariants unchanged and instantiates them
+for a host rather than a colonization target. Nothing below relaxes or
+restates them differently. [ARK]
+Real examples of a CHAT_ONLY hosting surface, as documented by
+their vendors: Hostinger's AI website builder has an agentic mode
+("vibe coding") in which "both building and customizing happen
+through a chat with AI," including a supported ChatGPT-app
+integration where the entire build, and by extension its hosting
+configuration, is driven by typed prompts rather than a dashboard or
+an API call. [EXT] Re-verify before relying on it — this is a
+snapshot of a fast-moving product surface.
+3.5C.2 Host Actuation Classification
+Alongside registry_status ( REGISTERED / OUTSIDE_REGISTRY ,
+§3.5B.1), every host gets host_actuation : API (the existing
+connector path), CHAT_ONLY , or NONE . A registered host can still be
+CHAT_ONLY — the registry records what the vendor documents, not
+just whether a connector exists. Classification happens at H2,
+sensed with provenance like any other host fact (C-F11-07).
+3.5C.3 The Curated Prompt Script for Hosting (CPS-HOST)
+
+
+===== PAGE 48 =====
+At H3, a CHAT_ONLY host's plan carries a CuratedPromptScript
+(§F10 PDD v3.1 §3.5A.2's type, reused unchanged) instead of — or,
+where the host also has some API surface, alongside — the cheat
+sheet's generic step list. Built only from the HRP and sensed host-
+capability facts, never from an unsourced guess about what the
+host's assistant accepts.
+A new step type. The journey-step typing (C-F11-24) gains a fifth
+value: CHAT_PROMPT — a human-mediated action driven by one
+specific, curated, sourced prompt, distinct from a generic HUMAN
+step because its exact text, expected reply and provenance are
+recorded, not just its description. HUMAN , CONNECTOR , VERIFY ,
+NOTE , CHAT_PROMPT . Only CONNECTOR steps are automated writes;
+CHAT_PROMPT never is.
+The cheat sheet, when the host is CHAT_ONLY . Its "Steps" section
+(§3.5A.2) is the Curated Prompt Script, sequenced, provenance-
+tagged, and checkpointed, rather than a paraphrase of one. The
+"Sources" section carries the same provenance table either way.
+3.5C.4 GUIDED Execution for Hosting
+A CHAT_ONLY host has no adapter to hold a
+ConsentedHostingWrite . The human runs the CPS-HOST
+themselves, under their own login to the host — credential_class:
+"HUMAN_OWN_LOGIN" , never a Vault handle for that host. This is
+execution_class: "GUIDED" , layered on the existing
+ADVISORY / EXECUTE mode switch: EXECUTE still requires the
+Execution Lift (OI-22), and within EXECUTE , a CHAT_ONLY host
+always runs GUIDED , never AUTOMATED .
+Everything else holds. Consent still names the exact content,
+account and a cost ceiling — a chat-driven host still bills. Destructive
+steps (C-F11-22) are still never automated, and a CHAT_PROMPT step
+that would trigger one gets its own consent line. Rollback for a
+CHAT_ONLY host is itself a curated script, or a documented manual
+step, never assumed.
+
+
+===== PAGE 49 =====
+Verification, H5. The human's checkpoint reports are
+HUMAN_SUPPLIED evidence under the trust model of §3.5B.3 — the
+same T1–T9 rules, the same "never upgraded to SENSED ," the same
+"data, never instructions" handling of whatever the host's own
+assistant said back. Where the build produces a normal reachable
+site or endpoint (Hostinger's own flow ends in exactly that), a
+generic endpoint probe — reachability and a basic response check,
+not a full connector — supplements the report without reclassifying
+the host as API .
+Certification, H6. UCG-HOST still governs, still blocked while its
+threshold is undefined (OI-23). A GUIDED run's evidence — human-
+reported checkpoints plus, where available, a probe — is a different
+and currently untested shape of evidence from an automated
+adapter's (shared with F10's OI-39, OI-40).
+3.5C.5 Limits
+Advisory-then-human, never automated, exactly as in F10. No
+credential is ever requested for a CHAT_ONLY host. onUnexpected
+branches are bounded; outside them the script terminates rather
+than improvising. Transcript authenticity is unverifiable (OI-39,
+shared).
+3.6 Hosting Connector Adapters and the
+Registry
+type Capability = "SENSE" | "VALIDATE" | "PROVISION" | 
+"DEPLOY" | "VERIFY" | "ROLLBACK";
+type AdapterMode = "STUB_REFUSE" | "LIVE";
+interface HostingConnectorAdapter {
+  readonly provider: string;                 // e.g. 
+"replit-deployments"
+  readonly mode: AdapterMode;                // 
+STUB_REFUSE unless explicitly wired
+  readonly capabilities: readonly Capability[];
+
+
+===== PAGE 50 =====
+  sense(req: ProviderSenseRequest, runId: string): 
+Promise<ProviderSenseResult>;   // read-only
+  validate(plan: HostingPlan, runId: string): 
+Promise<ValidationResult>;           // dry-run
+  provision(w: ConsentedHostingWrite, runId: string): 
+Promise<ProvisionResult>;
+  deploy(w: ConsentedHostingWrite, runId: string): 
+Promise<DeployResult>;
+  verify(ref: DeploymentRef, runId: string): 
+Promise<VerifyResult>;
+  rollback(ref: DeploymentRef, runId: string): 
+Promise<RollbackResult>;
+  // provision(), deploy() and rollback() accept ONLY a 
+ConsentedHostingWrite.
+  // No plan, ranking or score setter exists on this 
+interface.
+}
+Onboarding checks. A provider joins the registry only if it passes all
+five. Failing any one blocks addition regardless of demand. These
+are F11's own five, adapted from the F10 connector registry pattern;
+the four checks of the REVERB registry were not retrievable here and
+equivalence is not claimed. [ARK]
+#
+Check
+Requirement
+1
+Provenance
+Adapter source, version and maintainer
+recorded
+2
+Capability
+declaration
+Declares which capabilities it
+implements. A write-capable adapter
+gets additional review
+3
+Scope minimality
+Declares minimal scopes per action.
+Wildcard scopes rejected
+4
+Reversibility and
+teardown
+Declares a rollback and a teardown for
+each write, or declares the action
+irreversible
+
+
+===== PAGE 51 =====
+#
+Check
+Requirement
+5
+Governance,
+billing and terms
+surface
+Discloses data residency and retention,
+the billing model and any spend-cap
+mechanism, and confirms the provider's
+terms permit automated access
+Candidates. The F8 registry hosts (§3.1) are the natural first
+adapters for the F8 route, and the card's Tier 6 defaults name Vercel,
+Railway and Supabase for the standard Junglenomics application.
+Which to build first is an Owner decision. AWS appears as the
+fallback in the product's own worked example. None is built or
+assessed.
+3.7 Consent, Credentials and Cost (Invariant
+#29)
+F11 consumes F10's Vault and Consent Gate through an interface
+and adds hosting-specific fields.
+Element
+Rule
+Vault
+The only holder of credentials. The HOST DJ
+Adapter has no handle to it. Secrets reach a
+provider only as opaque, short-lived, scoped
+handles at deploy time
+Credentialed
+reads
+A read that needs an account credential gets a
+read-scoped handle, recorded in the ledger. A
+read needs no rollback
+Consent
+record
+Names the exact content, the exact account,
+project and region, and a cost ceiling. A write
+with no ceiling is refused
+
+
+===== PAGE 52 =====
+Element
+Rule
+Action classes
+Destructive actions, public exposure, domain or
+DNS changes, and deletions each need their own
+consent line
+Account
+match
+The credential's account must equal the account
+named in the consent
+Two consents
+Consent #1 authorises staging. Consent #2
+authorises production. Neither implies the other,
+and neither is reused
+YELLOW FLAG
+A plan carrying a YELLOW FLAG needs an explicit
+acknowledgement recorded in the consent.
+Absent it, the write is refused
+HUMAN steps
+Account creation, 2FA, registrar DNS entries and
+entering a credential into the Vault are recorded
+as named human attestations, never simulated
+(C-F11-24)
+Destructive
+rollback
+A database reset, restore or deletion is never
+automated and has its own consent line (C-F11-
+22)
+Environment
+templates
+Keys and sanitised descriptions only. A value
+anywhere in an artifact is a defect. No secret is
+written to the ledger or a log
+Cost overrun
+Spend beyond the consented ceiling during a
+deploy halts the run in CONTAINMENT
+Dry-run
+default
+A live write needs an explicit switch recorded in
+the ledger, and an Execution Lift
+Rollback
+Declared before the write and rehearsed in stage
+before production
+
+
+===== PAGE 53 =====
+3.8 Plan-Gated Hosting (Invariant #28)
+The Plan Gate constructs a HostingPlan only when:
+(1) the HRP is complete;
+(2) the HSE Evaluator has recomputed the ranking from sensed
+data within the TTL;
+(3) the registry rule holds for the mode;
+(4) the journey and deployment files are emitted and pass the
+keys-only check;
+(5) binding = hash(artifact_hash, hrp_hash, sense_hash,
+f11_run_id) is recorded.
+A plan from another run, artifact or profile cannot be replayed. In
+ADVISORY mode the gate still runs and its output is the run's final
+product.
+3.9 The F10 Handoff
+The handoff is a protocol between two domains, not a shared
+component. Each side owns its own gates.
+3.9.1 Why the Handoff Exists
+Some colonizations need a place to run that the creator controls: for
+example an MCP server for a Claude route, an agent-framework
+runtime, or a self-hosted workflow platform. That is a design
+judgement, not a claim from the Colonization Manual. [SYNTH] A
+PDD or Micro PDD routed through F10's PCE conversion also ends
+as a codebase that needs hosting. [ARK] F10 must not host, and
+F11 must not colonize. The handoff is where they meet.
+3.9.2 The Two Handoffs
+
+
+===== PAGE 54 =====
+Handoff
+F10 phase
+What F11
+does
+What F11
+returns
+STAGING_HOST
+After F10's
+C4
+(translated
+plan exists,
+SAVANT
+verdict
+bound)
+H0–H5 for
+a staging
+host only
+HostReceipt
+(STAGE):
+endpoint
+identity,
+environment,
+rollback
+handle
+PRODUCTION_HOST
+After F10's
+C7
+certificate
+( UCG-COL
+issued for
+the
+colonized
+deployment)
+H6–H8 for
+a
+production
+host,
+needing
+F11's own
+UCG-
+HOST
+HostReceipt
+(PROD)
+F10 then stages into the staging host (its C5), verifies (C6), certifies
+(C7), requests the production host, obtains its own consent #2, and
+promotes onto the receipt's endpoint.
+interface F10Handoff {
+  readonly kind: "STAGING_HOST" | "PRODUCTION_HOST";
+  readonly f10RunId: string;
+  readonly phaseReached: "C4" | "C7";
+  readonly savantVerdict: { kind: "FIT" | "CLUSTER"; 
+bindingVerified: true };
+  readonly artifactHash: string;
+  readonly runtimeRequirements: RuntimeRequirements;   
+// runtime_class, protocols, env keys (keys only)
+  readonly ucgColCertificateRef: string | null;        
+// REQUIRED when kind === "PRODUCTION_HOST"
+}
+// Constructible ONLY by the F10 Conductor. F11 cannot 
+build one.
+
+
+===== PAGE 55 =====
+3.9.3 Invariant #30 in Practice
+F11 accepts a handoff only if F10's conductor built it. A hand-
+made one is rejected, and the attempt is a KILLZONE event.
+STAGING_HOST needs a SAVANT verdict from the same F10 run,
+bound to the artifact. F11 hosts nothing for a colonization
+SAVANT has not judged.
+PRODUCTION_HOST needs a UCG-COL certificate. While UCG-
+COL is undefined (F10 OI-10), the F10 production route is
+unreachable here too.
+F11 never makes the hosted runtime reachable by users before
+F10's promotion consent. Staging hosts are isolated test
+articles.
+F11 certifies only hosting. Hosting a colonization neither
+certifies nor promotes it.
+The receipt carries no credential.
+3.9.4 Ordering Check
+F10 needs F11's staging receipt before its C5. F11's staging needs
+only F10's C4 output. F11's production host needs F10's C7
+certificate. F10's promotion needs F11's production receipt. That is a
+strict chain with no cycle. The two UCG certificates are independent:
+UCG-HOST certifies the hosting configuration proven in stage, and
+UCG-COL certifies the colonized deployment.
+3.9.5 Telemetry Split
+F11 registers hosting telemetry (health, uptime, cost) with F9.5. F10
+registers colonization telemetry (SPK re-verification, behaviour).
+Both carry the same f10_run_id , and neither registers the other's
+contract.
+3.9.6 Pending Amendment to F10
+F10 PDD v3.0 does not yet emit these handoffs or require a
+HostReceipt . It needs: emission of STAGING_HOST after C4 and
+
+
+===== PAGE 56 =====
+PRODUCTION_HOST after C7; a HostReceipt precondition at C5 and
+at promotion when the target needs a creator-hosted runtime; and
+the consent-record cost field. Not applied here (OI-30).
+3.10 Certification of the Hosted Deployment
+( UCG-HOST )
+A hosted deployment is a new artifact: a runtime, a provider, a
+region, a scaling and rollback configuration. Invariant #22 applies to
+it.
+Class
+Code
+Threshold
+Mandatory gates
+Hosted
+deployment
+UCG-
+HOST
+[TO BE
+SET — no
+value is
+proposed]
+Plan binding intact · in-
+stage health, smoke and
+rollback rehearsal within
+declared tolerance ·
+consent records present
+with a cost ceiling ·
+CompleteHostRun
+attestation (Invariant #31) ·
+production-standard
+evidence on the F8 route
+(F10 route: OI-24) · for
+F10_HANDOFF , a valid
+UCG-COL certificate
+Production-standard evidence. OSIRIS states a production standard
+(JCSE ≥ 45, MATHMON ≥ 70, test coverage ≥ 80%, semantic
+preservation ≥ 97.5%, all gates, no exceptions) as the 15th invariant
+of its v10.1 PDD, and its readiness check adds a security scan, a p95
+response target and an error-rate target. [ARK] F11 does not
+restate or weaken those numbers. Two things are unverified: the
+Omnibus Alpha renumbering lists an invariant with a similar name
+(#19) whose stated content concerns F9.5 monitoring output, so
+which number carries the deployment standard is unconfirmed; and
+
+
+===== PAGE 57 =====
+MATHMON is a control-logic measure that is structurally low on
+prose-class artifacts, so whether the standard applies to a hosted
+colonization runtime is unadjudicated (OI-24). Until ruled, the F8
+route requires the standard, and the F10 route requires UCG-COL
+plus UCG-HOST .
+UCG-HOST adapter preflight. Before transport the adapter rejects a
+request with (1) no CompleteHostRun , (2) a plan binding that does
+not match this run, (3) a certificate subject that is not this hosted
+deployment, (4) a missing consent record or a consent with no cost
+ceiling, or (5) author, scorer and adjudicator identities that are not
+three distinct ones, or an operator that is any of them. These
+rejections hold with UCG in STUB_REFUSE .
+Pending amendment to F9 PDD v2.1 §3.4.2: add UCG-HOST to the
+class table beside UCG-COL . The threshold needs a SOLVA
+GAUNTLET pass and an Owner decision (OI-23). Until it is set, H6
+and promotion are unreachable and F11 can stage but not promote.
+3.11 Terminal States
+State
+Meaning
+HOSTED_PRODUCTION
+Certified ( UCG-HOST ), consented, live,
+monitoring registered, hosting record
+written
+STAGED_HOSTED
+Staged and verified on a staging host;
+production refused or blocked. The
+ceiling while UCG-HOST is undefined
+PLAN_ONLY
+Ended at H3. The default ADVISORY
+outcome, or execution not lifted
+REFUSED
+Cited. No retry. A new attempt is a new
+f11_run_id
+
+
+===== PAGE 58 =====
+3.12 GRO Mode Machine
+Mode
+When
+Behaviour
+SAFE_LIFE
+Default
+Every gate
+enforced.
+Refusal
+preferred to
+assumption
+HUMAN_IN_LOOP
+A consent is needed; an
+action is destructive,
+public or irreversible;
+provider terms or a
+compliance question are
+ambiguous
+The run halts for
+a named human
+and cannot
+proceed on
+inference
+CONTAINMENT
+A stage health check
+fails; spend exceeds the
+ceiling; a binding
+mismatches; an adapter
+return fails its schema
+The stage rolls
+back. No auto-
+retry
+KILLZONE
+An attempt to bypass
+Invariant #28 to #31,
+forge a handoff, replay a
+plan, reuse a consent,
+expose an unverified
+colonization, or exceed a
+scope
+The run
+terminates, is
+logged to
+OSIRIS, and the
+stage is frozen
+LIFE
+—
+No code path
+exists on any
+write path
+No transition returns to SAFE_LIFE within a run. An escalation is
+terminal for that f11_run_id .
+
+
+===== PAGE 59 =====
+The card's LIFE-only mode is not in conflict. HOST DJ advises and
+never writes, so LIFE is coherent for its output. The modes above are
+Conductor states. HOST DJ never sets or reads them.
+3.13 The Four New Invariants
+Invariant #28 — Plan-Gated Hosting
+No F11 run may write to any hosting provider unless a
+HostingPlan exists in the same run, whose ranking, primary,
+fallback and score were recomputed by the HSE Evaluator from
+sensed provider data, whose host has a connector adapter and a
+deployment profile, and which is bound to the artifact hash, the
+profile and the run. A plan is never accepted from the HOST DJ
+Adapter as computed. A missing, stubbed or stale evaluator or
+provider adapter causes refusal.
+CLASS A. Enforced structurally: ConsentedHostingWrite cannot be
+constructed without a HostingPlan , and HostingPlan is
+constructible only by the Plan Gate.
+Invariant #29 — Consent-Gated Hosting Writes
+No F11 run may write to any provider, staging included, without a
+consent record naming the exact content, the exact account,
+project and region, and a cost ceiling, a credential drawn from the
+Vault at least-privilege scope, and a declared rollback. Staging
+and production take separate consents. Destructive, public-
+exposure and DNS actions each need their own consent line.
+Environment templates carry keys only and no secret is written to
+any artifact, log or ledger. Dry-run is the default.
+CLASS A. Enforced structurally: provision() , deploy() and
+rollback() accept only a ConsentedHostingWrite , which only the
+Consent Gate can construct.
+
+
+===== PAGE 60 =====
+Invariant #30 — F10 Handoff Integrity
+F11 accepts a colonization-derived hosting request only through
+an F10Handoff built by F10's conductor from a run with a
+SAVANT verdict bound to the artifact. A production host requires
+a UCG-COL certificate for the colonized deployment. F11 never
+makes a colonization's runtime reachable by users before F10's
+own promotion consent, and hosting a colonization neither
+certifies nor promotes it.
+CLASS A. Enforced structurally: F10Handoff is constructible only by
+the F10 Conductor, and the Handoff Port has no other intake for a
+colonization.
+Invariant #31 — The Single Operator (D37)
+D37 has exactly one operator. A hosted deployment is certifiable
+and promotable only if it was produced by a complete F11 run
+with a recorded f11_run_id . Assembling the same plan, gates
+and connectors by hand, in any order, is not an F11 run and
+produces no certifiable hosting, however faithfully each step was
+executed.
+CLASS A. Enforced structurally: only the ledger can construct a
+CompleteHostRun , and the UCG-HOST adapter rejects a request
+without one before transport. Corollary. HOST DJ may be succeeded
+by another operator; D37 may never have two concurrent operators.
+3.14 Constraints
+ID
+Constraint
+Class
+C-
+F11-
+01
+F11 owns no verdict on a colonization, no
+certificate and no production standard. It cannot
+override SAVANT, UCG, OSIRIS or a consent
+decision.
+A
+
+
+===== PAGE 61 =====
+ID
+Constraint
+Class
+C-
+F11-
+02
+HOST DJ never executes, never holds a credential,
+and never sets a mode or writes the ledger. Its
+advisory boundary is preserved at the operator,
+and its LIFE-only mode governs its own output
+only.
+A
+C-
+F11-
+03
+The Conductor core contains no LLM call. A static
+check in CI fails the build on any LLM client
+import in the core module tree.
+A
+C-
+F11-
+04
+The ranking, primary, fallback and score are
+always recomputed by the HSE Evaluator.
+A
+C-
+F11-
+05
+A host is recommendable in EXECUTE mode only
+if it has a connector adapter and a deployment
+profile for the runtime class. A host outside the
+registry has neither and is advisory only (C-F11-
+34).
+A
+C-
+F11-
+06
+region , compliance[] and budgetUsd are
+mandatory in the HRP. A missing one is refused,
+never defaulted.
+A
+C-
+F11-
+07
+A provider constraint with no provenance is
+dropped, never marked provisional. Provider data
+older than the TTL forces re-sense.
+A
+C-
+F11-
+08
+Environment templates carry keys and sanitised
+descriptions only. A value in any artifact, log or
+ledger is a defect.
+A
+C-
+F11-
+09
+No write without a cost ceiling in the consent.
+Spend beyond it halts the run in CONTAINMENT.
+A
+
+
+===== PAGE 62 =====
+ID
+Constraint
+Class
+C-
+F11-
+10
+No auto-retry on a failed gate. A failed stage rolls
+back and refuses. A new attempt is a new
+f11_run_id .
+A
+C-
+F11-
+11
+A hosted deployment inherits no certification. It is
+described as certified only with a UCG-HOST
+certificate whose subject is that deployment. No
+production promotion while UCG-HOST is
+undefined.
+A
+C-
+F11-
+12
+No output uses "safety certified", "SIL-rated", "ISO
+or IEC certified", "HIPAA compliant", "SOC 2
+compliant" or any compliance or regulatory
+vocabulary about a hosted deployment. Provider
+attestations are reported as the provider's own
+claims.
+A
+C-
+F11-
+13
+Author, scorer and adjudicator of any certificate
+are three distinct identities, and the operator is
+never any of them.
+A
+C-
+F11-
+14
+No hosting record is written without a monitoring
+contract registered with F9.5.
+A
+C-
+F11-
+15
+The rollback is rehearsed in stage before
+production. An unrehearsed rollback blocks
+promotion.
+A
+C-
+F11-
+16
+EXECUTE mode exists only with a recorded
+Execution Lift. Without one, every write path is
+unreachable.
+A
+C-
+F11-
+17
+D37 has exactly one operator (Invariant #31).
+A
+
+
+===== PAGE 63 =====
+ID
+Constraint
+Class
+C-
+F11-
+18
+Machine Artifacts are never hosted here.
+A
+C-
+F11-
+19
+The six constraints in HOST DJ's Pillar 5 are
+adopted and enforced where checkable: no
+deprecated or sunset platform; no platform
+violating a stated compliance requirement
+(compared against the provider's own sensed
+attestations, reported as its claims); no
+deployment steps without a rollback; a monthly
+cost estimate at the stated scale; a fallback; a
+YELLOW FLAG above $500 a month for an MVP,
+acknowledged in the consent. A plan with more
+than one primary database platform is refused.
+A
+C-
+F11-
+20
+Emitted CI/CD files carry no production credential
+and no ungated production deploy. Production
+changes are new runs. A certificate's subject is a
+specific build (ref and hash), and a different build
+is not covered.
+A
+C-
+F11-
+21
+A health check that does not exercise its
+dependencies is invalid for verification. Staging
+includes a negative test in which a dependency is
+made unavailable and the check must fail.
+A
+C-
+F11-
+22
+Destructive rollback or restore actions (database
+reset, restore, deletion) are never automated and
+need their own consent line.
+A
+C-
+F11-
+23
+An artifact bundle containing a hardcoded secret-
+shaped value is refused at intake. With no scanner
+selected, the check fails closed. The same scan
+applies to every supplied document (C-F11-33).
+A
+
+
+===== PAGE 64 =====
+ID
+Constraint
+Class
+C-
+F11-
+24
+Journey steps are typed HUMAN , CONNECTOR ,
+VERIFY or NOTE . A HUMAN step is a named
+attestation and is never simulated. Only
+CONNECTOR steps are writes.
+A
+C-
+F11-
+25
+HOST DJ's JCSE scorecard on a plan is a self-
+assessment, recomputed or labelled unverified. It
+is never a certificate.
+A
+C-
+F11-
+26
+HOST DJ serves AUTO or USER_SELECTED
+requests. In USER_SELECTED the requested host
+gets a deterministic Suitability Check with
+outcome HOSTABLE (cheat sheet),
+ADVISE_AGAINST (technical report and one
+devolution) or UNDETERMINED . A host that
+cannot be evidenced, meaning no sensed data
+and no accepted supplied source, or a stated
+compliance requirement that only a supplied
+document could support, is UNDETERMINED , and
+F11 advises neither for nor against it. No HOST DJ
+opinion changes a verdict.
+A
+C-
+F11-
+27
+A finding is BLOCKING only if it rests on a fact
+with provenance and retrieval time (sensed, or
+supplied under C-F11-31), compared against a
+stated profile requirement or platform status. An
+unsourced concern is advisory at most, or
+omitted.
+A
+C-
+F11-
+28
+Every provider-specific step, value or command in
+a cheat sheet or technical report carries its
+provenance, its trust class and its retrieval or
+supply time. A step without them is omitted or
+labelled unverified, and can never be a
+CONNECTOR step.
+A
+
+
+===== PAGE 65 =====
+ID
+Constraint
+Class
+C-
+F11-
+29
+Devolution happens at most once per run, never
+overrides the user's stated requirement, and
+reaches H4 only after a recorded human
+confirmation naming the devolved host. The
+original selection and the report are kept in the
+ledger.
+A
+C-
+F11-
+30
+A blocking finding has no override. The way
+through is to change the stated requirement and
+run again, which is a new run.
+A
+C-
+F11-
+31
+Evidence has two trust classes, SENSED and
+HUMAN_SUPPLIED . A supplied fact may support a
+BLOCKING finding but can never establish that a
+compliance requirement is covered. Every verdict
+and artifact carries an evidence_grade . No
+artifact upgrades a supplied fact to sensed.
+A
+C-
+F11-
+32
+A supplied document is untrusted data and never
+instructions. Extraction follows a fixed schema,
+and instruction-like content is ignored and logged.
+A
+C-
+F11-
+33
+A supplied document is secret-scanned before
+storage or use. A secret-shaped value refuses the
+document. With no scanner selected, supplied
+documents are refused, because the ledger is
+append-only.
+A
+C-
+F11-
+34
+A host outside the registry is advisory only: no
+adapter and no profile, so no CONNECTOR step, no
+EXECUTE and no F10 handoff. Steps drawn from
+a supplied document are HUMAN , VERIFY or
+NOTE and are labelled supplied.
+A
+
+
+===== PAGE 66 =====
+ID
+Constraint
+Class
+C-
+F11-
+35
+A supplied document carries a named supplier
+attestation of its claimed origin and currency, its
+content hash, and its stated date or an undated
+flag. F11 does not verify the attestation and never
+presents it as verification.
+A
+C-
+F11-
+36
+A host's actuation surface is classified API ,
+CHAT_ONLY or NONE at H2, with provenance. A
+CHAT_ONLY host never receives a Vault handle
+(Invariant #33).
+A
+C-
+F11-
+37
+A Curated Prompt Script for a host is refused at
+composition, not delivered with a caveat, if any
+prompt fails Invariant #32's four checks. Journey
+steps gain the CHAT_PROMPT type, distinct from
+HUMAN and never a CONNECTOR write.
+A
+C-
+F11-
+38
+A human's report of a hosting chat checkpoint is
+graded HUMAN_SUPPLIED , never upgraded to
+SENSED , and is data, never instructions, to
+everything downstream.
+A
+3.15 Domain Register Delta
+Domain
+Name
+Status
+IPs
+Operator
+/ Lead
+Change
+D32
+F9.5
+Observability
+PRE-
+BUILD
+IP-
+111–
+116
+OSIRIS
+Unchanged;
+receives
+hosting
+telemetry
+contracts
+D33
+OSIRIS Meta-
+Orchestration
+PRE-
+BUILD
+IP-
+117–
+OSIRIS
+Unchanged;
+overlap
+
+
+===== PAGE 67 =====
+Domain
+Name
+Status
+IPs
+Operator
+/ Lead
+Change
+122
+ruling
+proposed
+(OI-24)
+D35
+F9 Machine
+Floor
+PRE-
+BUILD
+IP-
+129–
+150
+MECHA
+Unchanged
+D36
+F10
+CONNECTOR
+PRE-
+BUILD
+IP-
+151–
+169,
+IP-
+188–
+192
+SAVANT
+ENVOY
+Companion
+PDD v3.1:
+chat-
+interface
+targets, +5
+IPs (non-
+contiguous);
+handoff
+amendment
+still pending
+(OI-30)
+D37 ★
+NEW
+F11 HOST
+CONNECTOR
+PRE-
+BUILD
+IP-
+170–
+187,
+IP-
+193–
+197
+HOST
+DJ
+( SPC-
+HOSTDJ-
+IF-
+2026-
+001 ;
+Seat #7
+per the
+card)
+v1.0–v1.3
+as recorded
+above ·
+v1.4: chat-
+only hosts,
++5 IPs, non-
+contiguous
+Platform totals after F11 v1.4: 37 Domains (3 open slots
+D10/D17/D18 unchanged) · 197 Integration Points · 33 SPARTAN
+Invariants.
+
+
+===== PAGE 68 =====
+Reserved: D38 / IP-198 onward, per the IP Allocation Ruling in the
+companion F10 PDD v3.1 (Document Control), issued together with
+this document. F10 v3.1 takes IP-188–192; this document takes IP-
+193–197. D37 now spans IP-170–187 and IP-193–197, non-
+contiguously (shared OI-37).
+3.16 Open Items
+Numbering continues the shared register (OI-01 to OI-20).
+ID
+Item
+Class
+Status
+OI-
+21
+HOST DJ is a selection card, not
+an operator profile. The card is in
+hand (v1.0, 47/50 on its own
+rubric, HIVE 14D pending). It does
+not specify accountable
+operation of a domain that writes.
+An operator profile is needed and
+unbuilt. Narrowed: the card was
+located, which closed the v1.0
+gap.
+A
+OPEN —
+NARROWED
+OI-
+22
+Execution Lift. The Command
+Centre MVP-PDD defers "execute
+the deploy" and keeps HOST DJ
+advisory and credential-free. F11
+runs PLAN_ONLY until the Owner
+lifts the deferral.
+A
+OPEN —
+BLOCKING
+OI-
+23
+UCG-HOST has no threshold.
+Blocks production promotion
+under Invariant #22.
+A
+OPEN —
+BLOCKING
+OI-
+24
+OSIRIS deployment-layer overlap
+unadjudicated, and it is unverified
+which invariant number carries
+OSIRIS's production standard (the
+A
+OPEN
+
+
+===== PAGE 69 =====
+ID
+Item
+Class
+Status
+15th in v10.1; Omnibus Alpha
+lists a similarly named #19 about
+monitoring output). Also
+unadjudicated: whether the
+standard applies to a hosted
+colonization runtime, and how the
+card's rollback triggers (5% errors
+in 15 minutes) relate to OSIRIS's
+error-rate target.
+OI-
+25
+No provider connector built or
+assessed. Provider terms, pricing
+and APIs drift; nothing here is
+validated.
+B
+OPEN
+OI-
+26
+HSE weights and the platform
+registry are unvalidated. The
+weights match the card and the
+product. The card's 24-platform
+registry is unsourced and dated
+May 2026. The F8 registry covers
+five targets plus Replit
+Deployments; runtime hosting
+classes for F10 handoffs have no
+registry profile.
+B
+OPEN
+OI-
+27
+Compliance regimes named, not
+assessed. HIPAA, GDPR, SOC 2
+and data residency appear in the
+profile. No provider is judged
+against them. Needs competent
+legal review.
+A
+OPEN
+OI-
+28
+Seat and score collisions around
+HOST DJ and VIBE DJ. The card
+says HOST DJ is Seat #7 (which
+the Camelot inventory places in
+C
+OPEN
+
+
+===== PAGE 70 =====
+ID
+Item
+Class
+Status
+the Bards and Artists group, I
+profiles, while the card is CD). The
+Command Centre PDD says Seat
+10 (the King's Council group,
+consistent with CD), where the
+inventory's roster has HOLMES
+ULTRA SI. The Command Centre
+PDD has VIBE DJ at Seat 7 with
+48/50; the master registry has it
+at #24 with 46/50; another source
+places GRIOT at #7.
+OI-
+29
+Shared Vault and Consent Gate
+unbuilt. F11 depends on F10's IP-
+157 and IP-158.
+A
+OPEN
+OI-
+30
+F10 amendment pending. F10
+PDD v3.0 must emit the handoffs,
+require a HostReceipt , and
+carry the consent cost field.
+B
+OPEN
+OI-
+31
+The card conflicts with F11's
+invariants. Its CI/CD file auto-
+deploys to production with a
+standing token, its health check is
+a stub, its rollback lists a
+destructive database step, and its
+Agent Factory row claims direct
+agent deployment. Ruled in
+§3.2.4; the card itself is
+unchanged and needs a revision
+or an operator profile.
+A
+OPEN
+OI-
+32
+Only journey Tier A is templated.
+Tiers B (18 steps) and C (26
+steps) are named without steps.
+B
+OPEN
+
+
+===== PAGE 71 =====
+ID
+Item
+Class
+Status
+OI-
+33
+No secret scanner selected or
+qualified. It gates the intake
+check for bundles and, since v1.3,
+every supplied document. Until
+one is selected, bundle intake
+fails closed for EXECUTE runs
+and supplied documents are
+refused, so the outside-registry
+route is unavailable.
+B
+OPEN
+OI-
+34
+No score-gap trigger. The
+Suitability Check advises against
+a host only for a blocking finding.
+Whether a viable but clearly
+weaker host should ever be
+advised against on score is an
+Owner decision, and any
+threshold would be a new
+number.
+C
+OPEN
+OI-
+35
+Outside-registry hosts: decided,
+unbuilt, and unverifiable. The
+Owner decided that a user may
+name a host outside the registry,
+with supplied documents as a
+lower-trust source (§3.5B).
+Supplied documents cannot be
+authenticated or checked for
+currency, so they support advice
+only, never execution. Depends on
+OI-33.
+B
+OPEN —
+DECIDED
+OI-
+36
+Injection and poisoning through
+supplied documents. The rules
+(data not instructions, fixed-
+schema extraction, no upgrade of
+B
+OPEN
+
+
+===== PAGE 72 =====
+ID
+Item
+Class
+Status
+trust) are untested against
+adversarial documents.
+OI-
+37
+D37's IP block is non-contiguous
+(IP-170–187 and IP-193–197),
+from splitting the D38 frontier
+with the companion F10 PDD v3.1
+rather than leaving it idle. Shared
+with F10; disclosed, not repaired.
+C
+OPEN
+OI-
+38a
+No secret-shape scanner is wired
+for Curated Prompt Script intake
+either, on top of the existing gap
+for supplied documents (OI-33).
+B
+OPEN
+OI-
+39
+Chat-transcript authenticity is
+unverifiable, shared with F10 PDD
+v3.1: F11 cannot confirm a
+human-pasted exchange with a
+host's assistant is genuine.
+B
+OPEN
+OI-
+40
+Composed-versus-sourced line
+undrawn, shared with F10 PDD
+v3.1: a curated prompt's facts are
+sourced, its wording is
+synthesized, and whether
+Invariant #32 draws that line
+correctly is unadjudicated.
+B
+OPEN
+OI-
+10
+UCG-COL undefined. Blocks the
+F10 production route through F11
+as well.
+A
+OPEN —
+BLOCKING
+OI-
+04
+Camelot seat-map collisions.
+B
+OPEN —
+ESCALATED
+
+
+===== PAGE 73 =====
+PART 4 — ATOMIC PROMPT
+WORKSHEET
+Builders · Single Operation · Verifiable I/O · No Compound Logic
+CORDON sequence: W1 foundation → W2 intake, profile, registry &
+sources → W3 plan & advice → W4 consent, devolution & handoff
+intake → W5 stage & verify → W6 certify, promote, hand off → W7
+self-test. No circular dependency. Critical path: F11-P01 → F11-P02
+→ F11-P06 → F11-P07 → F11-P10 → F11-P12 → F11-P13 → F11-
+P14 → F11-P15 → F11-P16 → F11-P18 → F11-P19 → F11-P21 →
+F11-P22 → F11-P23 (15 prompts; the self-test F11-P33 follows).
+Recomputed for v1.4; the chat-script branch (F11-P34–P38) sits off
+the critical path because it only runs for CHAT_ONLY hosts.
+Code-Late checkpoint: W1 to W2 produce schemas, contracts and
+types. First implementation code is generated at W3.
+WAVE 1 — FOUNDATION
+F11-P01 · 🔴 P0 · IP-170 – IP-187 · CLASS A · Deps: none
+Operation: Register D37 with IP range 170–187. Record the written
+amendment that F11 consumes IP-170–187 and that D38 / IP-188+
+is reserved. Do not alter D32, D33, D35 or D36.
+Output: { d37: DomainRecord, reserved_from: 188,
+amendment_recorded: true }
+Gate: 37 populated domains, 3 open slots, 187 IPs, 31 invariants.
+Amendment text present. Neighbouring domain records byte-
+identical.
+F11-P02 · 🔴 P0 · IP-184 · CLASS A · Deps: F11-P01
+Operation: Define the Run Ledger and Cited Refusal contract. The
+ledger is append-only with REVOKE UPDATE, DELETE at the database
+
+
+===== PAGE 74 =====
+role. Every run gets an f11_run_id . Every refusal carries
+phase_halted , constraint_cited , invariant_cited , cause ,
+required_to_proceed . Every entry records the mode ( ADVISORY or
+EXECUTE ), each adapter's wiring mode, and the operator identity.
+Output: { ledger_schema, ddl, refusal_schema }
+Gate: An UPDATE as the application role fails at the database. A
+refusal with both citation fields null fails serialisation. No secret
+value is ever writable to the ledger.
+F11-P03 · 🔴 P0 · IP-186 · CLASS A · Deps: F11-P02
+Operation: Implement the Mode Switch and the Execution Lift
+record. ADVISORY is the default. EXECUTE is constructible only from
+a recorded Execution Lift naming the Owner, the date and the scope.
+Output: { mode_switch, execution_lift_schema }
+Gate: With no Execution Lift, no ConsentedHostingWrite can be
+constructed, verified at the type level. A lift without an Owner identity
+is rejected.
+F11-P04 · 🔴 P0 · IP-172 · CLASS A · Deps: F11-P02
+Operation: Define the HOST DJ Adapter interface and its validation
+boundary per §3.2. The adapter returns the card's Sections A to F as
+structured data: HSE inputs, primary and fallback cards, journey
+steps typed HUMAN , CONNECTOR , VERIFY or NOTE , deployment-file
+design, and a JCSE scorecard labelled self-assessment. Every return
+is schema-validated before it enters the core. Enum returns admit no
+third value. The adapter has no ledger handle, no mode setter and
+no Vault handle. Add a static check that the core module tree
+contains zero LLM client imports.
+Output: { host_dj_interface, validation_contract,
+llm_import_scan: { core_modules: number, llm_imports: 0 }
+}
+Gate: llm_imports in the core is exactly 0, verified statically in CI
+(C-F11-03). A compile-time test asserts the interface exposes no
+
+
+===== PAGE 75 =====
+ledger, mode-setter or Vault member. A schema-invalid return puts
+the run in CONTAINMENT with no retry.
+F11-P05 · 🔴 P0 · IP-185 · CLASS A · Deps: F11-P02
+Operation: Implement the Run Completeness Attestation. The ledger
+constructs a CompleteHostRun only when the entries are
+contiguous from H0 through H5 with no HALT, every adapter's wiring
+is recorded, and every operator return was validated. Implement the
+UCG-HOST adapter preflight per §3.10.
+Output: { complete_host_run_type, ucg_host_preflight: 5 }
+Gate: A hosting run assembled by hand, with no f11_run_id , is
+rejected before transport, so the rejection holds with UCG in
+STUB_REFUSE . A run containing any HALT can never yield a
+CompleteHostRun . Identities that are not three distinct ones, or an
+operator that is any of them, are rejected at the same point.
+WAVE 2 — INTAKE, PROFILE, REGISTRY & SOURCES
+F11-P06 · 🔴 P0 · IP-170 · CLASS A · Deps: F11-P02
+Operation: Implement the Intake Eligibility Gate. Require the artifact
+hash, the certificate record, the source ( F8_BUNDLE or
+F10_HANDOFF ) and a handled artifact class. Refuse Machine
+Artifacts. For an F8 bundle or a PCE codebase, run a secret-shape
+scan and refuse a bundle containing a hardcoded secret-shaped
+value. Accept a BRIEF source for PLAN_ONLY runs only.
+Output: { intake_result: "ELIGIBLE" | "REFUSED",
+constraint_cited }
+Gate: An artifact with no certificate record is refused citing Invariant
+#22. A Machine Artifact is refused citing C-F11-18. A Tier 0 self-
+assigned certificate is valid; an absent one is not. A BRIEF run can
+never proceed past H3. With no scanner selected (OI-33), the secret-
+shape check fails closed for any run bound for EXECUTE .
+
+
+===== PAGE 76 =====
+F11-P07 · 🔴 P0 · IP-171 · CLASS A · Deps: F11-P06
+Operation: Implement the HRP normaliser per §3.4, accepting the
+card's input forms (an SDD, a PDD, a repository description, a stack
+list, or a plain-language brief). Enforce mandatory region ,
+compliance[] and budgetUsd . Accept environment keys only, and
+sanitise keys and descriptions.
+Output: { hrp, hrp_hash, sanitisation_report }
+Gate: A profile missing any mandatory field is refused, never
+defaulted (C-F11-06). A value in an environment field is rejected (C-
+F11-08).
+F11-P08 · 🔴 P0 · IP-174 · CLASS A · Deps: F11-P02
+Operation: Define the Hosting Connector Adapter interface per §3.6.
+provision() , deploy() and rollback() accept only a
+ConsentedHostingWrite . mode defaults to STUB_REFUSE .
+Output: { connector_interface, default_mode: "STUB_REFUSE"
+}
+Gate: No overload of a write method accepts any other type. The
+interface has no plan, ranking or score setter. A newly constructed
+adapter returns REFUSED .
+F11-P09 · 🔴 P0 · IP-174 · CLASS A · Deps: F11-P08
+Operation: Implement the Hosting Connector Registry and its five
+onboarding checks. Any failed check blocks addition. Attach a
+deployment profile per runtime class.
+Output: { registry, onboarding_checks: 5,
+deployment_profile_schema }
+Gate: An adapter declaring a wildcard scope is rejected at check 3.
+An adapter with no declared rollback and teardown, and no
+irreversibility flag, is rejected at check 4. Demand is not an input.
+
+
+===== PAGE 77 =====
+F11-P10 · 🔴 P0 · IP-175 · CLASS A · Deps: F11-P07, F11-P09
+Operation: Implement H2 provider sensing and plan validation
+through a connector adapter. In USER_SELECTED mode, sense the
+requested host (when it is registered) and the candidate set. Each
+captured provider constraint carries provenance and retrieval time.
+Compute sense_hash .
+Output: { provider_sense_record, sense_hash, ttl_status,
+validation_result }
+Gate: A constraint with no provenance is dropped, never marked
+provisional (C-F11-07). A record older than the TTL forces re-sense.
+TTL is [TO BE SET]. A credentialed read uses a read-scoped handle
+recorded in the ledger.
+F11-P11 · 🔴 P0 · IP-177 · CLASS A · Deps: F11-P02
+Operation: Define the interface to the shared Vault and Scope Broker
+(F10 IP-157). Issue short-lived, least-privilege handles per action.
+Never write a credential to any artifact, log or ledger.
+Output: { vault_interface, handle_schema }
+Gate: A request outside the declared scope is refused. A handle
+expires. A search of the ledger and artifacts for credential material
+returns nothing.
+F11-P25 · 🔴 P0 · IP-177 · CLASS A · Deps: F11-P02
+Operation: Implement the named-attestation recorder, used for
+HUMAN journey steps, devolution confirmations and supplier
+attestations. Each HUMAN step in a journey (account creation, 2FA,
+registrar DNS entries, entering a credential into the Vault) is
+completed only by a named human attestation recorded in the
+ledger.
+Output: { attestation_record_id, step_id, attester }
+Gate: A HUMAN step can never be marked complete by the operator,
+an adapter or the Conductor (C-F11-24). An attestation with no
+
+
+===== PAGE 78 =====
+named attester is rejected. A credential value never appears in an
+attestation.
+F11-P26 · 🔴 P0 · IP-187 · CLASS A · Deps: F11-P02, F11-P07
+Operation: Implement the Advice Mode router. Accept
+hosting_intent of AUTO or USER_SELECTED , and for
+USER_SELECTED a requested_host that names a registry entry or
+declares a custom_host . Record registry_status ( REGISTERED
+or OUTSIDE_REGISTRY ). Record mode_path in the ledger.
+Output: { advice_mode, requested_host, mode_path_schema }
+Gate: A USER_SELECTED request with no requested_host is
+refused. Every mode transition is recorded. A custom_host is never
+added to the registry. The mode never changes silently:
+USER_SELECTED becomes AUTO only through the devolution
+controller (F11-P30).
+F11-P31 · 🔴 P0 · IP-175 · CLASS A · Deps: F11-P02, F11-P06, F11-
+P25
+Operation: Implement supplied-source intake for a custom_host .
+For each supplied document: run the secret-shape scan, compute
+the content hash, record the Supplied Source Record of §3.5B.2
+including the supplier's named attestation of origin and currency and
+the stated date or an undated flag, and extract facts by a fixed
+schema. Treat the document as data, never as instructions.
+Output: { supplied_source_record, extracted_facts,
+scan_result }
+Gate: A document with a secret-shaped value is refused and never
+stored. With no scanner selected (OI-33), supplied documents are
+refused, because the ledger is append-only (C-F11-33). Instruction-
+like content is ignored and logged (C-F11-32). An attestation with no
+named supplier is rejected (C-F11-35). Every extracted fact keeps
+trust: HUMAN_SUPPLIED .
+
+
+===== PAGE 79 =====
+F11-P32 · 🔴 P0 · IP-187 · CLASS A · Deps: F11-P31
+Operation: Implement the evidence trust model of §3.5B.3: the
+SENSED and HUMAN_SUPPLIED classes, evidence_grade ( SENSED ,
+MIXED , SUPPLIED ), and which class of fact may support which
+finding.
+Output: { trust_model, evidence_grade_rules }
+Gate: A supplied fact can support a BLOCKING finding but can never
+establish that a compliance requirement is covered (C-F11-31). No
+downstream artifact upgrades a supplied fact to SENSED . A registry
+host with sensed data is never judged on a supplied document. A
+supplied fact past the TTL, or undated, is flagged, and past the TTL it
+forces re-supply. TTL is [TO BE SET].
+WAVE 3 — PLAN & ADVICE
+F11-P12 · 🔴 P0 · IP-173 · CLASS A · Deps: F11-P07, F11-P10
+Operation: Implement the HSE Evaluator per §3.5. Recompute the
+weighted result, ranking, primary, fallback and score from sensed
+data. Apply the registry rule for the mode. In USER_SELECTED mode,
+also score the requested host on the same eight criteria, for the
+Suitability Check and the comparison.
+Output: { hse_result: { matrix, weights, ranking, primary,
+fallback, score }, registry_check }
+Gate: Weights sum to exactly 100. A ranking supplied by any other
+component is never used. A host with no adapter and profile is not
+recommendable in EXECUTE mode.
+F11-P13 · 🔴 P0 · IP-172 · CLASS A · Deps: F11-P04, F11-P12
+Operation: Implement the HOST DJ plan request through the
+adapter. HOST DJ supplies its Sections B to F: rationale, the journey
+tier (A, B or C) with typed steps, deployment-file design, and a self-
+assessment scorecard. It does not supply the ranking. In
+USER_SELECTED mode it also supplies the explanation text for the
+
+
+===== PAGE 80 =====
+cheat sheet or the technical report, and never the verdict.
+Output: { rationale, journey, deployment_file_design }
+Gate: Any ranking, score, primary or fallback field in the adapter's
+return is discarded and logged. With the adapter stubbed, the run
+ends PLAN_ONLY with the cause stated. A monthly cost estimate at
+the stated scale and a fallback are required in the return (C-F11-19).
+A plan above $500 a month for an MVP carries a YELLOW FLAG.
+Tier B and Tier C journeys are PLAN_ONLY until templates exist (OI-
+32).
+F11-P14 · 🔴 P0 · IP-176 · CLASS A · Deps: F11-P13
+Operation: Implement journey and deployment-file emission: an
+environment template with keys only plus an allowlisted non-secret
+config_defaults block; a CI file with no production credential and
+no ungated production deploy; a health check that pings its
+dependencies; and a rollback procedure with destructive steps
+typed. Type every journey step HUMAN , CONNECTOR , VERIFY or
+NOTE .
+Output: { env_template, ci_file, health_check,
+rollback_procedure }
+Gate: The environment template passes the keys-only check (C-F11-
+08). A rollback procedure is present for every write the journey
+contains. A secret-shaped hint in the template is stripped. A CI file
+that deploys to production on push is rejected (C-F11-20). A health
+check that does not ping its dependencies is rejected (C-F11-21).
+F11-P27 · 🔴 P0 · IP-187 · CLASS A · Deps: F11-P12, F11-P26, F11-
+P32
+Operation: Implement the Suitability Check for USER_SELECTED .
+Compare the requested host's facts, each with provenance, trust
+class and retrieval or supply time (sensed, or supplied under the
+trust rules), against the stated profile requirements and platform
+status. Classify each finding BLOCKING or ADVISORY per §3.5A.1.
+
+
+===== PAGE 81 =====
+Emit HOSTABLE , ADVISE_AGAINST or UNDETERMINED .
+Output: { suitability_verdict, findings,
+hse_scores_requested_host, hse_comparison }
+Gate: A finding is BLOCKING only if it rests on a sensed fact with
+provenance (C-F11-27). Any BLOCKING finding yields
+ADVISE_AGAINST . A host that cannot be evidenced yields
+UNDETERMINED , never a verdict for or against. Every verdict carries
+an evidence_grade . A score gap alone is never blocking. No model
+output changes the verdict.
+F11-P28 · 🔴 P0 · IP-187 · CLASS A · Deps: F11-P14, F11-P27
+Operation: Implement the Cheat Sheet generator for a HOSTABLE
+verdict, to the schema in §3.5A.2: verdict line, fit summary,
+prerequisites, typed steps, environment keys, transformed CI/CD
+guidance, verification checklist with the negative health test,
+rollback, cost, caveats, sources and limits, opening with the
+evidence-grade banner (§3.5B.4).
+Output: { hosting_cheat_sheet }
+Gate: Every provider-specific step, value and command carries
+provenance, trust class and retrieval or supply time, or is omitted or
+labelled unverified and can never be a CONNECTOR step (C-F11-28).
+The sheet contains no environment value and asserts no
+certification or compliance (C-F11-12).
+F11-P29 · 🔴 P0 · IP-187 · CLASS A · Deps: F11-P27
+Operation: Implement the Technical Report generator for
+ADVISE_AGAINST , to the schema in §3.5A.3: verdict, requirement
+summary, blocking findings each with requirement, sensed fact,
+provenance and retrieval time, advisory findings, the HSE
+comparison against the devolved host, what would have to change,
+and sources, opening with the evidence-grade banner (§3.5B.4).
+Output: { hosting_technical_report }
+Gate: Each blocking finding shows its sensed evidence, and a
+
+
+===== PAGE 82 =====
+finding with none is rejected as blocking (C-F11-27). "What would
+have to change" states specifics from sensed data, or states that the
+host cannot be made viable. The report contains no persuasion
+beyond the evidence.
+F11-P15 · 🔴 P0 · IP-173 · CLASS A · Deps: F11-P12, F11-P13, F11-
+P14, F11-P26, F11-P27
+Operation: Implement the Plan Gate. Construct a HostingPlan only
+when the HRP is complete, the HSE result was recomputed within
+the TTL, the registry rule holds, the deployment files pass, and the
+binding hash(artifact_hash, hrp_hash, sense_hash,
+f11_run_id) is recorded. In USER_SELECTED mode with a
+HOSTABLE verdict, the requested host is the primary and the best
+other candidate is the fallback.
+Output: { hosting_plan, binding }
+Gate: Only this gate can construct a HostingPlan (Invariant #28). A
+plan from another run, artifact or profile is rejected. In ADVISORY
+mode the plan is the run's final product.
+F11-P34 ★ · 🔴 P0 · IP-193 · CLASS A · Deps: F11-P10
+Operation: Extend H2 SENSE to classify a host's actuation surface
+( API , CHAT_ONLY , NONE ) with provenance, independent of
+registry_status .
+Output: { host_actuation }
+Gate: A classification with no provenance is refused. CHAT_ONLY
+requires a positive, sourced statement that the host's own assistant
+is the documented setup surface for the task at hand, never an
+inference from a missing connector.
+F11-P35 ★ · 🔴 P0 · IP-194 · CLASS A · Deps: F11-P34, F11-P13,
+F11-P28
+Operation: Implement the Chat Script Composer for hosting: on
+
+
+===== PAGE 83 =====
+CHAT_ONLY , build a draft CuratedPromptScript from the HRP and
+sensed host-capability facts only.
+Output: { cps_host_draft }
+Gate: The composer has no method that accepts a credential. Every
+prompt's provenance list is non-empty before the draft leaves this
+prompt.
+F11-P37 ★ · 🔴 P0 · IP-195 · CLASS A · Deps: F11-P35
+Operation: Validate the draft CPS-HOST against Invariant #32's four
+rules (grounding, no guardrail-bypass, no secret content, atomicity-
+and-checkpoint), reusing F10 PDD v3.1's validator design
+unchanged. Feed the validated script into the cheat sheet's Steps
+section as typed CHAT_PROMPT entries.
+Output: { cps_host_validated, cheat_sheet_steps_chat_prompt
+}
+Gate: A script with any failing prompt is refused whole, not filtered to
+the passing ones. CHAT_PROMPT steps never carry a CONNECTOR
+capability.
+WAVE 4 — CONSENT, DEVOLUTION & HANDOFF INTAKE
+F11-P16 · 🔴 P0 · IP-177 · CLASS A · Deps: F11-P15, F11-P11, F11-
+P03
+Operation: Implement the hosting extension of the Consent Gate.
+Present the exact content, account, project, region and cost ceiling
+at approval. Check that the credential's account equals the consent's
+account. Give destructive, public-exposure and DNS actions their
+own consent lines. Produce a ConsentedHostingWrite from a
+HostingPlan , a consent record, a scoped handle and a rollback
+declaration. Consent #1 is for staging and consent #2 for
+production. Record a YELLOW FLAG acknowledgement where the
+plan carries one.
+Output: { consented_hosting_write, consent_record_id,
+
+
+===== PAGE 84 =====
+stage: "STAGE" | "PRODUCTION" }
+Gate: Only this gate can construct a ConsentedHostingWrite , and
+only in EXECUTE mode. A consent with no cost ceiling is refused (C-
+F11-09). Consent #1 cannot be used for production. A destructive
+action with no explicit line is refused, and a destructive rollback step
+has its own line (C-F11-22). A plan carrying a YELLOW FLAG with no
+acknowledgement is refused.
+F11-P17 · 🔴 P0 · IP-182 · CLASS A · Deps: F11-P06, F11-P07
+Operation: Implement the F10 Handoff Port intake. Validate an
+F10Handoff per §3.9: built by F10's conductor, SAVANT verdict
+bound, phaseReached consistent with kind , and a UCG-COL
+reference for PRODUCTION_HOST . Normalise its runtime
+requirements into an HRP.
+Output: { handoff_validation, hrp_from_handoff }
+Gate: A hand-made handoff is rejected and logged as a KILLZONE
+event. STAGING_HOST with no verdict binding is refused.
+PRODUCTION_HOST with no UCG-COL reference is refused (Invariant
+#30).
+F11-P30 · 🔴 P0 · IP-187 · CLASS A · Deps: F11-P15, F11-P27, F11-
+P29, F11-P25
+Operation: Implement the Devolution controller. On
+ADVISE_AGAINST , run the AUTO HSE ranking once over the already-
+sensed candidate set with the requested host excluded, construct
+the devolved HostingPlan through the Plan Gate, and require a
+DevolutionConfirmation : a named human attestation naming the
+devolved host, before H4.
+Output: { devolved_hosting_plan, devolution_record,
+devolution_confirmation_required: true }
+Gate: Devolution happens at most once per run (C-F11-29). The
+devolved plan inherits neither the user's selection nor any consent.
+H4 refuses without the confirmation. If no candidate is viable, the
+
+
+===== PAGE 85 =====
+run ends REFUSED with the report attached. No path overrides a
+blocking finding (C-F11-30).
+WAVE 5 — STAGE & VERIFY
+F11-P18 · 🔴 P0 · IP-178 · CLASS A · Deps: F11-P16, F11-P03
+Operation: Implement staged provision and deploy into an isolated
+staging host through the connector adapter, using a
+ConsentedHostingWrite for STAGE . Snapshot state first so
+rollback is possible. Monitor spend against the consented ceiling.
+Output: { stage_result, rollback_handle, staging_host_ref,
+spend_to_date }
+Gate: The staging host is isolated from users and production data. A
+write with no rollback handle is refused. Spend beyond the ceiling
+halts the run in CONTAINMENT. The write methods accept no other
+type.
+F11-P19 · 🔴 P0 · IP-179 · CLASS A · Deps: F11-P18
+Operation: Implement in-stage verification: run the health check and
+the smoke suite against the staging host, then rehearse the
+rollback. Include a negative health test in which a dependency is
+made unavailable and the check must fail, and the card's staging
+checklist (health endpoint, auth flow, database read and write,
+environment loaded, rollback documented and rehearsed). Declare
+tolerances before running.
+Output: { stage_verification, within_tolerance,
+rollback_rehearsed, environment: "STAGE",
+tolerance_declared_before_run: true }
+Gate: A failure rolls the stage back, refuses, and does not retry (C-
+F11-10). An unrehearsed rollback blocks promotion (C-F11-15). A
+health check that stays healthy with a dependency down is rejected
+(C-F11-21). The result is labelled STAGE and never described as
+production behaviour.
+
+
+===== PAGE 86 =====
+F11-P20 · 🔴 P0 · IP-182 · CLASS A · Deps: F11-P19, F11-P17
+Operation: Emit the staging HostReceipt for an F10 handoff:
+endpoint identity, environment STAGE , rollback handle and
+f11_run_id . Never include a credential.
+Output: { host_receipt_stage }
+Gate: The receipt carries no secret. It is emitted only after in-stage
+verification passes. It makes nothing reachable by users (Invariant
+#30).
+F11-P36 ★ · 🔴 P0 · IP-196 · CLASS A · Deps: F11-P37, F11-P16
+Operation: Implement GUIDED execution for hosting: within
+EXECUTE mode, a CHAT_ONLY host always runs execution_class:
+"GUIDED" . Request consent naming the script, the account and a
+cost ceiling; on approval, present the script for the human to run
+under their own login; record checkpoint reports as
+HUMAN_SUPPLIED , treated as data, never instructions.
+Output: { execution_class: "GUIDED", checkpoint_reports:
+[], credential_class: "HUMAN_OWN_LOGIN" }
+Gate: No Vault handle is issued for a CHAT_ONLY host. A checkpoint
+report is never graded SENSED . A destructive CHAT_PROMPT step is
+refused without its own consent line (C-F11-22).
+F11-P38 ★ · 🔴 P0 · IP-197 · CLASS A · Deps: F11-P36
+Operation: Implement a generic endpoint probe for hosting: a
+minimal reachability and basic-response check against an endpoint
+the GUIDED run reports, supplementing H5 in-stage verification.
+Output: { probe_result: { reachable: boolean,
+basic_response_ok: boolean } }
+Gate: A successful probe never reclassifies host_actuation from
+CHAT_ONLY to API . It is one input among several at H5, never
+sufficient alone.
+
+
+===== PAGE 87 =====
+WAVE 6 — CERTIFY, PROMOTE, HAND OFF
+F11-P21 · 🔴 P0 · IP-180 · CLASS A · Deps: F11-P19, F11-P05
+Operation: Request a UCG-HOST certificate for the staged
+deployment, binding it to the specific build (ref and hash), attaching
+the CompleteHostRun , the production-standard evidence where it
+applies, the consent records, and the author, scorer and adjudicator
+identities.
+Output: { ucg_host_certificate }
+Gate: With UCG-HOST undefined (OI-23), this prompt returns
+REFUSED and promotion is unreachable. Refuses if the certificate's
+subject is not this hosted deployment (C-F11-11). Refuses if the
+identities are not distinct or the operator is any of them (C-F11-13).
+F11-P22 · 🔴 P0 · IP-181 · CLASS A · Deps: F11-P21, F11-P16
+Operation: Promote to a production host through a
+ConsentedHostingWrite for PRODUCTION . For an F10 handoff,
+require F10's UCG-COL certificate. Cut over with the rollback
+rehearsed in stage.
+Output: { promotion_result, production_host_ref }
+Gate: Refuses without a UCG-HOST certificate, without consent #2,
+or, for an F10 handoff, without UCG-COL . The production standard is
+not weakened (C-F11-11). A build other than the certified one is
+refused (C-F11-20).
+F11-P23 · 🔴 P0 · IP-182 · CLASS A · Deps: F11-P22, F11-P20
+Operation: Emit the production HostReceipt for an F10 handoff.
+Output: { host_receipt_prod }
+Gate: Emitted only after promotion is confirmed. Carries no secret.
+F11 still makes the runtime reachable only under F10's promotion
+consent (Invariant #30).
+
+
+===== PAGE 88 =====
+F11-P24 · 🔴 P0 · IP-183 · CLASS A · Deps: F11-P22
+Operation: Register the promoted hosting record's telemetry
+contract with F9.5 (D32) and write the hosting record. Carry the
+f10_run_id where present.
+Output: { telemetry_contract_id, hosting_record_id }
+Gate: No hosting record without a registered monitoring contract (C-
+F11-14). F11 registers hosting telemetry only and never F10's
+colonization telemetry.
+WAVE 7 — SELF-TEST
+F11-P33 · 🔴 P0 · CLASS A · Deps: F11-P01 …
+F11-P38
+Operation: Run the worksheet against itself.
+Confirm each of the following is refused at its
+named phase, cited and ledgered: (a) a write
+with no HostingPlan ; (b) a ranking supplied by the
+HOST DJ Adapter that differs from the
+recompute; (c) a host with no adapter or profile
+in EXECUTE mode; (d) EXECUTE attempted with no
+Execution Lift; (e) a write with no consent
+record; (f) a consent with no cost ceiling; (g) an
+environment template containing a value; (h) a
+credential request outside scope; (i) a hand-
+made F10Handoff ; (j) STAGING_HOST with no verdict
+binding; (k) PRODUCTION_HOST with no UCG-COL ; (l)
+exposure of a colonization's runtime before
+
+
+===== PAGE 89 =====
+F10's promotion consent; (m) production
+promotion with UCG-HOST undefined; (n) a hosting
+run assembled by hand with no f11_run_id ,
+rejected at the UCG-HOST preflight; (o)
+identities that are not three distinct ones, or an
+operator that is one of them; (p) an LLM client
+import in the core, which fails the build; (q) a
+HOST DJ Adapter attempt to set a mode or
+write the ledger, which has no interface to do
+so; (r) stale provider data, forcing re-sense; (s)
+a stage health-check failure, with rollback and
+no retry; (t) a Machine Artifact at intake; (u) a
+missing production-standard evidence on the
+F8 route; (v) spend beyond the ceiling, halting
+in CONTAINMENT; (w) a CI file that deploys to
+production on push or holds a production
+credential; (x) a health check that stays healthy
+with a dependency down; (y) a hardcoded
+secret-shaped value in a bundle, or the scanner
+absent, failing closed; (z) a HUMAN step marked
+complete without a named attestation; (aa) a
+plan above $500 a month for an MVP with no
+acknowledged YELLOW FLAG; (ab) a BRIEF run
+attempting to pass H3; (ac) a request to host
+
+
+===== PAGE 90 =====
+an agent or colonization that did not come
+through an F10Handoff ; (ad) a USER_SELECTED request
+for a host with a blocking finding, which gets
+ADVISE_AGAINST , a technical report and one
+devolution, and never a cheat sheet; (ae) a
+cheat-sheet step with no provenance, which is
+omitted or labelled unverified and is never a
+CONNECTOR step; (af) a devolved host reaching H4
+with no human confirmation naming it; (ag) a
+second devolution, or a loop between modes;
+(ah) a USER_SELECTED request for a host with no
+sensed data, which is UNDETERMINED and neither
+advised for nor against; (ai) a technical-report
+finding with no sensed evidence classed as
+blocking; (aj) any attempt to override a
+blocking finding; (ak) a supplied document
+containing a secret-shaped value, refused and
+never stored, and any supplied document with
+the scanner absent, refused; (al) a supplied
+document claiming a compliance certification,
+which cannot clear a stated compliance
+requirement and yields UNDETERMINED ; (am) a
+supplied document stating a blocking fact,
+which yields ADVISE_AGAINST ; (an) an instruction
+
+
+===== PAGE 91 =====
+embedded in a supplied document, ignored
+and logged; (ao) a custom host reaching
+EXECUTE , or a step drawn from a supplied
+document typed CONNECTOR ; (ap) a supplied fact
+appearing downstream as sensed; (aq) an
+undated or stale supplied document, flagged or
+forced to re-supply; (ar) a custom host named
+as an F10 handoff target; (as) a supplied
+document for a registry host with sensed data,
+recorded and not used; (at) a Curated Prompt
+Script for a host containing a guardrail-bypass
+instruction, refused at composition; (au) a
+prompt containing secret-shaped text, refused
+at composition; (av) a CHAT_ONLY host for which a
+Vault handle is requested, which the interface
+cannot construct; (aw) a hosting chat
+checkpoint report used as though it were
+SENSED , rejected; (ax) a CHAT_PROMPT step executed
+as a CONNECTOR write, rejected at the type level.
+Output: { refused_at_named_phase: 50/50, ledgered: true
+}
+Gate: All fifty true. A test that passes because
+the run never reached that phase does not
+count.
+
+
+===== PAGE 92 =====
+PART 5 — RISK REGISTER
+Risk
+Sev
+Mitigation
+A deploy with no
+plan
+🔴
+Critical
+Invariant #28;
+ConsentedHostingWrite
+cannot exist without a
+HostingPlan . F11-P33 (a)
+A model-written
+ranking treated as
+fact
+🔴
+Critical
+The HSE Evaluator recomputes;
+the adapter's ranking fields are
+discarded. F11-P33 (b)
+A write with no
+consent, or a
+reused consent
+🔴
+Critical
+Invariant #29; F11-P33 (e)
+Uncapped spend
+🔴
+Critical
+Cost ceiling in every consent;
+CONTAINMENT on overrun. F11-
+P33 (f), (v)
+A secret in an
+artifact, log or
+ledger
+🔴
+Critical
+C-F11-08; keys-only templates;
+opaque handles; the ledger
+refuses secret values
+An unverified
+colonization
+exposed to users
+🔴
+Critical
+Invariant #30; staging hosts are
+isolated; production needs UCG-
+COL
+A forged F10
+handoff
+🔴
+Critical
+F10Handoff constructible only
+by F10's conductor; KILLZONE on
+a forgery. F11-P33 (i)
+Production
+promotion
+without a
+certificate
+🔴
+Critical
+Invariant #22 applies; UCG-
+HOST ; unreachable until OI-23
+closes
+
+
+===== PAGE 93 =====
+Risk
+Sev
+Mitigation
+A path around the
+OSIRIS
+production
+standard
+🔴
+Critical
+Production needs the standard
+(F8 route) and UCG-HOST ; F11
+restates no weaker number. OI-
+24
+Hand-assembled
+hosting bypasses
+the operator
+🔴
+Critical
+Invariant #31; only the ledger
+constructs a CompleteHostRun
+The advisory
+boundary erodes
+silently
+🟠 High
+EXECUTE needs a recorded
+Execution Lift (C-F11-16); HOST
+DJ has no credential or mode
+access
+Operator is a
+selection card,
+not an operator
+profile
+🟠 High
+Disclosed in Document Control,
+§1.8, §3.2 and SOLVA ground 1.
+OI-21
+An auto-deploy
+pipeline becomes
+a standing
+production write
+path
+🔴
+Critical
+C-F11-20; emitted pipelines carry
+no production credential and no
+ungated production deploy. F11-
+P33 (w)
+A stub health
+check passes a
+broken deploy
+🟠 High
+C-F11-21; the negative health
+test. F11-P33 (x)
+A destructive
+rollback step is
+run as routine
+🔴
+Critical
+C-F11-22; typed, never
+automated, own consent line
+A HUMAN step is
+marked done by
+the system
+🟠 High
+C-F11-24; named attestation only.
+F11-P33 (z)
+
+
+===== PAGE 94 =====
+Risk
+Sev
+Mitigation
+The card's agent-
+deployment claim
+bypasses F10
+🔴
+Critical
+Not adopted; hosting a
+colonization only through
+F10Handoff . F11-P33 (ac). OI-
+31
+A hardcoded
+secret ships in a
+bundle
+🟠 High
+C-F11-23; fails closed while no
+scanner is selected. OI-33
+A cheat sheet
+carries
+remembered,
+outdated
+commands
+🔴
+Critical
+C-F11-28: provenance and
+retrieval time on every provider-
+specific step, or omitted or
+labelled unverified. F11-P33 (ae)
+"Advise against"
+rests on opinion,
+not evidence
+🟠 High
+C-F11-27; a blocking finding
+needs a sensed fact. F11-P33 (ai)
+The user's host is
+quietly swapped
+for another
+🔴
+Critical
+C-F11-29: one devolution at most
+and a named human
+confirmation. F11-P33 (af), (ag)
+A blocking finding
+is overridden,
+becoming a path
+around the check
+🟠 High
+C-F11-30: no override; change the
+requirement and re-run. F11-P33
+(aj)
+A host is advised
+for or against
+without evidence
+🟠 High
+UNDETERMINED , a cited refusal.
+F11-P33 (ah). OI-35
+
+
+===== PAGE 95 =====
+Risk
+Sev
+Mitigation
+A supplied
+document is
+forged or
+outdated and
+treated as
+authority
+🟠 High
+Lower-trust class, a grade on
+every artifact, no upgrade, a TTL,
+and no execution from it (C-F11-
+31, C-F11-34). F11-P33 (ap), (aq).
+OI-35
+A supplied
+document carries
+instructions or a
+secret
+🟠 High
+Data, not instructions (C-F11-32);
+secret scan before storage (C-
+F11-33). F11-P33 (ak), (an). OI-36
+A supplied
+compliance claim
+clears a
+compliance
+requirement
+🔴
+Critical
+Rule T3: a supplied fact can
+never establish coverage. F11-
+P33 (al)
+A custom host
+slips into
+execution or an
+F10 handoff
+🔴
+Critical
+C-F11-34: no adapter, no profile,
+no receipt. F11-P33 (ao), (ar)
+A curated prompt
+talks a host's own
+AI assistant into
+skipping its
+guardrails
+🔴
+Critical
+Invariant #32 rule 2; refused at
+composition. F11-P33 (at).
+A secret is typed
+into a host's chat
+box
+🔴
+Critical
+Invariant #32 rule 3; refused at
+composition. F11-P33 (au).
+
+
+===== PAGE 96 =====
+Risk
+Sev
+Mitigation
+A CHAT_ONLY
+host write gets a
+Vault credential
+anyway
+🔴
+Critical
+Invariant #33; no such method
+exists. F11-P33 (av).
+A CHAT_PROMPT
+step silently
+becomes an
+automated write
+🟠 High
+Typed distinctly from
+CONNECTOR ; rejected at the type
+level. F11-P33 (ax).
+Provider data
+drifts
+🟠 High
+Provenance, retrieval time and
+TTL; forced re-sense. TTL unset
+Compliance or
+region mismatch
+🟠 High
+Mandatory region and
+compliance[] ; comparison
+against sensed terms; C-F11-12
+bans compliance claims. OI-27
+Stage passes,
+production
+behaves
+differently
+🟠 High
+STAGE labelling; rollback
+rehearsed; production standard
+evidence
+Overlapping
+deployment
+layers (F11 vs
+OSIRIS)
+🟠 High
+Proposed ruling in §3.1; OI-24
+HSE weights bias
+the plan
+🟡
+Medium
+Weights shown in every plan;
+changes are version changes. OI-
+26
+Lock-in
+undisclosed
+🟡
+Medium
+Lock-in is a scored criterion and
+shown
+Shared Vault
+unbuilt
+🟠 High
+OI-29; F11 stays STUB_REFUSE
+until wired
+
+
+===== PAGE 97 =====
+PART 6 — GLOSSARY
+Term
+Definition
+F11 HOST CONNECTOR
+D37. Hosting integration: plan,
+connect, stage, verify, certify,
+promote, hand off.
+HOST DJ
+The operating SPC of D37.
+Documented as the hosting
+decision and deployment journey
+capability (JCSE 47/50, Seat 10, per
+the Command Centre PDD).
+YELLOW FLAG
+HOST DJ's advisory flag: a plan
+above $500 a month for an MVP, or
+a clearly non-viable request. It must
+be acknowledged in the consent.
+Advice mode
+AUTO (HOST DJ advises the best
+host) or USER_SELECTED (the user
+names a host).
+Suitability Check
+The deterministic comparison of a
+requested host's sensed facts
+against the stated requirements.
+Outcomes HOSTABLE ,
+ADVISE_AGAINST ,
+UNDETERMINED .
+Cheat sheet
+The concise, provenance-bound
+guide to hosting on a HOSTABLE
+requested host (§3.5A.2).
+
+
+===== PAGE 98 =====
+Term
+Definition
+Technical report
+The evidence-bound case against a
+requested host, with what would
+have to change (§3.5A.3).
+Devolution
+The single fall-back from
+USER_SELECTED to AUTO after
+ADVISE_AGAINST , confirmed by
+the human by name (§3.5A.4).
+Custom host
+A host the user names that is not in
+the registry. Advice only (§3.5B).
+Supplied Source Record
+The ledger record of a user-supplied
+document: origin claim, supplier,
+dates, hash, scan result, attestation,
+trust class HUMAN_SUPPLIED .
+Evidence grade
+SENSED , MIXED or SUPPLIED :
+what kind of evidence a verdict or
+artifact rests on.
+CHAT_ONLY host
+A host whose only documented
+setup surface is its own chat
+assistant.
+Curated Prompt Script
+(CPS-HOST)
+The sequenced, provenance-bound,
+safety-checked prompt list for a
+CHAT_ONLY host, adopted from
+F10's design.
+CHAT_PROMPT step
+A journey-step type for a human-
+mediated action driven by one
+specific curated prompt; never a
+CONNECTOR write.
+GUIDED execution
+The human performs the write
+under their own login; F11 holds no
+
+
+===== PAGE 99 =====
+Term
+Definition
+credential for that host.
+Journey step classes
+HUMAN (a named attestation),
+CONNECTOR (a write under
+consent), VERIFY (a check), NOTE
+(information).
+HSE / DJG / SDF
+HOST DJ's three features: the
+Hosting Selector Engine, the
+Deployment Journey Generator and
+the Seamless Deployment
+Facilitator.
+F8-HDJ
+The HOST DJ engine live in the
+ATANDA Command Centre product.
+Advisory only.
+F11 Host Conductor
+The deterministic runtime that
+enforces the F11 protocol. Not an
+SPC.
+HRP
+Hosting Requirements Profile: stack,
+database fit, compliance, region,
+traffic ceiling, budget, plus F11's
+extensions.
+HSE
+The eight-criterion host scoring
+matrix used by F8-HDJ. Its
+expansion is not given in the
+sources checked.
+HostingPlan
+A recomputed, bound hosting plan.
+Only the Plan Gate can construct
+one.
+ConsentedHostingWrite
+A plan with a consent record, a cost
+ceiling, a scoped credential and a
+
+
+===== PAGE 100 =====
+Term
+Definition
+rollback. Only the Consent Gate can
+construct one.
+F10Handoff
+The request from F10 for a staging
+or production host. Only F10's
+conductor can construct one.
+HostReceipt
+F11's reply to F10: endpoint identity,
+environment, rollback handle. No
+credential.
+CompleteHostRun
+A value only the ledger can
+construct, proving contiguous H0–
+H5 entries with no HALT (Invariant
+#31).
+Execution Lift
+The Owner's recorded decision to
+permit EXECUTE mode.
+UCG-HOST
+Proposed certificate class for a
+hosted deployment. Threshold
+unset.
+Staging host
+An isolated host used as a test
+article. Never reachable by users.
+Terminal state
+One of HOSTED_PRODUCTION ,
+STAGED_HOSTED , PLAN_ONLY ,
+REFUSED .
+FORGE CERTIFICATION BLOCK
+╔══════════════════════════════════════════════
+════════════════════════════════╗
+║  THE ARK HARNESS — F11 HOST CONNECTOR · ATLAS OMNIBUS 
+
+
+===== PAGE 101 =====
+PDD v1.4               ║
+║  ASSEMBLED VIA ATLAS ULTRA SI · TIER 0 · SELF-
+ASSIGNED                       ║
+╠══════════════════════════════════════════════
+════════════════════════════════╣
+║  PRODUCTION ID      : JNGL-ARKH-F11HC-2026-005          
+║
+║  SUPERSEDES         : -004 (v1.3); through it -003, 
+-002, -001               ║
+║  DOMAIN             : D37 — F11 HOST CONNECTOR          
+║
+║  IP RANGE           : IP-170–187, IP-193–197 (23; 
+non-contiguous)            ║
+║  OPERATING SPC      : HOST DJ SPC-HOSTDJ-IF-2026-001 
+v1.0                    ║
+║                       JCSE 47/50 (own rubric) · HIVE 
+14D pending             ║
+║  ADVICE MODES       : AUTO · USER_SELECTED (cheat 
+sheet /                    ║
+║                       technical report + devolution) 
+· outside-registry      ║
+║                       · NEW: CHAT_ONLY host — Curated 
+Prompt Script          ║
+║  ENGINE PRECEDENT   : F8-HDJ — advisory only, live in 
+a product              ║
+║  CONDUCTOR          : F11 Host Conductor — 
+deterministic, no LLM             ║
+║  RUN                : H0 INTAKE · H1 PROFILE · H2 
+SENSE · H3 PLAN ·          ║
+║                       H4 CONSENT & STAGE · H5 VERIFY 
+IN STAGE ·              ║
+║                       H6 CERTIFY · H7 CONSENT & 
+PROMOTE ·                    ║
+║                       H8 HAND OFF                       
+║
+║  TERMINAL STATES    : HOSTED_PRODUCTION · 
+STAGED_HOSTED ·                    ║
+║                       PLAN_ONLY · REFUSED               
+║
+║  HANDOFF            : F10 CONNECTOR — STAGING_HOST · 
+PRODUCTION_HOST         ║
+
+
+===== PAGE 102 =====
+║  INVARIANTS         : #28 Plan-Gated Hosting            
+║
+║                       #29 Consent-Gated Hosting 
+Writes                       ║
+║                       #30 F10 Handoff Integrity         
+║
+║                       #31 The Single Operator (D37)     
+║
+║                       #32/#33 adopted from F10 PDD 
+v3.1                      ║
+║  PLATFORM TOTALS    : 37 Domains · 197 IPs · 33 
+Invariants · 3 open slots    ║
+║  RESERVED           : D38 / IP-198 onward               
+║
+║  ATOMIC PROMPTS     : 39 (F11-P01 – F11-P33) · 7 
+waves · 15-prompt path      ║
+║  SOLVA VERDICT      : CONDITIONALLY VIABLE — 
+published as issued (§2.5)      ║
+║  JCSE               : Self-assigned Tier 0 — not 
+scored — NOT HIVE-certified ║
+║  GRO STATE          : SAFE_LIFE                         
+║
+║  HONESTY GATE G3    : OI-21 HOST DJ is a selection 
+card, not an operator     ║
+║                       OI-22 Execution Lift — RUNS 
+PLAN_ONLY until lifted     ║
+║                       OI-23 UCG-HOST undefined — 
+PROMOTION BLOCKED           ║
+║                       OI-33 no secret scanner for 
+supplied documents         ║
+║                       OI-37 D37 IP block non-
+contiguous (disclosed)          ║
+║                       OI-38a no secret scanner for 
+chat-prompt intake        ║
+║                       OI-39 chat-transcript 
+authenticity unverifiable        ║
+║                       OI-40 composed prompt wording 
+vs sourced facts         ║
+║                       Advisory today — no provider is 
+ever written to        ║
+║                       Zero live testing on any 
+
+
+===== PAGE 103 =====
+provider                      ║
+║  OWNER              : Oluseye Shay Amusa / Koncentric 
+Labs Inc.              ║
+║  © 2026 Koncentric Labs Inc. · ATANDA Publications 
+Forum                     ║
+╚══════════════════════════════════════════════
+════════════════════════════════╝
+VERSION HISTORY
+Version
+Date
+Change
+Author
+1.0
+Sept
+2026
+Initial issue. D37 registered, IP-170–
+186. Invariants #28 (Plan-Gated
+Hosting), #29 (Consent-Gated
+Hosting Writes), #30 (F10 Handoff
+Integrity), #31 (The Single
+Operator). HOST DJ adopted as the
+operating SPC at its documented
+capability, with the gap in its
+documentation disclosed. Nine-
+phase run with an advisory default
+and a staged, two-consent
+promotion. F10 handoff protocol
+(staging and production). UCG-
+HOST proposed with no threshold.
+Twenty-five atomic prompts. OI-21
+to OI-30 opened.
+ATLAS
+ULTRA
+SI
+1.1
+Sept
+2026
+HOST DJ card integrated. The
+Owner supplied
+HOST_DJ_SPC_v1_0 , which v1.0
+had reported as not located.
+Operating-SPC identity, class, DNA,
+seat, mode, features and
+constraints now come from the
+card. Eighteen card-versus-F11
+ATLAS
+ULTRA
+SI
+
+
+===== PAGE 104 =====
+Version
+Date
+Change
+Author
+rulings added (§3.2.4), including
+that the card's CI/CD file, health
+check, rollback and agent-
+deployment claim are not adopted
+as written. Constraints C-F11-19 to
+25 added. Input source BRIEF
+( PLAN_ONLY only). Journey step
+classes and the human-step
+attestation recorder (F11-P25). Self-
+test moves to F11-P26 and grows to
+29 checks. OI-21 narrowed and
+rewritten; OI-24, OI-26, OI-28
+extended; OI-31 to OI-33 opened.
+Not re-scored.
+1.2
+Sept
+2026
+Advice modes. HOST DJ serves
+AUTO requests (advise the best
+host) or USER_SELECTED requests
+(the user names a host). A
+deterministic Suitability Check gives
+HOSTABLE (a cheat sheet),
+ADVISE_AGAINST (a technical
+report and one devolution to AUTO ,
+confirmed by the human by name)
+or UNDETERMINED (a cited refusal;
+added because a host that cannot
+be sensed cannot honestly be
+advised on). Seven blocking
+classes, no override, no score-gap
+trigger. IP-187 added. Constraints C-
+F11-26 to 30 and prompts F11-P26
+to P30 added. Self-test moves to
+F11-P31 and grows to 36 checks.
+OI-34 and OI-35 opened. Not re-
+scored.
+ATLAS
+ULTRA
+SI
+
+
+===== PAGE 105 =====
+Version
+Date
+Change
+Author
+1.3
+Sept
+2026
+Outside-registry hosts and supplied
+sources (Owner decision, closing
+the design question in OI-35). A user
+may name a host outside the
+registry and supply documents
+about it. Documents are a lower-
+trust source: two trust classes, an
+evidence_grade on every verdict
+and artifact, supplied facts that may
+block but never clear a compliance
+requirement, no upgrade to sensed,
+secret scanning before storage,
+data-not-instructions handling, and
+a supplier attestation F11 does not
+verify. A custom host is advice only,
+never EXECUTE and never an F10
+handoff target. Constraints C-F11-
+31 to 35, prompts F11-P31 and P32
+added; F11-P25 no longer depends
+on the journey and moves to W2;
+self-test is F11-P33 with 45 checks.
+OI-35 rewritten, OI-33 extended, OI-
+36 opened. Not re-scored.
+ATLAS
+ULTRA
+SI
+1.4
+Sept
+2026
+Chat-only hosts. Adopts F10 PDD
+v3.1's Invariants #32 (Curated Chat-
+Script Integrity) and #33 (Guided
+Execution Accountability)
+unchanged. New host_actuation
+classification independent of
+registry status. For CHAT_ONLY , the
+cheat sheet's steps become a
+Curated Prompt Script (CPS-HOST),
+and journey steps gain a fifth type,
+CHAT_PROMPT , never a
+CONNECTOR write. GUIDED
+ATLAS
+ULTRA
+SI
+
+
+===== PAGE 106 =====
+Version
+Date
+Change
+Author
+execution: the human runs the
+script under their own login, no
+Vault credential, checkpoint reports
+graded HUMAN_SUPPLIED . A
+generic endpoint probe
+supplements verification. Worked
+from Hostinger's agentic/vibe-
+coding mode as an [EXT]
+example. Five IPs (193–197) taken
+from the shared D38 frontier
+alongside F10 v3.1, disclosed as
+non-contiguous (OI-37). Three
+constraints and five prompts (F11-
+P34–P38) added; self-test is F11-
+P33 with 50 checks. OI-38a and
+shared OI-39, OI-40 opened. Not re-
+scored.
+AUTHORSHIP & PROVENANCE
+Assembled by: ATLAS ULTRA SI (architecture, 4-Part decomposition,
+atomic prompts)
+Council: HOST DJ (operating SPC, per the supplied card) · SPARTAN
+MVE (invariant design) · SOLVA ULTRA SI (GAUNTLET verdict) ·
+CORDON (wave sequencing) · OSIRIS ULTRA SI (telemetry and
+production standard) · SAVANT ENVOY ULTRA SI (handoff partner)
+Source basis: F10 CONNECTOR ATLAS PDD v3.1 (companion
+amendment; source of Invariants #32 and #33 and the Chat Script
+Composer design, adopted unchanged); Hostinger's AI website
+builder / agentic ('vibe coding') mode documentation ( [EXT] , re-
+verify before use); HOST_DJ_SPC_v1_0 ( SPC-HOSTDJ-IF-2026-001 );
+ATANDA Command Centre Living PDD and MVE PDD; THE ARK
+HARNESS ATLAS Omnibus PDD v10.1; OMNIBUS ALPHA; SAVANT
+
+
+===== PAGE 107 =====
+ENVOY ULTRA SI SPC v1.0.0; F9 MACHINE FLOOR ATLAS PDD v2.1;
+Camelot Roundtable SPC Inventory; Master SPC Platform Registry.
+EVIDENCE TAGS
+[SPEC] — D37, all 18 IPs, the four invariants, the run, the
+capability types, the HRP extensions, the 0–100 HSE
+normalisation, the two advice modes, the Suitability Check and
+its blocking classes SC-1, SC-4 to SC-7, the evidence trust rules
+T1 to T9, the Supplied Source Record, the cheat-sheet and report
+schemas, UCG-HOST , all Part 4 prompts. Design intent; nothing
+built.
+[INT]† — SOLVA verdict self-adjudicated; Tier 0 self-
+assignment.
+[Owner requirement] — the two advice modes and the
+devolution rule, and the decision to allow outside-registry hosts
+with user-supplied documents as a lower-trust source, as
+specified by the Owner.
+[Owner requirement] — the instruction to add curated prompt
+scripts for chat-interface targets, naming Azure, Gemini Agent
+and Hostinger as examples, as specified by the Owner and
+jointly implemented across this document and F10 PDD v3.1.
+[ARK] — the HOST DJ card's identity, JCSE, lineage, seat, mode,
+features, registry, journey tiers, constraints, SDF artifacts and
+sister integrations; the F8-HDJ contract and guardrails; the HRP
+fields; the HSE criteria and weights; the F8 registry; the Class C
+deferral; the product-versus-harness scope; OSIRIS's deployment
+layer and production standard; the register entries for D32, D33,
+D35 and D36; and the seat and score collisions: drawn from
+confirmed project artifacts as stated in them.
+[SYNTH] — The hosting failure-mode table, the operator
+adoption ruling, the two-handoff protocol, the capability-type
+chain, the UCG-HOST class and the F11 onboarding checks are
+original syntheses for this build, not empirically validated.
+
+
+===== PAGE 108 =====
+[EXT] — The Supabase CLI's description of db reset --
+linked as resetting the linked project with local migrations,
+seen in a mirror of the CLI's source; the destructive nature of a
+remote reset is an inference from it. Re-verify before any use.

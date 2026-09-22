@@ -68,3 +68,19 @@ leaving the connector's fail-closed gates intact.
 **How to apply:** Keep F6-VDJ and MM as side-steps, place F10 after F9 in the
 production sequence, unlock it only after that session emits F9, and keep F10
 responsible only for custody/policy verification and delivery receipts.
+
+F11 HOST CONNECTOR is a separate post-F10 production stage, but its current
+implementation is deliberately plan-only: HOST DJ/F8-HDJ may produce H0–H3
+hosting plans from a certified F8 bundle, while H4–H8 must refuse until
+provider adapters, execution lifts, UCG-HOST, consent/cost controls, and F9.5
+HostReceipt handoff are qualified.
+
+**Why:** The supplied F11 PDD is explicitly PRE-BUILD and says none of its
+provider adapters are built or assessed. Claiming a deployment, certificate,
+promotion, monitoring registration, or handoff would violate its refusal-first
+boundary.
+
+**How to apply:** Keep F11 after F10 in the cockpit; reuse server-side HOST DJ
+ranking for deterministic plan output; preserve explicit refusal for staging,
+verification, certification, promotion, and handoff until the required
+server-owned gates exist.

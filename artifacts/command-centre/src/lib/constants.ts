@@ -1,7 +1,7 @@
 export type FProcessStatus = "operational" | "contract_defined";
 
 export interface FProcessRole {
-  id: "F0" | "F1" | "F2" | "F3" | "F4" | "F5" | "F6" | "F7" | "F8" | "F9" | "F9.5" | "F10";
+  id: "F0" | "F1" | "F2" | "F3" | "F4" | "F5" | "F6" | "F7" | "F8" | "F9" | "F9.5" | "F10" | "F11";
   title: string;
   description: string;
   status: FProcessStatus;
@@ -78,6 +78,12 @@ export const F_PROCESS_ROLES: FProcessRole[] = [
     id: "F10",
     title: "CONNECTOR",
     description: "Contract-defined gateway for authorized release of immutable F9 artifacts with auditable delivery receipts.",
+    status: "operational",
+  },
+  {
+    id: "F11",
+    title: "HOST CONNECTOR",
+    description: "Plan-gated, consent-gated hosting integration handed off from F10.",
     status: "operational",
   },
 ];
@@ -187,7 +193,15 @@ export const ENGINES = [
     explainer:
       "The natural production-line handoff after F9. F10 never builds, certifies, or mutates the Machine Artifact; it verifies F9/OSIRIS custody, applies destination policy, and records delivery receipts.",
   },
+  {
+    id: 13,
+    name: "F11",
+    title: "HOST CONNECTOR",
+    description: "Turn a certified codebase or F10 handoff into a plan-gated hosting path.",
+    explainer:
+      "Consumes a certified F8 code bundle or an F10 handoff, profiles hosting requirements, recomputes the HOST DJ ranking, and emits a deterministic plan. Provider writes remain refused until F11 adapters, consent/cost lifts, UCG-HOST, and F9.5 handoff are wired.",
+  },
 ];
 
 /** The production line; F6-VDJ and MM remain advisory side-steps. */
-export const PRODUCTION_ENGINE_IDS = [1, 2, 3, 4, 5, 6, 7, 9, 11, 12] as const;
+export const PRODUCTION_ENGINE_IDS = [1, 2, 3, 4, 5, 6, 7, 9, 11, 12, 13] as const;

@@ -1,0 +1,4059 @@
+
+
+===== PAGE 1 =====
+THE ARK HARNESS — F10 CONNECTOR
+ATLAS Omnibus PDD · v3.1 · Domain 36
+SAVANT-Gated Colonization Automation · Staged Transmit ·
+Consent-Gated Writes
+JNGL-ARKH-F10CN-2026-005 · v3.1 · Supersedes v3.0 · Upgrades
+OMNIBUS ALPHA and F9 MACHINE FLOOR PDD v2.1
+"Colonization automated is colonization faster. The whole design
+question is whether faster can ever mean skipped. In F10 it cannot:
+there is no path to a target that does not run through a SAVANT
+verdict."
+v3.0 reconciles two parallel lineages into one. SAVANT ENVOY, the
+combination of SAVANT CONNECTOR and ENVOY, is the sole operator
+of D36, and running it is the only way to a certifiable colonization.
+v3.1 adds a second translation path: when a target's only actuation
+surface is its own chat assistant, F10 composes a Curated Prompt
+Script instead of writing to an adapter, and a human runs it under their
+own login.
+DOCUMENT CONTROL
+Field
+Value
+Document
+THE ARK HARNESS — F10 CONNECTOR · ATLAS
+Omnibus PDD v3.1
+Reference
+JNGL-ARKH-F10CN-2026-005 · v3.1
+
+
+===== PAGE 2 =====
+Field
+Value
+ID note
+Supersedes -004 (v3.0), and through it -003, -002 and
+-001.
+Supersedes
+-003 (v2.0) and -002 (v1.1), and through them
+-001 (v1.0). Reconciliation in §1.2B
+Upgrades
+OMNIBUS ALPHA (34 domains) as extended by F9
+MACHINE FLOOR PDD v2.1 (D35, IP-129–150, 24
+invariants)
+New domain
+D36 — F10 CONNECTOR (SAVANT-Gated
+Colonization Automation)
+New IPs
+IP-188 – IP-192 (5; see the IP Allocation Ruling below
+— D36's block is no longer contiguous)
+New
+invariants
+#32 Curated Chat-Script Integrity · #33 Guided
+Execution Accountability (both new in v3.1; adopted
+unchanged by the F11 HOST CONNECTOR PDD)
+Name
+F10 CONNECTOR. "Universal Connector" is retained
+as an alias only; see §3.1 for the naming collisions it
+would create.
+Verdict
+engine
+SAVANT (D13, run by SPARTAN MVE). F10 reads its
+verdicts and cannot alter them.
+Operating
+SPC
+SAVANT ENVOY ULTRA SI v1.0.0 · SPC-SAVENV-F10-
+ULTRA-SI-001 · Camelot Seat #17 (proposed) · JCSE
+41/50 Tier 0 · the merger of SAVANT CONNECTOR
+and ENVOY
+Operator
+strands
+CODE DJ 22% · ATHENA 22% · DEXTER 20% ·
+FRACTAL 14% · SKRIBE 12% · SPHINX 10% (fenced)
+Conductor
+F10 Conductor — the deterministic runtime that
+enforces the operator's protocol. No LLM call. Not an
+SPC.
+
+
+===== PAGE 3 =====
+Field
+Value
+Reserved
+next
+D38 / IP-198 onward (superseding the IP-188 pointer
+set by F11 PDD v1.3 — see the IP Allocation Ruling)
+Date
+September 2026 · PRE-BUILD
+Certification
+Self-assigned, Tier 0 — NOT HIVE-certified · not
+scored
+GRO State
+SAFE_LIFE
+Honesty
+Gate
+G3 enforced — see §1.8, §2.5, §3.13
+Owner
+Oluseye Shay Amusa / Koncentric Labs Inc.
+IP Allocation Ruling (v3.1). F11 HOST CONNECTOR PDD v1.3 reserved
+D38 from IP-188 onward. This document and F11 PDD v1.4 (issued
+together) both need new IPs before D38 exists, so the reserved frontier
+is split between them rather than left idle: F10 takes IP-188–192, F11
+takes IP-193–197, and D38 is deferred to IP-198 onward. No IP
+already issued to any domain is reassigned. The consequence is
+disclosed, not hidden: D36 now spans IP-151–169 and IP-188–192,
+non-contiguously, and D37 (per the companion amendment) spans IP-
+170–187 and IP-193–197. A future renumbering pass could tidy this;
+none is proposed here (OI-37).
+PART 1 — CHEAT SHEET
+All stakeholders
+1.1 Atomic Solution Summary
+F10 CONNECTOR takes an artifact that has passed F0 through F9.5
+and connects it to an implementation platform through an automated
+
+
+===== PAGE 4 =====
+colonization process governed by the SAVANT Protocol. It senses the
+target, obtains a verdict from the SAVANT engine, names every gap,
+translates the artifact into the target's native form, stages it, verifies it,
+certifies it, promotes it, and registers the outcome.
+It automates the steps around SAVANT. It never replaces SAVANT, and
+it holds no verdict of its own.
+The floor has exactly one operator: SAVANT ENVOY ULTRA SI. It runs
+the nine phases, invokes the external gates, and produces either a
+staged, verified, certified and registered colonization, or a cited refusal.
+It owns no gate it runs and can override no verdict it receives.
+1.2 SAVANT Is the Engine. F10 Is the Conductor.
+Per the Colonization Manual, SAVANT is a seven-phase protocol (SV-01
+SENSE through SV-07 TRANSMIT), run by SPARTAN MVE, that decides
+every colonization regardless of target. [ARK] F10 makes that
+protocol non-bypassable and puts machinery around it.
+Role
+Holder
+Authority
+Verdict on hosting fidelity
+(FIT / CLUSTER)
+SAVANT engine (D13,
+SPARTAN MVE)
+Sole
+Certificate for the
+colonized deployment
+UCG
+Sole
+Control-logic verdict for
+physical targets
+MM Gate (D26) via F9
+Sole
+Consent to write to a target
+The human creator
+Sole
+Accountability for the run:
+sequence and refusal
+SAVANT ENVOY
+ULTRA SI (operator)
+Procedural
+only
+Enforcement: ledger,
+capability types, wiring
+F10 Conductor
+(deterministic runtime)
+Procedural
+only
+
+
+===== PAGE 5 =====
+F10 owns no verdict. This is the same separation that makes MECHA
+an operator and not a self-certifying authority (F9 PDD §3.5).
+1.2A What v3.0 Changes
+#
+Change
+v2.0 (SAVANT
+CONNECTOR)
+v3.0
+1
+Operator
+SAVANT
+CONNECTOR
+ULTRA SI, five
+strands
+SAVANT ENVOY ULTRA SI,
+six strands: the merger of
+SAVANT CONNECTOR and
+ENVOY
+2
+Strands
+CODE DJ,
+ATHENA,
+DEXTER,
+SPHINX,
+FRACTAL
+Adds SKRIBE (documents a
+human can read). SPHINX
+kept under a hardened fence
+3
+Terminal
+states
+Outcome
+names in the
+card only
+Four, defined in §3.2A.5:
+PROMOTED ,
+STAGED_NOT_PROMOTED ,
+DRY_RUN_COMPLETE ,
+REFUSED
+4
+Separation
+of duties
+Not enforced
+at the UCG-
+COL request
+C-F10-19. The request
+carries three distinct
+identities; the operator is
+never any of them. Fifth
+preflight check
+5
+Zero-LLM
+core
+Stated (C-F10-
+03), not
+enforced
+Enforced: a static check in
+F10-P23 that the core
+module tree contains zero
+LLM client imports
+6
+Strand
+adapters
+Five
+Six. F10-P29 adds the
+SKRIBE adapter
+
+
+===== PAGE 6 =====
+#
+Change
+v2.0 (SAVANT
+CONNECTOR)
+v3.0
+7
+SPHINX
+ENGINE
+Not addressed
+Boundary row and OI-18: the
+marketplace's deployment
+tiers may be a path around
+Invariant #25
+8
+Open items
+OI-16 to OI-18
+OI-16 to OI-20, one register
+(§1.2B)
+9
+Constraints
+C-F10-01 to 18
+C-F10-01 to 21, mapped to
+the card's 23 (§3.13A)
+10
+Prompts
+28
+29
+1.2B Reconciliation Ruling — Two Lineages, One
+Document
+Two versions of this PDD were produced independently after v1.0. They
+agreed on the phases, the invariants (#25 to #27), the capability types,
+the refusal-first posture and Seat #17. They differed on the points
+below. Rulings are recorded here so nothing is inferred later.
+Item
+ENVOY
+lineage (PDD
+v1.1, -002 )
+SAVANT
+CONNECTOR
+lineage (PDD
+v2.0, -003 )
+v3.0 ruling
+Operator
+ENVOY
+ULTRA SI
+SAVANT
+CONNECTOR
+ULTRA SI
+SAVANT ENVOY
+ULTRA SI, the
+Owner's
+combination
+Strands
+ATHENA,
+CODE DJ,
+DEXTER,
+CODE DJ,
+ATHENA,
+DEXTER,
+Six: the union
+
+
+===== PAGE 7 =====
+Item
+ENVOY
+lineage (PDD
+v1.1, -002 )
+SAVANT
+CONNECTOR
+lineage (PDD
+v2.0, -003 )
+v3.0 ruling
+FRACTAL,
+SKRIBE
+SPHINX,
+FRACTAL
+SPHINX
+Excluded (no
+commercial
+authority)
+Strand, fenced
+Strand, and
+ENVOY's principle
+becomes a Class
+A prohibition (C-
+F10-16). OI-20
+records the fence
+as untested
+IP range
+IP-151 – IP-
+168
+IP-151 – IP-
+169
+IP-151 – IP-169.
+ENVOY's IP-168
+content is carried
+in IP-168 (now
+including the
+static zero-LLM
+check)
+Prompts
+23
+28
+29. F10-P23
+carries both the
+boundary and the
+static check
+OI-09
+Closed
+Narrowed
+Narrowed.
+Naming an
+operator does not
+close the gap;
+building and
+assessing it does
+OI-16
+Operator
+unassessed
+Strand overlap
+with MECHA
+Operator
+unassessed
+(ENVOY's)
+
+
+===== PAGE 8 =====
+Item
+ENVOY
+lineage (PDD
+v1.1, -002 )
+SAVANT
+CONNECTOR
+lineage (PDD
+v2.0, -003 )
+v3.0 ruling
+OI-17
+Seat #17
+unverified;
+overlap
+SPHINX fence
+untested
+Seat #17
+unverified; DISC
+mismatch;
+overlap
+OI-18
+SPHINX
+ENGINE
+deployment
+overlap
+No security-
+architecture
+strand
+SPHINX ENGINE
+deployment
+overlap (ENVOY's)
+OI-19, OI-
+20
+—
+—
+New: OI-19 no
+security-
+architecture
+strand; OI-20
+SPHINX strand
+fence untested
+Production
+ID
+-002
+-003
+-004 ,
+superseding both
+Files superseded by this document and by SAVANT ENVOY SPC
+v1.0.0: F10_CONNECTOR_ATLAS_PDD_v1_1 and
+ENVOY_ULTRA_SI_SPC_v1_0 (the ENVOY lineage), and the SAVANT
+CONNECTOR SPC v1.0.1 and this PDD's v2.0 (the SAVANT
+CONNECTOR lineage).
+1.3 Artifact Handling
+Artifact
+F10 handling
+SPC (Ultra SI, SI,
+AI class)
+Full SAVANT colonization. FIT → Sovereign
+Deployment Brief. CLUSTER → governed Agentic
+Cluster, built through CELL SI.
+
+
+===== PAGE 9 =====
+Artifact
+F10 handling
+Molecular Agent
+(software)
+SAVANT colonization at MA scale. The Second
+Contact platform strategies apply (for example
+n8n as a target, with Class I Trigger MAs).
+PDD / Micro PDD
+Not colonized as a genome. Converted to a
+codebase for the target environment through
+CODE DJ's PCE pipeline, after SAVANT has sensed
+the environment.
+Machine Artifact
+(F9 output)
+Never colonized directly by F10. Physical targets
+are routed to F9 (§3.8).
+Any artifact
+without a UCG
+certificate
+Refused at intake (Invariant #22).
+Independent of artifact class: any target, once classified, may turn out
+to have no API, CLI or infrastructure-as-code path at all — only its own
+chat assistant. That is a property of the target, not the artifact, and is
+handled by §3.5A regardless of whether the artifact above it is an SPC,
+an MA or a PCE codebase.
+1.4 The Nine-Phase Run
+ C0 INTAKE ─► C1 SENSE ─► C2 VERIFY ─► C3 NAME ─► C4 
+TRANSLATE
+              SV-01/02    SV-03/04     SV-05      SV-06
+                                                     │
+        
+┌────────────────────────────────────────────┘
+        ▼
+ C5 CONSENT & STAGE ─► C6 VERIFY IN STAGE ─► C7 CERTIFY & 
+PROMOTE ─► C8 REGISTER
+   consent #1            test suite re-run       UCG-COL 
+certificate     SPK · registry
+   test article only     Charter Gate            consent 
+#2 · promote    re-verify · OSIRIS
+
+
+===== PAGE 10 =====
+   ─────────────────────────────────── SV-07 spans 
+C5 to C8 ────────────────────
+Phase
+SAVANT
+phase
+What runs
+C0 INTAKE
+—
+Eligibility: UCG certificate present;
+artifact class; physical-target
+routing
+C1 SENSE
+SV-01 SENSE,
+SV-02 AUDIT
+Target constraints captured with
+provenance; autonomous
+execution paths included
+C2 VERIFY
+SV-03 VERIFY,
+SV-04
+ADJUDICATE
+SAVANT engine scores the seven
+classes and issues FIT or
+CLUSTER
+C3 NAME
+SV-05 NAME
+Constraint Fingerprint; nothing
+silently omitted
+C4
+TRANSLATE
+SV-06
+TRANSLATE
+Host-native plan, dry-run only.
+Chat-only target: a Curated
+Prompt Script (§3.5A) instead
+C5 CONSENT
+& STAGE
+SV-07 (wiring)
+Consent #1; write to a staging test
+article. Chat-only target: the
+human runs the script themselves
+— GUIDED execution, no Vault
+credential (§3.5A.4)
+C6 VERIFY
+IN STAGE
+SV-07
+(verification)
+Original test suite re-run against
+the staged deployment;
+Colonization Charter Gate. Chat-
+only target: the human's
+checkpoint reports, graded
+HUMAN_SUPPLIED , plus a generic
+endpoint probe where an endpoint
+now exists
+
+
+===== PAGE 11 =====
+Phase
+SAVANT
+phase
+What runs
+C7 CERTIFY
+& PROMOTE
+SV-07 (wiring)
+UCG-COL certificate; consent #2;
+promote
+C8
+REGISTER
+SV-07
+(registration)
+SPK, registry write-back, re-
+verification schedule, OSIRIS
+telemetry
+Decomposition disclosed. The Manual describes SV-07 as one phase.
+F10 splits its actuation across C5 to C8 so that nothing is certified
+before it exists, and nothing reaches production before it is certified.
+SAVANT still owns the topology, the report content and the SPK
+schema. F10 only actuates the wiring, through connector adapters,
+under Invariant #26.
+1.5 The Design Decision That Matters
+Capability types make the invariants structural. A write to a target is
+impossible to express in code without holding a value that only the
+previous stage can construct:
+SavantVerdictRecord ──► TranslatedPlan ──► ConsentedPlan 
+──► (stage / promote)
+ only the SAVANT         needs a verdict      needs 
+consent,
+ adapter can build it    + complete           a scoped 
+credential
+                         fingerprint          and a 
+rollback
+This is the "unreachable, not guarded" standard from the MECHA
+lineage applied to colonization.
+The UCG-COL request additionally requires a CompleteRun value that
+only the ledger can construct (§3.2A, Invariant #27).
+
+
+===== PAGE 12 =====
+1.6 Eight Runtime Components
+Component
+Responsibility
+Deterministic?
+Phase
+Sequencer
+Drives C0–C8, refuses to
+advance on an unmet
+precondition
+Yes
+Run Ledger
+Append-only record of every
+phase, verdict, consent and
+refusal; issues f10_run_id
+Yes
+SAVANT
+Engine
+Adapter
+Read-only transport to the
+SAVANT engine; no verdict-
+mutation method
+Yes
+Connector
+Adapters
+(×N)
+SENSE, TRANSLATE and
+TRANSMIT capabilities per
+target; default STUB_REFUSE
+Transport
+deterministic;
+inference inside
+Chat Script
+Composer
+Classifies a target's actuation
+surface; when CHAT_ONLY ,
+composes a Curated Prompt
+Script from sensed chat-
+capability facts and the
+Constraint Fingerprint; validates
+every prompt against Invariant
+#32
+Composition
+inference-
+assisted;
+validation
+deterministic
+Strand
+Adapters
+(×6)
+Wrap the operator's six strands
+(CODE DJ, ATHENA, DEXTER,
+FRACTAL, SKRIBE, SPHINX).
+Schema-validate every return
+before it enters the core. No
+ledger handle, no mode setter,
+no Vault handle, no capability-
+type constructor.
+Inference inside,
+validated at the
+boundary
+Credential
+Vault &
+Holds credentials; issues least-
+privilege, short-lived scoped
+Yes
+
+
+===== PAGE 13 =====
+Component
+Responsibility
+Deterministic?
+Scope
+Broker
+handles
+Refusal
+Emitter
+Serialises the cited refusal;
+rejects an uncited one at
+schema level
+Yes
+1.7 Build Waves
+Wave
+Name
+Prompts
+Produces
+W1
+Foundation
+F10-P01 –
+P04, P23,
+P28
+Domain registration, ledger,
+constraint-class namespace,
+SAVANT adapter, strand
+adapter boundary with the
+static zero-LLM check, run
+completeness attestation
+W2
+Eligibility,
+registry &
+strands
+F10-P05 –
+P08, P24 –
+P27, P29
+Intake gate, connector
+interface and registry,
+physical routing guard, the
+six strand adapters
+W3
+SAVANT
+phases
+F10-P09 –
+P11, P30
+SENSE/AUDIT automation,
+verdict binding, fingerprint
+gate, actuation classification
+W4
+Translate &
+consent
+F10-P12 –
+P14, P31,
+P32
+Translation, vault and scope
+broker, consent gate, Curated
+Prompt Script composer,
+prompt safety validator
+W5
+Stage &
+verify
+F10-P15 –
+P17, P33,
+P34
+Staged transmit, in-stage
+verification, Charter Gate,
+GUIDED execution and
+transcript evidence, generic
+endpoint probe
+
+
+===== PAGE 14 =====
+Wave
+Name
+Prompts
+Produces
+W6
+Certify,
+promote,
+register
+F10-P18 –
+P21
+UCG-COL and promotion,
+SPK, re-verification, facilitator
+policy
+W7
+Self-test
+F10-P22
+Negative tests for every
+invariant
+1.8 What This Document Does Not Claim
+F10 is PRE-BUILD. No connector, conductor, or adapter exists.
+Nothing has touched any real platform.
+No SAVANT engine is wired. F10 can be built and will refuse at C1
+until one is. See §1.9.
+The colonized-deployment certificate class does not exist. UCG-
+COL has no threshold, so promotion is unreachable until one is set
+(OI-10).
+The operator is specified and unbuilt. SAVANT ENVOY is PRE-
+BUILD, self-scored at JCSE 41/50 (Tier 0, below the 45 floor), and
+has never run. No live connector has been assessed (OI-09,
+narrowed).
+Curated prompt wording is synthesized, not retrieved. The facts a
+prompt relies on (what the target's chat assistant is documented to
+accept) must be sensed or supplied with provenance. The phrasing
+of the prompt itself is composed for the run and is [SYNTH] , not
+[ARK] , even when every fact behind it is sourced. Whether that line
+is drawn correctly is unadjudicated (OI-40).
+No scanner is wired for chat-transcript intake (OI-38), and a pasted
+chat transcript cannot be authenticated (OI-39): F10 cannot
+currently tell a genuine reply from a fabricated one.
+Two documents give different meanings to CC-01 to CC-07. This
+document namespaces them but does not reconcile them (OI-11).
+n8n and any other facilitator are unassessed and ineligible by
+default (§3.6).
+
+
+===== PAGE 15 =====
+Inherited from F9: OI-01 and OI-02 are unresolved and bind any
+physical-target route.
+1.9 The Stub-Refuse Consequence
+The gate-adapter pattern from MECHA applies. A SAVANT adapter with
+no engine behind it returns REFUSED ; a connector adapter with nothing
+wired returns REFUSED . A fully built F10 with nothing wired refuses
+every run at C1. That is the intended state of an automation layer
+whose engine and connectors are unfinished.
+PART 2 — EXECUTIVE SUMMARY
+Leadership
+2.1 Business Context
+A creator finishes F0 through F9.5 holding a certified artifact. Getting it
+onto a real platform is still manual, platform by platform, and the
+Colonization Manual is explicit that the manual work is where cards get
+diminished. F10 exists to let the creator connect once and customize
+per platform without giving up the discipline.
+Automation carries a specific risk. Every failure mode in the Manual's
+anti-pattern chapter is a skipped or rushed SAVANT phase. An
+automation layer can commit every one of them at machine speed.
+2.2 How F10 Answers the Manual's Six Anti-
+Patterns
+
+
+===== PAGE 16 =====
+Anti-pattern
+[ARK]
+Phase that
+should catch
+it
+F10 mechanism
+The Silent
+Wrapper — ships
+without sensing
+the target
+SV-01 SENSE
+C1 cannot be skipped:
+TranslatedPlan requires a
+SavantVerdictRecord
+bound to the run's own SENSE
+record
+The Optimistic
+Average —
+averages the
+seven classes
+instead of applying
+the CC-01 override
+SV-04
+ADJUDICATE
+F10 does not compute
+Fidelity. The SAVANT engine
+does, and F10 has no method
+to alter or re-derive it
+The
+Undocumented
+Gap — a cluster
+case ships as
+single-node FIT
+SV-05 NAME
+The fingerprint gate: a
+degraded or blocked
+capability with no named
+entry blocks translation.
+CLUSTER cannot be
+promoted to FIT
+The Reflex-Free
+Robot — physical
+target with
+reasoning-tier GRO
+only
+Ch. 13
+combined
+gate at
+TRANSLATE
+The Physical Routing Guard
+refuses any embedded or
+physical target without an F9
+run
+The Autonomous
+Blind Spot —
+governed when
+watched,
+ungoverned when
+acting alone
+SV-02 AUDIT
+The SENSE record must
+include the host's
+autonomous and scheduled
+execution paths; a record
+without them is incomplete
+The Frozen
+Certification —
+never re-verified
+SV-07
+TRANSMIT
+No SPK is issued without a re-
+verification schedule; the
+
+
+===== PAGE 17 =====
+Anti-pattern
+[ARK]
+Phase that
+should catch
+it
+F10 mechanism
+after the host
+changes
+scheduler owns the
+recurrence
+2.3 Requirements Summary
+#
+Requirement
+Priority
+IP
+Status
+R-
+F10-
+01
+Intake refuses any artifact
+without a UCG certificate
+record
+MUST
+IP-
+151
+PRE-
+BUILD
+R-
+F10-
+02
+Connector Adapter interface
+(SENSE / TRANSLATE /
+TRANSMIT), STUB_REFUSE
+default, onboarding checks,
+registry
+MUST
+IP-
+152
+PRE-
+BUILD
+R-
+F10-
+03
+SAVANT Engine Adapter:
+read-only verdicts, no
+mutation method,
+STUB_REFUSE default
+MUST
+IP-
+153
+PRE-
+BUILD
+R-
+F10-
+04
+SENSE/AUDIT automation
+with provenance, freshness,
+and autonomous-path
+coverage
+MUST
+IP-
+154
+PRE-
+BUILD
+R-
+F10-
+05
+Verdict binding to artifact
+hash and SENSE record;
+CLUSTER never promoted;
+fingerprint completeness
+MUST
+IP-
+155
+PRE-
+BUILD
+R-
+F10-
+06
+TRANSLATE: Sovereign
+Deployment Brief, Agentic
+MUST
+IP-
+156
+PRE-
+BUILD
+
+
+===== PAGE 18 =====
+#
+Requirement
+Priority
+IP
+Status
+Cluster manifest, PCE route;
+genome immutability
+R-
+F10-
+07
+Credential vault and least-
+privilege scope broker
+MUST
+IP-
+157
+PRE-
+BUILD
+R-
+F10-
+08
+Consent gate; dry-run default;
+two separate consents (stage,
+promote)
+MUST
+IP-
+158
+PRE-
+BUILD
+R-
+F10-
+09
+Staged transmit into a test
+article, with rollback
+MUST
+IP-
+159
+PRE-
+BUILD
+R-
+F10-
+10
+In-stage verification: original
+test suite re-run against the
+staged deployment
+MUST
+IP-
+160
+PRE-
+BUILD
+R-
+F10-
+11
+Colonization Charter Gate
+(nine points, marked machine
+/ human / hybrid)
+MUST
+IP-
+161
+PRE-
+BUILD
+R-
+F10-
+12
+UCG-COL certification of the
+colonized deployment, then
+promotion
+MUST
+IP-
+162
+PRE-
+BUILD
+R-
+F10-
+13
+SPK issuance and registry
+write-back to the parent card
+MUST
+IP-
+163
+PRE-
+BUILD
+R-
+F10-
+14
+Re-verification scheduler and
+OSIRIS telemetry registration
+MUST
+IP-
+164
+PRE-
+BUILD
+R-
+F10-
+15
+Physical Routing Guard:
+embedded and physical
+targets require an F9 run
+MUST
+IP-
+165
+PRE-
+BUILD
+
+
+===== PAGE 19 =====
+#
+Requirement
+Priority
+IP
+Status
+R-
+F10-
+16
+Facilitator policy: default
+ineligible, no standing
+credentials, never in the
+verdict path
+SHOULD
+IP-
+166
+PRE-
+BUILD
+R-
+F10-
+17
+Run Ledger and Cited Refusal
+contract
+MUST
+IP-
+167
+PRE-
+BUILD
+R-
+F10-
+18
+Strand Adapter Boundary:
+schema-validated returns; no
+ledger, mode, Vault or
+capability-type access; static
+zero-LLM check on the core;
+SPHINX confined to registry
+record
+MUST
+IP-
+168
+PRE-
+BUILD
+R-
+F10-
+19
+Run Completeness
+Attestation: a CompleteRun
+that only the ledger can
+construct; UCG-COL preflight
+rejects a request without it
+MUST
+IP-
+169
+PRE-
+BUILD
+R-
+F10-
+20
+Separation of duties at the
+UCG-COL request: three
+distinct identities, and the
+operator is never any of them
+MUST
+IP-
+169
+PRE-
+BUILD
+2.4 Non-Functional Requirements
+Property
+Target
+Rationale
+Determinism
+Identical inputs and
+identical adapter outputs
+give an identical run record
+A colonization that
+cannot be
+reproduced cannot
+be audited
+
+
+===== PAGE 20 =====
+Property
+Target
+Rationale
+Auditability
+Every transition, consent
+and refusal appended; no
+update, delete or
+compaction
+The ledger is the
+evidence behind the
+SPK
+Freshness
+A SENSE record older than
+the TTL forces re-sense
+before translate, stage or
+promote. TTL: [TO BE SET]
+Host platforms
+change without
+notice
+Reversibility
+Every write action declares
+a rollback or is flagged
+irreversible and needs an
+extra consent line
+A failed colonization
+must not leave
+residue
+Least
+privilege
+Scopes minimal per action;
+wildcard scopes rejected
+Inherited from the
+ecosystem's
+publishing safety
+stack
+Latency and
+availability
+Not design constraints
+Correctness
+dominates; a refused
+run is an acceptable
+outcome
+2.5 SOLVA GAUNTLET Verdict
+CONDITIONALLY VIABLE — published as issued.
+Grounds:
+1. The operator is specified but unbuilt and unvalidated (OI-09,
+narrowed). SAVANT ENVOY is PRE-BUILD, self-scored at 41/50 and
+Tier 0, and has never run, and it is unassessed (OI-16). A floor
+cannot be more validated than its operator.
+2. The colonized-deployment certificate class is undefined (OI-10).
+Invariant #22 forbids deploying an artifact without a certificate
+
+
+===== PAGE 21 =====
+record, so promotion is blocked until a class and threshold exist.
+3. The SAVANT engine's implementation depth is unverified (OI-12).
+The register lists D13 as live. Whether it exposes a machine-
+readable interface that F10 can call is not established.
+4. Constraint-class IDs collide across documents (OI-11). Automated
+verdict handling with ambiguous IDs is a defect waiting to happen.
+5. Facilitators are unassessed (OI-13), and n8n's licence position is
+unresolved.
+6. Boundaries with D31 and D33 are proposed, not adjudicated (OI-
+14).
+7. No connector has been built or tested against a real platform.
+Platform facts drift; nothing here is validated.
+8. Software-target code has no coding-standard profile (OI-15). F9's
+Code Assurance Gate covers the machine floor, not F10's PCE
+output.
+9. Curated prompt scripts are unvalidated end to end. No script has
+been composed against a live chat assistant, no human has run
+one, and the safety validator (Invariant #32) has never been
+exercised against an adversarial target reply (OI-39).
+10. D36's IP block is now non-contiguous with F37's, a registry
+fragmentation disclosed and not repaired (OI-37).
+11. Seat and overlap (OI-17). Seat #17 is unverified and sits on the
+wrong side of the Camelot inventory's own DISC grouping. Four of
+six strands are shared with MECHA, so the two operators can share
+blind spots.
+12. SPHINX (OI-18, OI-20). The SPHINX ENGINE's deployment tiers
+may be a path around Invariant #25, and the merged operator
+includes a SPHINX strand under a fence that no built system has
+proved.
+13. No security-architecture strand (OI-19). Credential handling rests
+on the Vault and human review. No certified security card was
+located.
+Resolved in v3.0: two conflicting operator lineages, one of which
+closed OI-09 by naming an operator. There is now one operator, OI-09 is
+
+
+===== PAGE 22 =====
+narrowed rather than closed, and the ID and open-item numbering
+collisions are ruled in §1.2B. Carried from v2.0: the unowned run, and
+the dependency defect in which a physical target could be sensed
+before it was refused.
+What would move this to VIABLE: the operator (SAVANT ENVOY) built
+and independently assessed; UCG-COL defined through a SOLVA
+GAUNTLET pass; one SAVANT adapter wired to a live engine; one Tier-1
+connector taken through SENSE and a refused-at-the-right-phase run
+on a real target; a SPARTAN ruling on the constraint-class namespace;
+a written facilitator licence position.
+2.6 What This Section Does Not Claim
+No revenue, market size or ROI is asserted. EVE ULTRA SI's modelling
+role is not invoked because there is no validated deployment to model.
+PART 3 — PLATFORM SPECIFICS
+Architects
+3.1 Boundary Rulings (Proposed)
+These are proposed and not yet adjudicated by SPARTAN. OI-14 carries
+the gap.
+Neighbour
+Boundary
+D13 SAVANT
+Portability
+D13 owns every verdict. F10 automates the
+surrounding steps and reads verdicts read-only.
+D31 Gemini
+Colonization
+Layer
+D31 is a platform-specific application of the
+SAVANT Colonization Protocol (Gemini,
+Agent2Agent). F10's Google adapter is D31's
+work, reused and not duplicated.
+
+
+===== PAGE 23 =====
+Neighbour
+Boundary
+D33 OSIRIS Meta-
+Orchestration
+D33 orchestrates the build (F1 to F8) and deploys
+harness outputs through osiris deploy . F10
+colonizes finished, certified artifacts onto
+external platforms. F10 never issues osiris
+deploy and holds no orchestration authority.
+D32 F9.5
+Observability
+D32 takes custody of monitoring. F10 registers
+each promoted deployment's telemetry contract
+with it.
+D35 F9 Machine
+Floor
+Physical targets belong to F9. F10 refuses them
+and never colonizes a Machine Artifact directly.
+MECHA ULTRA SI
+(D35 operator)
+A separate operator on a separate floor. SAVANT
+ENVOY consumes an F9Attestation and
+never invokes MECHA to build. Four of six
+strands are shared (OI-17).
+The name
+"SAVANT ENVOY"
+Names the operator card, not the SAVANT
+engine. F10 CONNECTOR names the domain, as
+MECHA operates the F9 Machine Floor. Any
+document using the card's name must state that
+it holds no verdict.
+SPHINX ENGINE
+The SAVANT Protocol Whitepaper describes
+SPHINX ENGINE as a marketplace with tiered
+deployment to AI platforms (its v1.0 tier table
+lists "deployment to 3 AI platforms" in the
+Professional Tier). F10 is the governed
+colonization path. Whether that deployment
+must route through F10, or is a separate path
+that bypasses SAVANT, is unadjudicated (OI-18).
+Until ruled, F10 does not treat a SPHINX ENGINE
+deployment as a certified colonization. The
+SPHINX strand inside the operator has no
+deployment authority (C-F10-16).
+
+
+===== PAGE 24 =====
+Neighbour
+Boundary
+CODE DJ (PCE)
+PDD and Micro PDD conversion is CODE DJ's.
+F10 routes to it and does not reimplement it.
+REVERB
+connector
+registry, SKRIBE
+Universal
+Packaging, BRIJ
+Universal
+Commerce Bridge
+Different products and different purposes.
+REVERB's creative connectors are suggestion-
+only; F10 connectors execute. F10 does not
+reuse that registry. These collisions are why the
+name is F10 CONNECTOR and not "Universal
+Connector".
+3.2 SAVANT as the Engine — Binding
+SAVANT owns: SV-03 scoring, the Fidelity computation, the
+FIT/CLUSTER verdict, the Constraint Fingerprint content, the
+topology, the report content, and the SPK schema. [ARK]
+F10 owns: phase sequencing, freshness, gating, consent,
+credentials, actuation, the ledger.
+The Binary Rule is inherited. There is no "partial fit". A hard fail on a
+safety or ethics class is an automatic CLUSTER, and CC-01 caps
+the composite regardless of the other six. F10 has no code path
+that computes, averages or adjusts a score. [ARK]
+The operator is not the engine. SAVANT ENVOY is a separate card
+from SPARTAN MVE. No strand scores, averages, adjusts or
+derives a verdict (C-F10-01).
+Verdict binding. A SavantVerdictRecord carries binding =
+hash(artifact_hash, sense_record_hash, f10_run_id) . A
+verdict from another run, artifact or SENSE snapshot cannot be
+replayed.
+The Colonization Charter. The Manual's nine-point checklist is
+F10's acceptance gate (§3.9), not a guideline.
+3.2A The Operator Model — SAVANT ENVOY
+
+
+===== PAGE 25 =====
+Card and conductor. SAVANT ENVOY ULTRA SI ( SPC-SAVENV-F10-
+ULTRA-SI-001 , JNGL-SPC-SAVENV-2026-001 ) is the operator. It
+specifies the protocol, the strands, the constraint set and the refusal
+behaviour. The F10 Conductor is the deterministic runtime that
+enforces it: sequencing, ledger, capability types and wiring. Inference
+lives only inside strand adapters. The card specifies; the conductor
+enforces. This is the same relationship as the MECHA SPC to the
+MECHA build blueprint.
+3.2A.1 What the Operator Owns and Does Not Own
+The operator owns
+The operator does not own
+Sequence: which phase runs
+when
+Any SAVANT verdict (SPARTAN
+MVE)
+Refusal: when to halt and why
+Certification of the deployment
+(UCG-COL)
+The run-state record and
+f10_run_id
+Consent (the human creator)
+Target-class declaration and the
+routing decision
+Credentials (the Vault)
+Consent orchestration:
+presenting and recording
+Consent itself (the human's)
+Coordination of sensing,
+translation, challenge and SPK
+assembly
+Cluster construction (CELL SI)
+Custody and monitoring (OSIRIS,
+D32)
+The F9Attestation (MECHA
+and F9)
+
+
+===== PAGE 26 =====
+The operator owns
+The operator does not own
+Charter attestations for points 4,
+5, 6 and 9 (named humans)
+This separation is the point. An operator that could override its own
+gates would be a self-certifying authority, which the platform's
+separation-of-duties requirement forbids. The operator's authority is
+procedural, not adjudicative.
+3.2A.2 The Nine Phases Mapped to Strands and IPs
+Phase
+Strands
+Invoked
+externally
+IPs
+C0 INTAKE
+ATHENA, CODE DJ
+—
+IP-151,
+IP-165
+C1 SENSE &
+AUDIT
+ATHENA, CODE DJ,
+DEXTER (HOLMES)
+Connector
+adapter
+IP-152,
+IP-154,
+IP-168
+C2 VERIFY
+—
+SAVANT
+engine
+IP-153,
+IP-155
+C3 NAME
+DEXTER
+(SOCRATES)
+—
+IP-155
+C4 TRANSLATE
+CODE DJ,
+FRACTAL, SKRIBE
+CELL SI (for
+CLUSTER )
+IP-156
+C5 CONSENT &
+STAGE
+DEXTER (write-plan
+review), SKRIBE
+(consent display)
+Consent Gate,
+Vault,
+connector
+adapter
+IP-157,
+IP-158,
+IP-159
+C6 VERIFY IN
+STAGE
+DEXTER (ARES)
+Charter Gate
+and human
+attesters
+IP-160,
+IP-161
+
+
+===== PAGE 27 =====
+Phase
+Strands
+Invoked
+externally
+IPs
+C7 CERTIFY &
+PROMOTE
+—
+UCG-COL,
+Consent Gate
+IP-162,
+IP-169
+C8 REGISTER
+SPHINX (structure,
+record), SKRIBE
+(summary)
+OSIRIS (D32)
+IP-163,
+IP-164
+All phases
+The operator
+Ledger, refusal
+emitter
+IP-167,
+IP-168,
+IP-169
+Any Tier 2
+(facilitator-
+backed) adapter
+—
+Facilitator
+policy
+IP-166
+3.2A.3 The Six Strands
+Strand
+Weight
+Role in F10
+CODE DJ
+22%
+Platform allocation and Host DJ target
+selection; host-native plan; PCE conversion
+for PDD and Micro PDD
+ATHENA
+MUSE
+22%
+SENSE and AUDIT evidence: provenance and
+retrieval time on every constraint,
+autonomous-path coverage, target terms.
+Unsourced constraints are dropped, never
+marked provisional
+DEXTER
+ULTRA SI
+20%
+HOLMES anomaly sweep; SOCRATES
+challenge of the fingerprint; ARES review of
+the write plan and adversarial re-run of the
+original test suite
+FRACTAL
+ULTRA SI
+14%
+Topology for a CLUSTER verdict. Returns
+nothing for a FIT and cannot alter a verdict
+
+
+===== PAGE 28 =====
+Strand
+Weight
+Role in F10
+SKRIBE
+ULTRA SI
+12%
+The Sovereign Deployment Brief, the
+SAVANT Report summary, the consent
+display and the SPK summary. Documents
+only, never a mode (C-F10-21)
+SPHINX
+ULTRA SI
+10%
+SPK structure and the registry record. No
+marketplace, commercial, listing or
+publishing authority (C-F10-16)
+Deliberately not strands: SPARTAN MVE (it runs SAVANT, and fusing it
+would let the operator score its own colonizations), SOLVA
+(adjudication), UCG-COL, CELL SI, OSIRIS, MECHA, and the SPHINX
+ENGINE (the marketplace, distinct from the strand). "DevOps Expert
+SPC" and "Security Expert SPC" appear only as placeholder seats in
+OSIRIS's specification, and no certified card was located for either (OI-
+19).
+The strand mix is the card's proposal. The Owner asked for the
+combination of the two parents. Weights record run effort, not certified
+quality, and changing them is a version change to the card and to this
+table.
+Overlap with MECHA (OI-17). CODE DJ, ATHENA, DEXTER and
+FRACTAL also sit inside MECHA. CODE DJ's own synthesis contains
+DEXTER, FRACTAL, ARES, SOCRATES and HOLMES, so the overlap runs
+deeper than the table shows. SKRIBE's own GRO default is LIFE and is
+not inherited. Disclosed, not netted.
+SPHINX under a hardened fence. ENVOY excluded SPHINX; SAVANT
+CONNECTOR included it. The merger keeps it, and turns ENVOY's
+reason for excluding it into a prohibition, so the exclusion survives as a
+rule rather than an absence (OI-20).
+3.2A.4 Refusal as Default Output
+The operator's designed behaviour is to refuse. Promotion is the
+exception it must be argued into by evidence it cannot itself supply.
+
+
+===== PAGE 29 =====
+Every refusal cites a constraint or invariant by identifier, and an uncited
+refusal cannot be serialised (IP-167).
+3.2A.5 The Four Terminal States
+State
+Meaning
+PROMOTED
+Certified ( UCG-COL ), consented, live, SPK
+registered
+STAGED_NOT_PROMOTED
+Staged and verified in a test article;
+promotion refused or blocked. Today's
+ceiling while UCG-COL is undefined
+DRY_RUN_COMPLETE
+Ended at C4: dry-run default, or an agent-
+gateway target
+REFUSED
+Cited. No retry. A new attempt is a new
+f10_run_id
+PROMOTED requires a non-null UCG-COL certificate reference, SPK id
+and re-verification date.
+3.2B Strand Adapters and the Validation
+Boundary
+type StrandId = "CODE_DJ" | "ATHENA" | "DEXTER" | 
+"FRACTAL" | "SKRIBE" | "SPHINX";
+interface StrandAdapter<Req, Ret> {
+  readonly strand: StrandId;
+  invoke(req: Req, runId: string): 
+Promise<StrandResult<Ret>>;
+  // No ledger handle. No GRO-mode setter. No Vault 
+handle. By construction.
+}
+type StrandResult<T> =
+  | { status: "RETURN"; value: T }        // schema-
+
+
+===== PAGE 30 =====
+validated by the core before use
+  | { status: "REFUSED"; reason: string };
+// SPHINX is fenced: structure and the registry record 
+only.
+// No listing, no publishing, no marketplace-facing call 
+of any kind.
+interface SphinxAdapter {
+  packageSpk(input: SpkInput, runId: string): 
+Promise<StrandResult<SpkDraft>>;
+  registerSpk(spk: SpkDraft, runId: string): 
+Promise<StrandResult<RegistryReceipt>>;
+  // No certify(). No score(). No adjudicate().
+}
+Rule
+Enforcement
+Every strand return
+is schema-validated
+before it enters the
+core
+A schema-invalid return puts the run in
+CONTAINMENT with no retry
+Enum returns admit
+no third value
+For example, a DEXTER case result is PASS or
+FAIL and nothing else
+A strand never sets
+GRO mode and
+never writes the
+ledger
+Only the core does either
+No strand receives
+credential material
+The strand interface has no Vault handle.
+Strands see only opaque scoped handles
+ATHENA drops
+unsourced
+constraints inside
+the adapter
+Nothing is returned as provisional
+DEXTER returns per-
+case results, never
+The verdict belongs to the SAVANT engine
+
+
+===== PAGE 31 =====
+Rule
+Enforcement
+an aggregate score
+FRACTAL returns a
+topology only for a
+CLUSTER verdict
+It has no method that changes a verdict
+SKRIBE returns
+documents only and
+never a mode
+Its own GRO default (LIFE) is not inherited (C-
+F10-21)
+A strand never
+constructs a
+capability type
+SavantVerdictRecord , TranslatedPlan
+and ConsentedPlan are constructible only by
+the SAVANT adapter, the fingerprint gate and
+the consent gate
+The core contains
+no LLM client
+import
+A static check in CI (F10-P23) fails the build
+otherwise (C-F10-03)
+SPHINX writes the
+SPK structure and
+the parent card's
+record only
+No listing, publishing or marketplace-facing
+write exists on the interface (C-F10-16)
+3.2C GRO Mode Machine
+Mode
+When
+Behaviour
+SAFE_LIFE
+Default, every run
+Every gate
+enforced. Refusal
+preferred to
+assumption
+HUMAN_IN_LOOP
+A consent is needed;
+Charter points 4, 5, 6 or 9
+need attestation; an
+action is irreversible; the
+The run halts for a
+human and cannot
+proceed on
+inference
+
+
+===== PAGE 32 =====
+Mode
+When
+Behaviour
+target's terms are
+ambiguous
+CONTAINMENT
+A staged verification fails;
+a binding hash
+mismatches; a strand
+return fails its schema; an
+adapter errors
+The stage rolls
+back. No auto-
+retry. The failure is
+permanent in the
+ledger
+KILLZONE
+An attempt to bypass
+Invariant #25, #26 or #27,
+replay a verdict, present
+CLUSTER as FIT ,
+request a credential
+outside scope, or reuse a
+consent
+The run
+terminates, the
+attempt is logged
+to OSIRIS, and the
+stage and artifact
+are frozen
+LIFE
+—
+No code path
+exists on any write
+path
+No transition returns to SAFE_LIFE within a run. An escalation is
+terminal for that f10_run_id .
+3.3 The Run and Its Preconditions
+Phase
+Precondition to enter
+On failure
+C0 INTAKE
+Artifact hash; UCG certificate record;
+artifact class ∈ handled classes;
+target class declared
+Refuse,
+Invariant
+#22
+C1 SENSE
+C0 passed; physical target class → F9
+attestation present; connector adapter
+LIVE and onboarded
+Refuse,
+Invariant
+#25 / C-
+F10-05
+
+
+===== PAGE 33 =====
+Phase
+Precondition to enter
+On failure
+C2 VERIFY
+SenseRecord complete: provenance,
+retrieval time, autonomous paths
+included
+Refuse, C-
+F10-07
+C3 NAME
+SavantVerdictRecord bound to
+this run
+Refuse,
+Invariant
+#25
+C4
+TRANSLATE
+Fingerprint complete; genome hash
+recorded; SENSE within TTL
+Refuse, C-
+F10-06 / C-
+F10-04
+C5
+CONSENT &
+STAGE
+TranslatedPlan ; consent #1
+naming exact content and target
+account; scoped credential; rollback
+declared
+Refuse,
+Invariant
+#26
+C6 VERIFY IN
+STAGE
+Staged test article exists; original test
+suite runnable (SAV-CC-05)
+Rollback
+and refuse
+C7 CERTIFY
+& PROMOTE
+In-stage results within tolerance;
+Charter Gate PASS ; CompleteRun
+attestation; three distinct author,
+scorer and adjudicator identities;
+UCG-COL certificate issued; consent
+#2
+Refuse,
+Invariant
+#22 / #26 /
+#27; C-F10-
+19
+C8
+REGISTER
+Promotion confirmed; GRO
+Colonization Record present; re-
+verification schedule set
+SPK not
+issued, C-
+F10-13
+Ordering check against the F9 lesson. F9 v2.0 scheduled certification
+before the thing being certified existed. F10 was checked for the same
+defect. Certification (C7) follows deployment into a test article (C5)
+and its verification (C6). The evidence exists before anything is scored.
+
+
+===== PAGE 34 =====
+3.4 Constraint-Class Namespace Ruling
+(Proposed)
+Finding. Two documents assign different meanings to CC-01 to CC-07.
+[ARK]
+ID
+Colonization Manual, Appendix
+A (SAVANT VERIFY)
+Second Contact Part 2
+(MA platform map)
+CC-
+01
+Governance Hosting
+Context Ceiling
+CC-
+02
+Instruction Fidelity
+No System Prompt
+Access
+CC-
+03
+Tool-Call Interception
+Tool-Call Sandboxing
+CC-
+04
+Context Window / Memory
+Class
+Persona Override Policy
+CC-
+05
+Test-Suite Reproducibility
+Token Billing Sensitivity
+CC-
+06
+(not retrieved here)
+Stateless Inference
+CC-
+07
+(not retrieved here)
+Open LLM Base Model
+Ruling. F10 qualifies every reference: SAV-CC-nn for the Manual's
+VERIFY classes and 2C-CC-nn for Second Contact's. A bare CC-nn is
+a validation failure in any F10 record. SAVANT's SV-03 uses the SAV-
+CC set. This does not reconcile the two. Whether one supersedes the
+other is a SPARTAN and ATLAS ruling (OI-11).
+3.5 Connector Adapters and the Registry
+
+
+===== PAGE 35 =====
+type Capability = "SENSE" | "TRANSLATE" | "TRANSMIT";
+type AdapterMode = "STUB_REFUSE" | "LIVE";
+interface ConnectorAdapter {
+  readonly target: string;                 // e.g. 
+"claude-mcp"
+  readonly tier: 1 | 2;                    // 2 = 
+facilitator-backed
+  readonly mode: AdapterMode;              // STUB_REFUSE 
+unless explicitly wired
+  readonly capabilities: readonly Capability[];
+  sense(req: SenseRequest, runId: string): 
+Promise<SenseResult>;
+  translate(plan: TranslationRequest, runId: string): 
+Promise<TranslateResult>;
+  transmit(plan: ConsentedPlan, runId: string): 
+Promise<TransmitResult>;
+  // transmit() accepts ONLY a ConsentedPlan. No other 
+overload exists.
+  // No verdict, score or fingerprint setter exists on 
+this interface.
+}
+Onboarding checks. A connector joins the registry only if it passes all
+five. Failing any one blocks addition regardless of demand. The
+ecosystem's REVERB registry (CONN-005) uses a four-check
+onboarding pattern adapted from the ARK Harness Living PDD's C3S;
+those four checks were not retrievable for this document, so F10
+defines its own five and does not claim equivalence. [ARK]
+#
+Check
+Requirement
+1
+Provenance
+Adapter source, version and maintainer
+recorded
+2
+Capability
+declaration
+Declares which of SENSE, TRANSLATE and
+TRANSMIT it implements. A TRANSMIT-
+capable adapter gets additional review
+
+
+===== PAGE 36 =====
+#
+Check
+Requirement
+3
+Scope minimality
+Declares minimal scopes per action.
+Wildcard scopes are rejected
+4
+Reversibility
+Declares a rollback for each write action, or
+declares it irreversible
+5
+Governance
+surface and
+terms
+Discloses the target's native safety layer,
+data retention and training use, and
+confirms the target's terms permit
+automated access
+Adapter tiers. Tier 1 is a native adapter. Tier 2 is facilitator-backed
+(§3.6). Candidates for Tier 1, subject to Owner decision: Claude via
+MCP, an OpenAI-class adapter, and LangChain / LangGraph-class
+frameworks (the Manual's cleanest FIT pattern). The Google adapter is
+D31. [ARK] Agent-gateway runtimes (the OpenClaw class) are
+manual-only — the Manual's default there is CLUSTER — so automation
+stops at C4 for them (C-F10-10).
+3.5A Chat-Interface Targets and Curated Prompt
+Scripts
+3.5A.1 Actuation Classification
+Every target gets a second classification, alongside its target class
+(software platform, agent-gateway, and so on): how a write actually
+reaches it.
+target_actuation
+Meaning
+F10 path
+API
+A programmatic connector
+adapter exists
+(SENSE/TRANSLATE/TRANSMIT)
+The
+existing
+§3.5 path,
+unchanged
+
+
+===== PAGE 37 =====
+target_actuation
+Meaning
+F10 path
+CHAT_ONLY
+The target's documented setup
+surface is its own conversational
+assistant, and no API, CLI or
+infrastructure-as-code path is
+offered for this task
+This
+section
+NONE
+No actuation surface exists at all,
+not even a chat assistant
+Manual,
+outside
+F10's write
+path; C4
+ends at a
+dry-run
+brief only
+Real examples of CHAT_ONLY surfaces, as documented by their
+vendors: Google's Vertex AI Agent Builder lets a developer "define the
+goal they want the agent to achieve, providing step-by-step
+instructions" in natural language to create the agent. [EXT]
+Hostinger's AI website builder has an agentic mode ("vibe coding")
+where "both building and customizing happen through a chat with AI,"
+including a ChatGPT-app integration where the whole build is driven by
+typed prompts. [EXT] Microsoft's Copilot Studio offers a natural-
+language "describe what you want your agent to do" quick-create flow
+alongside its visual canvas. [EXT] Re-verify each before relying on it
+— vendor UIs change without notice, and this document's
+classification is a snapshot.
+Classification happens at C1 SENSE, from the same provenance-and-
+retrieval-time discipline as every other sensed fact (C-F10-18).
+3.5A.2 The Chat Script Composer
+At C4, a CHAT_ONLY target takes a different branch. Instead of a
+Sovereign Deployment Brief, the Chat Script Composer produces a
+Curated Prompt Script (CPS-COL), built from two inputs only: the
+Constraint Fingerprint (§3.5A per the Charter Gate — what SAVANT
+
+
+===== PAGE 38 =====
+already found) and the sensed facts about the target's chat-driven
+capability (§3.5A.1). The composer has no path to the SAVANT
+verdict's internals beyond the fingerprint, and no path to a credential.
+interface CuratedPromptScript {
+  readonly scriptId: string;
+  readonly target: string;
+  readonly evidenceGrade: "SENSED" | "MIXED" | "SUPPLIED";
+  readonly prompts: readonly CuratedPrompt[];
+  readonly terminationRule: string;   // what to do if no 
+branch matches
+}
+interface CuratedPrompt {
+  readonly seq: number;
+  readonly purpose: string;
+  readonly promptText: string;          // the exact text 
+to paste
+  readonly provenance: readonly Provenance[];   // why 
+this claim/phrasing is grounded
+  readonly expects: string;             // what a correct 
+reply looks like
+  readonly checkpoint: boolean;         // human must 
+confirm before continuing
+  readonly onUnexpected: readonly { condition: string; 
+guidance: string }[];  // bounded, small
+  readonly containsSecret: false;       // type-level: 
+always false, never a field that could hold one
+}
+// Constructible ONLY by the Chat Script Composer, and 
+only after it passes the
+// safety validator of §3.5A.3. No method sets promptText 
+after validation.
+3.5A.3 Curated Prompt Safety Rules (Invariant #32)
+Every prompt in a CPS-COL passes all four checks or the script is
+refused, not trimmed:
+
+
+===== PAGE 39 =====
+#
+Rule
+What it catches
+1
+Grounded. The claim behind the prompt
+(what the target platform can do, and how to
+ask for it) traces to a sensed or supplied fact
+with provenance. The prompt's wording is
+composed for the run and is disclosed as
+such — grounding covers the fact, not the
+phrasing.
+A prompt built
+on a guess about
+what the target
+bot accepts
+2
+No guardrail bypass. No prompt instructs
+the target's own assistant to skip its safety
+checks, confirmation dialogs or billing
+consent.
+Coaching the
+user to jailbreak
+or social-
+engineer a third-
+party AI
+3
+No secret content. No prompt contains,
+requests, or coaches entry of a password,
+API key, token or payment credential as chat
+text. Credential entry is directed to the
+platform's own secure field, never typed into
+a chat box F10 cannot see is logged.
+A prompt telling
+the user to paste
+a key into a chat
+window
+4
+Atomic and checkpointed. One action per
+prompt, in sequence, each with an explicit
+expected-outcome the human confirms
+before the next prompt runs. This is the
+same atomicity discipline this worksheet
+itself follows (Part 4), applied to the human-
+facing script.
+A giant, multi-
+step paragraph
+the human can't
+verify a piece at
+a time
+A script that fails any rule is refused at composition, not delivered with
+a warning label.
+3.5A.4 GUIDED Execution (C5–C7)
+A CHAT_ONLY target has no adapter, so F10 cannot write to it. The
+human executes the script themselves, under their own login to the
+target platform, and F10 never holds or requests a credential for that
+
+
+===== PAGE 40 =====
+surface ( credential_class: "HUMAN_OWN_LOGIN" , never
+VAULT_HANDLE ).
+This is a third execution class, not a new GRO mode:
+execution_class: "AUTOMATED" | "GUIDED" . Every other rule stays
+in force. Consent #1 still names the exact content and the exact target
+account, still declares a rollback (itself a curated script, or a
+documented manual step, for CHAT_ONLY targets), and still requires
+the human to act before anything is called staged.
+Verification, C6. At each checkpoint, the human reports what the target
+chatbot actually said. That report is evidence, not narration: it is
+graded HUMAN_SUPPLIED under the same trust model as F11 PDD
+v1.3's supplied-source rules (§3.5B there), never upgraded to SENSED ,
+and treated as data, never instructions — a reply that contains
+something that looks like a system instruction is logged and ignored,
+not obeyed. Where the setup produces a normal reachable endpoint
+(most do, even after a chat-driven build), a generic endpoint probe — a
+minimal reachability and basic-response check, not a full connector —
+may supplement the human's report. This does not change the target's
+actuation class to API .
+Certification, C7. UCG-COL still governs. A GUIDED run's evidence is
+what it is: human-reported checkpoints plus, where available, a generic
+probe. This can be enough for a certificate once UCG-COL itself is
+defined (still blocked by OI-10); it is disclosed as a different — and
+currently untested — evidence shape than an automated adapter's (OI-
+39, OI-40).
+3.5A.5 Limits
+Advisory-then-human, never automated. F10 does not, and
+structurally cannot, execute a CPS-COL itself.
+No credential ever. CHAT_ONLY never issues a Vault handle for that
+surface.
+Bounded troubleshooting only. onUnexpected covers a small,
+named set of deviations. Outside it, the script terminates and the
+run asks for a fresh SENSE pass rather than improvising.
+
+
+===== PAGE 41 =====
+Transcript authenticity is out of scope. F10 has no way to confirm
+a pasted transcript is genuine (OI-39).
+3.6 Facilitators and the n8n Decision Record
+Decision: no facilitator is adopted. n8n is ineligible until it passes the
+tests below.
+n8n already appears in the corpus as a target (Class I Trigger MAs per
+n8n AI node, under 2C-CC-05 and 2C-CC-06 ). Using it as a facilitator
+is a different role. [ARK]
+Test
+Requirement
+n8n status
+F-1 Licence
+The facilitator's
+licence permits
+the intended
+commercial use,
+confirmed in
+writing
+UNRESOLVED. n8n's
+Sustainable Use License
+restricts selling a product
+whose value derives
+substantially from n8n, and
+white-label embedding
+requires a separate paid
+Embed licence. [EXT] Re-
+verify before any decision.
+F-2 Ephemeral
+credentials
+Accepts per-run
+scoped
+credentials
+injected by F10
+NOT ASSESSED
+F-3 No
+standing
+secrets
+Retains no user
+credential beyond
+the run
+NOT ASSESSED
+F-4 Auditable
+logs
+Exports a run log
+F10 can append
+to its ledger
+NOT ASSESSED
+F-5 Verdict
+independence
+Cannot influence
+any SAVANT
+Satisfied by construction (F10
+never passes a facilitator a
+
+
+===== PAGE 42 =====
+Test
+Requirement
+n8n status
+verdict or
+fingerprint
+verdict method)
+Rules. F10's core never depends on a facilitator. A facilitator never
+holds a standing credential. A facilitator is never in the verdict path.
+Native adapters are preferred to bundling any third-party platform.
+Owner action: obtain the facilitator's written licence position, reviewed
+by counsel, before any commercial use.
+3.7 Credentials, Scopes and Consent (Invariant
+#26)
+The ecosystem's publishing safety stack already defines the pattern:
+consent shown with the exact final content and target account at the
+moment of approval, a credential vault, least-privilege connector
+scopes, and an account-match check. F10 inherits that stack and does
+not reinvent it. [ARK]
+Element
+Rule
+Credential
+Vault
+The only holder of credentials. Never exposed to a
+facilitator as a standing secret; never written to the
+ledger
+Strands
+No strand receives credential material. Strands see
+only opaque scoped handles (C-F10-14).
+Scope
+Broker
+Issues a short-lived, least-privilege handle per action. A
+request outside the declared scope is refused
+Consent
+record
+Names the exact content and the exact target account,
+at the moment of approval
+Account
+match
+The credential's account must equal the account
+named in the consent record
+
+
+===== PAGE 43 =====
+Element
+Rule
+Two
+consents
+Consent #1 authorises staging into a test article.
+Consent #2 authorises promotion. Neither implies the
+other
+Dry-run
+default
+A live write requires an explicit switch, recorded in the
+ledger
+Rollback
+Declared before the write. Irreversible actions need an
+explicit acknowledgement in the consent record
+3.8 The Physical Routing Guard
+The Manual states that a firmware colonization is certified only when
+SAVANT = FIT and MM = MATH_VERIFIED, that the F9 gate must run
+independently and not be folded into the SAVANT verdict, and that this
+covers firmware, robotics and smart appliances. [ARK]
+F10 therefore refuses any target in those classes unless it holds an
+F9Attestation : a complete mecha_run_id , a UCG certificate for the
+Machine Artifact, SAVANT FIT , and MM MATH_VERIFIED . Without
+one, the run refuses at C1 and cites Invariant #25. F10 does not
+colonize Machine Artifacts; F9's operator does. Every F9 invariant (#21
+to #24) and its open items (OI-01, OI-02, OI-07, OI-08) continue to apply.
+3.9 The Colonization Charter Gate
+The Manual's nine-point Charter is a pre-promotion gate. Each point is
+marked by who can honestly check it. [ARK]
+#
+Charter point
+Check type
+1
+SENSE characterised real
+constraints, not an
+assumption
+Machine — provenance and
+retrieval time present
+
+
+===== PAGE 44 =====
+#
+Charter point
+Check type
+2
+AUDIT included
+autonomous and
+scheduled execution paths
+Machine — autonomous-path
+fields present
+3
+VERIFY scored all seven
+classes, CC-01 override
+applied
+Hybrid — presence checked by
+machine; correctness is the
+engine's
+4
+ADJUDICATE reflects a real
+Fidelity computation
+Hybrid — trace hash present;
+quality of computation rests on
+the SAVANT engine
+5
+The fingerprint names
+every gap
+Machine for structure; human for
+completeness
+6
+TRANSLATE preserved
+mission, constraints, GRO,
+test suite and certification
+Hybrid — genome-hash and
+structural diff by machine;
+semantic preservation is human-
+attested
+7
+Physical target: F9 ran as
+an independent second
+gate
+Machine — F9Attestation
+8
+An SPK exists with a re-
+verification schedule
+Machine
+9
+The Honesty Gate was
+applied to every claim
+Human attestation
+Points 4, 5, 6 and 9 cannot be fully machine-verified. F10 records
+which are human-attested and by whom, and the SPK carries that
+record. It does not present a machine PASS as if it covered them. No
+strand may produce, simulate or infer a human attestation (C-F10-15).
+
+
+===== PAGE 45 =====
+3.10 Certification of the Colonized Deployment
+(UCG-COL)
+The colonized deployment inherits nothing. The parent's certificate
+covers the seed. The deployment is a new artifact with new packaging
+and a new host, so Invariant #22 applies to it. The Manual is
+consistent: where the test suite cannot be re-run on the target, no re-
+certified score is possible and the deployment remains provisional.
+[ARK]
+Class
+Code
+Threshold
+Mandatory gates
+Colonized
+deployment
+UCG-
+COL
+[TO BE SET
+— no value
+is
+proposed]
+Verdict binding intact ·
+Charter Gate PASS · in-
+stage test-suite re-run within
+declared tolerance ·
+fingerprint complete · GRO
+Colonization Record present
+· F9Attestation where
+physical · CompleteRun
+attestation (Invariant #27)
+Pending amendment to F9 PDD v2.1 §3.4.2: add UCG-COL to the class
+table. The threshold requires a SOLVA GAUNTLET pass and an Owner
+decision (OI-10). Until it is set, C7 promotion is unreachable and F10
+can stage but not promote.
+UCG-COL adapter preflight. Before transport, the adapter rejects a
+request with (1) no CompleteRun attestation, (2) a verdict binding that
+does not match this run, (3) a certificate subject that is not this
+deployment, (4) a Charter Gate that is not PASS or has unnamed
+attesters, or (5) author, scorer and adjudicator identities that are not
+three distinct ones, or an operator that is any of them (C-F10-19).
+These rejections hold even with UCG-COL in STUB_REFUSE .
+
+
+===== PAGE 46 =====
+3.11 SPK, Registry Write-Back and Re-
+Verification
+Every completed run, FIT or CLUSTER, issues an SPK registered to the
+parent card's record, so colonization history accumulates. [ARK]
+SPK component
+[ARK]
+Source
+SAVANT Report (full
+seven-phase trace)
+SAVANT engine
+Constraint
+Fingerprint
+SAVANT engine, gated by F10
+Host-Native Artifact
+(Brief or cluster
+manifest)
+TRANSLATE
+GRO Colonization
+Record
+TRANSLATE
+F9 Package
+(physical targets
+only)
+F9
+Re-Verification
+Schedule
+Scheduler
+F10 additions
+[SPEC]
+In-stage verification record · UCG-COL
+certificate · consent record references · charter
+attestation record · adapter and strand-adapter
+wiring state · f10_run_id
+Re-verification. The interval is set per target class in the connector
+registry, and an SPK with no interval is not issued. The interval values
+are [TO BE SET]; none is proposed here. The scheduler owns
+recurrence. A due re-verification re-enters at C1.
+
+
+===== PAGE 47 =====
+OSIRIS. Each promoted deployment registers a governance-gated
+telemetry contract with D32 (SPARTAN Invariant #8: no domain may
+suppress telemetry). [ARK]
+3.12 The Five Invariants This Document
+Introduces
+Invariant #25 — SAVANT-Gated Colonization
+No F10 run may reach any translate, stage, promote or register step
+for a target unless a SAVANT verdict (FIT or CLUSTER) has been
+issued by the SAVANT engine in the same run, bound to the artifact
+hash and to the SENSE record that run captured. A CLUSTER verdict
+is never promoted to FIT. A missing, stubbed or stale SAVANT
+engine causes refusal. Every completed run issues an SPK
+registered to the parent card. An embedded, robotic or physical-
+actuation target is refused unless an F9 run exists for it.
+CLASS A. Cannot be disabled by flag or tier, waived by the Owner,
+deferred, or applied selectively. Enforced structurally: TranslatedPlan
+cannot be constructed without a SavantVerdictRecord , and the type
+has no path from CLUSTER to FIT .
+Invariant #26 — Consent-Gated Transmission
+No F10 run may write to any external target, including a staging
+instance, without a consent record naming the exact content and
+the exact target account for that action, a credential drawn from the
+vault at least-privilege scope, and a declared rollback or an explicit
+irreversible-action acknowledgement. Staging and promotion
+require separate consents. Dry-run is the default. A facilitator never
+holds a standing credential.
+CLASS A. Enforced structurally: transmit() accepts only a
+ConsentedPlan , which only the consent gate can construct.
+Invariant #27 — The Single Operator (new, v2.0)
+
+
+===== PAGE 48 =====
+D36 has exactly one operator. A colonization is certifiable and
+promotable only if it was produced by a complete SAVANT ENVOY
+run with a recorded f10_run_id . Assembling the same strands,
+gates and adapters by hand, in any order, is not an F10 run and
+produces no certifiable colonization, however faithfully each
+individual step was executed.
+CLASS A. Enforced structurally: only the ledger can construct a
+CompleteRun , and the UCG-COL adapter rejects a request without one
+before transport. The invariant exists because v1.0's model made gate-
+skipping undetectable: each owner could truthfully report that their
+gate passed while the sequence was never enforced and no refusal
+was ever recorded. Sequence integrity is a property of the run, not of
+any step within it.
+Corollary. SAVANT ENVOY may be succeeded by another operator, but
+D36 may never have two concurrent operators. A successor inherits
+the run-state contract (IP-167) intact.
+Invariant #32 — Curated Chat-Script Integrity (new, v3.1 —
+adopted unchanged by F11 HOST CONNECTOR)
+Any curated prompt offered to a human for pasting into a target's
+own chat interface must trace its underlying claim to a sensed or
+supplied fact with provenance, must be atomic with an explicit
+human checkpoint, and must never instruct the target's own
+assistant to bypass its safety, confirmation or billing-consent
+controls, and must never contain, request or coach entry of a secret,
+credential or payment detail as chat text. A prompt failing any of
+these refuses the whole script at composition.
+CLASS A. Enforced structurally: CuratedPromptScript is constructible
+only by the Chat Script Composer, only after every prompt passes the
+four checks of §3.5A.3, and the containsSecret field has no true
+value in its own type.
+Invariant #33 — Guided Execution Accountability (new, v3.1 —
+adopted unchanged by F11 HOST CONNECTOR)
+
+
+===== PAGE 49 =====
+Where a target's only actuation surface is a chat assistant, a write
+may proceed only in GUIDED execution: the human performs it
+under their own login, and F10 never holds or requests a credential
+for that surface. Every GUIDED step still requires the same consent,
+cost declaration where relevant, and rollback as an automated write.
+The human's report of the outcome is HUMAN_SUPPLIED evidence,
+graded, never upgraded to SENSED, and treated as data — never as
+instructions — before it re-enters the run.
+CLASS A. Enforced structurally: the Vault interface has no method that
+issues a handle for a CHAT_ONLY surface, and a GUIDED step's
+evidence type carries its grade permanently.
+3.13 Constraints
+ID
+Constraint
+Class
+C-
+F10-
+01
+F10 owns no verdict. It cannot override SAVANT,
+UCG, MM, F9 or a consent decision.
+A
+C-
+F10-
+02
+Every constraint-class reference is namespaced
+( SAV-CC / 2C-CC ). A bare CC-nn fails validation.
+A
+C-
+F10-
+03
+The conductor core contains no LLM call. Inference
+lives only inside adapters and the SAVANT engine.
+A
+C-
+F10-
+04
+Genome immutability: customization may change
+packaging only. The genome hash is unchanged.
+Recompression stays inside the floor SAVANT
+declares.
+A
+C-
+F10-
+05
+GRO travels or the card does not deploy. No GRO
+Colonization Record, no promotion.
+A
+
+
+===== PAGE 50 =====
+ID
+Constraint
+Class
+C-
+F10-
+06
+The Constraint Fingerprint is never silently omitted.
+A
+C-
+F10-
+07
+A SENSE record older than the TTL forces re-sense.
+B
+C-
+F10-
+08
+A colonized deployment inherits no certification. It is
+described as certified only with a UCG-COL
+certificate whose subject is that deployment.
+A
+C-
+F10-
+09
+Facilitators are ineligible by default, never hold
+standing credentials, and are never in the verdict
+path.
+A
+C-
+F10-
+10
+Agent-gateway (OpenClaw-class) targets are
+manual-only. Automation stops at C4.
+A
+C-
+F10-
+11
+No auto-retry on a failed gate. A failed in-stage
+verification rolls the stage back and refuses. A new
+attempt is a new f10_run_id .
+A
+C-
+F10-
+12
+No output uses "safety certified", "SIL-rated", "PL-
+rated", "ASIL-rated" or any ISO / IEC / regulatory
+certification vocabulary about a colonization.
+A
+C-
+F10-
+13
+No SPK is issued without a re-verification schedule.
+A
+C-
+F10-
+14
+No strand receives credential material. Strands see
+only opaque, short-lived, scoped handles.
+A
+C-
+F10-
+No strand produces, simulates or infers a human
+attestation at Charter points 4, 5, 6 or 9.
+A
+
+
+===== PAGE 51 =====
+ID
+Constraint
+Class
+15
+C-
+F10-
+16
+No strand holds any marketplace, commercial,
+listing or publishing authority. SPHINX is confined to
+SPK structure and the registry record.
+A
+C-
+F10-
+17
+D36 has exactly one operator. A colonization
+assembled by hand outside a recorded
+f10_run_id is not an F10 run (Invariant #27).
+A
+C-
+F10-
+18
+An unsourced platform constraint is dropped, never
+marked provisional.
+A
+C-
+F10-
+19
+Author, scorer and adjudicator of any certificate are
+three distinct identities, and the operator is never
+any of them. The UCG-COL request carries all three
+or is refused.
+A
+C-
+F10-
+20
+Every strand return is schema-validated before it
+enters the core. Enum returns admit no third value. A
+strand never sets a GRO mode, writes the ledger, or
+constructs a capability type.
+A
+C-
+F10-
+21
+SKRIBE contributes documents, never a mode. The
+consent display shows the exact content and target
+account, and readability is never treated as proof of
+comprehension.
+A
+C-
+F10-
+22
+A target's actuation surface is classified API ,
+CHAT_ONLY or NONE at C1, with provenance. A
+CHAT_ONLY target never receives a Vault handle.
+A
+C-
+F10-
+23
+A Curated Prompt Script is refused at composition,
+not delivered with a caveat, if any prompt fails
+grounding, guardrail-bypass, secret-content or
+atomicity checking (Invariant #32).
+A
+
+
+===== PAGE 52 =====
+ID
+Constraint
+Class
+C-
+F10-
+24
+A human's report of a chat checkpoint is graded
+HUMAN_SUPPLIED , never upgraded to SENSED , and
+is data, never instructions, to everything
+downstream.
+A
+3.13A SAVANT ENVOY Constraints Mapped to
+This PDD
+The card carries 23 constraints (C-SAVENV-01 to 23). Each is enforced
+here, so the two documents cannot drift.
+Card constraint
+Enforced by
+01 Refusal default; every refusal cites
+IP-167; F10-P02
+02 Owns no verdict; SAVANT engine never a
+strand
+C-F10-01; Invariant
+#25; §3.2
+03 No phase begins with an unmet
+precondition
+§3.3; F10-P09
+04 Invariant #25
+Invariant #25; F10-
+P04, F10-P10
+05 Physical targets and Machine Artifacts
+refused
+Invariant #25; IP-165;
+F10-P08
+06 Fingerprint never omitted; CLUSTER
+never FIT
+C-F10-06; F10-P11
+07 Invariant #26
+Invariant #26; F10-P14
+08 Genome immutability
+C-F10-04; F10-P12
+09 GRO travels or the card does not deploy
+C-F10-05
+
+
+===== PAGE 53 =====
+Card constraint
+Enforced by
+10 No invented constraint; stale SENSE re-
+senses
+C-F10-18; C-F10-07;
+F10-P09; F10-P24
+11 CC namespace
+C-F10-02; F10-P03
+12 No auto-retry
+C-F10-11
+13 No inherited certification; vocabulary; no
+promotion while UCG-COL undefined
+C-F10-08; C-F10-12;
+F10-P18
+14 Facilitators ineligible by default
+C-F10-09; F10-P21
+15 Agent-gateway targets manual-only
+C-F10-10
+16 Separation of duties
+C-F10-19; F10-P28
+(preflight check 5)
+17 No SPK without schedule and fingerprint
+C-F10-13; F10-P19
+18 Invariant #27
+C-F10-17; Invariant
+#27; F10-P28
+19 No marketplace or commercial authority
+C-F10-16; §3.2B; F10-
+P27
+20 No strand receives credential material
+C-F10-14; F10-P23
+21 Human attestation cannot be simulated
+C-F10-15; F10-P17
+22 Strand returns validated; strands never
+set modes or construct capability types
+C-F10-20; F10-P23
+23 SKRIBE documents only
+C-F10-21; F10-P29
+3.14 Domain Register Delta
+
+
+===== PAGE 54 =====
+Domain
+Name
+Status
+IPs
+Operator /
+Lead
+Change
+D13
+SAVANT
+Portability
+LIVE
+(per
+register)
+IP-24
+SPARTAN
+MVE
+Unchanged;
+F10 reads
+verdicts
+D31
+Gemini
+Colonization
+Layer
+ACTIVE,
+JCSE
+43/50
+IP-
+105–
+110
+SPARTAN
++ Gemini
+authors
+Unchanged;
+F10's
+Google
+adapter
+D32
+F9.5
+Observability
+PRE-
+BUILD
+IP-
+111–
+116
+OSIRIS
+Unchanged;
+receives
+telemetry
+contracts
+D33
+OSIRIS Meta-
+Orchestration
+PRE-
+BUILD
+IP-
+117–
+122
+OSIRIS
+Unchanged
+D35
+F9 Machine
+Floor
+PRE-
+BUILD
+IP-
+129–
+150
+MECHA
+Unchanged;
+physical
+route
+D36 ★
+NEW
+F10
+CONNECTOR
+PRE-
+BUILD
+IP-
+151–
+169,
+IP-
+188–
+192
+SAVANT
+ENVOY
+ULTRA SI
+(Seat
+#17,
+proposed)
+v1.0:
+registered ·
+v2.0/v1.1:
+operator
+named ·
+v3.0: one
+operator ·
+v3.1: chat-
+interface
+targets, +5
+IPs, non-
+contiguous
+
+
+===== PAGE 55 =====
+Platform totals after F10 v3.1: 37 Domains (3 open slots D10/D17/D18
+unchanged) · 197 Integration Points · 33 SPARTAN Invariants.
+Reserved: D38 / IP-198 onward, per the IP Allocation Ruling in
+Document Control. D37 (F11 HOST CONNECTOR) is unchanged at IP-
+170–187, IP-193–197.
+3.15 Open Items
+ID
+Item
+Class
+Status
+OI-
+09
+F10 operator. Narrowed: SAVANT
+ENVOY is named and specified and
+Invariant #27 is in force. The ENVOY
+lineage closed this item; that is
+overruled, because naming an
+operator does not close the gap.
+Open until the card is built and
+independently assessed.
+A
+OPEN —
+NARROWED
+OI-
+10
+UCG-COL has no threshold. Blocks
+promotion under Invariant #22.
+A
+OPEN —
+BLOCKING
+OI-
+11
+Constraint-class ID collision
+between the Manual (Appendix A)
+and Second Contact. Namespaced,
+not reconciled.
+B
+OPEN
+OI-
+12
+SAVANT engine interface unverified.
+D13 is listed live; whether it exposes
+a callable interface for F10 is not
+established.
+A
+OPEN
+OI-
+13
+No facilitator assessed. n8n licence
+unresolved (F-1).
+B
+OPEN
+OI-
+14
+Boundaries with D31 and D33
+proposed, not adjudicated.
+B
+OPEN
+
+
+===== PAGE 56 =====
+ID
+Item
+Class
+Status
+OI-
+15
+No coding-standard profile for
+software-target code generated
+through PCE. BUGMXT's
+documented toolchains name
+TypeScript, Python and Solidity
+analyzers.
+B
+OPEN
+OI-
+16
+The operator is unassessed.
+SAVANT ENVOY's bootstrap needs
+an independent Assessor and
+Adjudicator. The existing
+engagement brief ( JNGL-ENG-
+MECHA-2026-001 ) covers MECHA
+only.
+A
+OPEN
+OI-
+17
+Seat #17 unverified; DISC mismatch
+with the Camelot inventory's
+archetype groups (Seat #17 is in the
+King's Council, DC/CD; the operator
+is CS); DNA overlap with MECHA
+(four shared strands) and inside
+CODE DJ unreconciled.
+C
+OPEN
+OI-
+18
+SPHINX ENGINE deployment is
+unadjudicated against F10. If built as
+the whitepaper describes and not
+routed through F10, it is a path
+around Invariant #25.
+A
+OPEN
+OI-
+19
+No security-architecture or DevOps
+strand. "Security Expert SPC" and
+"DevOps Expert SPC" appear only as
+placeholder seats in OSIRIS's
+specification; no certified card was
+located.
+A
+OPEN
+
+
+===== PAGE 57 =====
+ID
+Item
+Class
+Status
+OI-
+20
+SPHINX strand fence untested.
+SPHINX also owns certification
+pipelines and a marketplace, and the
+merged operator includes it despite
+ENVOY's exclusion.
+B
+OPEN
+OI-
+37
+D36's IP block is non-contiguous (IP-
+151–169 and IP-188–192), because
+the D38 frontier was split between
+this document and F11 v1.4 rather
+than left idle. Disclosed, not repaired.
+C
+OPEN
+OI-
+38
+No secret-shape scanner is wired for
+chat-transcript and prompt-script
+intake (parallels F11 PDD's OI-33).
+Until one is selected, an operator
+relying on that scan fails closed.
+B
+OPEN
+OI-
+39
+Chat-transcript authenticity is
+unverifiable. F10 has no way to
+confirm a human-pasted exchange
+with a target chatbot is genuine
+rather than fabricated or
+manipulated — the same class of
+risk as F11's document-injection
+concern (its OI-36), applied to a live
+chat session.
+B
+OPEN
+OI-
+40
+Composed-versus-sourced line
+undrawn. A curated prompt's
+underlying facts are sourced; its
+exact wording is synthesized.
+Whether Invariant #32's "no
+fabrication" reading draws that line
+correctly is a SPARTAN/Owner ruling,
+not yet made.
+B
+OPEN
+
+
+===== PAGE 58 =====
+Numbering continues the shared register used in the MECHA SPC and
+the F9 PDD (OI-01 to OI-08). The two earlier F10 lineages both used OI-16
+to OI-18 for different items; §1.2B fixes one register. OI-01 and OI-02 bind
+every physical-target route.
+PART 4 — ATOMIC PROMPT
+WORKSHEET
+Builders · Single Operation · Verifiable I/O · No Compound Logic
+CORDON sequence: W1 foundation → W2 eligibility, registry & strands
+→ W3 SAVANT phases → W4 translate & consent → W5 stage & verify
+→ W6 certify, promote, register → W7 self-test. No circular
+dependency. Critical path: F10-P01 → F10-P02 → F10-P06 → F10-P07
+→ F10-P09 → F10-P10 → F10-P11 → F10-P12 → F10-P14 → F10-P15
+→ F10-P16 → F10-P17 → F10-P18 → F10-P19 → F10-P20 (15 prompts;
+the self-test F10-P22 follows). Recomputed for v3.1; the chat-script
+branch (F10-P30–P34) sits off the critical path because it only runs for
+CHAT_ONLY targets.
+Code-Late checkpoint: W1 to W2 produce schemas, contracts and
+types. First implementation code is generated at W3.
+WAVE 1 — FOUNDATION
+F10-P01 · 🔴 P0 · IP-151 – IP-169 · CLASS A · Deps: none
+Operation: Register D36 with IP range 151–169. Record the written
+amendment that F10 consumes IP-151–169 and that D37 / IP-170+ is
+reserved. Do not alter D13, D31, D32, D33 or D35.
+Output: { d36: DomainRecord, reserved_from: 170,
+amendment_recorded: true }
+Gate: 36 populated domains, 3 open slots, 169 IPs. Amendment text
+present. Neighbouring domain records byte-identical.
+
+
+===== PAGE 59 =====
+F10-P02 · 🔴 P0 · IP-167 · CLASS A · Deps: F10-P01
+Operation: Define the Run Ledger and Cited Refusal contract. The
+ledger is append-only with REVOKE UPDATE, DELETE at the database
+role. Every run gets an f10_run_id . Every refusal carries
+phase_halted , constraint_cited , invariant_cited , cause ,
+required_to_proceed . Every ledger entry records the wiring mode of
+the SAVANT adapter and each connector and strand adapter, and the
+operator identity ( SPC-SAVENV-F10-ULTRA-SI-001@1.0.0 ).
+Output: { ledger_schema, ddl, refusal_schema }
+Gate: An UPDATE as the application role fails at the database. A
+refusal with both citation fields null fails serialisation.
+F10-P03 · 🔴 P0 · IP-155 · CLASS A · Deps: F10-P01
+Operation: Implement the constraint-class namespace registry: SAV-
+CC-nn and 2C-CC-nn , with a validator that rejects a bare CC-nn in any
+F10 record.
+Output: { namespace_registry, validator }
+Gate: A record containing a bare CC-04 fails validation. The registry
+states which set SV-03 uses.
+F10-P04 · 🔴 P0 · IP-153 · CLASS A · Deps: F10-P02
+Operation: Define the SAVANT Engine Adapter. Read-only: it returns a
+SavantVerdictRecord or REFUSED . mode defaults to STUB_REFUSE .
+The verdict type is { kind: "FIT" } | { kind: "CLUSTER",
+fingerprint } and carries binding = hash(artifact_hash,
+sense_record_hash, f10_run_id) .
+Output: { savant_adapter_interface, verdict_type,
+default_mode: "STUB_REFUSE" }
+Gate: The type has no setVerdict , override , promote or score
+member. A compile-time test asserts their absence. A freshly
+constructed adapter returns REFUSED .
+
+
+===== PAGE 60 =====
+F10-P23 ★ · 🔴 P0 · IP-168 · CLASS A · Deps: F10-P02
+Operation: Define the Strand Adapter interface and the validation
+boundary per §3.2B for the six strands (CODE DJ, ATHENA, DEXTER,
+FRACTAL, SKRIBE, SPHINX). Every strand return is schema-validated
+before it enters the core. Enum returns admit no third value. A strand
+has no ledger handle, no GRO-mode setter, no Vault handle and no
+constructor for any capability type. Add a static check that the core
+module tree contains zero LLM client imports.
+Output: { strand_interface, validation_contract,
+llm_import_scan: { core_modules: number, llm_imports: 0 } }
+Gate: llm_imports in the core is exactly 0, verified statically in CI (C-
+F10-03). A compile-time test asserts the interface exposes no ledger,
+mode-setter, Vault or capability-constructor member. A schema-invalid
+strand return puts the run in CONTAINMENT with no retry.
+F10-P28 ★ · 🔴 P0 · IP-169 · CLASS A · Deps: F10-P02
+Operation: Implement the Run Completeness Attestation. The ledger
+constructs a CompleteRun only when the run's entries are contiguous
+from C0 through C6 with no HALT, every adapter's wiring state is
+recorded, and every strand return was validated. Implement the UCG-
+COL adapter preflight per §3.10, including the check that author, scorer
+and adjudicator are three distinct identities and that the operator is
+none of them (C-F10-19).
+Output: { complete_run_type, ucg_col_preflight: 5 }
+Gate: A colonization assembled by hand, with the same strands and
+gates called directly in the correct order and no f10_run_id , is
+rejected before transport, so the rejection holds with UCG-COL in
+STUB_REFUSE . A run containing any HALT can never yield a
+CompleteRun . A request whose identities are not three distinct ones,
+or in which the operator is any of them, is rejected at the same point.
+WAVE 2 — ELIGIBILITY, REGISTRY & STRANDS
+
+
+===== PAGE 61 =====
+F10-P05 · 🔴 P0 · IP-151 · CLASS A · Deps: F10-P02
+Operation: Implement the Intake Eligibility Gate. Require: artifact hash,
+UCG certificate record, handled artifact class, declared target class.
+Output: { intake_result: "ELIGIBLE" | "REFUSED",
+constraint_cited }
+Gate: An artifact with no UCG certificate record is refused citing
+Invariant #22. A Tier 0 self-assigned certificate is valid; an absent one
+is not.
+F10-P06 · 🔴 P0 · IP-152 · CLASS A · Deps: F10-P02
+Operation: Define the Connector Adapter interface per §3.5.
+transmit() accepts only a ConsentedPlan . mode defaults to
+STUB_REFUSE .
+Output: { connector_interface, default_mode: "STUB_REFUSE" }
+Gate: No overload of transmit() accepts any other type. The
+interface has no verdict, score or fingerprint setter. A newly
+constructed adapter returns REFUSED .
+F10-P07 · 🔴 P0 · IP-152 · CLASS A · Deps: F10-P06
+Operation: Implement the Connector Registry and the five onboarding
+checks. Any failed check blocks addition.
+Output: { registry, onboarding_checks: 5,
+onboarding_record_schema }
+Gate: An adapter declaring a wildcard scope is rejected at check 3. An
+adapter with no declared rollback and no irreversibility flag is rejected
+at check 4. Demand is not an input to the decision.
+F10-P08 · 🔴 P0 · IP-165 · CLASS A · Deps: F10-P05
+Operation: Implement the Physical Routing Guard. Target classes
+firmware, robotics and smart appliance / IoT require an
+F9Attestation ( mecha_run_id , Machine Artifact UCG certificate,
+SAVANT FIT , MM MATH_VERIFIED ).
+Output: { routing_decision: "ROUTE_TO_F9" | "PROCEED",
+
+
+===== PAGE 62 =====
+attestation_required: boolean }
+Gate: A physical target with no attestation is refused citing Invariant
+#25. F10 never accepts a Machine Artifact as a colonization subject.
+F10-P24 ★ · 🔴 P0 · IP-168 · CLASS A · Deps: F10-P23
+Operation: Implement the ATHENA strand adapter for SENSE and
+AUDIT. Return constraints with provenance, retrieval time and
+autonomous-path coverage, plus the target's terms and governance
+surface. Drop unsourced constraints inside the adapter.
+Output: { adapter, provenance_validator }
+Gate: A constraint without a source and a retrieval time never leaves
+the adapter. Nothing is returned marked provisional (C-F10-18).
+F10-P25 ★ · 🔴 P0 · IP-168 · CLASS A · Deps: F10-P23
+Operation: Implement the CODE DJ strand adapter: target-class
+declaration, Platform Allocation, Sovereign Deployment Brief
+generation, and the PCE route for PDD and Micro PDD artifacts.
+Output: { adapter, allocation_validator }
+Gate: An allocation naming an environment that cannot execute the
+artifact is rejected at the boundary. The PCE route requires the
+Codebase Architecture Document before any generation.
+F10-P26 ★ · 🔴 P0 · IP-168 · CLASS A · Deps: F10-P23
+Operation: Implement the DEXTER and FRACTAL strand adapters.
+DEXTER: HOLMES anomaly sweep, SOCRATES challenge, ARES
+adversarial re-run of a test suite. FRACTAL: topology for a CLUSTER
+verdict.
+Output: { dexter_adapter, fractal_adapter }
+Gate: DEXTER returns per-case PASS or FAIL and never an aggregate
+score. FRACTAL returns a topology only when the verdict is CLUSTER
+and has no method that changes a verdict.
+
+
+===== PAGE 63 =====
+F10-P27 ★ · 🔴 P0 · IP-168 · CLASS A · Deps: F10-P23
+Operation: Implement the SPHINX strand adapter, fenced to SPK
+structure and the parent card's registry record. It has no listing,
+publishing or marketplace-facing member of any kind.
+Output: { sphinx_adapter }
+Gate: A compile-time test asserts that no certify , score ,
+adjudicate , list , publish or marketplace-facing member exists
+(C-F10-16). A registry write is an internal record write and never a
+public one.
+F10-P29 ★ · 🔴 P0 · IP-168 · CLASS A · Deps: F10-P23
+Operation: Implement the SKRIBE strand adapter: the Sovereign
+Deployment Brief, the SAVANT Report summary, the consent display
+and the SPK summary. The adapter returns documents only.
+Output: { adapter, brief, consent_display, spk_summary }
+Gate: The consent display contains the exact content and the exact
+target account, or it is rejected. The adapter cannot set a GRO mode,
+and SKRIBE's own LIFE default is not inherited (C-F10-21). Readability
+is never recorded as proof of comprehension.
+WAVE 3 — SAVANT PHASES
+F10-P09 · 🔴 P0 · IP-154 · CLASS A · Deps: F10-P04, F10-P07, F10-P03,
+F10-P08, F10-P24, F10-P26
+Operation: Implement C1 SENSE and AUDIT automation through a
+connector adapter and the ATHENA strand adapter, with a HOLMES
+anomaly sweep from the DEXTER adapter. Each captured constraint
+carries provenance and retrieval time. The record must include the
+host's autonomous and scheduled execution paths. Compute
+sense_record_hash .
+Output: { sense_record, sense_record_hash, ttl_status }
+Gate: A record with no autonomous-path section is incomplete and
+refused. A constraint with no provenance is dropped, never marked
+
+
+===== PAGE 64 =====
+provisional. A record older than the TTL is stale and forces re-sense.
+TTL is [TO BE SET].
+F10-P10 · 🔴 P0 · IP-155 · CLASS A · Deps: F10-P09
+Operation: Implement C2 VERIFY. Send the SENSE record and the
+artifact profile to the SAVANT engine adapter and receive a
+SavantVerdictRecord . Verify the binding hash. Write the verdict to the
+ledger.
+Output: { verdict_record, binding_verified: true }
+Gate: F10 computes no score. A verdict whose binding does not match
+this run's artifact hash and SENSE hash is rejected. With the SAVANT
+adapter stubbed, the run refuses here.
+F10-P11 · 🔴 P0 · IP-155 · CLASS A · Deps: F10-P10
+Operation: Implement C3 NAME. Run the DEXTER adapter's SOCRATES
+challenge on each blocked, degraded or compensated capability, then
+check that every capability the verdict marks blocked, degraded or
+needing compensating architecture has a named entry in the
+Constraint Fingerprint.
+Output: { fingerprint_complete: boolean, unnamed_gaps:
+string[] }
+Gate: unnamed_gaps empty, or the run refuses citing C-F10-06. A
+CLUSTER verdict cannot proceed on a single-node plan.
+F10-P30 ★ · 🔴 P0 · IP-188 · CLASS A · Deps: F10-P09
+Operation: Extend C1 SENSE to classify a target's actuation surface
+( API , CHAT_ONLY , NONE ) with provenance, and, for CHAT_ONLY , sense
+the target's documented chat-driven setup capability.
+Output: { target_actuation, chat_capability_record? }
+Gate: A classification with no provenance is refused. CHAT_ONLY is
+never inferred from absence of an adapter alone — it requires a
+positive, sourced statement that a chat assistant is the documented
+setup surface.
+
+
+===== PAGE 65 =====
+WAVE 4 — TRANSLATE & CONSENT
+F10-P12 · 🔴 P0 · IP-156 · CLASS A · Deps: F10-P11, F10-P08, F10-P25,
+F10-P26, F10-P29
+Operation: Implement C4 TRANSLATE. On FIT , produce a Sovereign
+Deployment Brief through the CODE DJ adapter. On CLUSTER , take the
+topology from the FRACTAL adapter and have CELL SI build the
+governed cluster and manifest. For a PDD or Micro PDD, route to CODE
+DJ's PCE conversion. Have the SKRIBE adapter author the Sovereign
+Deployment Brief and the consent display. Accept a
+CustomizationSet limited to packaging fields. Record the genome
+hash before and after.
+Output: { translated_plan, genome_hash_before,
+genome_hash_after, gro_colonization_record, consent_display
+}
+Gate: The two genome hashes are equal. A customization touching
+mission, constraint set, GRO, test suite or certification is rejected. A
+plan lacking a GRO Colonization Record is refused (C-F10-05). Dry-run
+only: this prompt performs no external write.
+F10-P13 · 🔴 P0 · IP-157 · CLASS A · Deps: F10-P02
+Operation: Implement the Credential Vault and Scope Broker. Issue a
+short-lived, least-privilege handle per action. Never write a credential to
+the ledger.
+Output: { vault_interface, scope_broker, handle_schema }
+Gate: A request outside the declared scope is refused. A handle
+expires. A search of the ledger for credential material returns nothing.
+F10-P14 · 🔴 P0 · IP-158 · CLASS A · Deps: F10-P12, F10-P13, F10-P26,
+F10-P29
+Operation: Implement the Consent Gate. Have the DEXTER adapter
+review the write plan for scope, reversibility and irreversible actions.
+Present the SKRIBE consent display showing the exact content and the
+
+
+===== PAGE 66 =====
+exact target account at approval, and record the consent. The operator
+presents and records; the human consents. Check that the credential's
+account equals the consent's account. Produce a ConsentedPlan
+from a TranslatedPlan , a consent record, a scoped handle, and a
+rollback declaration. Consent #1 is for staging and consent #2 is for
+promotion.
+Output: { consented_plan, consent_record_id, stage: "STAGE" |
+"PROMOTE" }
+Gate: Only this gate can construct a ConsentedPlan . Consent #1
+cannot be used for promotion. An irreversible action without an explicit
+acknowledgement is refused. Dry-run is the default; a live write requires
+an explicit switch recorded in the ledger.
+F10-P31 ★ · 🔴 P0 · IP-189 · CLASS A · Deps: F10-P30, F10-P11, F10-
+P12
+Operation: Implement the Chat Script Composer. On CHAT_ONLY , build
+a CuratedPromptScript from the Constraint Fingerprint and the chat-
+capability record only. On API , this branch does not run.
+Output: { curated_prompt_script_draft }
+Gate: The composer has no method that accepts a credential or a
+Vault handle. Every prompt's provenance list is non-empty before the
+draft leaves this prompt.
+F10-P32 ★ · 🔴 P0 · IP-190 · CLASS A · Deps: F10-P31
+Operation: Implement the safety validator of §3.5A.3: grounding, no-
+guardrail-bypass, no-secret-content, atomicity-and-checkpoint, over
+every prompt in the draft script.
+Output: { validated_script, rejected_prompts: [] }
+Gate: A script with any failing prompt is refused whole, not filtered to
+the passing ones. A compile-time test asserts containsSecret has no
+true value anywhere in the type.
+WAVE 5 — STAGE & VERIFY
+
+
+===== PAGE 67 =====
+F10-P15 · 🔴 P0 · IP-159 · CLASS A · Deps: F10-P14
+Operation: Implement staged transmit into a test article through the
+connector adapter, using a ConsentedPlan for STAGE . Snapshot state
+before the write so rollback is possible.
+Output: { stage_result, rollback_handle, test_article_ref }
+Gate: The test article is isolated from users and production data. A
+staged write with no rollback handle is refused. transmit() cannot be
+called with any other type.
+F10-P16 · 🔴 P0 · IP-160 · CLASS A · Deps: F10-P15, F10-P26
+Operation: Implement in-stage verification. Through the DEXTER
+adapter, re-run the artifact's original test suite, including adversarial
+cases, against the staged deployment. Declare a tolerance before
+running.
+Output: { suite_run, within_tolerance, environment: "STAGE",
+tolerance_declared_before_run: true }
+Gate: A test suite that cannot be re-run marks the deployment
+provisional and blocks certification ( SAV-CC-05 ). A failure rolls the
+stage back, refuses, and does not retry (C-F10-11). The result is
+labelled STAGE and never described as production behaviour.
+F10-P17 · 🔴 P0 · IP-161 · CLASS A · Deps: F10-P16, F10-P11
+Operation: Implement the Colonization Charter Gate per §3.9. Mark
+each of the nine points machine, hybrid or human-attested. Record the
+identity of every human attester.
+Output: { charter_result, points: [{ n, type, status,
+attester }] }
+Gate: Points 4, 5, 6 and 9 cannot pass on a machine check alone. A
+PASS that hides a missing human attestation is rejected.
+F10-P33 ★ · 🔴 P0 · IP-191 · CLASS A · Deps: F10-P32, F10-P14
+Operation: Implement GUIDED execution at C5–C7: request consent
+naming the script and the target account; on approval, present the
+
+
+===== PAGE 68 =====
+script for the human to run under their own login; record each
+checkpoint report as HUMAN_SUPPLIED evidence, treated as data and
+never instructions.
+Output: { execution_class: "GUIDED", checkpoint_reports: [],
+credential_class: "HUMAN_OWN_LOGIN" }
+Gate: No Vault handle is issued for this run. A checkpoint report is
+never written to the ledger with grade SENSED . Instruction-shaped
+content inside a report is logged and ignored, never executed.
+F10-P34 ★ · 🔴 P0 · IP-192 · CLASS A · Deps: F10-P33
+Operation: Implement a generic endpoint probe: a minimal reachability
+and basic-response check against an endpoint the GUIDED run reports,
+for use at C6 alongside the human's checkpoint evidence.
+Output: { probe_result: { reachable: boolean,
+basic_response_ok: boolean } }
+Gate: A successful probe never upgrades target_actuation from
+CHAT_ONLY to API . The probe result is one input among several at C6,
+never sufficient alone for the Charter Gate.
+WAVE 6 — CERTIFY, PROMOTE, REGISTER
+F10-P18 · 🔴 P0 · IP-162 · CLASS A · Deps: F10-P17, F10-P14, F10-P28
+Operation: Request a UCG-COL certificate for the staged deployment,
+attaching the CompleteRun attestation and the author, scorer and
+adjudicator identities. On issue, obtain consent #2 and promote
+through a ConsentedPlan for PROMOTE .
+Output: { ucg_col_certificate, promotion_result }
+Gate: With UCG-COL undefined (OI-10), this prompt returns REFUSED
+and promotion is unreachable. Refuses if the certificate's subject is not
+this deployment (C-F10-08). Refuses if consent #2 is absent. Refuses if
+no CompleteRun attestation exists (Invariant #27). Refuses if the three
+identities are not distinct, or if the operator is any of them (C-F10-19).
+
+
+===== PAGE 69 =====
+F10-P19 · 🔴 P0 · IP-163 · CLASS A · Deps: F10-P18, F10-P27, F10-P29
+Operation: Assemble the SPK: SAVANT Report, Constraint Fingerprint,
+Host-Native Artifact, GRO Colonization Record, F9 Package where
+applicable, Re-Verification Schedule, plus F10 additions. Package the
+SPK structure and register it through the SPHINX adapter (record only,
+no listing; C-F10-16). Have the SKRIBE adapter write the SPK summary.
+Output: { spk, registry_writeback_id }
+Gate: All required components present. A missing fingerprint or
+schedule means no SPK (C-F10-13). Registration is confirmed before
+the run is marked complete.
+F10-P20 · 🔴 P0 · IP-164 · CLASS A · Deps: F10-P19
+Operation: Implement the re-verification scheduler and register the
+promoted deployment's telemetry contract with OSIRIS (D32).
+Output: { schedule_id, next_due, telemetry_contract_id }
+Gate: next_due is a real future date. A due re-verification re-enters at
+C1. Interval values are [TO BE SET] per target class.
+F10-P21 · 🟠 P1 · IP-166 · CLASS B · Deps: F10-P07, F10-P13
+Operation: Implement the facilitator eligibility tests F-1 to F-5 (§3.6).
+Default every facilitator to INELIGIBLE .
+Output: { facilitator_status, tests: [{ id, status }] }
+Gate: An unassessed facilitator is ineligible. No facilitator ever receives
+a standing credential or a verdict method.
+WAVE 7 — SELF-TEST
+F10-P22 · 🔴 P0 · CLASS A · Deps: F10-P01 …
+F10-P34
+Operation: Run the worksheet against itself.
+Confirm each of the following is refused at its
+
+
+===== PAGE 70 =====
+named phase, cited and ledgered: (a) transmit
+with no SAVANT verdict; (b) a CLUSTER verdict
+presented as FIT ; (c) a run with the SAVANT
+adapter stubbed; (d) a verdict from a different
+run or SENSE snapshot; (e) a stale SENSE record;
+(f) a physical target with no F9Attestation ; (g) a
+write with no consent record; (h) a credential
+request outside scope; (i) a customization that
+changes the genome hash; (j) a failed in-stage
+suite, with rollback and no retry; (k) an artifact
+with no UCG certificate at intake; (l) promotion
+with UCG-COL undefined; (m) an SPK with no
+fingerprint; (n) an ineligible facilitator; (o) a bare
+CC-nn ; (p) a colonization assembled by hand with
+no f10_run_id , rejected by the UCG-COL preflight;
+(q) a strand attempting to obtain credential
+material, which has no interface to do so; (r) a
+certify, score or adjudicate call on the SPHINX
+adapter, which does not exist; (s) an unsourced
+constraint returned by the ATHENA adapter,
+dropped and never provisional; (t) a schema-
+invalid strand return, which halts the run in
+CONTAINMENT; (u) a UCG-COL request whose
+author, scorer and adjudicator are not three
+distinct identities, or in which the operator is one
+
+
+===== PAGE 71 =====
+of them, rejected at preflight; (v) an LLM client
+import in the core module tree, which fails the
+build; (w) a SKRIBE consent display that omits
+the exact content or the target account, rejected;
+(x) a Curated Prompt Script containing a
+guardrail-bypass instruction, refused at
+composition; (y) a prompt containing secret-
+shaped text, refused at composition; (z) a
+CHAT_ONLY target for which a Vault handle is
+requested, which the interface cannot construct;
+(aa) a human checkpoint report used as though it
+were SENSED , rejected; (ab) an unbounded
+troubleshooting branch outside onUnexpected ,
+which terminates the script rather than
+improvising.
+Output: { refused_at_named_phase: 28/28, ledgered: true }
+Gate: All twenty-eight true. A test that passes
+because the run never reached that phase does
+not count.
+PART 5 — RISK REGISTER
+Risk
+Sev
+Mitigation
+Automation skips
+SAVANT (the Silent
+Wrapper at machine
+speed)
+🔴
+Critical
+Invariant #25; capability types;
+F10-P22 (a).
+
+
+===== PAGE 72 =====
+Risk
+Sev
+Mitigation
+Verdict replayed
+from another run,
+artifact or target
+snapshot
+🔴
+Critical
+Binding hash over artifact, SENSE
+record and run id; F10-P10
+verifies it; F10-P22 (d).
+CLUSTER promoted
+to FIT
+🔴
+Critical
+No promote function exists; the
+type has no such path; F10-P22
+(b).
+Physical target
+colonized without F9
+🔴
+Critical
+Physical Routing Guard;
+F9Attestation ; F9 invariants
+continue to bind. OI-01 and OI-02
+remain open.
+Write to a target
+without consent
+🔴
+Critical
+Invariant #26; ConsentedPlan
+is constructible only by the
+consent gate.
+Colonized
+deployment shipped
+without a certificate
+🔴
+Critical
+Invariant #22 applies; UCG-COL ;
+promotion unreachable until OI-
+10 closes.
+Stale SENSE — the
+host changed since it
+was read
+🟠 High
+TTL and forced re-sense (C-F10-
+07). TTL unset.
+Over-broad
+credentials
+🟠 High
+Scope Broker; wildcard scopes
+rejected at onboarding; short-
+lived handles.
+Irreversible write on
+a target
+🟠 High
+Rollback declared before the
+write; irreversible actions need
+explicit acknowledgement.
+Genome altered by
+customization
+🟠 High
+Genome hash before and after;
+allowlist of packaging fields (C-
+F10-04).
+
+
+===== PAGE 73 =====
+Risk
+Sev
+Mitigation
+Constraint-class ID
+confusion
+🟠 High
+Namespaced IDs; validator; OI-
+11.
+Facilitator licence
+breach or secret
+retention
+🟠 High
+Default ineligible; F-1 to F-5; no
+standing credentials. n8n
+unresolved.
+Target terms forbid
+automation
+🟠 High
+Onboarding check 5.
+Test suite not re-
+runnable on the
+target
+🟠 High
+Deployment marked provisional
+and blocked from certification
+( SAV-CC-05 ).
+Operator unbuilt and
+unassessed —
+SAVANT ENVOY is
+PRE-BUILD at 41/50
+and has never run
+🟠 High
+Disclosed in Document Control,
+§1.8 and SOLVA ground 1. A floor
+cannot be more validated than its
+operator. OI-09 stays open, and
+OI-16 records the missing
+independent assessment.
+Colonization
+assembled by hand,
+bypassing the
+operator
+🔴
+Critical
+Invariant #27; only the ledger
+constructs a CompleteRun ;
+UCG-COL preflight rejects a
+request without one. F10-P22 (p).
+A strand handles a
+credential
+🔴
+Critical
+C-F10-14; the strand interface
+has no Vault handle. F10-P22 (q).
+SPHINX strand drifts
+into certification or
+commercial
+authority
+🟠 High
+C-F10-16; no certify , score ,
+adjudicate , list , publish
+or marketplace-facing member
+exists. OI-20. F10-P22 (r).
+Shared blind spots
+with MECHA
+🟠 High
+Disclosed as OI-17; independent
+Assessor review.
+
+
+===== PAGE 74 =====
+Risk
+Sev
+Mitigation
+No security-
+architecture strand
+🟠 High
+Disclosed as OI-19; credential
+handling rests on the Vault and
+human review.
+The card's name is
+read as holding
+SAVANT's verdicts
+🟠 High
+C-F10-01; §3.1 boundary row; any
+document using the name must
+say it holds no verdict.
+The SPHINX
+ENGINE's
+deployment tiers
+bypass F10
+🔴
+Critical
+Disclosed as OI-18. F10 does not
+treat a SPHINX ENGINE
+deployment as a certified
+colonization until ruled.
+Consent shown but
+not understood
+🟠 High
+SKRIBE's display shows the exact
+content and account; F10-P22
+(w). Comprehension cannot be
+proven by the system (C-F10-21).
+Fabricated platform
+behaviour
+🟠 High
+C-F10-18 and C-F10-07; the
+ATHENA adapter drops
+unsourced constraints. F10-P22
+(s).
+LLM drifts into the
+deterministic core
+🟠 High
+The static zero-import check in
+F10-P23 fails the build (C-F10-
+03). F10-P22 (v).
+The operator
+certifies its own
+work
+🟠 High
+C-F10-19; the UCG-COL preflight
+rejects identities that are not
+three distinct ones. F10-P22 (u).
+Platform drift after
+promotion (the
+Frozen Certification)
+🟡
+Medium
+Re-verification scheduler; no SPK
+without a schedule.
+Telemetry leaks
+sensitive content
+🟡
+Medium
+Governance-gated telemetry
+contract (Invariant #8).
+
+
+===== PAGE 75 =====
+Risk
+Sev
+Mitigation
+Software-target
+code lacks a coding
+standard
+🟡
+Medium
+Disclosed OI-15; PCE fidelity and
+ARES scan apply; F9's assurance
+layer does not.
+| A curated prompt talks the target bot into skipping its own guardrails
+| 🔴 Critical | Invariant #32 rule 2; refused at composition. F10-P22 (u). |
+| A secret is typed into a third-party chat box | 🔴 Critical | Invariant
+#32 rule 3; refused at composition. F10-P22 (v). |
+| A CHAT_ONLY write gets a Vault credential anyway | 🔴 Critical |
+Invariant #33; the Vault interface has no such method. F10-P22 (w). |
+| A fabricated chat transcript is treated as fact | 🟠 High | Graded
+HUMAN_SUPPLIED , never upgraded; data not instructions. F10-P22 (x).
+OI-39. |
+| The prompt's wording is mistaken for a sourced quote | 🟡 Medium |
+Disclosed at composition (§3.5A.3 rule 1); OI-40. |
+PART 6 — GLOSSARY
+Term
+Definition
+F10 CONNECTOR
+D36. SAVANT-gated colonization
+automation. Holds no verdict.
+CHAT_ONLY target
+A target whose only documented setup
+surface is its own conversational
+assistant.
+Curated Prompt Script
+(CPS-COL)
+The sequenced, provenance-bound,
+safety-checked prompt list F10 hands a
+human for a CHAT_ONLY target.
+GUIDED execution
+The human performs the write
+themselves, under their own login; F10
+holds no credential for that surface.
+
+
+===== PAGE 76 =====
+Term
+Definition
+SAVANT ENVOY
+The operator SPC of D36 ( SPC-SAVENV-
+F10-ULTRA-SI-001 , Seat #17
+proposed): the merger of SAVANT
+CONNECTOR and ENVOY. It runs the
+protocol through the SAVANT engine and
+holds no verdict.
+Strand Adapter
+The boundary around one of the
+operator's six strands. Schema-validates
+every return; has no ledger, mode, Vault or
+capability-constructor access.
+CompleteRun
+A value only the ledger can construct,
+proving contiguous C0–C6 entries with
+no HALT. Required by the UCG-COL
+preflight (Invariant #27).
+Terminal state
+One of PROMOTED ,
+STAGED_NOT_PROMOTED ,
+DRY_RUN_COMPLETE , REFUSED
+(§3.2A.5).
+SAVANT
+The seven-phase colonization decision
+protocol (SV-01 to SV-07), run by
+SPARTAN MVE. Distinct from the three-
+platform "SAVANT Protocol" described in
+the SAVANT Protocol Whitepaper v1.
+F10 Conductor
+The deterministic runtime that enforces
+the operator's protocol and holds the
+ledger, capability types and wiring. Not an
+SPC. The operator card specifies; the
+conductor enforces.
+SavantVerdictRecord
+A verdict bound to artifact hash, SENSE
+record hash and f10_run_id . Only the
+SAVANT adapter can construct one.
+
+
+===== PAGE 77 =====
+Term
+Definition
+TranslatedPlan
+A dry-run host-native plan. Needs a
+verdict and a complete fingerprint.
+ConsentedPlan
+A plan with a consent record, a scoped
+credential and a rollback. Only the
+consent gate can construct one.
+Test article
+A staged instance isolated from users
+and production data.
+UCG-COL
+Proposed certificate class for a colonized
+deployment. Threshold unset.
+F9Attestation
+Proof of an F9 run: mecha_run_id ,
+Machine Artifact certificate, SAVANT
+FIT , MM MATH_VERIFIED .
+SAV-CC / 2C-CC
+Namespaces for the two CC-01 to CC-07
+taxonomies.
+SPK
+SPC Portability Kit. Issued for every
+completed colonization.
+Colonization Charter
+The Manual's nine-point acceptance
+checklist.
+Facilitator
+A third-party workflow platform used to
+reach connectors. Ineligible by default.
+FORGE CERTIFICATION BLOCK
+╔════════════════════════════════════════════════
+══════════════════════════════╗
+║  THE ARK HARNESS — F10 CONNECTOR · ATLAS OMNIBUS PDD 
+v3.1                    ║
+║  ASSEMBLED VIA ATLAS ULTRA SI · TIER 0 · SELF-ASSIGNED    
+
+
+===== PAGE 78 =====
+║
+╠════════════════════════════════════════════════
+══════════════════════════════╣
+║  PRODUCTION ID      : JNGL-ARKH-F10CN-2026-005            
+║
+║  SUPERSEDES         : -004 (v3.0); through it -003, 
+-002, -001               ║
+║  DOMAIN             : D36 — F10 CONNECTOR                 
+║
+║  IP RANGE           : IP-151–169, IP-188–192 (24; non-
+contiguous)            ║
+║  OPERATING SPC      : SAVANT ENVOY ULTRA SI v1.0.0        
+║
+║                       Seat #17 (proposed) · JCSE 41/50 
+Tier 0                ║
+║  NEW IN v3.1        : Chat-interface targets (Azure 
+Copilot Studio,          ║
+║                       Vertex AI Agent Builder, 
+Hostinger, class)             ║
+║                       Curated Prompt Scripts · GUIDED 
+execution              ║
+║  ENGINE             : SAVANT (D13, SPARTAN MVE) — 
+verdicts read-only         ║
+║  CONDUCTOR          : F10 Conductor — deterministic, no 
+LLM (checked)        ║
+║  RUN                : C0 INTAKE · C1 SENSE · C2 VERIFY 
+· C3 NAME ·           ║
+║                       C4 TRANSLATE · C5 CONSENT & STAGE 
+·                    ║
+║                       C6 VERIFY IN STAGE · C7 CERTIFY & 
+PROMOTE ·            ║
+║                       C8 REGISTER                         
+║
+║  TERMINAL STATES    : PROMOTED · STAGED_NOT_PROMOTED ·    
+║
+║                       DRY_RUN_COMPLETE · REFUSED          
+║
+║  INVARIANTS         : #25 SAVANT-Gated Colonization       
+║
+║                       #26 Consent-Gated Transmission      
+║
+║                       #27 The Single Operator             
+
+
+===== PAGE 79 =====
+║
+║                       #32 Curated Chat-Script Integrity 
+(NEW)                ║
+║                       #33 Guided Execution 
+Accountability (NEW)              ║
+║  PLATFORM TOTALS    : 37 Domains · 197 IPs · 33 
+Invariants · 3 open slots    ║
+║  RESERVED           : D38 / IP-198 onward                 
+║
+║  ATOMIC PROMPTS     : 34 (F10-P01 – F10-P34) · 7 waves 
+· 15-prompt path      ║
+║  SOLVA VERDICT      : CONDITIONALLY VIABLE — published 
+as issued (§2.5)      ║
+║  JCSE               : Self-assigned Tier 0 — not scored 
+— NOT HIVE-certified ║
+║  GRO STATE          : SAFE_LIFE                           
+║
+║  HONESTY GATE G3    : OI-09 operator NARROWED — unbuilt   
+║
+║                       OI-10 UCG-COL undefined — 
+PROMOTION BLOCKED            ║
+║                       OI-37 D36 IP block non-contiguous 
+(disclosed)          ║
+║                       OI-38 no secret scanner for chat 
+intake                ║
+║                       OI-39 chat-transcript 
+authenticity unverifiable        ║
+║                       OI-40 composed prompt wording vs 
+sourced facts         ║
+║                       No scripted run has ever touched 
+a real chat bot       ║
+║                       Nothing wired — every run refuses 
+at C1                ║
+║                       Zero live testing on any platform   
+║
+║  OWNER              : Oluseye Shay Amusa / Koncentric 
+Labs Inc.              ║
+║  © 2026 Koncentric Labs Inc. · ATANDA Publications 
+Forum                     ║
+╚════════════════════════════════════════════════
+══════════════════════════════╝
+
+
+===== PAGE 80 =====
+VERSION HISTORY
+Version
+Date
+Change
+Author
+1.0
+Sept
+2026
+Initial issue. D36 registered, IP-151–
+167. Invariants #25 (SAVANT-Gated
+Colonization) and #26 (Consent-Gated
+Transmission). Nine-phase run with
+staged transmit and two consents.
+Capability-type enforcement.
+Colonization Charter Gate. UCG-COL
+proposed with no threshold. Facilitator
+policy with n8n ineligible by default.
+Twenty-two atomic prompts. OI-09 to
+OI-15 opened.
+ATLAS
+ULTRA
+SI
+2.0
+Sept
+2026
+Operator integrated. SAVANT
+CONNECTOR ULTRA SI v1.0.0 named
+the sole operator of D36; the card
+specifies and the conductor enforces.
+Invariant #27 (The Single Operator)
+added. IP range extended to IP-169
+with IP-168 (Strand Adapter Boundary)
+and IP-169 (Run Completeness
+Attestation). Five strands mapped to
+phases; SPHINX fenced; SPARTAN
+MVE excluded. Constraints C-F10-14 to
+18 and a map to the SPC's 20
+constraints. GRO mode machine
+added. UCG-COL preflight requires a
+CompleteRun . Six prompts added
+(F10-P23 – P28). Correction: F10-P09
+now depends on the Physical Routing
+Guard (F10-P08); v1.0 allowed a
+physical target to be sensed before it
+was refused. Critical path recomputed
+and unchanged at fifteen. OI-09
+narrowed; OI-16 to OI-18 adopted from
+ATLAS
+ULTRA
+SI
+
+
+===== PAGE 81 =====
+Version
+Date
+Change
+Author
+the SPC. D37 reserved from IP-170.
+Not re-scored.
+3.0
+Sept
+2026
+Two lineages reconciled. F10 PDD
+v1.1 (ENVOY) and v2.0 (SAVANT
+CONNECTOR) were produced
+independently and collided on the
+reference number ( -002 , -003 ), on
+OI-16 to OI-18, and on Invariant #27's
+operator. This document names
+SAVANT ENVOY ULTRA SI, the Owner's
+combination of the two operators, as
+the sole operator of D36. Six strands
+(adds SKRIBE; keeps SPHINX under a
+hardened fence). Four terminal states
+adopted. Separation of duties at the
+UCG-COL request (C-F10-19, fifth
+preflight check). Static zero-LLM check
+on the core (F10-P23). SKRIBE adapter
+(F10-P29). SPHINX ENGINE boundary
+row and OI-18. Open-item register OI-
+16 to OI-20 unified. Constraints C-F10-
+01 to 21 mapped to the card's 23. OI-
+09 kept narrowed, overruling the
+ENVOY lineage's closure. New
+production ID -004 . Not re-scored.
+ATLAS
+ULTRA
+SI
+3.1
+Sept
+2026
+Chat-interface targets. New
+target_actuation classification
+( API / CHAT_ONLY / NONE ). For
+CHAT_ONLY , C4 composes a Curated
+Prompt Script instead of a Sovereign
+Deployment Brief, validated against
+four safety rules (Invariant #32). C5–
+C7 gain GUIDED execution (Invariant
+#33): the human runs the script under
+their own login, no Vault credential;
+checkpoint reports are graded
+ATLAS
+ULTRA
+SI
+
+
+===== PAGE 82 =====
+Version
+Date
+Change
+Author
+HUMAN_SUPPLIED , treated as data not
+instructions. A generic endpoint probe
+supplements verification where an
+endpoint results. Worked from Vertex
+AI Agent Builder, Hostinger's agentic
+mode and Copilot Studio's quick-create
+flow as [EXT] examples. Five IPs
+(188–192), taken out of sequence
+from the D38 frontier and disclosed as
+such (OI-37). Three constraints and
+five prompts (F10-P30–P34) added. OI-
+38 to OI-40 opened. Not re-scored.
+OI numbers in the v2.0 row above and in the retired v1.1 lineage refer to
+the register at that version. Section 1.2B gives the mapping.
+AUTHORSHIP & PROVENANCE
+Assembled by: ATLAS ULTRA SI (architecture, 4-Part decomposition,
+atomic prompts)
+Council: SAVANT ENVOY ULTRA SI (operator) · SPARTAN MVE
+(SAVANT engine, invariant design) · CELL SI (cluster construction) ·
+CODE DJ, ATHENA MUSE, DEXTER ULTRA SI, FRACTAL ULTRA SI,
+SKRIBE ULTRA SI, SPHINX ULTRA SI (operator strands) · SOLVA ULTRA
+SI (GAUNTLET verdict) · CORDON (wave sequencing) · OSIRIS ULTRA SI
+(telemetry handoff)
+Source basis: Google Vertex AI Agent Builder documentation on
+natural-language agent creation; Hostinger's AI website builder /
+Horizons agentic-mode documentation; Microsoft Copilot Studio quick-
+create documentation (all [EXT] , re-verify before use); F11 HOST
+CONNECTOR ATLAS PDD v1.4 (companion amendment, evidence-trust
+model adopted); SAVANT ENVOY ULTRA SI SPC v1.0.0; THE
+COLONIZATION MANUAL; SECOND CONTACT Part 2; OMNIBUS
+ALPHA Domain Register; F9 MACHINE FLOOR ATLAS PDD v2.1;
+
+
+===== PAGE 83 =====
+MECHA ULTRA SI SPC v1.2.0; SPC PLAYER OMNIBUS v3 and REVERB
+v2; SAVANT Protocol Whitepaper v1.
+EVIDENCE TAGS
+[SPEC] — D36, all 17 IPs, both invariants, the run, the capability
+types, UCG-COL , all Part 4 prompts. Design intent; nothing built.
+[INT]† — SOLVA verdict self-adjudicated; Tier 0 self-assignment.
+[ARK] — SAVANT phases, binary rule, CC-01 override, SPK
+contents, anti-patterns, Charter, physical combined gate, constraint-
+class tables, n8n as a Second Contact target, D13/D31/D32/D33
+register entries, the publishing safety stack, SKRIBE's card identity
+and JCSE 48/50 with its own LIFE default, the Camelot inventory's
+archetype groups (Seat #16 in Healers and Guardians, Seat #17 in
+the King's Council), the SPHINX ENGINE tier list in the SAVANT
+Protocol Whitepaper v1.0, and the placeholder seats in OSIRIS's
+specification: drawn from confirmed project artifacts as stated in
+them.
+[EXT] — n8n licensing position (Sustainable Use License
+restrictions; separate Embed licence for white-label embedding),
+stated as advised earlier in this engagement and to be re-verified
+before any decision.
+[SYNTH] — Capability-type chain, the CompleteRun attestation,
+two-consent staged promotion, the verdict-binding hash, the
+SPHINX fence, the Chat Script Composer, the four curated-prompt
+safety rules, GUIDED execution and the generic endpoint probe are
+original syntheses for this build, not empirically validated. The
+exact wording of any composed prompt is synthesized even where
+the fact behind it is sourced (§3.5A.3, OI-40).

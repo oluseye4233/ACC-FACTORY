@@ -1507,9 +1507,9 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
             <div className="flex items-center gap-3 bg-destructive/5 border border-destructive/20 p-4 rounded-sm mb-8">
               <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
               <div className="text-sm">
-                <span className="font-bold text-destructive uppercase block mb-1">Savant Connector Protocol</span>
+                <span className="font-bold text-destructive uppercase block mb-1">Savant ENVOY · F10 v3.1 Protocol</span>
                 <span className="text-muted-foreground font-mono text-xs">
-                  CONNECTOR OWNS NO VERDICT OR CERTIFICATION. SAFE_LIFE ONLY. Physical target F9 attestation must be rigorously cited. Consent simulation and LIFE promotions are hard-blocked.
+                  CONNECTOR OWNS NO VERDICT OR CERTIFICATION. SAFE_LIFE ONLY. SAVANT classifies each target&apos;s actuation surface as API, CHAT_ONLY, or NONE at C1. CHAT_ONLY targets use a Curated Prompt Script under the human&apos;s own login; this build refuses until the SAVANT, script-safety, and guided-execution adapters are wired. Physical target F9 attestation must be rigorously cited.
                 </span>
               </div>
             </div>
