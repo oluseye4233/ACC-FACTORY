@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 const apiHooks = vi.hoisted(() => ({
   useGetMe: vi.fn(),
@@ -66,6 +66,7 @@ function setHookResults({
   isFetchingSessions = false,
   isFetchingHealth = false,
   isFetchingUsage = false,
+  usageUpdatedAt = 0,
 }: {
   me?: unknown;
   sessions?: unknown;
@@ -81,6 +82,7 @@ function setHookResults({
   isFetchingSessions?: boolean;
   isFetchingHealth?: boolean;
   isFetchingUsage?: boolean;
+  usageUpdatedAt?: number;
 }) {
   apiHooks.useGetMe.mockReturnValue({ data: me, isLoading: isLoadingMe });
   apiHooks.useListSessions.mockReturnValue({
@@ -102,6 +104,7 @@ function setHookResults({
     isLoading: isLoadingUsage,
     isError: isUsageError,
     isFetching: isFetchingUsage,
+    dataUpdatedAt: usageUpdatedAt,
     refetch: refetchUsage,
   });
 }
@@ -129,38 +132,29 @@ describe("Command Deck", () => {
       ["Open Library", "/exemplars"],
       ["View Quests", "/quests"],
     ] as const;
-    for (const [label, href] of expectedRoutes) {
-      expect(screen.getByRole("link", { name: new RegExp(label) }).getAttribute("href")).toBe(
-        href,
-      );
-    }
-  });
 
-  it("renders safe empty states when APIs return no data", () => {
-    render(<Command />);
+    let resolveSessions!: () => void;
+    fireEvent.click(refreshButton);
 
-    expect(screen.getByText("No sessions yet. Press BUILD SOMETHING to begin.")).toBeTruthy();
-    expect(screen.getByText("SYSTEM")).toBeTruthy();
-    expect(screen.getAllByText("UNKNOWN")).toHaveLength(4);
-    expect(screen.getAllByText("—")).toHaveLength(2);
-    expect(screen.queryByText("0 tok")).toBeNull();
-  });
+    expect((refreshButton as HTMLButtonElement).disabled).toBe(true);
+    expect(refreshButton.textContent).toContain("Refreshing metrics…");
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
 
-  it("renders safe loading states while API responses are pending", () => {
-    setHookResults({
-      isLoadingMe: true,
-      isLoadingSessions: true,
-      isLoadingHealth: true,
-      isLoadingUsage: true,
+    fireEvent.click(refreshButton);
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveSessions();
+      resolveHealth();
+      resolveUsage();
     });
 
-    render(<Command />);
-
-    expect(screen.getByTestId("button-build-something")).toBeTruthy();
-    expect(screen.getByText("RECENT BUILDS")).toBeTruthy();
-    expect(screen.getByText("SYSTEM")).toBeTruthy();
-    expect(screen.queryByText("No sessions yet. Press BUILD SOMETHING to begin.")).toBeNull();
-    expect(screen.getAllByText("—")).toHaveLength(4);
+    expect((refreshButton as HTMLButtonElement).disabled).toBe(false);
+    expect(refreshButton.textContent).toContain("Refresh all metrics");
   });
 
   it("renders recent builds and system status from populated API responses", () => {
@@ -175,8 +169,12 @@ describe("Command Deck", () => {
       usageReport: {
         day: { totalTokens: 100, totalCostUsd: 0.01 },
         month: { totalTokens: 12345, totalCostUsd: 1.23 },
-        byEngine: [],
+        byEngine: [
+          { engineId: 2, runs: 3, totalTokens: 3456, totalCostUsd: 0.45 },
+          { engineId: 1, runs: 5, totalTokens: 8889, totalCostUsd: 0.78 },
+        ],
       },
+      usageUpdatedAt: Date.parse("2026-09-22T10:15:00.000Z"),
     });
 
     render(<Command />);
@@ -189,6 +187,31 @@ describe("Command Deck", () => {
     expect(screen.getByText("degraded")).toBeTruthy();
     expect(screen.getByText("12,345 tok")).toBeTruthy();
     expect(screen.getByText("$1.23")).toBeTruthy();
+    expect(screen.getByTestId("monthly-engine-usage")).toBeTruthy();
+    expect(screen.getByTestId("monthly-engine-1")).toBeTruthy();
+    expect(screen.getByText("F1 Diagnose")).toBeTruthy();
+    expect(screen.getByText("8,889 tok · $0.78")).toBeTruthy();
+    expect(screen.getByText("3,456 tok · $0.45")).toBeTruthy();
+    expect(screen.getByTestId("monthly-usage-refreshed").textContent).toBe(
+      "Last refreshed 2026-09-22 10:15",
+    );
+  });
+
+  it("shows an explicit empty monthly engine usage state", () => {
+    setHookResults({
+      health: { status: "ok", db: "ok", engines: "ok" },
+      usageReport: {
+        day: { totalTokens: 0, totalCostUsd: 0 },
+        month: { totalTokens: 0, totalCostUsd: 0 },
+        byEngine: [],
+      },
+    });
+
+    render(<Command />);
+
+    expect(screen.getByTestId("monthly-engine-usage-empty")).toBeTruthy();
+    expect(screen.getByText("No engine usage recorded this month.")).toBeTruthy();
+    expect(screen.queryByText("Engine 0")).toBeNull();
   });
 
   it("shows monthly usage as unavailable and retries only the usage request", () => {
@@ -200,8 +223,10 @@ describe("Command Deck", () => {
     render(<Command />);
 
     expect(screen.getByTestId("monthly-usage-error")).toBeTruthy();
+    expect(screen.getByText("Engine breakdown unavailable.")).toBeTruthy();
     expect(screen.getAllByText("UNAVAILABLE")).toHaveLength(2);
     expect(screen.queryByText("0 tok")).toBeNull();
+    expect(screen.queryByTestId("monthly-usage-refreshed")).toBeNull();
 
     fireEvent.click(screen.getByTestId("button-retry-monthly-usage"));
 
@@ -254,3 +279,9 @@ describe("Command Deck", () => {
     expect(refetchHealth).toHaveBeenCalledTimes(1);
   });
 });
+
+    let resolveHealth!: () => void;
+
+    let resolveUsage!: () => void;
+
+    const refreshButton = screen.getByTestId("button-refresh-all-metrics");

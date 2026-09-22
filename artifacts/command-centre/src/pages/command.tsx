@@ -25,6 +25,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
 
 function HealthChip({
   label,
@@ -96,7 +97,21 @@ function formatRecentBuildDate(value: unknown): string {
   return Number.isNaN(date.getTime()) ? "Unknown date" : format(date, "yyyy-MM-dd HH:mm");
 }
 
+const ENGINE_LABELS: Record<number, string> = {
+  1: "F1 Diagnose",
+  2: "F2 Atomic",
+  3: "F3 Build MA",
+  4: "F4 Micro PDD",
+  5: "F5 Build SPC",
+  6: "F6 Draft PDD",
+  7: "F7 MVP PDD",
+  8: "F6-VDJ / DE-SPC",
+  9: "F8 Code ORACLE",
+  10: "ATLAS J",
+  11: "PFP",
+};
 export default function Command() {
+  const [isRefreshingAll, setIsRefreshingAll] = useState(false);
   const { data: me, isLoading: isLoadingMe } = useGetMe();
   const {
     data: sessions,
@@ -117,17 +132,34 @@ export default function Command() {
     isLoading: isLoadingUsage,
     isError: isUsageError,
     isFetching: isFetchingUsage,
+    dataUpdatedAt: usageUpdatedAt,
     refetch: refetchUsage,
   } = useGetMyUsage();
 
   const activeSessions = sessions?.filter((session) => session.status !== "COMPLETE").length || 0;
   const completedMvps = sessions?.filter((session) => session.status === "COMPLETE").length || 0;
   const recentSessions = sessions?.slice(0, 5) || [];
+  const monthlyEngineUsage = [...(usageReport?.byEngine ?? [])].sort(
+    (a, b) => b.totalCostUsd - a.totalCostUsd || b.totalTokens - a.totalTokens,
+  );
   const tier = me?.subscriber?.tier || "EXPLORER";
 
   const apiTone = health?.status === "ok" ? "good" : health?.status === undefined ? "warn" : "bad";
   const dbTone = health?.db === "ok" ? "good" : health?.db === undefined ? "warn" : "bad";
   const inferenceTone = health?.engines === "ok" ? "good" : health?.engines === "degraded" ? "warn" : health?.engines === undefined ? "warn" : "bad";
+
+  const refreshAllMetrics = async () => {
+    if (isRefreshingAll) {
+      return;
+    }
+
+    setIsRefreshingAll(true);
+    try {
+      await Promise.allSettled([refetchSessions(), refetchHealth(), refetchUsage()]);
+    } finally {
+      setIsRefreshingAll(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -139,7 +171,17 @@ export default function Command() {
               <p className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-primary">ATANDA · OPERATOR CONSOLE</p>
               <h1 className="font-display text-4xl tracking-wider md:text-5xl">COMMAND DECK</h1>
             </div>
-            <div className="flex items-center gap-3 text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-end gap-3 text-muted-foreground">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void refreshAllMetrics()}
+                disabled={isRefreshingAll}
+                data-testid="button-refresh-all-metrics"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isRefreshingAll ? "animate-spin" : ""}`} />
+                {isRefreshingAll ? "Refreshing metrics…" : "Refresh all metrics"}
+              </Button>
               {isLoadingMe ? (
                 <Skeleton className="h-5 w-40" />
               ) : (
@@ -234,6 +276,18 @@ export default function Command() {
                     </Button>
                   )}
                 </div>
+                {!isLoadingUsage &&
+                  !isUsageError &&
+                  usageReport?.month &&
+                  Number.isFinite(usageUpdatedAt) &&
+                  usageUpdatedAt > 0 && (
+                    <p
+                      className="mt-1 font-mono text-[9px] uppercase tracking-wider text-muted-foreground"
+                      data-testid="monthly-usage-refreshed"
+                    >
+                      Last refreshed {format(new Date(usageUpdatedAt), "yyyy-MM-dd HH:mm")}
+                    </p>
+                  )}
               </div>
             </div>
             <div className="flex items-center gap-3 border-border/50 sm:border-l sm:pl-4 lg:border-l-0 lg:pl-0">
@@ -348,18 +402,67 @@ export default function Command() {
                     <HealthChip label="Inference" value={health?.engines} tone={inferenceTone} />
                     {isUsageError ? (
                       <div
-                        className="flex items-center justify-between border-t border-destructive/30 pt-4 font-mono text-[10px]"
+                        className="border-t border-destructive/30 pt-4 font-mono text-[10px]"
                         data-testid="monthly-usage-error"
                       >
-                        <span className="text-muted-foreground">MONTH COST</span>
-                        <span className="font-bold text-destructive">UNAVAILABLE</span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">MONTHLY USAGE</span>
+                          <span className="font-bold text-destructive">UNAVAILABLE</span>
+                        </div>
+                        <p className="mt-2 text-[9px] uppercase tracking-wider text-muted-foreground">
+                          Engine breakdown unavailable.
+                        </p>
                       </div>
-                    ) : usageReport?.month && (
+                    ) : usageReport?.month ? (
                       <div className="border-t border-border/50 pt-4">
                         <div className="flex items-center justify-between font-mono text-[10px]">
                           <span className="text-muted-foreground">MONTH COST</span>
                           <span className="font-bold">${usageReport.month.totalCostUsd.toFixed(2)}</span>
                         </div>
+                        <div className="mt-3 border-t border-border/50 pt-3" data-testid="monthly-engine-usage">
+                          <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-wider">
+                            <span className="text-muted-foreground">ENGINE USAGE</span>
+                            <span className="text-muted-foreground">THIS MONTH</span>
+                          </div>
+                          {monthlyEngineUsage.length === 0 ? (
+                            <p
+                              className="mt-2 font-mono text-[9px] uppercase tracking-wider text-muted-foreground"
+                              data-testid="monthly-engine-usage-empty"
+                            >
+                              No engine usage recorded this month.
+                            </p>
+                          ) : (
+                            <div className="mt-2 space-y-2">
+                              {monthlyEngineUsage.map((engine) => (
+                                <div
+                                  key={engine.engineId}
+                                  className="flex items-center justify-between gap-3 font-mono text-[9px]"
+                                  data-testid={`monthly-engine-${engine.engineId}`}
+                                >
+                                  <span className="min-w-0 truncate font-bold">
+                                    {ENGINE_LABELS[engine.engineId] ?? `Engine ${engine.engineId}`}
+                                  </span>
+                                  <span className="shrink-0 text-right text-muted-foreground">
+                                    {engine.totalTokens.toLocaleString()} tok · ${engine.totalCostUsd.toFixed(2)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className="border-t border-border/50 pt-4 font-mono text-[10px]"
+                        data-testid="monthly-usage-empty"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">MONTHLY USAGE</span>
+                          <span className="font-bold text-muted-foreground">NO DATA</span>
+                        </div>
+                        <p className="mt-2 text-[9px] uppercase tracking-wider text-muted-foreground">
+                          Monthly usage has not loaded.
+                        </p>
                       </div>
                     )}
                   </div>
