@@ -162,6 +162,24 @@ export default function Command() {
   const healthRefreshLabel = !isHealthError ? formatRefreshTime(healthUpdatedAt) : null;
   const usageRefreshLabel = !isUsageError && usageReport?.month ? formatRefreshTime(usageUpdatedAt) : null;
 
+  const retryMetric = async (metricLabel: string, refetch: () => Promise<unknown>) => {
+    try {
+      const result = await refetch();
+      if (
+        typeof result === "object" &&
+        result !== null &&
+        "isError" in result &&
+        result.isError === true
+      ) {
+        return;
+      }
+
+      setRefreshFailures((failures) => failures.filter((failure) => failure !== metricLabel));
+    } catch {
+      // Keep the warning visible when an individual retry still fails.
+    }
+  };
+
   const refreshAllMetrics = async () => {
     if (isRefreshingAll) {
       return;
@@ -318,7 +336,7 @@ export default function Command() {
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7"
-                      onClick={() => void refetchUsage()}
+                      onClick={() => void retryMetric("Monthly usage", refetchUsage)}
                       disabled={isFetchingUsage}
                       aria-label="Retry monthly usage"
                       data-testid="button-retry-monthly-usage"
@@ -383,7 +401,7 @@ export default function Command() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => void refetchSessions()}
+                      onClick={() => void retryMetric("Recent builds", refetchSessions)}
                       disabled={isFetchingSessions}
                       data-testid="button-retry-sessions"
                     >
@@ -450,7 +468,7 @@ export default function Command() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => void refetchHealth()}
+                      onClick={() => void retryMetric("System status", refetchHealth)}
                       disabled={isFetchingHealth}
                       data-testid="button-retry-system-status"
                     >

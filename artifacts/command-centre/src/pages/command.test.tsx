@@ -220,6 +220,78 @@ describe("Command Deck", () => {
     expect((refreshButton as HTMLButtonElement).disabled).toBe(false);
   });
 
+  it("clears a recovered metric from the partial refresh warning while keeping other failures", async () => {
+    setHookResults({
+      sessions: POPULATED_SESSIONS,
+      health: { status: "ok", db: "ok", engines: "ok" },
+      usageReport: {
+        day: { totalTokens: 100, totalCostUsd: 0.01 },
+        month: { totalTokens: 12345, totalCostUsd: 1.23 },
+        byEngine: [],
+      },
+      isSessionsError: true,
+      isHealthError: true,
+    });
+    refetchSessions.mockRejectedValue(new Error("sessions unavailable"));
+    refetchHealth
+      .mockRejectedValueOnce(new Error("health unavailable"))
+      .mockResolvedValueOnce({ isError: false });
+    refetchUsage.mockResolvedValue({ isError: false });
+
+    render(<Command />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-refresh-all-metrics"));
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "Recent builds, System status remain unchanged",
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-retry-system-status"));
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "Recent builds remain unchanged",
+    );
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).not.toContain(
+      "System status",
+    );
+  });
+
+  it("reports resolved metric errors after a combined refresh", async () => {
+    setHookResults({
+      health: { status: "ok", db: "ok", engines: "degraded" },
+      usageReport: {
+        day: { totalTokens: 100, totalCostUsd: 0.01 },
+        month: { totalTokens: 12345, totalCostUsd: 1.23 },
+        byEngine: [],
+      },
+      isSessionsError: true,
+    });
+    refetchSessions.mockResolvedValue({ isError: true });
+    refetchHealth.mockResolvedValue({ isError: false });
+    refetchUsage.mockResolvedValue({ isError: false });
+
+    render(<Command />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-refresh-all-metrics"));
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "Recent builds remain unchanged",
+    );
+    expect(screen.getAllByText("ok")).toHaveLength(3);
+    expect(screen.getByText("12,345 tok")).toBeTruthy();
+    expect(screen.getByTestId("recent-builds-error")).toBeTruthy();
+    expect(screen.getByTestId("button-retry-sessions")).toBeTruthy();
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+  });
+
   it("renders safe empty states when APIs return no data", () => {
     render(<Command />);
 
