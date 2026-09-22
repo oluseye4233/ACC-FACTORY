@@ -159,7 +159,8 @@ async function parseSnapshotChanges(api: Api, remoteTreeSha: string, headSha: st
     const actualSeparator = line.indexOf("\t");
     const separator = literalSeparator >= 0 ? literalSeparator : actualSeparator;
     if (separator < 0) continue;
-    localBlobs.set(line.slice(separator + (literalSeparator >= 0 ? 2 : 1)), line.slice(0, separator));
+    const path = line.slice(separator + (literalSeparator >= 0 ? 2 : 1));
+    if (!isExcluded(path)) localBlobs.set(path, line.slice(0, separator));
   }
 
   const remoteBlobs = new Map(
