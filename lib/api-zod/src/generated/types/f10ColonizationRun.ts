@@ -12,6 +12,10 @@ import type { F10ColonizationRunGroMode } from './f10ColonizationRunGroMode';
 import type { F10ColonizationRunMaxReachablePhase } from './f10ColonizationRunMaxReachablePhase';
 import type { F10ColonizationRunPhase } from './f10ColonizationRunPhase';
 import type { F10ColonizationRunState } from './f10ColonizationRunState';
+import type { F10PromotionConsent } from './f10PromotionConsent';
+import type { F10StageConsent } from './f10StageConsent';
+import type { F10UcgColCertificate } from './f10UcgColCertificate';
+import type { F10VaultHandle } from './f10VaultHandle';
 
 export interface F10ColonizationRun {
   id: string;
@@ -29,6 +33,12 @@ export interface F10ColonizationRun {
   phaseStatuses: F10ColonizationPhaseStatuses;
   adapterReadiness: F10ColonizationAdapterReadiness;
   refusal: F10ColonizationRefusal;
+  /** @nullable */
+  deploymentSubject?: string | null;
+  ucgColCertificate?: F10UcgColCertificate | null;
+  stageConsent?: F10StageConsent | null;
+  promotionConsent?: F10PromotionConsent | null;
+  vaultHandle?: F10VaultHandle | null;
   createdAt: Date;
   updatedAt: Date;
 }

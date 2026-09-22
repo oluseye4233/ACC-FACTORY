@@ -37,6 +37,23 @@ export const GetF10CatalogResponse = zod.object({
 export const listF10ColonizationRunsResponseRefusalPhaseHaltedMin = 0;
 export const listF10ColonizationRunsResponseRefusalPhaseHaltedMax = 8;
 
+export const listF10ColonizationRunsResponseUcgColCertificateOneCertificateRefMax = 500;
+
+export const listF10ColonizationRunsResponseUcgColCertificateOneArtifactHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const listF10ColonizationRunsResponseUcgColCertificateOneDeploymentSubjectMax = 500;
+
+export const listF10ColonizationRunsResponseUcgColCertificateOneScoreMin = 0;
+export const listF10ColonizationRunsResponseUcgColCertificateOneScoreMax = 1;
+
+export const listF10ColonizationRunsResponseStageConsentOneDeploymentSubjectMax = 500;
+
+export const listF10ColonizationRunsResponseStageConsentOneExactWriteHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const listF10ColonizationRunsResponsePromotionConsentOneDeploymentSubjectMax = 500;
+
+export const listF10ColonizationRunsResponsePromotionConsentOneExactWriteHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const listF10ColonizationRunsResponseVaultHandleOneHandleRegExp = new RegExp('^vault-handle:[A-Za-z0-9_-]{16,200}$');
+export const listF10ColonizationRunsResponseVaultHandleOneDeploymentSubjectMax = 500;
+
 
 
 export const ListF10ColonizationRunsResponseItem = zod.object({
@@ -79,6 +96,34 @@ export const ListF10ColonizationRunsResponseItem = zod.object({
   "requiredToProceed": zod.string(),
   "groMode": zod.enum(['SAFE_LIFE', 'HUMAN_IN_LOOP', 'CONTAINMENT', 'KILLZONE'])
 }),
+  "deploymentSubject": zod.string().nullish(),
+  "ucgColCertificate": zod.union([zod.object({
+  "certificateRef": zod.string().min(1).max(listF10ColonizationRunsResponseUcgColCertificateOneCertificateRefMax),
+  "artifactHash": zod.string().regex(listF10ColonizationRunsResponseUcgColCertificateOneArtifactHashRegExp),
+  "deploymentSubject": zod.string().min(1).max(listF10ColonizationRunsResponseUcgColCertificateOneDeploymentSubjectMax),
+  "score": zod.number().min(listF10ColonizationRunsResponseUcgColCertificateOneScoreMin).max(listF10ColonizationRunsResponseUcgColCertificateOneScoreMax),
+  "threshold": zod.literal(0.9).describe('Governance-approved UCG-COL promotion threshold.'),
+  "verdict": zod.enum(['PASS']),
+  "expiresAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "stageConsent": zod.union([zod.object({
+  "consentId": zod.string().uuid(),
+  "purpose": zod.enum(['STAGE']),
+  "deploymentSubject": zod.string().min(1).max(listF10ColonizationRunsResponseStageConsentOneDeploymentSubjectMax),
+  "exactWriteHash": zod.string().regex(listF10ColonizationRunsResponseStageConsentOneExactWriteHashRegExp).describe('SHA-256 binding this one-time consent to the exact stage write.')
+}),zod.null()]).optional(),
+  "promotionConsent": zod.union([zod.object({
+  "consentId": zod.string().uuid(),
+  "purpose": zod.enum(['PROMOTION']),
+  "deploymentSubject": zod.string().min(1).max(listF10ColonizationRunsResponsePromotionConsentOneDeploymentSubjectMax),
+  "exactWriteHash": zod.string().regex(listF10ColonizationRunsResponsePromotionConsentOneExactWriteHashRegExp).describe('SHA-256 binding consent #2 to the exact promotion write; it cannot be reused as stage consent.')
+}),zod.null()]).optional(),
+  "vaultHandle": zod.union([zod.object({
+  "handle": zod.string().regex(listF10ColonizationRunsResponseVaultHandleOneHandleRegExp).describe('Opaque scoped reference. Credential material is never accepted or returned.'),
+  "scope": zod.enum(['F10_STAGE', 'F10_PROMOTION']),
+  "deploymentSubject": zod.string().min(1).max(listF10ColonizationRunsResponseVaultHandleOneDeploymentSubjectMax),
+  "expiresAt": zod.coerce.date()
+}),zod.null()]).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -102,6 +147,25 @@ export const createF10ColonizationRunBodyF9AttestationRefMax = 500;
 
 export const createF10ColonizationRunBodyConsentChannelMax = 200;
 
+export const createF10ColonizationRunBodyDeploymentSubjectMax = 500;
+
+export const createF10ColonizationRunBodyUcgColCertificateCertificateRefMax = 500;
+
+export const createF10ColonizationRunBodyUcgColCertificateArtifactHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const createF10ColonizationRunBodyUcgColCertificateDeploymentSubjectMax = 500;
+
+export const createF10ColonizationRunBodyUcgColCertificateScoreMin = 0;
+export const createF10ColonizationRunBodyUcgColCertificateScoreMax = 1;
+
+export const createF10ColonizationRunBodyStageConsentDeploymentSubjectMax = 500;
+
+export const createF10ColonizationRunBodyStageConsentExactWriteHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const createF10ColonizationRunBodyPromotionConsentDeploymentSubjectMax = 500;
+
+export const createF10ColonizationRunBodyPromotionConsentExactWriteHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const createF10ColonizationRunBodyVaultHandleHandleRegExp = new RegExp('^vault-handle:[A-Za-z0-9_-]{16,200}$');
+export const createF10ColonizationRunBodyVaultHandleDeploymentSubjectMax = 500;
+
 
 
 export const CreateF10ColonizationRunBody = zod.object({
@@ -117,7 +181,35 @@ export const CreateF10ColonizationRunBody = zod.object({
   "packaging_fields_only": zod.record(zod.string(), zod.string()).optional()
 }).optional(),
   "f9AttestationRef": zod.string().max(createF10ColonizationRunBodyF9AttestationRefMax).nullish(),
-  "consentChannel": zod.string().min(1).max(createF10ColonizationRunBodyConsentChannelMax)
+  "consentChannel": zod.string().min(1).max(createF10ColonizationRunBodyConsentChannelMax),
+  "deploymentSubject": zod.string().min(1).max(createF10ColonizationRunBodyDeploymentSubjectMax).optional().describe('Immutable deployment identity to which certification and both consents are bound.'),
+  "ucgColCertificate": zod.object({
+  "certificateRef": zod.string().min(1).max(createF10ColonizationRunBodyUcgColCertificateCertificateRefMax),
+  "artifactHash": zod.string().regex(createF10ColonizationRunBodyUcgColCertificateArtifactHashRegExp),
+  "deploymentSubject": zod.string().min(1).max(createF10ColonizationRunBodyUcgColCertificateDeploymentSubjectMax),
+  "score": zod.number().min(createF10ColonizationRunBodyUcgColCertificateScoreMin).max(createF10ColonizationRunBodyUcgColCertificateScoreMax),
+  "threshold": zod.literal(0.9).describe('Governance-approved UCG-COL promotion threshold.'),
+  "verdict": zod.enum(['PASS']),
+  "expiresAt": zod.coerce.date()
+}).optional(),
+  "stageConsent": zod.object({
+  "consentId": zod.string().uuid(),
+  "purpose": zod.enum(['STAGE']),
+  "deploymentSubject": zod.string().min(1).max(createF10ColonizationRunBodyStageConsentDeploymentSubjectMax),
+  "exactWriteHash": zod.string().regex(createF10ColonizationRunBodyStageConsentExactWriteHashRegExp).describe('SHA-256 binding this one-time consent to the exact stage write.')
+}).optional(),
+  "promotionConsent": zod.object({
+  "consentId": zod.string().uuid(),
+  "purpose": zod.enum(['PROMOTION']),
+  "deploymentSubject": zod.string().min(1).max(createF10ColonizationRunBodyPromotionConsentDeploymentSubjectMax),
+  "exactWriteHash": zod.string().regex(createF10ColonizationRunBodyPromotionConsentExactWriteHashRegExp).describe('SHA-256 binding consent #2 to the exact promotion write; it cannot be reused as stage consent.')
+}).optional(),
+  "vaultHandle": zod.object({
+  "handle": zod.string().regex(createF10ColonizationRunBodyVaultHandleHandleRegExp).describe('Opaque scoped reference. Credential material is never accepted or returned.'),
+  "scope": zod.enum(['F10_STAGE', 'F10_PROMOTION']),
+  "deploymentSubject": zod.string().min(1).max(createF10ColonizationRunBodyVaultHandleDeploymentSubjectMax),
+  "expiresAt": zod.coerce.date()
+}).optional()
 })
 
 
@@ -127,6 +219,23 @@ export const GetF10ColonizationRunParams = zod.object({
 
 export const getF10ColonizationRunResponseRefusalPhaseHaltedMin = 0;
 export const getF10ColonizationRunResponseRefusalPhaseHaltedMax = 8;
+
+export const getF10ColonizationRunResponseUcgColCertificateOneCertificateRefMax = 500;
+
+export const getF10ColonizationRunResponseUcgColCertificateOneArtifactHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const getF10ColonizationRunResponseUcgColCertificateOneDeploymentSubjectMax = 500;
+
+export const getF10ColonizationRunResponseUcgColCertificateOneScoreMin = 0;
+export const getF10ColonizationRunResponseUcgColCertificateOneScoreMax = 1;
+
+export const getF10ColonizationRunResponseStageConsentOneDeploymentSubjectMax = 500;
+
+export const getF10ColonizationRunResponseStageConsentOneExactWriteHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const getF10ColonizationRunResponsePromotionConsentOneDeploymentSubjectMax = 500;
+
+export const getF10ColonizationRunResponsePromotionConsentOneExactWriteHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const getF10ColonizationRunResponseVaultHandleOneHandleRegExp = new RegExp('^vault-handle:[A-Za-z0-9_-]{16,200}$');
+export const getF10ColonizationRunResponseVaultHandleOneDeploymentSubjectMax = 500;
 
 
 
@@ -170,6 +279,180 @@ export const GetF10ColonizationRunResponse = zod.object({
   "requiredToProceed": zod.string(),
   "groMode": zod.enum(['SAFE_LIFE', 'HUMAN_IN_LOOP', 'CONTAINMENT', 'KILLZONE'])
 }),
+  "deploymentSubject": zod.string().nullish(),
+  "ucgColCertificate": zod.union([zod.object({
+  "certificateRef": zod.string().min(1).max(getF10ColonizationRunResponseUcgColCertificateOneCertificateRefMax),
+  "artifactHash": zod.string().regex(getF10ColonizationRunResponseUcgColCertificateOneArtifactHashRegExp),
+  "deploymentSubject": zod.string().min(1).max(getF10ColonizationRunResponseUcgColCertificateOneDeploymentSubjectMax),
+  "score": zod.number().min(getF10ColonizationRunResponseUcgColCertificateOneScoreMin).max(getF10ColonizationRunResponseUcgColCertificateOneScoreMax),
+  "threshold": zod.literal(0.9).describe('Governance-approved UCG-COL promotion threshold.'),
+  "verdict": zod.enum(['PASS']),
+  "expiresAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "stageConsent": zod.union([zod.object({
+  "consentId": zod.string().uuid(),
+  "purpose": zod.enum(['STAGE']),
+  "deploymentSubject": zod.string().min(1).max(getF10ColonizationRunResponseStageConsentOneDeploymentSubjectMax),
+  "exactWriteHash": zod.string().regex(getF10ColonizationRunResponseStageConsentOneExactWriteHashRegExp).describe('SHA-256 binding this one-time consent to the exact stage write.')
+}),zod.null()]).optional(),
+  "promotionConsent": zod.union([zod.object({
+  "consentId": zod.string().uuid(),
+  "purpose": zod.enum(['PROMOTION']),
+  "deploymentSubject": zod.string().min(1).max(getF10ColonizationRunResponsePromotionConsentOneDeploymentSubjectMax),
+  "exactWriteHash": zod.string().regex(getF10ColonizationRunResponsePromotionConsentOneExactWriteHashRegExp).describe('SHA-256 binding consent #2 to the exact promotion write; it cannot be reused as stage consent.')
+}),zod.null()]).optional(),
+  "vaultHandle": zod.union([zod.object({
+  "handle": zod.string().regex(getF10ColonizationRunResponseVaultHandleOneHandleRegExp).describe('Opaque scoped reference. Credential material is never accepted or returned.'),
+  "scope": zod.enum(['F10_STAGE', 'F10_PROMOTION']),
+  "deploymentSubject": zod.string().min(1).max(getF10ColonizationRunResponseVaultHandleOneDeploymentSubjectMax),
+  "expiresAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * Fails closed until the server-owned Vault adapter is available. A caller-provided handle never establishes Vault readiness.
+ * @summary Attempt an exact-write-bound F10 promotion
+ */
+export const PromoteF10ColonizationRunParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const promoteF10ColonizationRunBodyDeploymentSubjectMax = 500;
+
+export const promoteF10ColonizationRunBodyUcgColCertificateCertificateRefMax = 500;
+
+export const promoteF10ColonizationRunBodyUcgColCertificateArtifactHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const promoteF10ColonizationRunBodyUcgColCertificateDeploymentSubjectMax = 500;
+
+export const promoteF10ColonizationRunBodyUcgColCertificateScoreMin = 0;
+export const promoteF10ColonizationRunBodyUcgColCertificateScoreMax = 1;
+
+export const promoteF10ColonizationRunBodyPromotionConsentDeploymentSubjectMax = 500;
+
+export const promoteF10ColonizationRunBodyPromotionConsentExactWriteHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const promoteF10ColonizationRunBodyVaultHandleHandleRegExp = new RegExp('^vault-handle:[A-Za-z0-9_-]{16,200}$');
+export const promoteF10ColonizationRunBodyVaultHandleDeploymentSubjectMax = 500;
+
+
+
+export const PromoteF10ColonizationRunBody = zod.object({
+  "deploymentSubject": zod.string().min(1).max(promoteF10ColonizationRunBodyDeploymentSubjectMax),
+  "ucgColCertificate": zod.object({
+  "certificateRef": zod.string().min(1).max(promoteF10ColonizationRunBodyUcgColCertificateCertificateRefMax),
+  "artifactHash": zod.string().regex(promoteF10ColonizationRunBodyUcgColCertificateArtifactHashRegExp),
+  "deploymentSubject": zod.string().min(1).max(promoteF10ColonizationRunBodyUcgColCertificateDeploymentSubjectMax),
+  "score": zod.number().min(promoteF10ColonizationRunBodyUcgColCertificateScoreMin).max(promoteF10ColonizationRunBodyUcgColCertificateScoreMax),
+  "threshold": zod.literal(0.9).describe('Governance-approved UCG-COL promotion threshold.'),
+  "verdict": zod.enum(['PASS']),
+  "expiresAt": zod.coerce.date()
+}),
+  "promotionConsent": zod.object({
+  "consentId": zod.string().uuid(),
+  "purpose": zod.enum(['PROMOTION']),
+  "deploymentSubject": zod.string().min(1).max(promoteF10ColonizationRunBodyPromotionConsentDeploymentSubjectMax),
+  "exactWriteHash": zod.string().regex(promoteF10ColonizationRunBodyPromotionConsentExactWriteHashRegExp).describe('SHA-256 binding consent #2 to the exact promotion write; it cannot be reused as stage consent.')
+}),
+  "vaultHandle": zod.object({
+  "handle": zod.string().regex(promoteF10ColonizationRunBodyVaultHandleHandleRegExp).describe('Opaque scoped reference. Credential material is never accepted or returned.'),
+  "scope": zod.enum(['F10_STAGE', 'F10_PROMOTION']),
+  "deploymentSubject": zod.string().min(1).max(promoteF10ColonizationRunBodyVaultHandleDeploymentSubjectMax),
+  "expiresAt": zod.coerce.date()
+})
+})
+
+export const promoteF10ColonizationRunResponseRefusalPhaseHaltedMin = 0;
+export const promoteF10ColonizationRunResponseRefusalPhaseHaltedMax = 8;
+
+export const promoteF10ColonizationRunResponseUcgColCertificateOneCertificateRefMax = 500;
+
+export const promoteF10ColonizationRunResponseUcgColCertificateOneArtifactHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const promoteF10ColonizationRunResponseUcgColCertificateOneDeploymentSubjectMax = 500;
+
+export const promoteF10ColonizationRunResponseUcgColCertificateOneScoreMin = 0;
+export const promoteF10ColonizationRunResponseUcgColCertificateOneScoreMax = 1;
+
+export const promoteF10ColonizationRunResponseStageConsentOneDeploymentSubjectMax = 500;
+
+export const promoteF10ColonizationRunResponseStageConsentOneExactWriteHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const promoteF10ColonizationRunResponsePromotionConsentOneDeploymentSubjectMax = 500;
+
+export const promoteF10ColonizationRunResponsePromotionConsentOneExactWriteHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
+export const promoteF10ColonizationRunResponseVaultHandleOneHandleRegExp = new RegExp('^vault-handle:[A-Za-z0-9_-]{16,200}$');
+export const promoteF10ColonizationRunResponseVaultHandleOneDeploymentSubjectMax = 500;
+
+
+
+export const PromoteF10ColonizationRunResponse = zod.object({
+  "id": zod.string().uuid(),
+  "runId": zod.string(),
+  "artifactRef": zod.string().optional(),
+  "artifactHash": zod.string(),
+  "artifactClass": zod.string(),
+  "ucgCertificateRef": zod.string().optional(),
+  "target": zod.string(),
+  "targetClass": zod.string(),
+  "state": zod.enum(['RUNNING', 'REFUSED', 'STAGED_ONLY', 'PROMOTED']),
+  "phase": zod.enum(['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8']),
+  "maxReachablePhase": zod.enum(['C4', 'C8']),
+  "groMode": zod.enum(['SAFE_LIFE']),
+  "phaseStatuses": zod.object({
+  "C0": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C1": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C2": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C3": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C4": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C5": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C6": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C7": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE']),
+  "C8": zod.enum(['PENDING', 'ACTIVE', 'REFUSED', 'COMPLETE'])
+}),
+  "adapterReadiness": zod.object({
+  "savant": zod.enum(['UNWIRED']),
+  "connector": zod.enum(['UNWIRED']),
+  "analyzer": zod.enum(['UNWIRED']),
+  "vault": zod.enum(['UNWIRED']),
+  "consentGate": zod.enum(['UNWIRED']),
+  "ucgCol": zod.enum(['UNWIRED'])
+}),
+  "refusal": zod.object({
+  "phaseHalted": zod.number().min(promoteF10ColonizationRunResponseRefusalPhaseHaltedMin).max(promoteF10ColonizationRunResponseRefusalPhaseHaltedMax),
+  "constraintCited": zod.string(),
+  "invariantCited": zod.string(),
+  "cause": zod.string(),
+  "requiredToProceed": zod.string(),
+  "groMode": zod.enum(['SAFE_LIFE', 'HUMAN_IN_LOOP', 'CONTAINMENT', 'KILLZONE'])
+}),
+  "deploymentSubject": zod.string().nullish(),
+  "ucgColCertificate": zod.union([zod.object({
+  "certificateRef": zod.string().min(1).max(promoteF10ColonizationRunResponseUcgColCertificateOneCertificateRefMax),
+  "artifactHash": zod.string().regex(promoteF10ColonizationRunResponseUcgColCertificateOneArtifactHashRegExp),
+  "deploymentSubject": zod.string().min(1).max(promoteF10ColonizationRunResponseUcgColCertificateOneDeploymentSubjectMax),
+  "score": zod.number().min(promoteF10ColonizationRunResponseUcgColCertificateOneScoreMin).max(promoteF10ColonizationRunResponseUcgColCertificateOneScoreMax),
+  "threshold": zod.literal(0.9).describe('Governance-approved UCG-COL promotion threshold.'),
+  "verdict": zod.enum(['PASS']),
+  "expiresAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "stageConsent": zod.union([zod.object({
+  "consentId": zod.string().uuid(),
+  "purpose": zod.enum(['STAGE']),
+  "deploymentSubject": zod.string().min(1).max(promoteF10ColonizationRunResponseStageConsentOneDeploymentSubjectMax),
+  "exactWriteHash": zod.string().regex(promoteF10ColonizationRunResponseStageConsentOneExactWriteHashRegExp).describe('SHA-256 binding this one-time consent to the exact stage write.')
+}),zod.null()]).optional(),
+  "promotionConsent": zod.union([zod.object({
+  "consentId": zod.string().uuid(),
+  "purpose": zod.enum(['PROMOTION']),
+  "deploymentSubject": zod.string().min(1).max(promoteF10ColonizationRunResponsePromotionConsentOneDeploymentSubjectMax),
+  "exactWriteHash": zod.string().regex(promoteF10ColonizationRunResponsePromotionConsentOneExactWriteHashRegExp).describe('SHA-256 binding consent #2 to the exact promotion write; it cannot be reused as stage consent.')
+}),zod.null()]).optional(),
+  "vaultHandle": zod.union([zod.object({
+  "handle": zod.string().regex(promoteF10ColonizationRunResponseVaultHandleOneHandleRegExp).describe('Opaque scoped reference. Credential material is never accepted or returned.'),
+  "scope": zod.enum(['F10_STAGE', 'F10_PROMOTION']),
+  "deploymentSubject": zod.string().min(1).max(promoteF10ColonizationRunResponseVaultHandleOneDeploymentSubjectMax),
+  "expiresAt": zod.coerce.date()
+}),zod.null()]).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })

@@ -452,6 +452,114 @@ export type F10ColonizationInputCustomizationSet = {
   packaging_fields_only?: F10ColonizationInputCustomizationSetPackagingFieldsOnly;
 };
 
+/**
+ * Governance-approved UCG-COL promotion threshold.
+ */
+export type F10UcgColCertificateThreshold = typeof F10UcgColCertificateThreshold[keyof typeof F10UcgColCertificateThreshold];
+
+
+export const F10UcgColCertificateThreshold = {
+  '09': 0.9,
+} as const;
+
+export type F10UcgColCertificateVerdict = typeof F10UcgColCertificateVerdict[keyof typeof F10UcgColCertificateVerdict];
+
+
+export const F10UcgColCertificateVerdict = {
+  PASS: 'PASS',
+} as const;
+
+export interface F10UcgColCertificate {
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  certificateRef: string;
+  /** @pattern ^sha256:[a-f0-9]{64}$ */
+  artifactHash: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  deploymentSubject: string;
+  /**
+     * @minimum 0
+     * @maximum 1
+     */
+  score: number;
+  /** Governance-approved UCG-COL promotion threshold. */
+  threshold: F10UcgColCertificateThreshold;
+  verdict: F10UcgColCertificateVerdict;
+  expiresAt: string;
+}
+
+export type F10StageConsentPurpose = typeof F10StageConsentPurpose[keyof typeof F10StageConsentPurpose];
+
+
+export const F10StageConsentPurpose = {
+  STAGE: 'STAGE',
+} as const;
+
+export interface F10StageConsent {
+  consentId: string;
+  purpose: F10StageConsentPurpose;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  deploymentSubject: string;
+  /**
+     * SHA-256 binding this one-time consent to the exact stage write.
+     * @pattern ^sha256:[a-f0-9]{64}$
+     */
+  exactWriteHash: string;
+}
+
+export type F10PromotionConsentPurpose = typeof F10PromotionConsentPurpose[keyof typeof F10PromotionConsentPurpose];
+
+
+export const F10PromotionConsentPurpose = {
+  PROMOTION: 'PROMOTION',
+} as const;
+
+export interface F10PromotionConsent {
+  consentId: string;
+  purpose: F10PromotionConsentPurpose;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  deploymentSubject: string;
+  /**
+     * SHA-256 binding consent #2 to the exact promotion write; it cannot be reused as stage consent.
+     * @pattern ^sha256:[a-f0-9]{64}$
+     */
+  exactWriteHash: string;
+}
+
+export type F10VaultHandleScope = typeof F10VaultHandleScope[keyof typeof F10VaultHandleScope];
+
+
+export const F10VaultHandleScope = {
+  F10_STAGE: 'F10_STAGE',
+  F10_PROMOTION: 'F10_PROMOTION',
+} as const;
+
+export interface F10VaultHandle {
+  /**
+     * Opaque scoped reference. Credential material is never accepted or returned.
+     * @pattern ^vault-handle:[A-Za-z0-9_-]{16,200}$
+     */
+  handle: string;
+  scope: F10VaultHandleScope;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  deploymentSubject: string;
+  expiresAt: string;
+}
+
 export interface F10ColonizationInput {
   requestClass?: F10ColonizationInputRequestClass;
   /**
@@ -489,6 +597,27 @@ export interface F10ColonizationInput {
      * @maxLength 200
      */
   consentChannel: string;
+  /**
+     * Immutable deployment identity to which certification and both consents are bound.
+     * @minLength 1
+     * @maxLength 500
+     */
+  deploymentSubject?: string;
+  ucgColCertificate?: F10UcgColCertificate;
+  stageConsent?: F10StageConsent;
+  promotionConsent?: F10PromotionConsent;
+  vaultHandle?: F10VaultHandle;
+}
+
+export interface F10ColonizationPromotionInput {
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  deploymentSubject: string;
+  ucgColCertificate: F10UcgColCertificate;
+  promotionConsent: F10PromotionConsent;
+  vaultHandle: F10VaultHandle;
 }
 
 export type F10ColonizationRunState = typeof F10ColonizationRunState[keyof typeof F10ColonizationRunState];
@@ -723,6 +852,12 @@ export interface F10ColonizationRun {
   phaseStatuses: F10ColonizationPhaseStatuses;
   adapterReadiness: F10ColonizationAdapterReadiness;
   refusal: F10ColonizationRefusal;
+  /** @nullable */
+  deploymentSubject?: string | null;
+  ucgColCertificate?: F10UcgColCertificate | null;
+  stageConsent?: F10StageConsent | null;
+  promotionConsent?: F10PromotionConsent | null;
+  vaultHandle?: F10VaultHandle | null;
   createdAt: string;
   updatedAt: string;
 }

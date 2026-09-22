@@ -80,6 +80,7 @@ import type {
   F10BundleReconciliation,
   F10Catalog,
   F10ColonizationInput,
+  F10ColonizationPromotionInput,
   F10ColonizationRun,
   F10Destination,
   F10DestinationRequest,
@@ -489,6 +490,79 @@ export function useGetF10ColonizationRun<TData = Awaited<ReturnType<typeof getF1
 
 
 
+
+export const getPromoteF10ColonizationRunUrl = (id: string,) => {
+
+
+
+
+  return `/api/f10/colonization-runs/${id}/promote`
+}
+
+/**
+ * Fails closed until the server-owned Vault adapter is available. A caller-provided handle never establishes Vault readiness.
+ * @summary Attempt an exact-write-bound F10 promotion
+ */
+export const promoteF10ColonizationRun = async (id: string,
+    f10ColonizationPromotionInput: F10ColonizationPromotionInput, options?: RequestInit): Promise<F10ColonizationRun> => {
+
+  return customFetch<F10ColonizationRun>(getPromoteF10ColonizationRunUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      f10ColonizationPromotionInput,)
+  }
+);}
+
+
+
+
+export const getPromoteF10ColonizationRunMutationOptions = <TError = ErrorType<void | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof promoteF10ColonizationRun>>, TError,{id: string;data: BodyType<F10ColonizationPromotionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof promoteF10ColonizationRun>>, TError,{id: string;data: BodyType<F10ColonizationPromotionInput>}, TContext> => {
+
+const mutationKey = ['promoteF10ColonizationRun'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof promoteF10ColonizationRun>>, {id: string;data: BodyType<F10ColonizationPromotionInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  promoteF10ColonizationRun(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PromoteF10ColonizationRunMutationResult = NonNullable<Awaited<ReturnType<typeof promoteF10ColonizationRun>>>
+    export type PromoteF10ColonizationRunMutationBody = BodyType<F10ColonizationPromotionInput>
+    export type PromoteF10ColonizationRunMutationError = ErrorType<void | NotFoundResponse>
+
+    /**
+ * @summary Attempt an exact-write-bound F10 promotion
+ */
+export const usePromoteF10ColonizationRun = <TError = ErrorType<void | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof promoteF10ColonizationRun>>, TError,{id: string;data: BodyType<F10ColonizationPromotionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof promoteF10ColonizationRun>>,
+        TError,
+        {id: string;data: BodyType<F10ColonizationPromotionInput>},
+        TContext
+      > => {
+      return useMutation(getPromoteF10ColonizationRunMutationOptions(options));
+    }
 
 export const getListF10SourcesUrl = () => {
 

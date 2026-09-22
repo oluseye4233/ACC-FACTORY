@@ -9,6 +9,10 @@ import type { F10ColonizationInputArtifactClass } from './f10ColonizationInputAr
 import type { F10ColonizationInputCustomizationSet } from './f10ColonizationInputCustomizationSet';
 import type { F10ColonizationInputRequestClass } from './f10ColonizationInputRequestClass';
 import type { F10ColonizationInputTargetClass } from './f10ColonizationInputTargetClass';
+import type { F10PromotionConsent } from './f10PromotionConsent';
+import type { F10StageConsent } from './f10StageConsent';
+import type { F10UcgColCertificate } from './f10UcgColCertificate';
+import type { F10VaultHandle } from './f10VaultHandle';
 
 export interface F10ColonizationInput {
   requestClass?: F10ColonizationInputRequestClass;
@@ -47,4 +51,14 @@ export interface F10ColonizationInput {
      * @maxLength 200
      */
   consentChannel: string;
+  /**
+     * Immutable deployment identity to which certification and both consents are bound.
+     * @minLength 1
+     * @maxLength 500
+     */
+  deploymentSubject?: string;
+  ucgColCertificate?: F10UcgColCertificate;
+  stageConsent?: F10StageConsent;
+  promotionConsent?: F10PromotionConsent;
+  vaultHandle?: F10VaultHandle;
 }

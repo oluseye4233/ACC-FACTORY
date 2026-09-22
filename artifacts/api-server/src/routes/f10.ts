@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { randomUUID, createHmac, timingSafeEqual } from "node:crypto";
 import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod/v4";
-import { db, f10DestinationsTable, f10ReleaseRequestsTable, f10ReleaseTransitionsTable, f10AttemptsTable, f10ReceiptsTable, f10DlqTable, f9MechaRunsTable, osirisCustodiesTable, harnessArtifactsTable, f10ProviderConnectionsTable, f10BundleDeploymentsTable, f10BundleDeploymentAuditTable, f10BundleDeploymentAttemptsTable, f10BundleDeploymentReceiptsTable, integrationCredentialsTable, f10GitHubPushesTable, f10ColonizationRunsTable } from "@workspace/db";
+import { db, f10DestinationsTable, f10ReleaseRequestsTable, f10ReleaseTransitionsTable, f10AttemptsTable, f10ReceiptsTable, f10DlqTable, f9MechaRunsTable, osirisCustodiesTable, harnessArtifactsTable, f10ProviderConnectionsTable, f10BundleDeploymentsTable, f10BundleDeploymentAuditTable, f10BundleDeploymentAttemptsTable, f10BundleDeploymentReceiptsTable, integrationCredentialsTable, f10GitHubPushesTable, f10ColonizationRunsTable, f10ColonizationConsentsTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { deterministicIdempotencyKey, retryDelay, validateHttpsDestination, verifyF9Hmac, verifyPrerequisites } from "../lib/f10";
 import { createF10Adapters, createF10CustodyProvider, createF10ProductionStore, envSecretProvider } from "../lib/f10-production";
@@ -13,7 +13,7 @@ import { reconcileF10BundleDeployment } from "../lib/f10-reconciliation";
 import { decryptApiKey } from "../lib/integration-crypto";
 import { getGitHubClientFromToken } from "../lib/github";
 import { requireTier } from "../lib/tier";
-import { COLONIZATION_TARGET_CLASSES, evaluateColonization, type ColonizationInput } from "../lib/f10-colonization";
+import { COLONIZATION_TARGET_CLASSES, evaluateColonization, evaluatePromotionGate, type ColonizationInput } from "../lib/f10-colonization";
 
 const router: IRouter = Router();
 const Body = z.object({ machineArtifactId: z.string().min(1).max(200), destinationId: z.string().uuid(), releaseIntent: z.string().min(1).max(200) });
@@ -66,6 +66,36 @@ const ColonizationBody = z.object({
   customizationSet: z.object({ packaging_fields_only: z.record(z.string(), z.string()).optional() }).optional(),
   f9AttestationRef: z.string().trim().max(500).nullable().optional(),
   consentChannel: z.string().trim().min(1).max(200),
+  deploymentSubject: z.string().trim().min(1).max(500).optional(),
+  ucgColCertificate: z.object({
+    certificateRef: z.string().trim().min(1).max(500),
+    artifactHash: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+    deploymentSubject: z.string().trim().min(1).max(500),
+    score: z.number().min(0).max(1),
+    threshold: z.number().min(0).max(1),
+    verdict: z.literal("PASS"),
+    expiresAt: z.iso.datetime(),
+  }).optional(),
+  stageConsent: z.object({
+    consentId: z.uuid(), purpose: z.literal("STAGE"), deploymentSubject: z.string().trim().min(1).max(500),
+    exactWriteHash: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+  }).optional(),
+  promotionConsent: z.object({
+    consentId: z.uuid(), purpose: z.literal("PROMOTION"), deploymentSubject: z.string().trim().min(1).max(500),
+    exactWriteHash: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+  }).optional(),
+  vaultHandle: z.object({
+    handle: z.string().regex(/^vault-handle:[A-Za-z0-9_-]{16,200}$/u),
+    scope: z.enum(["F10_STAGE", "F10_PROMOTION"]),
+    deploymentSubject: z.string().trim().min(1).max(500),
+    expiresAt: z.iso.datetime(),
+  }).optional(),
+});
+const PromotionBody = z.object({
+  deploymentSubject: z.string().trim().min(1).max(500),
+  ucgColCertificate: ColonizationBody.shape.ucgColCertificate.unwrap(),
+  promotionConsent: ColonizationBody.shape.promotionConsent.unwrap(),
+  vaultHandle: ColonizationBody.shape.vaultHandle.unwrap(),
 });
 
 router.get("/f10/colonization-runs", requireAuth, async (req, res): Promise<void> => {
@@ -121,12 +151,75 @@ router.post("/f10/colonization-runs", requireAuth, async (req, res): Promise<voi
     artifactClass: input.artifactClass, ucgCertificateRef: input.ucgCertificateRef, target: input.target,
     targetClass: input.targetClass, connectorAdapter: input.connectorAdapter,
     customizationSet: input.customizationSet ?? {}, f9AttestationRef: input.f9AttestationRef ?? null,
-    consentChannel: input.consentChannel, state: "REFUSED", phase: evaluation.phase,
+    consentChannel: input.consentChannel, deploymentSubject: input.deploymentSubject ?? null,
+    ucgColCertificate: input.ucgColCertificate ?? null, stageConsent: input.stageConsent ?? null,
+    promotionConsent: input.promotionConsent ?? null, vaultHandle: input.vaultHandle ?? null,
+    state: "REFUSED", phase: evaluation.phase,
     maxReachablePhase: evaluation.maxReachablePhase, groMode: evaluation.groMode,
     phaseStatuses: evaluation.phaseStatuses, adapterReadiness: evaluation.adapterReadiness, refusal: evaluation.refusal,
     updatedAt: new Date(),
   }).returning();
   res.status(201).json(run);
+});
+
+router.post("/f10/colonization-runs/:id/promote", requireAuth, async (req, res): Promise<void> => {
+  const parsed = PromotionBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  const [run] = await db.select().from(f10ColonizationRunsTable).where(and(
+    eq(f10ColonizationRunsTable.id, String(req.params.id)),
+    eq(f10ColonizationRunsTable.tenantId, req.localUser!.id),
+  )).limit(1);
+  if (!run) { res.status(404).json({ error: "Colonization run not found" }); return; }
+  if (run.state !== "STAGED_ONLY") {
+    res.status(409).json({ code: "NOT_STAGED", error: "Promotion is unavailable until this exact run has completed staging with consent #1." });
+    return;
+  }
+
+  const consumed = await db.select({ consentId: f10ColonizationConsentsTable.consentId })
+    .from(f10ColonizationConsentsTable)
+    .where(eq(f10ColonizationConsentsTable.consentId, parsed.data.promotionConsent.consentId))
+    .limit(1);
+  const gate = evaluatePromotionGate({
+    artifactHash: run.artifactHash,
+    deploymentSubject: parsed.data.deploymentSubject,
+    certificate: parsed.data.ucgColCertificate,
+    // Certificate payloads are assertions, not proof. The server-owned
+    // authority adapter must validate one before this gate can open.
+    certificateAuthorityAvailable: false,
+    consent: parsed.data.promotionConsent,
+    consumedConsentIds: new Set(consumed.map(row => row.consentId)),
+    // No Vault adapter exists yet. A caller-provided handle can never assert
+    // availability by itself; the server must obtain readiness from Vault.
+    vaultAvailable: false,
+    vaultHandle: parsed.data.vaultHandle,
+  });
+  if (!gate.ok) { res.status(409).json({ code: gate.code, error: gate.reason }); return; }
+
+  // This transaction is intentionally unreachable until the server-owned
+  // Vault adapter supplies readiness. The unique consent fence remains the
+  // final concurrent-replay defense when that adapter is connected.
+  try {
+    const promoted = await db.transaction(async tx => {
+      await tx.insert(f10ColonizationConsentsTable).values({
+        consentId: parsed.data.promotionConsent.consentId,
+        runId: run.id,
+        tenantId: req.localUser!.id,
+        purpose: "PROMOTION",
+        deploymentSubject: parsed.data.deploymentSubject,
+        exactWriteHash: parsed.data.promotionConsent.exactWriteHash,
+      });
+      const [updated] = await tx.update(f10ColonizationRunsTable).set({
+        state: "PROMOTED", phase: "C8", promotionConsent: parsed.data.promotionConsent,
+        ucgColCertificate: parsed.data.ucgColCertificate, vaultHandle: parsed.data.vaultHandle,
+        updatedAt: new Date(),
+      }).where(and(eq(f10ColonizationRunsTable.id, run.id), eq(f10ColonizationRunsTable.state, "STAGED_ONLY"))).returning();
+      if (!updated) throw new Error("promotion state changed");
+      return updated;
+    });
+    res.json(promoted);
+  } catch {
+    res.status(409).json({ code: "CONSENT_REPLAY", error: "Promotion consent has already been consumed or the run is no longer staged." });
+  }
 });
 
 router.get("/f10/catalog", requireAuth, (_req, res): void => {

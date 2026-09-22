@@ -64,6 +64,21 @@ paths:
       responses:
         "200": { description: Colonization run, content: { application/json: { schema: { $ref: "#/components/schemas/F10ColonizationRun" } } } }
         "404": { $ref: "#/components/responses/NotFound" }
+  /f10/colonization-runs/{id}/promote:
+    post:
+      operationId: promoteF10ColonizationRun
+      tags: [f10]
+      summary: Attempt an exact-write-bound F10 promotion
+      description: Fails closed until the server-owned Vault adapter is available. A caller-provided handle never establishes Vault readiness.
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/F10ColonizationPromotionInput" } } }
+      responses:
+        "200": { description: "Promoted only after all certification, consent, and Vault gates pass", content: { application/json: { schema: { $ref: "#/components/schemas/F10ColonizationRun" } } } }
+        "400": { description: Invalid promotion envelope }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { description: "Staging, certificate, one-time consent, deployment-subject, or Vault gate refused promotion" }
   /f10/sources:
     get:
       operationId: listF10Sources
@@ -2722,6 +2737,65 @@ components:
             packaging_fields_only: { type: object, additionalProperties: { type: string } }
         f9AttestationRef: { type: ["string", "null"], maxLength: 500 }
         consentChannel: { type: string, minLength: 1, maxLength: 200 }
+        deploymentSubject: { type: string, minLength: 1, maxLength: 500, description: Immutable deployment identity to which certification and both consents are bound. }
+        ucgColCertificate: { $ref: "#/components/schemas/F10UcgColCertificate" }
+        stageConsent: { $ref: "#/components/schemas/F10StageConsent" }
+        promotionConsent: { $ref: "#/components/schemas/F10PromotionConsent" }
+        vaultHandle: { $ref: "#/components/schemas/F10VaultHandle" }
+    F10UcgColCertificate:
+      type: object
+      additionalProperties: false
+      required: [certificateRef, artifactHash, deploymentSubject, score, threshold, verdict, expiresAt]
+      properties:
+        certificateRef: { type: string, minLength: 1, maxLength: 500 }
+        artifactHash: { type: string, pattern: "^sha256:[a-f0-9]{64}$" }
+        deploymentSubject: { type: string, minLength: 1, maxLength: 500 }
+        score: { type: number, minimum: 0, maximum: 1 }
+        threshold: { type: number, enum: [0.9], description: Governance-approved UCG-COL promotion threshold. }
+        verdict: { type: string, enum: [PASS] }
+        expiresAt: { type: string, format: date-time }
+    F10ColonizationPromotionInput:
+      type: object
+      additionalProperties: false
+      required: [deploymentSubject, ucgColCertificate, promotionConsent, vaultHandle]
+      properties:
+        deploymentSubject: { type: string, minLength: 1, maxLength: 500 }
+        ucgColCertificate: { $ref: "#/components/schemas/F10UcgColCertificate" }
+        promotionConsent: { $ref: "#/components/schemas/F10PromotionConsent" }
+        vaultHandle: { $ref: "#/components/schemas/F10VaultHandle" }
+    F10StageConsent:
+      type: object
+      additionalProperties: false
+      required: [consentId, purpose, deploymentSubject, exactWriteHash]
+      properties:
+        consentId: { type: string, format: uuid }
+        purpose: { type: string, enum: [STAGE] }
+        deploymentSubject: { type: string, minLength: 1, maxLength: 500 }
+        exactWriteHash: { type: string, pattern: "^sha256:[a-f0-9]{64}$", description: SHA-256 binding this one-time consent to the exact stage write. }
+    F10PromotionConsent:
+      type: object
+      additionalProperties: false
+      required: [consentId, purpose, deploymentSubject, exactWriteHash]
+      properties:
+        consentId: { type: string, format: uuid }
+        purpose: { type: string, enum: [PROMOTION] }
+        deploymentSubject: { type: string, minLength: 1, maxLength: 500 }
+        exactWriteHash:
+          type: string
+          pattern: "^sha256:[a-f0-9]{64}$"
+          description: "SHA-256 binding consent #2 to the exact promotion write; it cannot be reused as stage consent."
+    F10VaultHandle:
+      type: object
+      additionalProperties: false
+      required: [handle, scope, deploymentSubject, expiresAt]
+      properties:
+        handle:
+          type: string
+          pattern: "^vault-handle:[A-Za-z0-9_-]{16,200}$"
+          description: Opaque scoped reference. Credential material is never accepted or returned.
+        scope: { type: string, enum: [F10_STAGE, F10_PROMOTION] }
+        deploymentSubject: { type: string, minLength: 1, maxLength: 500 }
+        expiresAt: { type: string, format: date-time }
     F10ColonizationRun:
       type: object
       required: [id, runId, artifactHash, artifactClass, target, targetClass, state, phase, maxReachablePhase, groMode, phaseStatuses, adapterReadiness, refusal, createdAt, updatedAt]
@@ -2741,6 +2815,11 @@ components:
         phaseStatuses: { $ref: "#/components/schemas/F10ColonizationPhaseStatuses" }
         adapterReadiness: { $ref: "#/components/schemas/F10ColonizationAdapterReadiness" }
         refusal: { $ref: "#/components/schemas/F10ColonizationRefusal" }
+        deploymentSubject: { type: ["string", "null"] }
+        ucgColCertificate: { oneOf: [{ $ref: "#/components/schemas/F10UcgColCertificate" }, { type: "null" }] }
+        stageConsent: { oneOf: [{ $ref: "#/components/schemas/F10StageConsent" }, { type: "null" }] }
+        promotionConsent: { oneOf: [{ $ref: "#/components/schemas/F10PromotionConsent" }, { type: "null" }] }
+        vaultHandle: { oneOf: [{ $ref: "#/components/schemas/F10VaultHandle" }, { type: "null" }] }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
     F10ColonizationPhaseStatuses:
