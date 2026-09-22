@@ -33,6 +33,10 @@ const EXCLUDE_PREFIXES = [".github/workflows/"];
 const TRAILER = "Replit-Commit:";
 const API = "https://api.github.com";
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function git(args: string[], opts: { binary?: boolean } = {}): Promise<string | Buffer> {
   const { stdout } = await execFileAsync("git", args, {
     cwd: repoRoot(),
@@ -173,7 +177,10 @@ async function syncOnce(api: Api, baseArg: string | undefined, headSha: string):
   // Create blobs for upserts with limited concurrency.
   const treeEntries: Array<{ path: string; mode: string; type: "blob"; sha: string | null }> = [];
   const upserts = changes.filter((c) => c.status === "upsert");
-  const CONCURRENCY = 5;
+  // GitHub applies secondary abuse limits to bursty blob creation even when
+  // the hourly request quota is available. Keep recovery syncs deliberately
+  // paced; one remote commit is more useful than a fast partial upload.
+  const CONCURRENCY = 2;
   for (let i = 0; i < upserts.length; i += CONCURRENCY) {
     const batch = upserts.slice(i, i + CONCURRENCY);
     const entries = await Promise.all(
@@ -190,6 +197,7 @@ async function syncOnce(api: Api, baseArg: string | undefined, headSha: string):
     if (upserts.length > CONCURRENCY) {
       console.log(`[sync-github] uploaded ${Math.min(i + CONCURRENCY, upserts.length)}/${upserts.length} blobs`);
     }
+    await delay(750);
   }
   for (const change of changes) {
     if (change.status === "delete") {
