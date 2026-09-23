@@ -137,6 +137,7 @@ function isRefreshError(value: unknown): boolean {
 
 export default function Command() {
   const [isRefreshingAll, setIsRefreshingAll] = useState(false);
+  const [isRefreshingOnFocus, setIsRefreshingOnFocus] = useState(false);
   const [refreshFailures, setRefreshFailures] = useState<RefreshFailure[]>([]);
   const [retryFailures, setRetryFailures] = useState<MetricLabel[]>([]);
   const isRefreshingAllRef = useRef(false);
@@ -272,13 +273,14 @@ export default function Command() {
     }
   };
 
-  const refreshAllMetrics = async () => {
+  const refreshAllMetrics = async (source: "manual" | "focus" = "manual") => {
     if (isRefreshingAllRef.current) {
       return;
     }
 
     isRefreshingAllRef.current = true;
     setIsRefreshingAll(true);
+    setIsRefreshingOnFocus(source === "focus");
     setRefreshFailures([]);
     setRetryFailures([]);
     const attempts = METRIC_LABELS.map((metricLabel) => beginMetricRefresh(metricLabel));
@@ -311,17 +313,31 @@ export default function Command() {
     } finally {
       isRefreshingAllRef.current = false;
       setIsRefreshingAll(false);
+      setIsRefreshingOnFocus(false);
     }
   };
 
+  const refreshAllMetricsRef = useRef(refreshAllMetrics);
+  refreshAllMetricsRef.current = refreshAllMetrics;
+
   useEffect(() => {
-    const handleWindowFocus = () => {
-      void refreshAllMetrics();
+    const handleRefreshSignal = () => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+
+      void refreshAllMetricsRef.current("focus");
     };
 
-    window.addEventListener("focus", handleWindowFocus);
-    return () => window.removeEventListener("focus", handleWindowFocus);
-  });
+    window.addEventListener("focus", handleRefreshSignal);
+    window.addEventListener("pageshow", handleRefreshSignal);
+    document.addEventListener("visibilitychange", handleRefreshSignal);
+    return () => {
+      window.removeEventListener("focus", handleRefreshSignal);
+      window.removeEventListener("pageshow", handleRefreshSignal);
+      document.removeEventListener("visibilitychange", handleRefreshSignal);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -344,6 +360,17 @@ export default function Command() {
                 <RefreshCw className={`h-3.5 w-3.5 ${isRefreshingAll ? "animate-spin" : ""}`} />
                 {isRefreshingAll ? "Refreshing metrics…" : "Refresh all metrics"}
               </Button>
+              {isRefreshingOnFocus && (
+                <p
+                  className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground"
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                  data-testid="automatic-refresh-status"
+                >
+                  Refreshing metrics after returning to this tab…
+                </p>
+              )}
               {isLoadingMe ? (
                 <Skeleton className="h-5 w-40" />
               ) : (

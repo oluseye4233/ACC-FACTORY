@@ -117,6 +117,10 @@ function setHookResults({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  Object.defineProperty(document, "visibilityState", {
+    configurable: true,
+    value: "visible",
+  });
   setHookResults({});
 });
 
@@ -200,6 +204,158 @@ describe("Command Deck", () => {
     expect(refetchSessions).toHaveBeenCalledTimes(1);
     expect(refetchHealth).toHaveBeenCalledTimes(1);
     expect(refetchUsage).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows an accessible status while a focus refresh is in progress", async () => {
+    let resolveSessions!: (value?: unknown) => void;
+    let resolveHealth!: (value?: unknown) => void;
+    let resolveUsage!: (value?: unknown) => void;
+    refetchSessions.mockReturnValue(new Promise((resolve) => {
+      resolveSessions = resolve;
+    }));
+    refetchHealth.mockReturnValue(new Promise((resolve) => {
+      resolveHealth = resolve;
+    }));
+    refetchUsage.mockReturnValue(new Promise((resolve) => {
+      resolveUsage = resolve;
+    }));
+
+    render(<Command />);
+
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
+
+    expect(screen.getByTestId("button-refresh-all-metrics")).toBeTruthy();
+    expect(screen.getByTestId("automatic-refresh-status").textContent).toContain(
+      "Refreshing metrics after returning to this tab…",
+    );
+    expect(screen.getByRole("status").getAttribute("aria-live")).toBe("polite");
+
+    await act(async () => {
+      resolveSessions();
+      resolveHealth();
+      resolveUsage();
+    });
+
+    expect(screen.queryByTestId("automatic-refresh-status")).toBeNull();
+  });
+
+  it("refreshes all metrics when a hidden tab becomes visible", async () => {
+    refetchSessions.mockResolvedValue({ isError: false });
+    refetchHealth.mockResolvedValue({ isError: false });
+    refetchUsage.mockResolvedValue({ isError: false });
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "hidden",
+    });
+
+    render(<Command />);
+
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+    expect(refetchSessions).not.toHaveBeenCalled();
+    expect(refetchHealth).not.toHaveBeenCalled();
+    expect(refetchUsage).not.toHaveBeenCalled();
+
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+  });
+
+  it("refreshes all metrics when the active page is restored", async () => {
+    refetchSessions.mockResolvedValue({ isError: false });
+    refetchHealth.mockResolvedValue({ isError: false });
+    refetchUsage.mockResolvedValue({ isError: false });
+
+    render(<Command />);
+
+    await act(async () => {
+      window.dispatchEvent(new Event("pageshow"));
+    });
+
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+  });
+
+  it("shares a page restoration refresh with nearby focus and visibility signals", async () => {
+    let resolveSessions!: (value?: unknown) => void;
+    let resolveHealth!: (value?: unknown) => void;
+    let resolveUsage!: (value?: unknown) => void;
+    refetchSessions.mockReturnValue(new Promise((resolve) => {
+      resolveSessions = resolve;
+    }));
+    refetchHealth.mockReturnValue(new Promise((resolve) => {
+      resolveHealth = resolve;
+    }));
+    refetchUsage.mockReturnValue(new Promise((resolve) => {
+      resolveUsage = resolve;
+    }));
+
+    render(<Command />);
+
+    window.dispatchEvent(new Event("pageshow"));
+    document.dispatchEvent(new Event("visibilitychange"));
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
+
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveSessions();
+      resolveHealth();
+      resolveUsage();
+    });
+  });
+
+  it("shares a visibility-return refresh with a focus refresh", async () => {
+    let resolveSessions!: (value?: unknown) => void;
+    let resolveHealth!: (value?: unknown) => void;
+    let resolveUsage!: (value?: unknown) => void;
+    refetchSessions.mockReturnValue(new Promise((resolve) => {
+      resolveSessions = resolve;
+    }));
+    refetchHealth.mockReturnValue(new Promise((resolve) => {
+      resolveHealth = resolve;
+    }));
+    refetchUsage.mockReturnValue(new Promise((resolve) => {
+      resolveUsage = resolve;
+    }));
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+
+    render(<Command />);
+
+    document.dispatchEvent(new Event("visibilitychange"));
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
+
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveSessions();
+      resolveHealth();
+      resolveUsage();
+    });
   });
 
   it("shares an in-flight manual refresh with a focus refresh", async () => {
