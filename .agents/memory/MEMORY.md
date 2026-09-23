@@ -37,3 +37,4 @@
 - [Provider authorization key rotation](provider-authorization-key-rotation.md) — F10 grants use a dedicated current+previous keyring; decrypt with old keys only to re-encrypt under current, and fail closed to reconnect.
 - [ATLAS PDF pagination](atlas-pdf-pagination.md) — with the shared PDFKit theme, buffer pages and add footers after content; pageAdded footer mutations can recurse.
 - [LLM output bounds](llm-output-bounds.md) — non-critical generated metadata should be bounded at the schema boundary so valid artifacts do not fail on provider verbosity.
+- [F8 artifact class routing](f8-artifact-class-routing.md) — persist Software/Firmware in the bundle; Software skips F9 while Firmware and legacy bundles retain the machine-floor path.

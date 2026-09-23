@@ -78,6 +78,9 @@ const fromPersisted = (row: PersistedRun): F9Run => ({
 const isCertified = (artifact: HarnessArtifact) =>
   artifact.artifactType === "MVP_PDD" && Boolean((artifact as HarnessArtifact & { spartanCert?: unknown }).spartanCert);
 const isCodeBundle = (artifact: HarnessArtifact) => artifact.artifactType === "CODEBASE_BUNDLE";
+const isSoftwareBundle = (artifact: HarnessArtifact) =>
+  isCodeBundle(artifact) &&
+  (artifact.artifactContent as { artifactClass?: unknown } | null | undefined)?.artifactClass === "SOFTWARE";
 
 export function F9MachineFloor({ sessionId, artifacts }: Props) {
   const certifiedPdd = useMemo(
@@ -157,6 +160,18 @@ export function F9MachineFloor({ sessionId, artifacts }: Props) {
           title="F9 UPSTREAM GATES REQUIRED"
           body="The Machine Floor cannot be entered until this session has both a SPARTAN-certified MVP PDD and an F8 Code Oracle bundle. F9 never accepts a hand-assembled artifact."
           hint="Complete F7/SPARTAN, then run F8 Code Oracle from that certified lineage."
+        />
+      </WorkspaceShell>
+    );
+  }
+  if (isSoftwareBundle(codeBundle)) {
+    return (
+      <WorkspaceShell>
+        <EmptyState
+          icon={<Lock className="h-12 w-12" />}
+          title="F9 SKIPPED FOR SOFTWARE"
+          body="This F8 bundle is classified as Software. F9 MECHA is reserved for Firmware artifacts."
+          hint="Continue directly to F10 Connector or F11 Host Connector."
         />
       </WorkspaceShell>
     );

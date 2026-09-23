@@ -1040,6 +1040,7 @@ export interface F10ReleaseRequest {
   machineArtifactId: string;
   destinationId: string;
   releaseIntent: string;
+  /** Optional session scope used by the embedded Command Centre release flow. */
   sessionId?: string;
 }
 
@@ -1555,10 +1556,23 @@ export interface CodebaseManifest {
   deployTarget: string;
 }
 
+/**
+ * Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software).
+ */
+export type HarnessF8InputArtifactClass = typeof HarnessF8InputArtifactClass[keyof typeof HarnessF8InputArtifactClass];
+
+
+export const HarnessF8InputArtifactClass = {
+  SOFTWARE: 'SOFTWARE',
+  FIRMWARE: 'FIRMWARE',
+} as const;
+
 export interface HarnessF8Input {
   sessionId: string;
   mvpPddArtifactId: string;
   platform: CodeDjPlatform;
+  /** Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software). */
+  artifactClass: HarnessF8InputArtifactClass;
   /**
      * Optional operator hints for the Code DJ (preferred libs, naming, etc.).
      * @maxLength 2000
@@ -2075,9 +2089,18 @@ export interface PfpReport {
   counts: PfpReportCounts;
 }
 
+export type CodebaseBundleArtifactClass = typeof CodebaseBundleArtifactClass[keyof typeof CodebaseBundleArtifactClass];
+
+
+export const CodebaseBundleArtifactClass = {
+  SOFTWARE: 'SOFTWARE',
+  FIRMWARE: 'FIRMWARE',
+} as const;
+
 export interface CodebaseBundle {
   artifactId: string;
   platform: CodeDjPlatform;
+  artifactClass: CodebaseBundleArtifactClass;
   manifest: CodebaseManifest;
   files: CodebaseFile[];
   notes: string;

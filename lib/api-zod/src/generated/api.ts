@@ -822,7 +822,7 @@ export const CreateF10ReleaseBody = zod.object({
   "machineArtifactId": zod.string(),
   "destinationId": zod.string().uuid(),
   "releaseIntent": zod.string(),
-  "sessionId": zod.string().uuid().optional()
+  "sessionId": zod.string().uuid().optional().describe('Optional session scope used by the embedded Command Centre release flow.')
 })
 
 
@@ -1766,6 +1766,7 @@ export const HarnessF8Body = zod.object({
   "sessionId": zod.string().uuid(),
   "mvpPddArtifactId": zod.string().uuid(),
   "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment \/ framework target for the Code DJ scaffold.'),
+  "artifactClass": zod.enum(['SOFTWARE', 'FIRMWARE']).describe('Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10\/F11 (software).'),
   "notes": zod.string().max(harnessF8BodyNotesMax).optional().describe('Optional operator hints for the Code DJ (preferred libs, naming, etc.).'),
   "acknowledgeDrift": zod.boolean().optional().describe('Override the PFP drift gate. Required when the most recent PFP report for the same MVP PDD has any critical findings.'),
   "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
@@ -1774,6 +1775,7 @@ export const HarnessF8Body = zod.object({
 export const HarnessF8Response = zod.object({
   "artifactId": zod.string().uuid(),
   "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment \/ framework target for the Code DJ scaffold.'),
+  "artifactClass": zod.enum(['SOFTWARE', 'FIRMWARE']),
   "manifest": zod.object({
   "framework": zod.string(),
   "language": zod.string(),

@@ -6,12 +6,15 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CodeDjPlatform } from './codeDjPlatform';
+import type { HarnessF8InputArtifactClass } from './harnessF8InputArtifactClass';
 import type { LlmProvider } from './llmProvider';
 
 export interface HarnessF8Input {
   sessionId: string;
   mvpPddArtifactId: string;
   platform: CodeDjPlatform;
+  /** Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software). */
+  artifactClass: HarnessF8InputArtifactClass;
   /**
      * Optional operator hints for the Code DJ (preferred libs, naming, etc.).
      * @maxLength 2000

@@ -114,6 +114,12 @@ export default function SessionDetail() {
   const activeEngine = ENGINES.find(e => e.id === activeEngineId) || ENGINES[0];
   
   const getFeatureStatus = (engineId: number) => {
+    const latestCodeBundle = artifacts
+      ?.filter((artifact) => artifact.artifactType === "CODEBASE_BUNDLE")
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
+    const isSoftwareBundle =
+      (latestCodeBundle?.artifactContent as { artifactClass?: unknown } | null | undefined)
+        ?.artifactClass === "SOFTWARE";
     // Side-step engines are not represented in feature_states. F8 still needs
     // the same certified MVP input that the server requires, so do not surface
     // a dead navigation target before F7 has produced one.
@@ -132,10 +138,12 @@ export default function SessionDetail() {
           Boolean((artifact as unknown as { spartanCert?: unknown }).spartanCert),
       );
       const hasCodeBundle = artifacts?.some((artifact) => artifact.artifactType === "CODEBASE_BUNDLE");
-      return hasCertifiedMvp && hasCodeBundle ? FeatureStatus.AVAILABLE : FeatureStatus.LOCKED;
+      return hasCertifiedMvp && hasCodeBundle && !isSoftwareBundle
+        ? FeatureStatus.AVAILABLE
+        : FeatureStatus.LOCKED;
     }
     if (engineId === 12) {
-      return hasEmittedF9 ? FeatureStatus.AVAILABLE : FeatureStatus.LOCKED;
+      return hasEmittedF9 || isSoftwareBundle ? FeatureStatus.AVAILABLE : FeatureStatus.LOCKED;
     }
     if (engineId === 13) {
       const hasCertifiedMvp = artifacts?.some(
@@ -343,7 +351,13 @@ export default function SessionDetail() {
               {activeEngineId === 6 && <F6DraftPdd sessionId={id} sessionOrigin={session?.origin} artifacts={artifacts || []} />}
               {activeEngineId === 7 && <F7ConvertMvp sessionId={id} sessionOrigin={session?.origin} artifacts={artifacts || []} />}
               {activeEngineId === 8 && <F6VdjBuild sessionId={id} artifacts={artifacts || []} />}
-              {activeEngineId === 9 && <F8CodeDj sessionId={id} artifacts={artifacts || []} />}
+              {activeEngineId === 9 && (
+                <F8CodeDj
+                  sessionId={id}
+                  artifacts={artifacts || []}
+                  onComplete={(artifactClass) => setActiveEngineId(artifactClass === "SOFTWARE" ? 12 : 11)}
+                />
+              )}
               {activeEngineId === 10 && <MathmonLayer sessionId={id} artifacts={artifacts || []} />}
               {activeEngineId === 11 && getFeatureStatus(11) !== FeatureStatus.LOCKED && (
                 <F9MachineFloor sessionId={id} artifacts={artifacts || []} />

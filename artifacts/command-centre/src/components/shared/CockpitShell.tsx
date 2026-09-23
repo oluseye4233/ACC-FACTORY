@@ -30,14 +30,19 @@ export function CockpitShell({
 }: CockpitShellProps) {
   const activeEngine = ENGINES.find((e) => e.id === activeEngineId);
   
-  const productionIndex = PRODUCTION_ENGINE_IDS.findIndex((id) => id === activeEngineId);
+  // A software bundle deliberately skips F9. Filtering locked stages keeps
+  // the cockpit's previous/next cards aligned with that selected route.
+  const visibleProductionEngineIds = PRODUCTION_ENGINE_IDS.filter(
+    (id) => getFeatureStatus(id) !== FeatureStatus.LOCKED,
+  );
+  const productionIndex = visibleProductionEngineIds.findIndex((id) => id === activeEngineId);
   const prevEngineId = productionIndex > 0
-    ? PRODUCTION_ENGINE_IDS[productionIndex - 1]
+    ? visibleProductionEngineIds[productionIndex - 1]
     : null;
   const prevEngine = prevEngineId ? ENGINES.find((e) => e.id === prevEngineId) : null;
   
-  const nextEngineId = productionIndex >= 0 && productionIndex < PRODUCTION_ENGINE_IDS.length - 1
-    ? PRODUCTION_ENGINE_IDS[productionIndex + 1]
+  const nextEngineId = productionIndex >= 0 && productionIndex < visibleProductionEngineIds.length - 1
+    ? visibleProductionEngineIds[productionIndex + 1]
     : null;
   const nextEngine = nextEngineId ? ENGINES.find((e) => e.id === nextEngineId) : null;
   const attentionEngineId = ENGINES

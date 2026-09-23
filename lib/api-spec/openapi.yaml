@@ -2981,6 +2981,10 @@ components:
         machineArtifactId: { type: string }
         destinationId: { type: string, format: uuid }
         releaseIntent: { type: string }
+        sessionId:
+          type: string
+          format: uuid
+          description: Optional session scope used by the embedded Command Centre release flow.
     F10Envelope:
       type: object
       additionalProperties: false
@@ -3438,11 +3442,15 @@ components:
 
     HarnessF8Input:
       type: object
-      required: [sessionId, mvpPddArtifactId, platform]
+      required: [sessionId, mvpPddArtifactId, platform, artifactClass]
       properties:
         sessionId: { type: string, format: uuid }
         mvpPddArtifactId: { type: string, format: uuid }
         platform: { $ref: "#/components/schemas/CodeDjPlatform" }
+        artifactClass:
+          type: string
+          enum: [SOFTWARE, FIRMWARE]
+          description: Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software).
         notes:
           type: string
           description: Optional operator hints for the Code DJ (preferred libs, naming, etc.).
@@ -3919,10 +3927,13 @@ components:
 
     CodebaseBundle:
       type: object
-      required: [artifactId, platform, manifest, files, notes]
+      required: [artifactId, platform, artifactClass, manifest, files, notes]
       properties:
         artifactId: { type: string, format: uuid }
         platform: { $ref: "#/components/schemas/CodeDjPlatform" }
+        artifactClass:
+          type: string
+          enum: [SOFTWARE, FIRMWARE]
         manifest: { $ref: "#/components/schemas/CodebaseManifest" }
         files:
           type: array

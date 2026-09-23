@@ -69,7 +69,14 @@ export async function handleF8CodeDj(
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { sessionId, mvpPddArtifactId, platform, notes, provider: bodyProvider } = parsed.data;
+  const {
+    sessionId,
+    mvpPddArtifactId,
+    platform,
+    artifactClass,
+    notes,
+    provider: bodyProvider,
+  } = parsed.data;
   const acknowledgeDrift =
     (req.body as { acknowledgeDrift?: boolean })?.acknowledgeDrift === true;
 
@@ -174,6 +181,7 @@ export async function handleF8CodeDj(
     artifactType: "CODEBASE_BUNDLE",
     artifactContent: {
       platform: out.platform,
+      artifactClass,
       manifest: out.manifest,
       files: out.files,
       notes: out.notes,
@@ -187,6 +195,7 @@ export async function handleF8CodeDj(
   res.json({
     artifactId: artifact.id,
     platform: out.platform,
+    artifactClass,
     manifest: out.manifest,
     files: out.files,
     notes: out.notes,

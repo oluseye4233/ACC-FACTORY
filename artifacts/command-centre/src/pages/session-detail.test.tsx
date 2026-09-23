@@ -432,6 +432,24 @@ describe("SessionDetail — side-step engines stay navigable", () => {
     gotoStage("f11");
     expect(screen.getByTestId("workspace-F11HostConnector")).toBeTruthy();
   });
+
+  it("routes a Software bundle directly to F10 and F11 while skipping F9", async () => {
+    useListSessionArtifactsMock.mockReturnValue({
+      data: [
+        { artifactType: "MVP_PDD", spartanCert: { certId: "cert-1" } },
+        { artifactType: "CODEBASE_BUNDLE", createdAt: "2026-09-23T12:00:00.000Z", artifactContent: { artifactClass: "SOFTWARE" } },
+      ],
+      isLoading: false,
+    });
+    useListFeatureStateMock.mockReturnValue({ data: [], isLoading: false });
+    render(<SessionDetail />);
+
+    await waitFor(() => {
+      expect((screen.getByTestId("feature-nav-f10") as HTMLButtonElement).disabled).toBe(false);
+      expect((screen.getByTestId("feature-nav-f11") as HTMLButtonElement).disabled).toBe(false);
+    });
+    expect((screen.getByTestId("feature-nav-f9") as HTMLButtonElement).disabled).toBe(true);
+  });
 });
 
 const BANNER = "ingestion-banner";

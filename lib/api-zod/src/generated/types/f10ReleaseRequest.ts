@@ -10,4 +10,6 @@ export interface F10ReleaseRequest {
   machineArtifactId: string;
   destinationId: string;
   releaseIntent: string;
+  /** Optional session scope used by the embedded Command Centre release flow. */
+  sessionId?: string;
 }

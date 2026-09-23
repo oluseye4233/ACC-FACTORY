@@ -189,9 +189,9 @@ export const ENGINES = [
     id: 12,
     name: "F10",
     title: "CONNECTOR",
-    description: "Release an emitted F9 Machine Artifact through an authorized, auditable delivery gateway.",
+    description: "Release a Firmware F9 artifact or deploy/export a Software F8 bundle through an authorized, auditable gateway.",
     explainer:
-      "The natural production-line handoff after F9. F10 never builds, certifies, or mutates the Machine Artifact; it verifies F9/OSIRIS custody, applies destination policy, and records delivery receipts.",
+      "Firmware follows F9 into the signed release gateway. Software skips F9 and uses the F10 bundle lane directly; F10 never builds or certifies the source.",
   },
   {
     id: 13,
@@ -199,7 +199,7 @@ export const ENGINES = [
     title: "HOST CONNECTOR",
     description: "Turn a certified codebase or F10 handoff into a plan-gated hosting path.",
     explainer:
-      "Consumes a certified F8 code bundle, profiles hosting requirements, and recomputes the HOST DJ ranking. Qualified adapters can advance through consented H4 staging, evidence-backed H5/H6, separately consented H7 promotion, and signed H8/F9.5 receipt handoff; F10 and CHAT_ONLY paths remain fail-closed.",
+      "Consumes a certified F8 code bundle, profiles hosting requirements, and recomputes the HOST DJ ranking. Qualified adapters can advance through consented H4 staging, evidence-backed H5/H6, separately consented H7 promotion, and signed H8/F9.5 receipt handoff.",
   },
 ];
 

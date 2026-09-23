@@ -57,13 +57,19 @@ const PLATFORM_LABELS: Record<CodeDjPlatform, string> = {
   [CodeDjPlatform["expo-mobile"]]: "Expo (mobile)",
   [CodeDjPlatform["pnpm-monorepo"]]: "pnpm monorepo",
 };
+type ArtifactClass = "SOFTWARE" | "FIRMWARE";
+const ARTIFACT_CLASS_LABELS: Record<ArtifactClass, string> = {
+  SOFTWARE: "Software",
+  FIRMWARE: "Firmware",
+};
 
 interface Props {
   sessionId: string;
   artifacts: HarnessArtifact[];
+  onComplete?: (artifactClass: ArtifactClass) => void;
 }
 
-export function F8CodeDj({ sessionId, artifacts }: Props) {
+export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
   const qc = useQueryClient();
   const { toast } = useToast();
 
@@ -94,6 +100,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
   const [platform, setPlatform] = useState<CodeDjPlatform>(
     CodeDjPlatform["nextjs-vercel"],
   );
+  const [artifactClass, setArtifactClass] = useState<ArtifactClass | "">("");
   const [notes, setNotes] = useState("");
   const [result, setResult] = useState<CodebaseBundle | undefined>();
   const [activeFile, setActiveFile] = useState<string>("");
@@ -162,6 +169,10 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
       setError("Pick a certified MVP PDD source");
       return;
     }
+    if (!artifactClass) {
+      setError("Choose whether this artifact is Software or Firmware");
+      return;
+    }
     setError(null);
     setDriftGateBlock(null);
     setResult(undefined);
@@ -171,6 +182,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
           sessionId,
           mvpPddArtifactId: sourceId,
           platform,
+          artifactClass,
           ...(notes.trim() ? { notes: notes.trim() } : {}),
           ...(acknowledgeDrift ? { acknowledgeDrift: true } : {}),
           ...overrideToBody(providerOverride),
@@ -178,6 +190,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
       })) as CodebaseBundle;
       setResult(out);
       setActiveFile(out.files[0]?.path ?? "");
+      onComplete?.(artifactClass);
       qc.invalidateQueries({
         queryKey: getListSessionArtifactsQueryKey(sessionId),
       });
@@ -308,7 +321,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
     <WorkspaceShell>
       <div className="flex flex-col gap-4 h-full">
         <Card className="p-5 bg-card/50">
-          <div className="grid md:grid-cols-2 gap-3 mb-3">
+          <div className="grid gap-3 mb-3 md:grid-cols-3">
             <div>
               <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
                 Source MVP PDD (SPARTAN-certified)
@@ -333,6 +346,30 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
+                Artifact type
+              </label>
+              <Select
+                value={artifactClass}
+                onValueChange={(value) => setArtifactClass(value as ArtifactClass)}
+              >
+                <SelectTrigger data-testid="f8-artifact-class" className="font-mono text-xs">
+                  <SelectValue placeholder="Choose Software or Firmware" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(ARTIFACT_CLASS_LABELS) as ArtifactClass[]).map((value) => (
+                    <SelectItem key={value} value={value} className="font-mono text-xs">
+                      {value === "SOFTWARE" ? "1. " : "2. "}
+                      {ARTIFACT_CLASS_LABELS[value]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-1 font-mono text-[9px] text-muted-foreground">
+                Software skips F9 and continues to F10/F11. Firmware requires F9.
+              </p>
             </div>
             <div>
               <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
@@ -387,7 +424,7 @@ export function F8CodeDj({ sessionId, artifacts }: Props) {
             <Button
               data-testid="f8-run"
               onClick={run}
-              disabled={mutation.isPending}
+              disabled={mutation.isPending || !artifactClass}
               className="font-display tracking-wider gap-2"
             >
               <Cpu className="h-4 w-4" />

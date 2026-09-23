@@ -5,6 +5,7 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { CodebaseBundleArtifactClass } from './codebaseBundleArtifactClass';
 import type { CodebaseFile } from './codebaseFile';
 import type { CodebaseManifest } from './codebaseManifest';
 import type { CodeDjPlatform } from './codeDjPlatform';
@@ -12,6 +13,7 @@ import type { CodeDjPlatform } from './codeDjPlatform';
 export interface CodebaseBundle {
   artifactId: string;
   platform: CodeDjPlatform;
+  artifactClass: CodebaseBundleArtifactClass;
   manifest: CodebaseManifest;
   files: CodebaseFile[];
   notes: string;

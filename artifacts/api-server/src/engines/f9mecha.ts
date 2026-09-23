@@ -10,6 +10,14 @@ const PhaseSchema = z.object({
   evidence: z.record(z.string(), z.unknown()),
 });
 
+/** Legacy bundles without an explicit class remain eligible for F9. */
+export function artifactRequiresF9(content: unknown): boolean {
+  if (typeof content !== "object" || content === null || Array.isArray(content)) {
+    return true;
+  }
+  return (content as { artifactClass?: unknown }).artifactClass !== "SOFTWARE";
+}
+
 const InputSchema = z.object({
   sessionId: z.string().uuid(),
   sourceArtifactId: z.string().uuid(),
@@ -103,6 +111,14 @@ export async function handleF9Mecha(req: Request, res: Response): Promise<void> 
   if (!guard.ok) { res.status(guard.status).json({ error: guard.error }); return; }
   const [source] = await db.select().from(harnessArtifactsTable).where(and(eq(harnessArtifactsTable.id, input.sourceArtifactId), eq(harnessArtifactsTable.userId, guard.userId))).limit(1);
   if (!source || source.sessionId !== input.sessionId || source.artifactType !== "CODEBASE_BUNDLE") { res.status(404).json({ error: "F8 CODEBASE_BUNDLE source artifact not found in this session" }); return; }
+  if (!artifactRequiresF9(source.artifactContent)) {
+    res.status(409).json({
+      error: "F9 is not required for SOFTWARE artifacts",
+      code: "F9_NOT_REQUIRED",
+      detail: "Software code bundles continue directly from F8 to F10 and F11.",
+    });
+    return;
+  }
   const lineage = source.artifactContent as { sourceMvpPddArtifactId?: string };
   if (!lineage.sourceMvpPddArtifactId) { res.status(409).json({ error: "F8 bundle has no certified MVP PDD lineage" }); return; }
   const [mvp] = await db.select().from(harnessArtifactsTable).where(and(eq(harnessArtifactsTable.id, lineage.sourceMvpPddArtifactId), eq(harnessArtifactsTable.userId, guard.userId))).limit(1);

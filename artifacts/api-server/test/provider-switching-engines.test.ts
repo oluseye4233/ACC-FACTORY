@@ -557,6 +557,7 @@ describe("provider switching end-to-end across remaining engines", () => {
               sessionId: fx.sessionId,
               mvpPddArtifactId: mvpId,
               platform: "react-vite-static",
+              artifactClass: "SOFTWARE",
               provider,
             }),
           });
