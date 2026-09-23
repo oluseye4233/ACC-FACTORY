@@ -144,6 +144,7 @@ export default function Command() {
     "System status": 0,
     "Monthly usage": 0,
   });
+  const inFlightMetricRequests = useRef<Partial<Record<MetricLabel, Promise<unknown>>>>({});
   const { data: me, isLoading: isLoadingMe } = useGetMe();
   const {
     data: sessions,
@@ -194,6 +195,32 @@ export default function Command() {
   const isCurrentMetricRefresh = (metricLabel: MetricLabel, attempt: number): boolean =>
     refreshAttempts.current[metricLabel] === attempt;
 
+  const getMetricRequest = (
+    metricLabel: MetricLabel,
+    refetch: () => Promise<unknown>,
+  ): Promise<unknown> => {
+    const existingRequest = inFlightMetricRequests.current[metricLabel];
+    if (existingRequest) {
+      return existingRequest;
+    }
+
+    let request: Promise<unknown>;
+    try {
+      request = Promise.resolve(refetch());
+    } catch (error) {
+      request = Promise.reject(error);
+    }
+
+    inFlightMetricRequests.current[metricLabel] = request;
+    const clearRequest = () => {
+      if (inFlightMetricRequests.current[metricLabel] === request) {
+        delete inFlightMetricRequests.current[metricLabel];
+      }
+    };
+    request.then(clearRequest, clearRequest);
+    return request;
+  };
+
   const setMetricRefreshFailure = (metricLabel: MetricLabel, attempt: number) => {
     if (!isCurrentMetricRefresh(metricLabel, attempt)) {
       return;
@@ -217,7 +244,7 @@ export default function Command() {
     const attempt = beginMetricRefresh(metricLabel);
 
     try {
-      const result = await refetch();
+      const result = await getMetricRequest(metricLabel, refetch);
       if (!isCurrentMetricRefresh(metricLabel, attempt)) {
         return;
       }
@@ -255,9 +282,9 @@ export default function Command() {
     const attempts = METRIC_LABELS.map((metricLabel) => beginMetricRefresh(metricLabel));
     try {
       const results = await Promise.allSettled([
-        refetchSessions(),
-        refetchHealth(),
-        refetchUsage(),
+        getMetricRequest("Recent builds", refetchSessions),
+        getMetricRequest("System status", refetchHealth),
+        getMetricRequest("Monthly usage", refetchUsage),
       ]);
       setRefreshFailures((failures) => {
         let nextFailures = failures;

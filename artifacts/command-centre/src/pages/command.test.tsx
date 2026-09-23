@@ -390,7 +390,7 @@ describe("Command Deck", () => {
     expect(screen.queryByTestId("metric-retry-failure-system-status")).toBeNull();
   });
 
-  it("does not let an older panel retry clear a newer combined refresh warning", async () => {
+  it("shares a pending panel retry with a newer combined refresh and keeps the newer warning", async () => {
     setHookResults({
       sessions: POPULATED_SESSIONS,
       health: { status: "ok", db: "ok", engines: "ok" },
@@ -403,14 +403,12 @@ describe("Command Deck", () => {
     });
 
     let resolvePanelRetry!: (value?: unknown) => void;
-    refetchSessions
-      .mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            resolvePanelRetry = resolve;
-          }),
-      )
-      .mockResolvedValueOnce({ isError: true });
+    refetchSessions.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolvePanelRetry = resolve;
+        }),
+    );
     refetchHealth.mockResolvedValue({ isError: false });
     refetchUsage.mockResolvedValue({ isError: false });
 
@@ -421,10 +419,13 @@ describe("Command Deck", () => {
       fireEvent.click(screen.getByTestId("button-refresh-all-metrics"));
     });
 
-    await screen.findByText("Recent builds remain unchanged. Use the panel retry actions to try again.");
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("refresh-all-metrics-error")).toBeNull();
 
     await act(async () => {
-      resolvePanelRetry({ isError: false });
+      resolvePanelRetry({ isError: true });
     });
 
     expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
@@ -432,7 +433,7 @@ describe("Command Deck", () => {
     );
   });
 
-  it("does not let an older combined refresh clear a newer panel retry warning", async () => {
+  it("shares a pending combined refresh with a newer panel retry and keeps the newer result", async () => {
     setHookResults({
       sessions: POPULATED_SESSIONS,
       health: { status: "ok", db: "ok", engines: "ok" },
@@ -445,14 +446,12 @@ describe("Command Deck", () => {
     });
 
     let resolveCombinedRefresh!: (value?: unknown) => void;
-    refetchSessions
-      .mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            resolveCombinedRefresh = resolve;
-          }),
-      )
-      .mockResolvedValueOnce({ isError: true });
+    refetchSessions.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveCombinedRefresh = resolve;
+        }),
+    );
     refetchHealth.mockResolvedValue({ isError: false });
     refetchUsage.mockResolvedValue({ isError: false });
 
@@ -463,16 +462,20 @@ describe("Command Deck", () => {
       fireEvent.click(screen.getByTestId("button-retry-sessions"));
     });
 
-    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
-      "Recent builds remain unchanged",
-    );
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("refresh-all-metrics-error")).toBeNull();
 
     await act(async () => {
-      resolveCombinedRefresh({ isError: false });
+      resolveCombinedRefresh({ isError: true });
     });
 
     expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
       "Recent builds remain unchanged",
+    );
+    expect(screen.getByTestId("metric-retry-failure-recent-builds").textContent).toContain(
+      "Recent builds is still unavailable after retry.",
     );
   });
 
