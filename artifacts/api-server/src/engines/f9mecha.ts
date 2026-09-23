@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 import { z } from "zod/v4";
 import { db, f9MechaRunsTable, harnessArtifactsTable } from "@workspace/db";
 import { ownedSessionOr404 } from "./shared";
+import { getHardwareConfig } from "./hardware-configs";
 
 const PhaseSchema = z.object({
   phase: z.number().int().min(1).max(7),
@@ -22,6 +23,7 @@ const InputSchema = z.object({
   sessionId: z.string().uuid(),
   sourceArtifactId: z.string().uuid(),
   deviceClass: z.string().trim().min(1).max(200),
+  hardwareConfigId: z.enum(["INDUSTRIAL_MCU", "ROBOTICS_RTCL", "APPLIANCE_FLEET"]),
   artifactVersion: z.string().regex(/^\d+\.\d+\.\d+$/).default("1.0.0"),
   phases: z.array(PhaseSchema).length(7),
 });
@@ -49,10 +51,15 @@ function canonical(value: unknown): string {
     : v));
 }
 
-export function deriveF9Identity(sourceArtifactId: string, artifactVersion: string, phases: z.infer<typeof PhaseSchema>[]) {
+export function deriveF9Identity(
+  sourceArtifactId: string,
+  artifactVersion: string,
+  phases: z.infer<typeof PhaseSchema>[],
+  hardwareConfigId = "",
+) {
   const evidenceHash = createHash("sha256").update(canonical(phases)).digest("hex");
   const idempotencyKey = createHash("sha256")
-    .update(canonical({ sourceArtifactId, artifactVersion, evidenceHash }))
+    .update(canonical({ sourceArtifactId, artifactVersion, evidenceHash, hardwareConfigId }))
     .digest("hex");
   return { evidenceHash, idempotencyKey };
 }
@@ -107,10 +114,32 @@ export async function handleF9Mecha(req: Request, res: Response): Promise<void> 
   const parsed = InputSchema.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const input = parsed.data;
+  const hardwareConfig = getHardwareConfig(input.hardwareConfigId);
+  if (!hardwareConfig) {
+    res.status(400).json({ error: "Unknown hardware configuration" });
+    return;
+  }
   const guard = await ownedSessionOr404(req, input.sessionId);
   if (!guard.ok) { res.status(guard.status).json({ error: guard.error }); return; }
   const [source] = await db.select().from(harnessArtifactsTable).where(and(eq(harnessArtifactsTable.id, input.sourceArtifactId), eq(harnessArtifactsTable.userId, guard.userId))).limit(1);
   if (!source || source.sessionId !== input.sessionId || source.artifactType !== "CODEBASE_BUNDLE") { res.status(404).json({ error: "F8 CODEBASE_BUNDLE source artifact not found in this session" }); return; }
+  const sourceContent = source.artifactContent;
+  const sourceHardwareConfigId =
+    typeof sourceContent === "object" &&
+    sourceContent !== null &&
+    !Array.isArray(sourceContent) &&
+    "hardwareConfigId" in sourceContent &&
+    typeof sourceContent.hardwareConfigId === "string"
+      ? sourceContent.hardwareConfigId
+      : undefined;
+  if (sourceHardwareConfigId && sourceHardwareConfigId !== input.hardwareConfigId) {
+    res.status(409).json({
+      error: "F9 hardware configuration does not match the F8 Firmware bundle",
+      code: "HARDWARE_CONFIG_MISMATCH",
+      detail: `F8 selected ${sourceHardwareConfigId}; continue with the same hardware profile or regenerate F8.`,
+    });
+    return;
+  }
   if (!artifactRequiresF9(source.artifactContent)) {
     res.status(409).json({
       error: "F9 is not required for SOFTWARE artifacts",
@@ -123,7 +152,12 @@ export async function handleF9Mecha(req: Request, res: Response): Promise<void> 
   if (!lineage.sourceMvpPddArtifactId) { res.status(409).json({ error: "F8 bundle has no certified MVP PDD lineage" }); return; }
   const [mvp] = await db.select().from(harnessArtifactsTable).where(and(eq(harnessArtifactsTable.id, lineage.sourceMvpPddArtifactId), eq(harnessArtifactsTable.userId, guard.userId))).limit(1);
   if (!mvp || mvp.sessionId !== input.sessionId || mvp.artifactType !== "MVP_PDD" || !mvp.spartanCert) { res.status(409).json({ error: "Upstream MVP PDD is not SPARTAN-certified" }); return; }
-  const identity = deriveF9Identity(input.sourceArtifactId, input.artifactVersion, input.phases);
+  const identity = deriveF9Identity(
+    input.sourceArtifactId,
+    input.artifactVersion,
+    input.phases,
+    input.hardwareConfigId,
+  );
   const outcome = await db.transaction(async (tx) => {
     const runRowId = randomUUID();
     const mechaRunId = `MECHA-F9-${randomUUID()}`;
@@ -145,10 +179,22 @@ export async function handleF9Mecha(req: Request, res: Response): Promise<void> 
       return { run: existing, created: false };
     }
 
-    const result = evaluate(mechaRunId, input.phases);
+    const configuredPhases = input.phases.map((phase) =>
+      phase.phase === 1
+        ? {
+            ...phase,
+            evidence: {
+              ...phase.evidence,
+              hardware_config_id: hardwareConfig.id,
+              hardware_configuration: hardwareConfig,
+            },
+          }
+        : phase,
+    );
+    const result = evaluate(mechaRunId, configuredPhases);
     if (result.verdict === "REFUSED") {
       const [run] = await tx.update(f9MechaRunsTable)
-        .set({ status: "REFUSED", phase: result.phase_halted, evidence: input.phases, refusal: result, completedAt: new Date() })
+        .set({ status: "REFUSED", phase: result.phase_halted, evidence: configuredPhases, refusal: result, completedAt: new Date() })
         .where(eq(f9MechaRunsTable.mechaRunId, mechaRunId)).returning();
       return { run, created: true };
     }
@@ -160,6 +206,9 @@ export async function handleF9Mecha(req: Request, res: Response): Promise<void> 
       mecha_run_id: mechaRunId,
       artifact_version: input.artifactVersion,
       source_artifact_id: input.sourceArtifactId,
+      hardware_config_id: hardwareConfig.id,
+      hardware_configuration: hardwareConfig,
+      code_dj_customization: hardwareConfig.codeDjCustomization,
       spk_id: `SPK-F9-${randomUUID()}`,
       mm_verdict: result.data[5].mm_verdict,
       ucg_certificate: result.data[6].ucg,
@@ -174,7 +223,7 @@ export async function handleF9Mecha(req: Request, res: Response): Promise<void> 
     const artifactSignature = sign(payloadBytes);
     const artifact = { ...payload, payload_hash: payloadHash, artifact_signature: artifactSignature };
     const [run] = await tx.update(f9MechaRunsTable)
-      .set({ status: "EMITTED", phase: 7, evidence: input.phases, artifactContent: artifact, payloadHash, artifactSignature, osirisCustody: true, completedAt: new Date() })
+      .set({ status: "EMITTED", phase: 7, evidence: configuredPhases, artifactContent: artifact, payloadHash, artifactSignature, osirisCustody: true, completedAt: new Date() })
       .where(eq(f9MechaRunsTable.mechaRunId, mechaRunId)).returning();
     return { run, created: true };
   });

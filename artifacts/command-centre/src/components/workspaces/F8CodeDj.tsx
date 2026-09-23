@@ -35,6 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
 import { exportCodeDjBundle, SUPPORTED_IDES } from "@/lib/codeDjExport";
 import { PushToGitHubButton } from "@/components/shared/PushToGitHubButton";
+import { HARDWARE_CONFIGS, getHardwareConfig, type HardwareConfigId } from "@/lib/hardware-configs";
 import { AlertTriangle, Cpu, Download, FileCode, Radar, Rocket, ShieldCheck } from "lucide-react";
 
 const HOST_LABELS: Record<string, string> = {
@@ -101,6 +102,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
     CodeDjPlatform["nextjs-vercel"],
   );
   const [artifactClass, setArtifactClass] = useState<ArtifactClass | "">("");
+  const [hardwareConfigId, setHardwareConfigId] = useState<HardwareConfigId | "">("");
   const [notes, setNotes] = useState("");
   const [result, setResult] = useState<CodebaseBundle | undefined>();
   const [activeFile, setActiveFile] = useState<string>("");
@@ -173,6 +175,10 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
       setError("Choose whether this artifact is Software or Firmware");
       return;
     }
+    if (artifactClass === "FIRMWARE" && !hardwareConfigId) {
+      setError("Choose a hardware configuration for this Firmware artifact");
+      return;
+    }
     setError(null);
     setDriftGateBlock(null);
     setResult(undefined);
@@ -183,6 +189,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
           mvpPddArtifactId: sourceId,
           platform,
           artifactClass,
+          ...(hardwareConfigId ? { hardwareConfigId } : {}),
           ...(notes.trim() ? { notes: notes.trim() } : {}),
           ...(acknowledgeDrift ? { acknowledgeDrift: true } : {}),
           ...overrideToBody(providerOverride),
@@ -353,7 +360,11 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
               </label>
               <Select
                 value={artifactClass}
-                onValueChange={(value) => setArtifactClass(value as ArtifactClass)}
+                onValueChange={(value) => {
+                  const nextClass = value as ArtifactClass;
+                  setArtifactClass(nextClass);
+                  if (nextClass === "SOFTWARE") setHardwareConfigId("");
+                }}
               >
                 <SelectTrigger data-testid="f8-artifact-class" className="font-mono text-xs">
                   <SelectValue placeholder="Choose Software or Firmware" />
@@ -371,6 +382,33 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
                 Software skips F9 and continues to F10/F11. Firmware requires F9.
               </p>
             </div>
+            {artifactClass === "FIRMWARE" && (
+              <div>
+                <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
+                  Firmware hardware profile
+                </label>
+                <Select
+                  value={hardwareConfigId}
+                  onValueChange={(value) => setHardwareConfigId(value as HardwareConfigId)}
+                >
+                  <SelectTrigger data-testid="f8-hardware-config" className="font-mono text-xs">
+                    <SelectValue placeholder="Choose an industry reference profile" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HARDWARE_CONFIGS.map((config, index) => (
+                      <SelectItem key={config.id} value={config.id} className="font-mono text-xs">
+                        {index + 1}. {config.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {hardwareConfigId && (
+                  <p className="mt-1 font-mono text-[9px] text-muted-foreground">
+                    {getHardwareConfig(hardwareConfigId)?.standards} · Code DJ will customize for {getHardwareConfig(hardwareConfigId)?.targetProfile}.
+                  </p>
+                )}
+              </div>
+            )}
             <div>
               <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
                 Target platform

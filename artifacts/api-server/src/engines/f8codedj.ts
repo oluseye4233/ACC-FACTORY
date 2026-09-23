@@ -11,6 +11,7 @@ import {
   sendProviderTierError,
 } from "./shared";
 import { latestPfpForMvp } from "./pfp";
+import { getHardwareConfig } from "./hardware-configs";
 
 const PLATFORMS = [
   "nextjs-vercel",
@@ -74,9 +75,18 @@ export async function handleF8CodeDj(
     mvpPddArtifactId,
     platform,
     artifactClass,
+    hardwareConfigId,
     notes,
     provider: bodyProvider,
   } = parsed.data;
+  const hardwareConfig = hardwareConfigId ? getHardwareConfig(hardwareConfigId) : undefined;
+  if (artifactClass === "FIRMWARE" && !hardwareConfig) {
+    res.status(400).json({
+      error: "Firmware artifacts require a hardware configuration",
+      code: "HARDWARE_CONFIG_REQUIRED",
+    });
+    return;
+  }
   const acknowledgeDrift =
     (req.body as { acknowledgeDrift?: boolean })?.acknowledgeDrift === true;
 
@@ -134,6 +144,9 @@ export async function handleF8CodeDj(
 
   const userPrompt = [
     `TARGET PLATFORM: ${platform}`,
+    hardwareConfig
+      ? `FIRMWARE HARDWARE CONFIGURATION:\n${JSON.stringify(hardwareConfig, null, 2)}`
+      : null,
     notes ? `OPERATOR NOTES: ${notes}` : null,
     "",
     "CERTIFIED MVP PDD (source contract):",
@@ -182,6 +195,7 @@ export async function handleF8CodeDj(
     artifactContent: {
       platform: out.platform,
       artifactClass,
+      ...(hardwareConfig ? { hardwareConfigId: hardwareConfig.id } : {}),
       manifest: out.manifest,
       files: out.files,
       notes: out.notes,
@@ -196,6 +210,7 @@ export async function handleF8CodeDj(
     artifactId: artifact.id,
     platform: out.platform,
     artifactClass,
+    ...(hardwareConfig ? { hardwareConfigId: hardwareConfig.id } : {}),
     manifest: out.manifest,
     files: out.files,
     notes: out.notes,

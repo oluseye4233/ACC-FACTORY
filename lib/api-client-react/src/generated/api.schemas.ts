@@ -1567,12 +1567,26 @@ export const HarnessF8InputArtifactClass = {
   FIRMWARE: 'FIRMWARE',
 } as const;
 
+/**
+ * Reference hardware profile for a firmware-specific Code DJ and MECHA run.
+ */
+export type HardwareConfigId = typeof HardwareConfigId[keyof typeof HardwareConfigId];
+
+
+export const HardwareConfigId = {
+  INDUSTRIAL_MCU: 'INDUSTRIAL_MCU',
+  ROBOTICS_RTCL: 'ROBOTICS_RTCL',
+  APPLIANCE_FLEET: 'APPLIANCE_FLEET',
+} as const;
+
 export interface HarnessF8Input {
   sessionId: string;
   mvpPddArtifactId: string;
   platform: CodeDjPlatform;
   /** Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software). */
   artifactClass: HarnessF8InputArtifactClass;
+  /** Optional firmware hardware profile used to tailor Code DJ scaffolding. */
+  hardwareConfigId?: HardwareConfigId;
   /**
      * Optional operator hints for the Code DJ (preferred libs, naming, etc.).
      * @maxLength 2000
@@ -1602,6 +1616,7 @@ export interface HarnessF9Input {
      * @maxLength 200
      */
   deviceClass: string;
+  hardwareConfigId: HardwareConfigId;
   /** @pattern ^[0-9]+\.[0-9]+\.[0-9]+$ */
   artifactVersion?: string;
   /**
@@ -2101,6 +2116,7 @@ export interface CodebaseBundle {
   artifactId: string;
   platform: CodeDjPlatform;
   artifactClass: CodebaseBundleArtifactClass;
+  hardwareConfigId?: HardwareConfigId;
   manifest: CodebaseManifest;
   files: CodebaseFile[];
   notes: string;

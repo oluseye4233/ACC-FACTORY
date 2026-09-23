@@ -3451,6 +3451,9 @@ components:
           type: string
           enum: [SOFTWARE, FIRMWARE]
           description: Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software).
+        hardwareConfigId:
+          $ref: "#/components/schemas/HardwareConfigId"
+          description: Optional firmware hardware profile used to tailor Code DJ scaffolding.
         notes:
           type: string
           description: Optional operator hints for the Code DJ (preferred libs, naming, etc.).
@@ -3469,17 +3472,23 @@ components:
 
     HarnessF9Input:
       type: object
-      required: [sessionId, sourceArtifactId, deviceClass, phases]
+      required: [sessionId, sourceArtifactId, deviceClass, hardwareConfigId, phases]
       properties:
         sessionId: { type: string, format: uuid }
         sourceArtifactId: { type: string, format: uuid }
         deviceClass: { type: string, minLength: 1, maxLength: 200 }
+        hardwareConfigId: { $ref: "#/components/schemas/HardwareConfigId" }
         artifactVersion: { type: string, pattern: '^[0-9]+\.[0-9]+\.[0-9]+$', default: "1.0.0" }
         phases:
           type: array
           minItems: 7
           maxItems: 7
           items: { $ref: "#/components/schemas/F9Phase" }
+
+    HardwareConfigId:
+      type: string
+      enum: [INDUSTRIAL_MCU, ROBOTICS_RTCL, APPLIANCE_FLEET]
+      description: Reference hardware profile for a firmware-specific Code DJ and MECHA run.
 
     F9Refusal:
       type: object
@@ -3934,6 +3943,8 @@ components:
         artifactClass:
           type: string
           enum: [SOFTWARE, FIRMWARE]
+        hardwareConfigId:
+          $ref: "#/components/schemas/HardwareConfigId"
         manifest: { $ref: "#/components/schemas/CodebaseManifest" }
         files:
           type: array

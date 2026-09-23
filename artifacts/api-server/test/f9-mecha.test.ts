@@ -232,6 +232,7 @@ describe("F9 authenticated operator flow", () => {
         sessionId: requestedSessionId,
         sourceArtifactId: requestedSourceArtifactId,
         deviceClass: `ownership-boundary-${randomUUID()}`,
+        hardwareConfigId: "INDUSTRIAL_MCU",
         artifactVersion: "9.9.9",
         phases: passingPhases,
       }),
@@ -261,6 +262,7 @@ describe("F9 authenticated operator flow", () => {
       sessionId,
       sourceArtifactId,
       deviceClass: "cold-chain compressor controller",
+      hardwareConfigId: "INDUSTRIAL_MCU",
       artifactVersion: "1.0.0",
     };
 

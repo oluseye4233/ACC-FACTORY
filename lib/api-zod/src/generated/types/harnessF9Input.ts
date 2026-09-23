@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { F9Phase } from './f9Phase';
+import type { HardwareConfigId } from './hardwareConfigId';
 
 export interface HarnessF9Input {
   sessionId: string;
@@ -15,6 +16,7 @@ export interface HarnessF9Input {
      * @maxLength 200
      */
   deviceClass: string;
+  hardwareConfigId: HardwareConfigId;
   /** @pattern ^[0-9]+\.[0-9]+\.[0-9]+$ */
   artifactVersion?: string;
   /**

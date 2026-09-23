@@ -94,7 +94,7 @@ describe("F9 to OSIRIS to F10 production path", () => {
   };
 
   it("emits F9, registers exact OSIRIS custody, and acknowledges through production F10", async () => {
-    const emittedResponse = await request("/api/harness/f9", { method: "POST", body: JSON.stringify({ sessionId, sourceArtifactId, deviceClass: "controller", artifactVersion: "1.0.0", phases }) });
+    const emittedResponse = await request("/api/harness/f9", { method: "POST", body: JSON.stringify({ sessionId, sourceArtifactId, deviceClass: "controller", hardwareConfigId: "INDUSTRIAL_MCU", artifactVersion: "1.0.0", phases }) });
     const artifact = await emittedResponse.json() as Record<string, any>;
     expect(emittedResponse.status, JSON.stringify(artifact)).toBe(201);
     expect(artifact.ucg_certificate.verdict).toBe("THRESHOLD_PASS");

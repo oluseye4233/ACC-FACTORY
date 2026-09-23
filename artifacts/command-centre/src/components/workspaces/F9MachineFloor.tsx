@@ -5,6 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { HARDWARE_CONFIGS, getHardwareConfig, type HardwareConfigId } from "@/lib/hardware-configs";
 import { WorkspaceShell, EmptyState, ErrorBanner } from "./_shared";
 import type { HarnessArtifact } from "@workspace/api-client-react";
 
@@ -92,25 +100,47 @@ export function F9MachineFloor({ sessionId, artifacts }: Props) {
     [artifacts],
   );
   const [deviceClass, setDeviceClass] = useState("");
+  const bundleHardwareConfigId = (codeBundle?.artifactContent as { hardwareConfigId?: unknown } | null | undefined)
+    ?.hardwareConfigId;
+  const [hardwareConfigId, setHardwareConfigId] = useState<HardwareConfigId | "">(
+    typeof bundleHardwareConfigId === "string" && getHardwareConfig(bundleHardwareConfigId)
+      ? bundleHardwareConfigId as HardwareConfigId
+      : "",
+  );
   const [phaseEvidence, setPhaseEvidence] = useState(() => JSON.stringify(EMPTY_PHASES, null, 2));
   const [run, setRun] = useState<F9Run | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const selectedHardwareConfig = hardwareConfigId ? getHardwareConfig(hardwareConfigId) : undefined;
 
   const prerequisitesReady = Boolean(certifiedPdd && codeBundle);
   useEffect(() => {
     let cancelled = false;
     api.get<PersistedRun[]>(`/api/harness/f9/runs?sessionId=${encodeURIComponent(sessionId)}`)
       .then((rows) => {
-        if (!cancelled && rows[0]) setRun(fromPersisted(rows[0]));
+        if (!cancelled && rows[0]) {
+          setRun(fromPersisted(rows[0]));
+          const persistedConfigId = rows[0].evidence
+            ?.find((phase) => phase.phase === 1)
+            ?.evidence?.hardware_config_id;
+          if (typeof persistedConfigId === "string" && getHardwareConfig(persistedConfigId)) {
+            setHardwareConfigId(persistedConfigId as HardwareConfigId);
+          }
+        }
       })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [sessionId]);
 
+  useEffect(() => {
+    if (!hardwareConfigId && typeof bundleHardwareConfigId === "string" && getHardwareConfig(bundleHardwareConfigId)) {
+      setHardwareConfigId(bundleHardwareConfigId as HardwareConfigId);
+    }
+  }, [bundleHardwareConfigId, hardwareConfigId]);
+
   const startRun = async () => {
-    if (!certifiedPdd || !codeBundle || !deviceClass.trim()) {
-      setError("A device class, SPARTAN-certified MVP PDD, and F8 Code Oracle bundle are required.");
+    if (!certifiedPdd || !codeBundle || !deviceClass.trim() || !hardwareConfigId) {
+      setError("Select a hardware configuration, enter a device class, and provide the certified F7/F8 lineage.");
       return;
     }
     setPending(true);
@@ -124,6 +154,7 @@ export function F9MachineFloor({ sessionId, artifacts }: Props) {
         sessionId,
         sourceArtifactId: codeBundle.id,
         deviceClass: deviceClass.trim(),
+        hardwareConfigId,
         artifactVersion: "1.0.0",
         phases,
       });
@@ -192,6 +223,49 @@ export function F9MachineFloor({ sessionId, artifacts }: Props) {
         <Card className="border-primary/30 bg-primary/5 p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
+              <label htmlFor="f9-hardware-config" className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Hardware configuration · reference profile
+              </label>
+              <Select
+                value={hardwareConfigId}
+                onValueChange={(value) => {
+                  const config = getHardwareConfig(value);
+                  setHardwareConfigId(value as HardwareConfigId);
+                  if (config) {
+                    setDeviceClass(config.deviceClass);
+                    setPhaseEvidence((current) => {
+                      try {
+                        const phases = JSON.parse(current) as PhaseInput[];
+                        const phaseOne = phases.find((phase) => phase.phase === 1);
+                        if (phaseOne) {
+                          phaseOne.evidence = { ...config.baseline, hardware_config_id: config.id };
+                        }
+                        return JSON.stringify(phases, null, 2);
+                      } catch {
+                        return current;
+                      }
+                    });
+                  }
+                }}
+              >
+                <SelectTrigger id="f9-hardware-config" data-testid="f9-hardware-config" className="mt-1 font-mono text-xs">
+                  <SelectValue placeholder="Choose an industry reference profile" />
+                </SelectTrigger>
+                <SelectContent>
+                  {HARDWARE_CONFIGS.map((config, index) => (
+                    <SelectItem key={config.id} value={config.id} className="font-mono text-xs">
+                      {index + 1}. {config.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedHardwareConfig && (
+                <p className="mt-1 font-mono text-[9px] text-muted-foreground">
+                  {selectedHardwareConfig.standards} · Code DJ: {selectedHardwareConfig.customization}
+                </p>
+              )}
+            </div>
+            <div>
               <div className="flex items-center gap-2 text-primary">
                 <ShieldCheck className="h-5 w-5" />
                 <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em]">D35 · F9 MACHINE FLOOR</span>
@@ -237,7 +311,7 @@ export function F9MachineFloor({ sessionId, artifacts }: Props) {
                 spellCheck={false}
               />
               <p className="mt-1 font-mono text-[9px] text-muted-foreground">
-                Verdicts come from BAHN, ATHENA, CELL, MM, ARES, UCG, CODE DJ, and OSIRIS. Missing evidence produces a cited refusal; MECHA never fills it in.
+                The selected profile seeds the Code DJ hardware baseline; verdicts still come from BAHN, ATHENA, CELL, MM, ARES, UCG, CODE DJ, and OSIRIS. MECHA never treats the profile as external proof.
               </p>
             </div>
             <div className="flex justify-end">

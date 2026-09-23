@@ -9,11 +9,13 @@ import type { CodebaseBundleArtifactClass } from './codebaseBundleArtifactClass'
 import type { CodebaseFile } from './codebaseFile';
 import type { CodebaseManifest } from './codebaseManifest';
 import type { CodeDjPlatform } from './codeDjPlatform';
+import type { HardwareConfigId } from './hardwareConfigId';
 
 export interface CodebaseBundle {
   artifactId: string;
   platform: CodeDjPlatform;
   artifactClass: CodebaseBundleArtifactClass;
+  hardwareConfigId?: HardwareConfigId;
   manifest: CodebaseManifest;
   files: CodebaseFile[];
   notes: string;

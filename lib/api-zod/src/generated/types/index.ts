@@ -260,6 +260,7 @@ export * from './generateF0CommentaryInput';
 export * from './generateF0DiscoveryInput';
 export * from './generateF0MonitoringInput';
 export * from './generateF0ReportInput';
+export * from './hardwareConfigId';
 export * from './harnessArtifact';
 export * from './harnessArtifactArtifactContent';
 export * from './harnessArtifactProvider';
