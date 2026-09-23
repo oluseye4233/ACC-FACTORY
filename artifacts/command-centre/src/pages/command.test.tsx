@@ -323,6 +323,9 @@ describe("Command Deck", () => {
     expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
       "Recent builds, System status remain unchanged",
     );
+    expect(screen.getByTestId("metric-retry-failure-recent-builds").textContent).toContain(
+      "Recent builds is still unavailable after retry.",
+    );
 
     await act(async () => {
       fireEvent.click(screen.getByTestId("button-retry-system-status"));
@@ -334,6 +337,8 @@ describe("Command Deck", () => {
     expect(screen.getByTestId("refresh-all-metrics-error").textContent).not.toContain(
       "System status",
     );
+    expect(screen.getByTestId("metric-retry-failure-recent-builds")).toBeTruthy();
+    expect(screen.queryByTestId("metric-retry-failure-system-status")).toBeNull();
   });
 
   it("keeps an isError panel retry in the partial refresh warning", async () => {
@@ -367,6 +372,9 @@ describe("Command Deck", () => {
     expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
       "Recent builds, System status remain unchanged",
     );
+    expect(screen.getByTestId("metric-retry-failure-recent-builds").textContent).toContain(
+      "Recent builds is still unavailable after retry.",
+    );
 
     await act(async () => {
       fireEvent.click(screen.getByTestId("button-retry-system-status"));
@@ -377,6 +385,94 @@ describe("Command Deck", () => {
     );
     expect(screen.getByTestId("refresh-all-metrics-error").textContent).not.toContain(
       "System status",
+    );
+    expect(screen.getByTestId("metric-retry-failure-recent-builds")).toBeTruthy();
+    expect(screen.queryByTestId("metric-retry-failure-system-status")).toBeNull();
+  });
+
+  it("does not let an older panel retry clear a newer combined refresh warning", async () => {
+    setHookResults({
+      sessions: POPULATED_SESSIONS,
+      health: { status: "ok", db: "ok", engines: "ok" },
+      usageReport: {
+        day: { totalTokens: 100, totalCostUsd: 0.01 },
+        month: { totalTokens: 12345, totalCostUsd: 1.23 },
+        byEngine: [],
+      },
+      isSessionsError: true,
+    });
+
+    let resolvePanelRetry!: (value?: unknown) => void;
+    refetchSessions
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolvePanelRetry = resolve;
+          }),
+      )
+      .mockResolvedValueOnce({ isError: true });
+    refetchHealth.mockResolvedValue({ isError: false });
+    refetchUsage.mockResolvedValue({ isError: false });
+
+    render(<Command />);
+
+    fireEvent.click(screen.getByTestId("button-retry-sessions"));
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-refresh-all-metrics"));
+    });
+
+    await screen.findByText("Recent builds remain unchanged. Use the panel retry actions to try again.");
+
+    await act(async () => {
+      resolvePanelRetry({ isError: false });
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "Recent builds remain unchanged",
+    );
+  });
+
+  it("does not let an older combined refresh clear a newer panel retry warning", async () => {
+    setHookResults({
+      sessions: POPULATED_SESSIONS,
+      health: { status: "ok", db: "ok", engines: "ok" },
+      usageReport: {
+        day: { totalTokens: 100, totalCostUsd: 0.01 },
+        month: { totalTokens: 12345, totalCostUsd: 1.23 },
+        byEngine: [],
+      },
+      isSessionsError: true,
+    });
+
+    let resolveCombinedRefresh!: (value?: unknown) => void;
+    refetchSessions
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveCombinedRefresh = resolve;
+          }),
+      )
+      .mockResolvedValueOnce({ isError: true });
+    refetchHealth.mockResolvedValue({ isError: false });
+    refetchUsage.mockResolvedValue({ isError: false });
+
+    render(<Command />);
+
+    fireEvent.click(screen.getByTestId("button-refresh-all-metrics"));
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-retry-sessions"));
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "Recent builds remain unchanged",
+    );
+
+    await act(async () => {
+      resolveCombinedRefresh({ isError: false });
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "Recent builds remain unchanged",
     );
   });
 

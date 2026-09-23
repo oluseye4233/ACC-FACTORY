@@ -25,7 +25,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 function HealthChip({
   label,
@@ -118,9 +118,32 @@ const ENGINE_LABELS: Record<number, string> = {
   10: "ATLAS J",
   11: "PFP",
 };
+
+const METRIC_LABELS = ["Recent builds", "System status", "Monthly usage"] as const;
+type MetricLabel = (typeof METRIC_LABELS)[number];
+type RefreshFailure = {
+  metricLabel: MetricLabel;
+  attempt: number;
+};
+
+function isRefreshError(value: unknown): boolean {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "isError" in value &&
+    value.isError === true
+  );
+}
+
 export default function Command() {
   const [isRefreshingAll, setIsRefreshingAll] = useState(false);
-  const [refreshFailures, setRefreshFailures] = useState<string[]>([]);
+  const [refreshFailures, setRefreshFailures] = useState<RefreshFailure[]>([]);
+  const [retryFailures, setRetryFailures] = useState<MetricLabel[]>([]);
+  const refreshAttempts = useRef<Record<MetricLabel, number>>({
+    "Recent builds": 0,
+    "System status": 0,
+    "Monthly usage": 0,
+  });
   const { data: me, isLoading: isLoadingMe } = useGetMe();
   const {
     data: sessions,
@@ -162,21 +185,62 @@ export default function Command() {
   const healthRefreshLabel = !isHealthError ? formatRefreshTime(healthUpdatedAt) : null;
   const usageRefreshLabel = !isUsageError && usageReport?.month ? formatRefreshTime(usageUpdatedAt) : null;
 
-  const retryMetric = async (metricLabel: string, refetch: () => Promise<unknown>) => {
+  const beginMetricRefresh = (metricLabel: MetricLabel): number => {
+    const attempt = refreshAttempts.current[metricLabel] + 1;
+    refreshAttempts.current[metricLabel] = attempt;
+    return attempt;
+  };
+
+  const isCurrentMetricRefresh = (metricLabel: MetricLabel, attempt: number): boolean =>
+    refreshAttempts.current[metricLabel] === attempt;
+
+  const setMetricRefreshFailure = (metricLabel: MetricLabel, attempt: number) => {
+    if (!isCurrentMetricRefresh(metricLabel, attempt)) {
+      return;
+    }
+
+    setRefreshFailures((failures) => {
+      const existingFailureIndex = failures.findIndex(
+        (failure) => failure.metricLabel === metricLabel,
+      );
+      if (existingFailureIndex === -1) {
+        return [...failures, { metricLabel, attempt }];
+      }
+
+      return failures.map((failure, index) =>
+        index === existingFailureIndex ? { metricLabel, attempt } : failure,
+      );
+    });
+  };
+
+  const retryMetric = async (metricLabel: MetricLabel, refetch: () => Promise<unknown>) => {
+    const attempt = beginMetricRefresh(metricLabel);
+
     try {
       const result = await refetch();
-      if (
-        typeof result === "object" &&
-        result !== null &&
-        "isError" in result &&
-        result.isError === true
-      ) {
+      if (!isCurrentMetricRefresh(metricLabel, attempt)) {
         return;
       }
 
-      setRefreshFailures((failures) => failures.filter((failure) => failure !== metricLabel));
+      if (isRefreshError(result)) {
+        setRetryFailures((failures) =>
+          failures.includes(metricLabel) ? failures : [...failures, metricLabel],
+        );
+        setMetricRefreshFailure(metricLabel, attempt);
+        return;
+      }
+
+      setRefreshFailures((failures) =>
+        failures.filter((failure) => failure.metricLabel !== metricLabel),
+      );
+      setRetryFailures((failures) => failures.filter((failure) => failure !== metricLabel));
     } catch {
-      // Keep the warning visible when an individual retry still fails.
+      if (isCurrentMetricRefresh(metricLabel, attempt)) {
+        setRetryFailures((failures) =>
+          failures.includes(metricLabel) ? failures : [...failures, metricLabel],
+        );
+      }
+      setMetricRefreshFailure(metricLabel, attempt);
     }
   };
 
@@ -187,27 +251,34 @@ export default function Command() {
 
     setIsRefreshingAll(true);
     setRefreshFailures([]);
+    setRetryFailures([]);
+    const attempts = METRIC_LABELS.map((metricLabel) => beginMetricRefresh(metricLabel));
     try {
       const results = await Promise.allSettled([
         refetchSessions(),
         refetchHealth(),
         refetchUsage(),
       ]);
-      const metricLabels = ["Recent builds", "System status", "Monthly usage"];
-      const failedMetrics = results.flatMap((result, index) => {
-        if (result.status === "rejected") {
-          return [metricLabels[index]];
-        }
+      setRefreshFailures((failures) => {
+        let nextFailures = failures;
 
-        const value = result.value;
-        return typeof value === "object" &&
-          value !== null &&
-          "isError" in value &&
-          value.isError === true
-          ? [metricLabels[index]]
-          : [];
+        results.forEach((result, index) => {
+          const metricLabel = METRIC_LABELS[index];
+          const attempt = attempts[index];
+          if (!isCurrentMetricRefresh(metricLabel, attempt)) {
+            return;
+          }
+
+          nextFailures = nextFailures.filter(
+            (failure) => failure.metricLabel !== metricLabel,
+          );
+          if (result.status === "rejected" || isRefreshError(result.value)) {
+            nextFailures = [...nextFailures, { metricLabel, attempt }];
+          }
+        });
+
+        return nextFailures;
       });
-      setRefreshFailures(failedMetrics);
     } finally {
       setIsRefreshingAll(false);
     }
@@ -257,8 +328,17 @@ export default function Command() {
                   Some metrics could not be refreshed
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  {refreshFailures.join(", ")} remain unchanged. Use the panel retry actions to try again.
+                  {refreshFailures.map((failure) => failure.metricLabel).join(", ")} remain unchanged. Use the panel retry actions to try again.
                 </p>
+                {retryFailures.map((metricLabel) => (
+                  <p
+                    key={metricLabel}
+                    className="mt-1 font-bold text-destructive"
+                    data-testid={`metric-retry-failure-${metricLabel.toLowerCase().replace(/\s+/g, "-")}`}
+                  >
+                    {metricLabel} is still unavailable after retry.
+                  </p>
+                ))}
               </div>
             </div>
           )}
