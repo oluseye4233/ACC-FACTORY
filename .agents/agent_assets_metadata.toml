@@ -406,3 +406,31 @@ mtime_ms = 1790033239175
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/2e66cfb5-cdb6-49ab-9a55-0f20d213a29d/ed6c95d1-4030-42c3-a4a2-37ebccc97087"
 storage_version_token = "1790033259837707"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "lIzv75uyb5p6KdslEoGDp"
+uri = "file://docs/ATANDA_Command_Centre_End_User_Manual_2026-09-23.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — End User Manual"
+description = "Step-by-step ACC walkthrough covering the F1–F11 process, side-step tools, daily operations, troubleshooting, and scenario playbooks including Use Case Alpha for training Full Stack engineers into Forward Deployed Engineers."
+logical_id = "6526c467-b5c7-4250-a267-96bec6113bc4"
+content_hash = "sha256:3dfc62bb8fc5da138f58ff1092ceb0375aeaeb28823ab060d68514adfcb6d5ff"
+size = 50406
+mtime_ms = 1790181604123
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/6526c467-b5c7-4250-a267-96bec6113bc4/7fe303fc-5865-4982-b3dd-36db93ac6ee6"
+storage_version_token = "1790181648433970"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "5DL3J6StAMAFu0ogLsd88"
+uri = "file://docs/ATLAS_360_SCAN_ATANDA_Command_Centre_2026-09-23.pdf"
+type = "pdf"
+title = "ATLAS 360 SCAN PDD — Current ACC State"
+description = "Current repository-grounded assurance PDD covering the ACC product surface, F-process posture, F8/F9 hardware-profile flow, F10/F11 boundaries, evidence status, and next validation priorities."
+logical_id = "602455ca-605b-42a9-b86c-52a645011258"
+content_hash = "sha256:8a73697de3b6ecbf3bbd1b3f04ca6aee0a30472b58699627f94d9a7030515e64"
+size = 24802
+mtime_ms = 1790181605263
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/602455ca-605b-42a9-b86c-52a645011258/e02cfce0-5146-42bc-a723-82c6baa9e0cf"
+storage_version_token = "1790181649338345"
+content_type = "application/pdf"
