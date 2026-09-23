@@ -292,6 +292,94 @@ describe("Command Deck", () => {
     expect(refetchUsage).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps a rejected panel retry in the partial refresh warning", async () => {
+    setHookResults({
+      sessions: POPULATED_SESSIONS,
+      health: { status: "ok", db: "ok", engines: "ok" },
+      usageReport: {
+        day: { totalTokens: 100, totalCostUsd: 0.01 },
+        month: { totalTokens: 12345, totalCostUsd: 1.23 },
+        byEngine: [],
+      },
+      isSessionsError: true,
+      isHealthError: true,
+    });
+    refetchSessions.mockRejectedValue(new Error("sessions unavailable"));
+    refetchHealth
+      .mockRejectedValueOnce(new Error("health unavailable"))
+      .mockResolvedValueOnce({ isError: false });
+    refetchUsage.mockResolvedValue({ isError: false });
+
+    render(<Command />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-refresh-all-metrics"));
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-retry-sessions"));
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "Recent builds, System status remain unchanged",
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-retry-system-status"));
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "Recent builds remain unchanged",
+    );
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).not.toContain(
+      "System status",
+    );
+  });
+
+  it("keeps an isError panel retry in the partial refresh warning", async () => {
+    setHookResults({
+      sessions: POPULATED_SESSIONS,
+      health: { status: "ok", db: "ok", engines: "ok" },
+      usageReport: {
+        day: { totalTokens: 100, totalCostUsd: 0.01 },
+        month: { totalTokens: 12345, totalCostUsd: 1.23 },
+        byEngine: [],
+      },
+      isSessionsError: true,
+      isHealthError: true,
+    });
+    refetchSessions.mockResolvedValue({ isError: true });
+    refetchHealth
+      .mockRejectedValueOnce(new Error("health unavailable"))
+      .mockResolvedValueOnce({ isError: false });
+    refetchUsage.mockResolvedValue({ isError: false });
+
+    render(<Command />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-refresh-all-metrics"));
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-retry-sessions"));
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "Recent builds, System status remain unchanged",
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-retry-system-status"));
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "Recent builds remain unchanged",
+    );
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).not.toContain(
+      "System status",
+    );
+  });
+
   it("renders safe empty states when APIs return no data", () => {
     render(<Command />);
 
