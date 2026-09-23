@@ -186,6 +186,80 @@ describe("Command Deck", () => {
     expect(screen.queryByTestId("refresh-all-metrics-error")).toBeNull();
   });
 
+  it("refreshes all metrics when the command deck regains focus", async () => {
+    refetchSessions.mockResolvedValue({ isError: false });
+    refetchHealth.mockResolvedValue({ isError: false });
+    refetchUsage.mockResolvedValue({ isError: false });
+
+    render(<Command />);
+
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
+
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+  });
+
+  it("shares an in-flight manual refresh with a focus refresh", async () => {
+    let resolveSessions!: (value?: unknown) => void;
+    let resolveHealth!: (value?: unknown) => void;
+    let resolveUsage!: (value?: unknown) => void;
+    refetchSessions.mockReturnValue(new Promise((resolve) => {
+      resolveSessions = resolve;
+    }));
+    refetchHealth.mockReturnValue(new Promise((resolve) => {
+      resolveHealth = resolve;
+    }));
+    refetchUsage.mockReturnValue(new Promise((resolve) => {
+      resolveUsage = resolve;
+    }));
+
+    render(<Command />);
+
+    fireEvent.click(screen.getByTestId("button-refresh-all-metrics"));
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
+
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveSessions();
+      resolveHealth();
+      resolveUsage();
+    });
+  });
+
+  it("shares an in-flight panel retry with a focus refresh", async () => {
+    setHookResults({ isSessionsError: true });
+
+    let resolveSessions!: (value?: unknown) => void;
+    refetchSessions.mockReturnValue(new Promise((resolve) => {
+      resolveSessions = resolve;
+    }));
+    refetchHealth.mockResolvedValue({ isError: false });
+    refetchUsage.mockResolvedValue({ isError: false });
+
+    render(<Command />);
+
+    fireEvent.click(screen.getByTestId("button-retry-sessions"));
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
+
+    expect(refetchSessions).toHaveBeenCalledTimes(1);
+    expect(refetchHealth).toHaveBeenCalledTimes(1);
+    expect(refetchUsage).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveSessions({ isError: false });
+    });
+  });
+
   it("reports partial failures after a combined metric refresh", async () => {
     setHookResults({
       sessions: POPULATED_SESSIONS,
@@ -339,6 +413,46 @@ describe("Command Deck", () => {
     );
     expect(screen.getByTestId("metric-retry-failure-recent-builds")).toBeTruthy();
     expect(screen.queryByTestId("metric-retry-failure-system-status")).toBeNull();
+  });
+
+  it("keeps a synchronously throwing panel retry in the partial refresh warning", async () => {
+    setHookResults({
+      sessions: POPULATED_SESSIONS,
+      health: { status: "ok", db: "ok", engines: "ok" },
+      usageReport: {
+        day: { totalTokens: 100, totalCostUsd: 0.01 },
+        month: { totalTokens: 12345, totalCostUsd: 1.23 },
+        byEngine: [],
+      },
+      isSessionsError: true,
+      isHealthError: true,
+    });
+    refetchSessions
+      .mockRejectedValueOnce(new Error("sessions unavailable"))
+      .mockImplementationOnce(() => {
+        throw new Error("sessions unavailable before returning a promise");
+      });
+    refetchHealth
+      .mockRejectedValueOnce(new Error("health unavailable"))
+      .mockResolvedValue({ isError: false });
+    refetchUsage.mockResolvedValue({ isError: false });
+
+    render(<Command />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-refresh-all-metrics"));
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("button-retry-sessions"));
+    });
+
+    expect(screen.getByTestId("refresh-all-metrics-error").textContent).toContain(
+      "Recent builds, System status remain unchanged",
+    );
+    expect(screen.getByTestId("metric-retry-failure-recent-builds").textContent).toContain(
+      "Recent builds is still unavailable after retry.",
+    );
   });
 
   it("keeps an isError panel retry in the partial refresh warning", async () => {

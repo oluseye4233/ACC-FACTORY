@@ -20,7 +20,9 @@ const PLATFORMS = [
   "pnpm-monorepo",
 ] as const;
 
-const CodebaseOutputSchema = z.object({
+const GENERATED_NOTES_MAX = 800;
+
+export const CodebaseOutputSchema = z.object({
   platform: z.enum(PLATFORMS),
   framework: z.string().min(1),
   language: z.enum(["typescript", "javascript"]),
@@ -49,7 +51,13 @@ const CodebaseOutputSchema = z.object({
     buildCommand: z.string().nullable(),
     deployTarget: z.string().min(1),
   }),
-  notes: z.string().max(800).default(""),
+  // Models occasionally ignore the prompt's shorter notes limit. Notes are
+  // supplementary metadata, so bound them at the schema boundary instead of
+  // turning an otherwise valid scaffold into a 502.
+  notes: z.preprocess(
+    (value) => (typeof value === "string" ? value.slice(0, GENERATED_NOTES_MAX) : value),
+    z.string().max(GENERATED_NOTES_MAX).default(""),
+  ),
 });
 
 export async function handleF8CodeDj(

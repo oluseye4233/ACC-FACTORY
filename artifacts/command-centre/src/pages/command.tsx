@@ -25,7 +25,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function HealthChip({
   label,
@@ -139,6 +139,7 @@ export default function Command() {
   const [isRefreshingAll, setIsRefreshingAll] = useState(false);
   const [refreshFailures, setRefreshFailures] = useState<RefreshFailure[]>([]);
   const [retryFailures, setRetryFailures] = useState<MetricLabel[]>([]);
+  const isRefreshingAllRef = useRef(false);
   const refreshAttempts = useRef<Record<MetricLabel, number>>({
     "Recent builds": 0,
     "System status": 0,
@@ -272,10 +273,11 @@ export default function Command() {
   };
 
   const refreshAllMetrics = async () => {
-    if (isRefreshingAll) {
+    if (isRefreshingAllRef.current) {
       return;
     }
 
+    isRefreshingAllRef.current = true;
     setIsRefreshingAll(true);
     setRefreshFailures([]);
     setRetryFailures([]);
@@ -307,9 +309,19 @@ export default function Command() {
         return nextFailures;
       });
     } finally {
+      isRefreshingAllRef.current = false;
       setIsRefreshingAll(false);
     }
   };
+
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      void refreshAllMetrics();
+    };
+
+    window.addEventListener("focus", handleWindowFocus);
+    return () => window.removeEventListener("focus", handleWindowFocus);
+  });
 
   return (
     <div className="min-h-screen bg-background">
