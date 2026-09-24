@@ -15,9 +15,13 @@ import {
 } from "@/components/ui/select";
 
 const PROVIDER_LABELS: Record<LlmProvider, string> = {
-  claude: "Claude Sonnet 4",
+  claude: "Claude Sonnet 4.6",
   openai: "OpenAI GPT-5.4",
   gemini: "Gemini 3.1 Pro",
+  deepseek: "DeepSeek V4.1 Flash",
+  kimi: "Kimi K3",
+  qwen: "Qwen 3.7 Plus",
+  glm: "GLM 5.3",
 };
 
 export function ProviderSelector({
@@ -58,7 +62,7 @@ export function ProviderSelector({
         data-testid="select-session-provider"
         title={
           isExplorer
-            ? "Explorer tier is locked to Claude. Upgrade to use OpenAI or Gemini."
+            ? "Explorer tier is locked to Claude. Upgrade to use another provider."
             : "Default LLM provider for HARNESS engines in this session"
         }
       >
@@ -72,6 +76,22 @@ export function ProviderSelector({
         </SelectItem>
         <SelectItem value="gemini" disabled={isExplorer}>
           {PROVIDER_LABELS.gemini}
+          {isExplorer ? " (Practitioner+)" : ""}
+        </SelectItem>
+        <SelectItem value="deepseek" disabled={isExplorer}>
+          {PROVIDER_LABELS.deepseek}
+          {isExplorer ? " (Practitioner+)" : ""}
+        </SelectItem>
+        <SelectItem value="kimi" disabled={isExplorer}>
+          {PROVIDER_LABELS.kimi}
+          {isExplorer ? " (Practitioner+)" : ""}
+        </SelectItem>
+        <SelectItem value="qwen" disabled={isExplorer}>
+          {PROVIDER_LABELS.qwen}
+          {isExplorer ? " (Practitioner+)" : ""}
+        </SelectItem>
+        <SelectItem value="glm" disabled={isExplorer}>
+          {PROVIDER_LABELS.glm}
           {isExplorer ? " (Practitioner+)" : ""}
         </SelectItem>
       </SelectContent>

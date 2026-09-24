@@ -36,6 +36,10 @@ export const PROVIDER_MODELS: Record<LlmProvider, string> = {
   claude: "claude-sonnet-4-6",
   openai: "gpt-5.4",
   gemini: "gemini-3.1-pro-preview",
+  deepseek: "deepseek-flash",
+  kimi: "kimi-k3",
+  qwen: "qwen3.7-plus",
+  glm: "glm-5.3",
 };
 // Legacy export — Anthropic-only callers still reference MODEL.
 export const MODEL = PROVIDER_MODELS.claude;
@@ -440,6 +444,134 @@ async function callGeminiImpl(
   };
 }
 
+type OpenAICompatibleProvider = "deepseek" | "kimi" | "qwen" | "glm";
+
+const OPENAI_COMPATIBLE_PROVIDER_CONFIG: Record<
+  OpenAICompatibleProvider,
+  { apiKeyEnv: string; baseUrlEnv: string; defaultBaseUrl: string }
+> = {
+  deepseek: {
+    apiKeyEnv: "DEEPSEEK_API_KEY",
+    baseUrlEnv: "DEEPSEEK_BASE_URL",
+    defaultBaseUrl: "https://api.deepseek.com",
+  },
+  kimi: {
+    apiKeyEnv: "MOONSHOT_API_KEY",
+    baseUrlEnv: "MOONSHOT_BASE_URL",
+    defaultBaseUrl: "https://api.moonshot.ai/v1",
+  },
+  qwen: {
+    apiKeyEnv: "DASHSCOPE_API_KEY",
+    baseUrlEnv: "DASHSCOPE_BASE_URL",
+    defaultBaseUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+  },
+  glm: {
+    apiKeyEnv: "ZHIPU_API_KEY",
+    baseUrlEnv: "ZHIPU_BASE_URL",
+    defaultBaseUrl: "https://open.bigmodel.cn/api/paas/v4",
+  },
+};
+
+interface OpenAICompatibleResponse {
+  choices?: Array<{ message?: { content?: unknown } }>;
+  usage?: {
+    prompt_tokens?: unknown;
+    completion_tokens?: unknown;
+    input_tokens?: unknown;
+    output_tokens?: unknown;
+  };
+}
+
+function tokenCount(...values: unknown[]): number {
+  const value = values.find(
+    (candidate) =>
+      typeof candidate === "number" &&
+      Number.isFinite(candidate) &&
+      candidate >= 0,
+  );
+  return typeof value === "number" ? value : 0;
+}
+
+async function callOpenAICompatibleImpl(
+  provider: OpenAICompatibleProvider,
+  systemPrompt: string,
+  userPrompt: string,
+  jsonMode: boolean,
+): Promise<{ text: string; inputTokens: number; outputTokens: number; modelId: string }> {
+  const config = OPENAI_COMPATIBLE_PROVIDER_CONFIG[provider];
+  const apiKey = process.env[config.apiKeyEnv];
+  if (!apiKey) {
+    throw new ProviderNotConfiguredError(
+      provider,
+      `Provider '${provider}' requires the ${config.apiKeyEnv} secret to be configured.`,
+    );
+  }
+
+  const modelId = PROVIDER_MODELS[provider];
+  const baseUrl = (
+    process.env[config.baseUrlEnv] || config.defaultBaseUrl
+  ).replace(/\/+$/, "");
+  const endpoint = new URL(`${baseUrl}/chat/completions`);
+  if (endpoint.protocol !== "https:") {
+    throw new Error(`${provider} API base URL must use HTTPS.`);
+  }
+  const response = await fetch(endpoint.toString(), {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: modelId,
+      max_tokens: MAX_TOKENS,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      ...(jsonMode ? { response_format: { type: "json_object" as const } } : {}),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`${provider} API request failed with HTTP ${response.status}.`);
+  }
+
+  let payload: OpenAICompatibleResponse;
+  try {
+    payload = (await response.json()) as OpenAICompatibleResponse;
+  } catch {
+    throw new Error(`${provider} API returned an invalid JSON response.`);
+  }
+
+  const content = payload.choices?.[0]?.message?.content;
+  const text =
+    typeof content === "string"
+      ? content
+      : Array.isArray(content)
+        ? content
+            .map((part) =>
+              part &&
+              typeof part === "object" &&
+              "text" in part &&
+              typeof part.text === "string"
+                ? part.text
+                : "",
+            )
+            .join("")
+        : null;
+  if (text === null) {
+    throw new Error(`${provider} API response did not include message content.`);
+  }
+
+  const usage = payload.usage;
+  return {
+    text,
+    inputTokens: tokenCount(usage?.prompt_tokens, usage?.input_tokens),
+    outputTokens: tokenCount(usage?.completion_tokens, usage?.output_tokens),
+    modelId,
+  };
+}
+
 export async function callLlm(
   provider: LlmProvider,
   systemPrompt: string,
@@ -467,6 +599,17 @@ export async function callLlm(
       break;
     case "gemini":
       result = await callGeminiImpl(finalSystem, userPrompt, jsonMode);
+      break;
+    case "deepseek":
+    case "kimi":
+    case "qwen":
+    case "glm":
+      result = await callOpenAICompatibleImpl(
+        provider,
+        finalSystem,
+        userPrompt,
+        jsonMode,
+      );
       break;
     case "claude":
     default:

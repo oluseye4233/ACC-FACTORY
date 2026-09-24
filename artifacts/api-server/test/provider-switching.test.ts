@@ -16,14 +16,24 @@ import {
 
 import { handleF1 } from "../src/engines/f1";
 import { rateLimit } from "../src/lib/tier";
+import { IS_RECORD } from "./llm-cache";
 
 const PROVIDER_ENV: Record<LlmProvider, readonly string[]> = {
   claude: ["AI_INTEGRATIONS_ANTHROPIC_BASE_URL", "AI_INTEGRATIONS_ANTHROPIC_API_KEY"],
   openai: ["AI_INTEGRATIONS_OPENAI_BASE_URL", "AI_INTEGRATIONS_OPENAI_API_KEY"],
   gemini: ["AI_INTEGRATIONS_GEMINI_BASE_URL", "AI_INTEGRATIONS_GEMINI_API_KEY"],
+  deepseek: ["DEEPSEEK_API_KEY"],
+  kimi: ["MOONSHOT_API_KEY"],
+  qwen: ["DASHSCOPE_API_KEY"],
+  glm: ["ZHIPU_API_KEY"],
 };
 
+const DIRECT_API_PROVIDERS = new Set<LlmProvider>(["deepseek", "kimi", "qwen", "glm"]);
+
 function providerConfigured(p: LlmProvider): boolean {
+  // Direct-provider calls do not use the fixture-backed SDK mocks below.
+  // Keep replay runs offline even when real vendor keys are present.
+  if (!IS_RECORD && DIRECT_API_PROVIDERS.has(p)) return false;
   return PROVIDER_ENV[p].every((k) => Boolean(process.env[k]));
 }
 

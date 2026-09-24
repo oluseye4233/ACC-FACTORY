@@ -35,7 +35,7 @@ const F05OutputSchema = z.object({
 const Body = z.object({
   sessionId: z.string().uuid(),
   brief: z.string().nullish(),
-  provider: z.enum(["claude", "openai", "gemini"]).optional(),
+  provider: z.enum(["claude", "openai", "gemini", "deepseek", "kimi", "qwen", "glm"]).optional(),
 });
 
 /**

@@ -7,8 +7,8 @@
  */
 
 /**
- * LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude
-providers (`openai`, `gemini`) require PRACTITIONER tier or higher.
+ * LLM provider for HARNESS engine calls. Defaults to `claude`. Providers
+other than Claude require PRACTITIONER tier or higher.
 
  */
 export type LlmProvider = typeof LlmProvider[keyof typeof LlmProvider];
@@ -18,4 +18,8 @@ export const LlmProvider = {
   claude: 'claude',
   openai: 'openai',
   gemini: 'gemini',
+  deepseek: 'deepseek',
+  kimi: 'kimi',
+  qwen: 'qwen',
+  glm: 'glm',
 } as const;

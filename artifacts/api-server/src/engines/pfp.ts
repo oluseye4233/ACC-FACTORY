@@ -53,7 +53,7 @@ const Body = z.object({
   sessionId: z.string().uuid(),
   mvpPddArtifactId: z.string().uuid(),
   codebaseBundleArtifactId: z.string().uuid(),
-  provider: z.enum(["claude", "openai", "gemini"]).optional(),
+  provider: z.enum(["claude", "openai", "gemini", "deepseek", "kimi", "qwen", "glm"]).optional(),
 });
 
 export async function handlePfp(req: Request, res: Response): Promise<void> {

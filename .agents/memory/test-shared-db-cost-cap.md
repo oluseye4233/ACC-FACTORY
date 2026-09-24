@@ -12,3 +12,9 @@ Vitest files run concurrently against ONE dev DB, and killed runs leave rows beh
 Pino writes to the worker's shared stdout, and vitest interleaves it into whichever test file's output is streaming — so an intentional warning from suite A looks like a real production problem in unrelated suite B (this literally spawned a bug report attributing a mocked "cost cap reached" warning to the wrong suite). Mock the logger with a warn spy: silent output AND an assertable warning.
 
 **How to apply:** whenever adding a new global/aggregate guard (caps, quotas, counters) or a new intentional-warning test path, wire the test-setup neutraliser and logger mock at the same time.
+
+**Rule 3: a database-backed test should own the lifetime of rows used for its foreign-key assertions.** Vitest files share the dev DB and run in parallel; keep a test's user/org/session fixtures scoped to that test and clean them in `finally` when suite-wide cleanup or the stale-fixture janitor could overlap.
+
+**Why:** file-level fixtures are convenient, but their lifetime is broader than an individual test and can diverge from preference-row writes when shared-database cleanup overlaps.
+
+**How to apply:** for a test that inserts FK-dependent rows, seed the referenced records inside the test and remove only those IDs in a `finally` block.

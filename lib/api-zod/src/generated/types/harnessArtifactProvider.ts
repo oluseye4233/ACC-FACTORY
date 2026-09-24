@@ -16,4 +16,8 @@ export const HarnessArtifactProvider = {
   claude: 'claude',
   openai: 'openai',
   gemini: 'gemini',
+  deepseek: 'deepseek',
+  kimi: 'kimi',
+  qwen: 'qwen',
+  glm: 'glm',
 } as const;

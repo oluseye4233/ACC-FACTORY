@@ -4,6 +4,10 @@ const MODEL_PRICING: Record<string, { inputPerMTok: number; outputPerMTok: numbe
   "claude-sonnet-4-6": { inputPerMTok: 3, outputPerMTok: 15 },
   "gpt-5.4": { inputPerMTok: 5, outputPerMTok: 15 },
   "gemini-3.1-pro-preview": { inputPerMTok: 3, outputPerMTok: 12 },
+  "deepseek-flash": { inputPerMTok: 0.3, outputPerMTok: 1.2 },
+  "kimi-k3": { inputPerMTok: 3, outputPerMTok: 15 },
+  "qwen3.7-plus": { inputPerMTok: 1.2, outputPerMTok: 4.8 },
+  "glm-5.3": { inputPerMTok: 1.2, outputPerMTok: 4 },
 };
 
 const FALLBACK = { inputPerMTok: 3, outputPerMTok: 15 };

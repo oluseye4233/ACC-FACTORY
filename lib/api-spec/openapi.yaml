@@ -4189,10 +4189,10 @@ components:
 
     LlmProvider:
       type: string
-      enum: [claude, openai, gemini]
+      enum: [claude, openai, gemini, deepseek, kimi, qwen, glm]
       description: |
-        LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude
-        providers (`openai`, `gemini`) require PRACTITIONER tier or higher.
+        LLM provider for HARNESS engine calls. Defaults to `claude`. Providers
+        other than Claude require PRACTITIONER tier or higher.
 
     HarnessSession:
       type: object
@@ -4342,7 +4342,7 @@ components:
         mathmonScore: { type: ["integer", "null"] }
         forgeVerified: { type: boolean }
         provider:
-          { type: ["string", "null"], enum: [claude, openai, gemini, null] }
+          { type: ["string", "null"], enum: [claude, openai, gemini, deepseek, kimi, qwen, glm, null] }
         modelId: { type: ["string", "null"] }
         runDurationMs: { type: ["integer", "null"] }
         runInputTokens: { type: ["integer", "null"] }
@@ -5760,7 +5760,7 @@ components:
       properties:
         provider:
           type: string
-          enum: [claude, openai, gemini]
+          enum: [claude, openai, gemini, deepseek, kimi, qwen, glm]
 
     SpcPlayerScores:
       type: object

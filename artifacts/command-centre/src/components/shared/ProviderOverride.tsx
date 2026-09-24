@@ -14,9 +14,22 @@ const LABEL: Record<LlmProvider, string> = {
   claude: "Claude",
   openai: "OpenAI",
   gemini: "Gemini",
+  deepseek: "DeepSeek",
+  kimi: "Kimi",
+  qwen: "Qwen",
+  glm: "GLM",
 };
 
-const OVERRIDE_VALUES = ["session", "claude", "openai", "gemini"] as const;
+const OVERRIDE_VALUES = [
+  "session",
+  "claude",
+  "openai",
+  "gemini",
+  "deepseek",
+  "kimi",
+  "qwen",
+  "glm",
+] as const;
 export type OverrideValue = (typeof OVERRIDE_VALUES)[number];
 
 /**
@@ -49,7 +62,7 @@ export function ProviderOverride({
         data-testid={testId ?? "select-engine-provider"}
         title={
           isExplorer
-            ? "Explorer tier is locked to Claude. Upgrade to override with OpenAI or Gemini."
+            ? "Explorer tier is locked to Claude. Upgrade to override with another provider."
             : "Run this engine on a specific provider (overrides the session default)"
         }
       >
@@ -64,6 +77,22 @@ export function ProviderOverride({
         </SelectItem>
         <SelectItem value="gemini" disabled={isExplorer}>
           {LABEL.gemini}
+          {isExplorer ? " (Practitioner+)" : ""}
+        </SelectItem>
+        <SelectItem value="deepseek" disabled={isExplorer}>
+          {LABEL.deepseek}
+          {isExplorer ? " (Practitioner+)" : ""}
+        </SelectItem>
+        <SelectItem value="kimi" disabled={isExplorer}>
+          {LABEL.kimi}
+          {isExplorer ? " (Practitioner+)" : ""}
+        </SelectItem>
+        <SelectItem value="qwen" disabled={isExplorer}>
+          {LABEL.qwen}
+          {isExplorer ? " (Practitioner+)" : ""}
+        </SelectItem>
+        <SelectItem value="glm" disabled={isExplorer}>
+          {LABEL.glm}
           {isExplorer ? " (Practitioner+)" : ""}
         </SelectItem>
       </SelectContent>

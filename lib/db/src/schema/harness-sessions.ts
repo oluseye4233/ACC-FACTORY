@@ -9,7 +9,15 @@ import { organizationsTable } from "./organizations";
 export const SESSION_ORIGINS = ["manual", "ingested", "cartridge"] as const;
 export type SessionOrigin = (typeof SESSION_ORIGINS)[number];
 
-export const LLM_PROVIDERS = ["claude", "openai", "gemini"] as const;
+export const LLM_PROVIDERS = [
+  "claude",
+  "openai",
+  "gemini",
+  "deepseek",
+  "kimi",
+  "qwen",
+  "glm",
+] as const;
 export type LlmProvider = (typeof LLM_PROVIDERS)[number];
 
 export const harnessSessionsTable = pgTable("harness_sessions", {

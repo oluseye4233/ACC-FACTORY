@@ -1022,7 +1022,7 @@ export const ListSessionsResponseItem = zod.object({
   "origin": zod.enum(['manual', 'ingested', 'cartridge']),
   "ingestionId": zod.string().uuid().nullable(),
   "cartridgeId": zod.string().uuid().nullable(),
-  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n'),
+  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -1035,7 +1035,7 @@ export const createSessionBodySessionNameMax = 255;
 
 export const CreateSessionBody = zod.object({
   "sessionName": zod.string().min(1).max(createSessionBodySessionNameMax),
-  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 
@@ -1055,7 +1055,7 @@ export const GetSessionResponse = zod.object({
   "origin": zod.enum(['manual', 'ingested', 'cartridge']),
   "ingestionId": zod.string().uuid().nullable(),
   "cartridgeId": zod.string().uuid().nullable(),
-  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n'),
+  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),
@@ -1081,7 +1081,7 @@ export const GetSessionResponse = zod.object({
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
   "mathmonScore": zod.number().nullish(),
   "forgeVerified": zod.boolean().optional(),
-  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal('deepseek'),zod.literal('kimi'),zod.literal('qwen'),zod.literal('glm'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
   "runDurationMs": zod.number().nullish(),
   "runInputTokens": zod.number().nullish(),
@@ -1103,7 +1103,7 @@ export const updateSessionBodySessionNameMax = 255;
 export const UpdateSessionBody = zod.object({
   "sessionName": zod.string().min(1).max(updateSessionBodySessionNameMax).optional(),
   "status": zod.string().optional(),
-  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const UpdateSessionResponse = zod.object({
@@ -1113,7 +1113,7 @@ export const UpdateSessionResponse = zod.object({
   "origin": zod.enum(['manual', 'ingested', 'cartridge']),
   "ingestionId": zod.string().uuid().nullable(),
   "cartridgeId": zod.string().uuid().nullable(),
-  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n'),
+  "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -1246,7 +1246,7 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
   "mathmonScore": zod.number().nullish(),
   "forgeVerified": zod.boolean().optional(),
-  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal('deepseek'),zod.literal('kimi'),zod.literal('qwen'),zod.literal('glm'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
   "runDurationMs": zod.number().nullish(),
   "runInputTokens": zod.number().nullish(),
@@ -1331,7 +1331,7 @@ export const GetArtifactResponse = zod.object({
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
   "mathmonScore": zod.number().nullish(),
   "forgeVerified": zod.boolean().optional(),
-  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal('deepseek'),zod.literal('kimi'),zod.literal('qwen'),zod.literal('glm'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
   "runDurationMs": zod.number().nullish(),
   "runInputTokens": zod.number().nullish(),
@@ -1358,7 +1358,7 @@ export const ListArtifactsResponseItem = zod.object({
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
   "mathmonScore": zod.number().nullish(),
   "forgeVerified": zod.boolean().optional(),
-  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal('deepseek'),zod.literal('kimi'),zod.literal('qwen'),zod.literal('glm'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
   "runDurationMs": zod.number().nullish(),
   "runInputTokens": zod.number().nullish(),
@@ -1398,7 +1398,7 @@ export const RenameArtifactResponse = zod.object({
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
   "mathmonScore": zod.number().nullish(),
   "forgeVerified": zod.boolean().optional(),
-  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal('deepseek'),zod.literal('kimi'),zod.literal('qwen'),zod.literal('glm'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
   "runDurationMs": zod.number().nullish(),
   "runInputTokens": zod.number().nullish(),
@@ -1418,7 +1418,7 @@ export const harnessF1BodyPromptMin = 10;
 export const HarnessF1Body = zod.object({
   "sessionId": zod.string().uuid(),
   "prompt": zod.string().min(harnessF1BodyPromptMin),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF1Response = zod.object({
@@ -1534,7 +1534,7 @@ export const HarnessF2Body = zod.object({
   "format": zod.string(),
   "data": zod.string()
 }),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF2Response = zod.object({
@@ -1577,7 +1577,7 @@ export const HarnessF3StreamBody = zod.object({
   "data": zod.string()
 }),
   "intent": zod.string().optional(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 
@@ -1588,7 +1588,7 @@ export const HarnessF4Body = zod.object({
   "sessionId": zod.string().uuid(),
   "sourceArtifactId": zod.string().uuid(),
   "targetVibe": zod.string(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF4Response = zod.object({
@@ -1612,7 +1612,7 @@ export const HarnessF5Body = zod.object({
   "step": zod.number().min(1).max(harnessF5BodyStepMax).optional(),
   "answers": zod.record(zod.string(), zod.unknown()).optional(),
   "finalize": zod.boolean().optional(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF5Response = zod.object({
@@ -1645,7 +1645,7 @@ export const HarnessF5FinalizeStreamBody = zod.object({
   "sessionId": zod.string().uuid(),
   "name": zod.string().max(harnessF5FinalizeStreamBodyNameMax).nullish(),
   "answers": zod.record(zod.string(), zod.unknown()).optional(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 
@@ -1657,7 +1657,7 @@ export const HarnessF6Body = zod.object({
   "mode": zod.enum(['FROM_SPC', 'FRESH']),
   "sourceArtifactId": zod.string().uuid().nullish(),
   "brief": zod.string().nullish(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF6Response = zod.object({
@@ -1677,7 +1677,7 @@ export const HarnessF6DraftStreamBody = zod.object({
   "mode": zod.enum(['FROM_SPC', 'FRESH']),
   "sourceArtifactId": zod.string().uuid().nullish(),
   "brief": zod.string().nullish(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 
@@ -1687,7 +1687,7 @@ export const HarnessF6DraftStreamBody = zod.object({
 export const HarnessF6VdjBody = zod.object({
   "sessionId": zod.string().uuid(),
   "pddArtifactId": zod.string().uuid(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF6VdjResponse = zod.object({
@@ -1707,7 +1707,7 @@ export const HarnessF6VdjResponse = zod.object({
 export const HarnessF05Body = zod.object({
   "sessionId": zod.string().uuid(),
   "brief": zod.string().nullish(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF05Response = zod.object({
@@ -1741,7 +1741,7 @@ export const HarnessF05Response = zod.object({
  */
 export const HarnessMapStreamBody = zod.object({
   "sessionId": zod.string().uuid(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 
@@ -1751,7 +1751,7 @@ export const HarnessMapStreamBody = zod.object({
 export const HarnessF7StreamBody = zod.object({
   "sessionId": zod.string().uuid(),
   "pddArtifactId": zod.string().uuid(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 
@@ -1770,7 +1770,7 @@ export const HarnessF8Body = zod.object({
   "hardwareConfigId": zod.enum(['INDUSTRIAL_MCU', 'ROBOTICS_RTCL', 'APPLIANCE_FLEET']).optional().describe('Optional firmware hardware profile used to tailor Code DJ scaffolding.'),
   "notes": zod.string().max(harnessF8BodyNotesMax).optional().describe('Optional operator hints for the Code DJ (preferred libs, naming, etc.).'),
   "acknowledgeDrift": zod.boolean().optional().describe('Override the PFP drift gate. Required when the most recent PFP report for the same MVP PDD has any critical findings.'),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF8Response = zod.object({
@@ -1913,7 +1913,7 @@ export const HarnessF8HdjBody = zod.object({
   "mvpPddArtifactId": zod.string().uuid(),
   "codebaseBundleArtifactId": zod.string().uuid().optional().describe('Optional F8 codebase bundle to sharpen the hosting requirements profile.'),
   "notes": zod.string().max(harnessF8HdjBodyNotesMax).optional().describe('Optional operator hints for the Host DJ (preferred host, region\/compliance constraints, budget ceiling).'),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessF8HdjResponse = zod.object({
@@ -1989,7 +1989,7 @@ export const HarnessF8HdjResponse = zod.object({
 export const HarnessAtlasCrystalliseBody = zod.object({
   "sessionId": zod.string().uuid(),
   "atlasPddArtifactId": zod.string().uuid(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessAtlasCrystalliseResponse = zod.object({
@@ -2019,7 +2019,7 @@ export const HarnessPfpBody = zod.object({
   "sessionId": zod.string().uuid(),
   "mvpPddArtifactId": zod.string().uuid(),
   "codebaseBundleArtifactId": zod.string().uuid(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const harnessPfpResponseFciMin = 0;
@@ -2842,7 +2842,7 @@ export const harnessEvolveBodyMaArtifactIdsMax = 12;
 export const HarnessEvolveBody = zod.object({
   "sessionId": zod.string().uuid(),
   "maArtifactIds": zod.array(zod.string().uuid()).min(harnessEvolveBodyMaArtifactIdsMin).max(harnessEvolveBodyMaArtifactIdsMax),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const HarnessEvolveResponse = zod.object({
@@ -2859,7 +2859,7 @@ export const HarnessEvolveResponse = zod.object({
   "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
   "mathmonScore": zod.number().nullish(),
   "forgeVerified": zod.boolean().optional(),
-  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal(null)]).nullish(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal('deepseek'),zod.literal('kimi'),zod.literal('qwen'),zod.literal('glm'),zod.literal(null)]).nullish(),
   "modelId": zod.string().nullish(),
   "runDurationMs": zod.number().nullish(),
   "runInputTokens": zod.number().nullish(),
@@ -3188,7 +3188,7 @@ export const generateF0DiscoveryBodyNotesMax = 2000;
 
 export const GenerateF0DiscoveryBody = zod.object({
   "notes": zod.string().max(generateF0DiscoveryBodyNotesMax).optional(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const GenerateF0DiscoveryResponse = zod.object({
@@ -3254,7 +3254,7 @@ export const generateF0ReportBodyNotesMax = 2000;
 export const GenerateF0ReportBody = zod.object({
   "service": zod.enum(['PRODUCT_VIABILITY', 'MARKET_VIABILITY', 'CAPI_POSITIONING', 'CUSTOMER_ACQUISITION', 'GO_TO_MARKET', 'FINANCIAL_PROJECTIONS', 'PRODUCT_SYNTHESIS_ADVISORY', 'OFFICER_ANALYSIS', 'COMPETITIVE_TEARDOWN', 'PRICING_STRATEGY', 'BRAND_NARRATIVE', 'INVESTOR_READINESS', 'MATHMON_MAX', 'EVE_MAX']),
   "notes": zod.string().max(generateF0ReportBodyNotesMax).optional(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 
@@ -3271,7 +3271,7 @@ export const generateF0ChallengeBodyNotesMax = 2000;
 
 export const GenerateF0ChallengeBody = zod.object({
   "notes": zod.string().max(generateF0ChallengeBodyNotesMax).optional(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const GenerateF0ChallengeResponse = zod.object({
@@ -3411,7 +3411,7 @@ export const GenerateF0CommentaryBody = zod.object({
   "sessionId": zod.string().uuid().optional(),
   "artifactId": zod.string().uuid().optional(),
   "notes": zod.string().max(generateF0CommentaryBodyNotesMax).optional(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const GenerateF0CommentaryResponse = zod.object({
@@ -3436,7 +3436,7 @@ export const generateF0MonitoringBodySignalsMax = 4000;
 
 export const GenerateF0MonitoringBody = zod.object({
   "signals": zod.string().max(generateF0MonitoringBodySignalsMax).optional(),
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude\nproviders (`openai`, `gemini`) require PRACTITIONER tier or higher.\n')
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
 export const GenerateF0MonitoringResponse = zod.object({
@@ -3911,7 +3911,7 @@ export const ExecuteSpcPlayerRunParams = zod.object({
 })
 
 export const ExecuteSpcPlayerRunBody = zod.object({
-  "provider": zod.enum(['claude', 'openai', 'gemini']).optional()
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional()
 })
 
 export const executeSpcPlayerRunResponseGovernanceScorePolicyAxesMin = 3;

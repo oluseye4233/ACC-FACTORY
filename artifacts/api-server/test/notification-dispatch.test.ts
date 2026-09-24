@@ -215,22 +215,100 @@ async function seedRun(args: {
 describe("runWeeklyDigest", () => {
   test("no-op when no contact has digestEnabled", async () => {
     const { runWeeklyDigest } = await import("../src/lib/notification-dispatch");
-    await setPrefs(ownerId, orgId, { digestEnabled: false });
-    await setPrefs(adminId, orgId, { digestEnabled: false });
-    await seedRun({
-      userId: memberId,
-      sessionId: sessionVisibleId,
-      engineId: 1,
-      costUsd: "0.50",
-    });
-    await runWeeklyDigest(new Date());
-    // Scope the assertion to *this* org's recipients — `runWeeklyDigest`
-    // iterates every org in the DB, so other test fixtures may legitimately
-    // produce sends. We only care that ours stayed silent.
-    const ours = sentDigest.filter(
-      (d) => d.to === ownerEmail || d.to === adminEmail || d.to === memberEmail,
-    );
-    expect(ours).toHaveLength(0);
+    const testStamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const emails = [
+      `notif-noop-owner-${testStamp}@example.test`,
+      `notif-noop-admin-${testStamp}@example.test`,
+      `notif-noop-member-${testStamp}@example.test`,
+    ];
+    let fixtureUserIds: string[] = [];
+    let fixtureOrgId = "";
+    let fixtureSessionId = "";
+
+    try {
+      const fixtureUsers = await db
+        .insert(usersTable)
+        .values(
+          emails.map((email, index) => ({
+            clerkUserId: `clerk_notif_noop_${index}_${testStamp}`,
+            email,
+          })),
+        )
+        .returning();
+      fixtureUserIds = fixtureUsers.map((user) => user.id);
+      const owner = fixtureUsers[0]!;
+      const admin = fixtureUsers[1]!;
+      const member = fixtureUsers[2]!;
+
+      const [org] = await db
+        .insert(organizationsTable)
+        .values({
+          name: "Notification No-op Test Org",
+          slug: `notif-noop-${testStamp}`,
+          createdByUserId: owner.id,
+          status: "active",
+        })
+        .returning();
+      fixtureOrgId = org!.id;
+
+      await db.insert(organizationMembersTable).values([
+        { organizationId: fixtureOrgId, userId: owner.id, role: "owner" },
+        { organizationId: fixtureOrgId, userId: admin.id, role: "admin" },
+        { organizationId: fixtureOrgId, userId: member.id, role: "member" },
+      ]);
+
+      const [session] = await db
+        .insert(harnessSessionsTable)
+        .values({
+          userId: member.id,
+          sessionName: "notification no-op",
+          orgId: fixtureOrgId,
+          orgVisible: true,
+        })
+        .returning();
+      fixtureSessionId = session!.id;
+
+      await setPrefs(owner.id, fixtureOrgId, { digestEnabled: false });
+      await setPrefs(admin.id, fixtureOrgId, { digestEnabled: false });
+      await seedRun({
+        userId: member.id,
+        sessionId: fixtureSessionId,
+        engineId: 1,
+        costUsd: "0.50",
+      });
+
+      await runWeeklyDigest(new Date());
+      // Scope the assertion to this test's recipients; other orgs may send.
+      const ours = sentDigest.filter((d) => emails.includes(String(d.to)));
+      expect(ours).toHaveLength(0);
+    } finally {
+      if (fixtureUserIds.length > 0) {
+        await db
+          .delete(notificationPreferencesTable)
+          .where(inArray(notificationPreferencesTable.userId, fixtureUserIds));
+      }
+      if (fixtureSessionId) {
+        await db
+          .delete(harnessEngineRunsTable)
+          .where(eq(harnessEngineRunsTable.sessionId, fixtureSessionId));
+        await db
+          .delete(harnessSessionsTable)
+          .where(eq(harnessSessionsTable.id, fixtureSessionId));
+      }
+      if (fixtureOrgId) {
+        await db
+          .delete(organizationMembersTable)
+          .where(eq(organizationMembersTable.organizationId, fixtureOrgId));
+        await db
+          .delete(organizationsTable)
+          .where(eq(organizationsTable.id, fixtureOrgId));
+      }
+      if (fixtureUserIds.length > 0) {
+        await db
+          .delete(usersTable)
+          .where(inArray(usersTable.id, fixtureUserIds));
+      }
+    }
   });
 
   test("groups runs by engine and by member; only sends to opted-in owners/admins", async () => {

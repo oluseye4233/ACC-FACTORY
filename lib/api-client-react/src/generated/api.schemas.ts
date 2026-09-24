@@ -1331,8 +1331,8 @@ export interface CreateF0EngagementInput {
 }
 
 /**
- * LLM provider for HARNESS engine calls. Defaults to `claude`. Non-claude
-providers (`openai`, `gemini`) require PRACTITIONER tier or higher.
+ * LLM provider for HARNESS engine calls. Defaults to `claude`. Providers
+other than Claude require PRACTITIONER tier or higher.
 
  */
 export type LlmProvider = typeof LlmProvider[keyof typeof LlmProvider];
@@ -1342,6 +1342,10 @@ export const LlmProvider = {
   claude: 'claude',
   openai: 'openai',
   gemini: 'gemini',
+  deepseek: 'deepseek',
+  kimi: 'kimi',
+  qwen: 'qwen',
+  glm: 'glm',
 } as const;
 
 export interface GenerateF0DiscoveryInput {
@@ -2393,6 +2397,10 @@ export const HarnessArtifactProvider = {
   claude: 'claude',
   openai: 'openai',
   gemini: 'gemini',
+  deepseek: 'deepseek',
+  kimi: 'kimi',
+  qwen: 'qwen',
+  glm: 'glm',
 } as const;
 
 export type HarnessArtifactArtifactContent = { [key: string]: unknown };
@@ -3869,6 +3877,10 @@ export const ExecuteSpcPlayerRunInputProvider = {
   claude: 'claude',
   openai: 'openai',
   gemini: 'gemini',
+  deepseek: 'deepseek',
+  kimi: 'kimi',
+  qwen: 'qwen',
+  glm: 'glm',
 } as const;
 
 export interface ExecuteSpcPlayerRunInput {
