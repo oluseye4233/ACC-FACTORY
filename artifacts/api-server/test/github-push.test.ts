@@ -43,6 +43,13 @@ const mockGh = vi.hoisted(() => {
     createRepoStatus: null as number | null,
     treeThrows: false,
     treeDelayMs: 0,
+    treeGate: null as {
+      entered: Promise<void>;
+      released: Promise<void>;
+      enter: () => void;
+      release: () => void;
+      used: boolean;
+    } | null,
     owner: "octo-tester",
     createdCalls: [] as Array<{ name: string; private: boolean }>,
     treeFiles: [] as Array<{ path: string; content: string }>,
@@ -84,6 +91,7 @@ const mockGh = vi.hoisted(() => {
       this.createRepoStatus = null;
       this.treeThrows = false;
       this.treeDelayMs = 0;
+      this.treeGate = null;
       this.owner = "octo-tester";
       this.createdCalls = [];
       this.treeFiles = [];
@@ -107,6 +115,19 @@ const mockGh = vi.hoisted(() => {
       this.searchReposData = [];
       this.searchReposStatus = null;
       this.searchReposCalls = [];
+    },
+    enableTreeGate(): void {
+      let enter!: () => void;
+      let release!: () => void;
+      const entered = new Promise<void>((resolve) => { enter = resolve; });
+      const released = new Promise<void>((resolve) => { release = resolve; });
+      this.treeGate = { entered, released, enter, release, used: false };
+    },
+    waitForTree(): Promise<void> {
+      return this.treeGate?.entered ?? Promise.resolve();
+    },
+    releaseTree(): void {
+      this.treeGate?.release();
     },
   };
 });
@@ -206,6 +227,12 @@ function buildFakeGitHubClient() {
             }) => {
               if (mockGh.treeThrows) throw new Error("github tree error");
               if (mockGh.treeDelayMs) await new Promise(resolve => setTimeout(resolve, mockGh.treeDelayMs));
+              const treeGate = mockGh.treeGate;
+              if (treeGate && !treeGate.used) {
+                treeGate.used = true;
+                treeGate.enter();
+                await treeGate.released;
+              }
               if (args.base_tree) mockGh.baseTrees.push(args.base_tree);
               mockGh.treeFiles = args.tree.map((t) => ({
                 path: t.path,
@@ -547,12 +574,20 @@ describe("POST /f10/exports/github", () => {
 
   test("atomically fences concurrent identical pushes", async () => {
     const branch = `concurrent-${Date.now()}`;
-    mockGh.treeDelayMs = 50;
-    const [a, b] = await Promise.all([
-      pushF10(architectId, bundleArtifactId, { branch }),
-      pushF10(architectId, bundleArtifactId, { branch }),
-    ]);
-    expect([a.status, b.status].sort()).toEqual([200, 409]);
+    mockGh.enableTreeGate();
+    const first = pushF10(architectId, bundleArtifactId, { branch });
+    await mockGh.waitForTree();
+
+    try {
+      const competing = await pushF10(architectId, bundleArtifactId, { branch });
+      expect(competing.status).toBe(409);
+      expect(await competing.json()).toMatchObject({ code: "GITHUB_PUSH_IN_PROGRESS" });
+    } finally {
+      mockGh.releaseTree();
+    }
+
+    const winner = await first;
+    expect(winner.status).toBe(200);
     expect(mockGh.updateRefCalls).toBe(1);
   });
 
