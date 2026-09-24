@@ -55,6 +55,9 @@ const mockGh = vi.hoisted(() => {
     treeFiles: [] as Array<{ path: string; content: string }>,
     baseTrees: [] as string[],
     refCalls: 0,
+    branchHeadSha: "head-sha",
+    advanceBranchBeforeUpdate: false,
+    updateRefArgs: [] as Array<{ ref: string; sha: string; force?: boolean }>,
     // ── "existing"-mode controls ────────────────────────────────────────────
     // `repos.get` lookup result / failure for a named target repo.
     repoGetStatus: null as number | null,
@@ -97,6 +100,9 @@ const mockGh = vi.hoisted(() => {
       this.treeFiles = [];
       this.baseTrees = [];
       this.refCalls = 0;
+      this.branchHeadSha = "head-sha";
+      this.advanceBranchBeforeUpdate = false;
+      this.updateRefArgs = [];
       this.repoGetStatus = null;
       this.repoInfo = {
         owner: "octo-tester",
@@ -218,7 +224,7 @@ function buildFakeGitHubClient() {
                 err.status = mockGh.getRefStatus;
                 throw err;
               }
-              return { data: { object: { sha: "head-sha" } } };
+              return { data: { object: { sha: mockGh.branchHeadSha } } };
             },
             getCommit: async () => ({ data: { tree: { sha: "base-tree-sha" } } }),
             createTree: async (args: {
@@ -249,8 +255,19 @@ function buildFakeGitHubClient() {
               mockGh.createdRefs.push(args.ref);
               return { data: {} };
             },
-            updateRef: async () => {
+            updateRef: async (args: { ref: string; sha: string; force?: boolean }) => {
               mockGh.updateRefCalls += 1;
+              mockGh.updateRefArgs.push({ ref: args.ref, sha: args.sha, force: args.force });
+              if (mockGh.advanceBranchBeforeUpdate) {
+                mockGh.branchHeadSha = "newer-remote-sha";
+              }
+              const commitParent = mockGh.commitParents[mockGh.commitParents.length - 1]?.[0];
+              if (args.force !== true && commitParent !== mockGh.branchHeadSha) {
+                const err = new Error("Update is not a fast forward") as Error & { status: number };
+                err.status = 422;
+                throw err;
+              }
+              mockGh.branchHeadSha = args.sha;
               return { data: {} };
             },
           },
@@ -572,6 +589,57 @@ describe("POST /f10/exports/github", () => {
     expect(pushes.filter(push => push.status === "COMPLETED")).toHaveLength(1);
   });
 
+  test("retries a failed GitHub handoff without creating duplicate completed pushes", async () => {
+    const branch = `retry-${stamp}`;
+    mockGh.treeThrows = true;
+
+    const failed = await pushF10(architectId, bundleArtifactId, { branch });
+    expect(failed.status).toBe(502);
+    expect(await failed.json()).toMatchObject({ code: "GITHUB_PUSH_FAILED" });
+    expect(mockGh.commitParents).toHaveLength(0);
+    expect(mockGh.updateRefCalls).toBe(0);
+
+    const pushesAfterFailure = await db.select().from(f10GitHubPushesTable).where(and(
+      eq(f10GitHubPushesTable.userId, architectId),
+      eq(f10GitHubPushesTable.sourceArtifactId, bundleArtifactId),
+    ));
+    const failedClaim = pushesAfterFailure.filter(push => push.idempotencyKey.endsWith(`:${branch}`));
+    expect(failedClaim).toHaveLength(1);
+    expect(failedClaim[0]).toMatchObject({
+      status: "FAILED",
+      errorCode: "GITHUB_PUSH_FAILED",
+      result: null,
+    });
+
+    mockGh.treeThrows = false;
+    const retried = await pushF10(architectId, bundleArtifactId, { branch });
+    expect(retried.status).toBe(200);
+    expect(await retried.json()).toMatchObject({
+      ok: true,
+      idempotent: false,
+      commitSha: "commit-sha",
+    });
+    expect(mockGh.commitParents).toEqual([["head-sha"]]);
+    expect(mockGh.updateRefCalls).toBe(1);
+
+    const replay = await pushF10(architectId, bundleArtifactId, { branch });
+    expect(replay.status).toBe(200);
+    expect(await replay.json()).toMatchObject({ idempotent: true });
+    expect(mockGh.updateRefCalls).toBe(1);
+
+    const pushesAfterRetry = await db.select().from(f10GitHubPushesTable).where(and(
+      eq(f10GitHubPushesTable.userId, architectId),
+      eq(f10GitHubPushesTable.sourceArtifactId, bundleArtifactId),
+    ));
+    const completedPushes = pushesAfterRetry.filter(push => push.idempotencyKey.endsWith(`:${branch}`));
+    expect(completedPushes).toHaveLength(1);
+    expect(completedPushes[0]).toMatchObject({
+      status: "COMPLETED",
+      errorCode: null,
+      result: { commitSha: "commit-sha" },
+    });
+  });
+
   test("atomically fences concurrent identical pushes", async () => {
     const branch = `concurrent-${Date.now()}`;
     mockGh.enableTreeGate();
@@ -589,6 +657,34 @@ describe("POST /f10/exports/github", () => {
     const winner = await first;
     expect(winner.status).toBe(200);
     expect(mockGh.updateRefCalls).toBe(1);
+  });
+
+  test("fails safely when the branch advances before update-ref", async () => {
+    const branch = `advanced-${stamp}`;
+    mockGh.advanceBranchBeforeUpdate = true;
+
+    const response = await pushF10(architectId, bundleArtifactId, { branch });
+    const body = await response.json() as { code?: string; error?: string };
+
+    expect(response.status).toBe(409);
+    expect(body.code).toBe("GITHUB_BRANCH_CONFLICT");
+    expect(body.error).toMatch(/branch changed/i);
+    expect(mockGh.updateRefArgs).toEqual([{
+      ref: `heads/${branch}`,
+      sha: "commit-sha",
+      force: false,
+    }]);
+    // The fake GitHub API rejects the non-fast-forward update and retains the
+    // newer remote head rather than replacing it with the handoff commit.
+    expect(mockGh.branchHeadSha).toBe("newer-remote-sha");
+
+    const pushes = await db.select().from(f10GitHubPushesTable).where(and(
+      eq(f10GitHubPushesTable.userId, architectId),
+      eq(f10GitHubPushesTable.sourceArtifactId, bundleArtifactId),
+    ));
+    expect(pushes.some(push =>
+      push.status === "FAILED" && push.errorCode === "GITHUB_BRANCH_CONFLICT",
+    )).toBe(true);
   });
 
   test("does not expose another user's source artifact", async () => {

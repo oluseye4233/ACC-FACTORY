@@ -337,6 +337,7 @@ router.post("/f10/exports/github", requireAuth, requireTier("ARCHITECT"), async 
   }
 
   const [owner, repo] = parsed.data.repository.split("/");
+  let branchUpdateConflict = false;
   try {
     const gh = getGitHubClientFromToken(decryptApiKey(credential.keyEncrypted));
     const repoInfo = await gh.rest.repos.get({ owner: owner!, repo: repo! });
@@ -367,7 +368,17 @@ router.post("/f10/exports/github", requireAuth, requireTier("ARCHITECT"), async 
     const commit = await gh.rest.git.createCommit({
       owner: owner!, repo: repo!, message: `F10 ${parsed.data.outputKind} handoff`, tree: tree.data.sha, parents: [headSha],
     });
-    await gh.rest.git.updateRef({ owner: owner!, repo: repo!, ref: `heads/${parsed.data.branch}`, sha: commit.data.sha });
+    try {
+      await gh.rest.git.updateRef({
+        owner: owner!, repo: repo!, ref: `heads/${parsed.data.branch}`,
+        sha: commit.data.sha, force: false,
+      });
+    } catch (error) {
+      // A 422 from this operation means the new commit is no longer a
+      // fast-forward from the remote branch head we based it on.
+      if ((error as { status?: number }).status === 422) branchUpdateConflict = true;
+      throw error;
+    }
     const result = {
       ok: true, idempotent: false, idempotencyKey, repository: repoInfo.data.full_name,
       branch: parsed.data.branch, commitSha: commit.data.sha,
@@ -381,8 +392,12 @@ router.post("/f10/exports/github", requireAuth, requireTier("ARCHITECT"), async 
     res.json(result);
   } catch (error) {
     const status = (error as { status?: number }).status;
-    const code = status === 401 ? "GITHUB_BAD_TOKEN" : status === 403 ? "GITHUB_REPO_NOT_AUTHORIZED" : status === 404 ? "GITHUB_REPO_NOT_FOUND" : "GITHUB_PUSH_FAILED";
+    const code = branchUpdateConflict ? "GITHUB_BRANCH_CONFLICT" : status === 401 ? "GITHUB_BAD_TOKEN" : status === 403 ? "GITHUB_REPO_NOT_AUTHORIZED" : status === 404 ? "GITHUB_REPO_NOT_FOUND" : "GITHUB_PUSH_FAILED";
     await db.update(f10GitHubPushesTable).set({ status: "FAILED", errorCode: code, updatedAt: new Date() }).where(eq(f10GitHubPushesTable.id, claim.id));
+    if (branchUpdateConflict) {
+      res.status(409).json({ error: "The GitHub branch changed while this handoff was being prepared. No update was applied; fetch the latest branch and retry.", code });
+      return;
+    }
     if (status === 401) { res.status(401).json({ error: "Your GitHub authorization is no longer valid. Reconnect GitHub, then retry.", code }); return; }
     if (status === 403) { res.status(403).json({ error: `Your GitHub connection cannot push to "${parsed.data.repository}". Grant Contents: Read and write, then retry.`, code }); return; }
     if (status === 404) { res.status(404).json({ error: `Repository "${parsed.data.repository}" was not found or is not visible to your GitHub connection.`, code }); return; }

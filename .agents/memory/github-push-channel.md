@@ -90,6 +90,14 @@ The F8 CODE DJ live handoff pushes a generated codebase to a new GitHub repo
   (including files dropped between runs — the tree omits `base_tree`) first.
   PR creation needs only the existing `repo` scope (no extra grant).
 
+- **F10 direct updates must remain non-force and surface head races as conflicts.**
+  Build the commit on the fetched branch head and call `updateRef` with
+  `force:false`; if GitHub rejects the update as non-fast-forward (422), fail the
+  claim and return a retryable conflict instead of re-reading HEAD and replaying
+  the commit automatically.
+  **Why:** an export based on a stale head must never replace newer repository
+  work, and automatic rebasing/replay could silently change the intended diff.
+
 - **An empty `existing` repo (no default-branch ref yet) is SEEDED, not rejected.**
   In `existing` mode the route resolves HEAD via `getRef`; a 404 there means a
   freshly-created repo with no initial commit, so it falls through to a parentless

@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft,
   BookOpen,
+  Download,
   FileText,
   FolderUp,
   GitFork,
@@ -23,6 +24,10 @@ import {
   Upload,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  buildExemplarDownloadFilename,
+  getExemplarDownloadFormat,
+} from "@/lib/exemplar-download";
 
 type LibraryItem = {
   id: string;
@@ -104,6 +109,12 @@ function List() {
           </p>
           <p className="text-muted-foreground/70 font-mono text-[11px] mt-2">
             Free for authenticated backend users. Paid frontend listings remain on Sphinx Marketplace.
+          </p>
+          <p
+            className="text-muted-foreground/70 font-mono text-[10px] mt-2"
+            data-testid="text-exemplar-filename-convention"
+          >
+            DOWNLOAD FORMAT: TYPE.NAME.ID.MM.DD.YY.H-MM-SSAM.ext (LOCAL TIME)
           </p>
         </div>
         <div className="flex flex-wrap gap-2 shrink-0">
@@ -206,6 +217,26 @@ function List() {
 function Detail({ id }: { id: string }) {
   const { data, isLoading, isError } = useGetExemplar(id);
   const item = data as unknown as LibraryItem | undefined;
+
+  const downloadExemplar = () => {
+    if (!item?.body) return;
+
+    const format = getExemplarDownloadFormat(item.body);
+    const filename = buildExemplarDownloadFilename(
+      { id: item.id, kind: item.kind, title: item.title },
+      format.extension,
+    );
+    const blob = new Blob([item.body], { type: format.mimeType });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  };
+
   return (
     <>
       <div className="mb-6">
@@ -245,11 +276,21 @@ function Detail({ id }: { id: string }) {
                   </div>
                 )}
               </div>
-              <Button asChild className="font-display tracking-wider">
-                <Link href={`/session/new?exemplar=${item.id}`}>
-                  <GitFork className="h-4 w-4 mr-2" /> FORK TO SESSION
-                </Link>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={downloadExemplar}
+                  variant="outline"
+                  className="font-display tracking-wider"
+                  data-testid={`button-download-exemplar-${item.id}`}
+                >
+                  <Download className="h-4 w-4 mr-2" /> DOWNLOAD
+                </Button>
+                <Button asChild className="font-display tracking-wider">
+                  <Link href={`/session/new?exemplar=${item.id}`}>
+                    <GitFork className="h-4 w-4 mr-2" /> FORK TO SESSION
+                  </Link>
+                </Button>
+              </div>
             </div>
           </>
         )}
