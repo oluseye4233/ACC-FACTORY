@@ -12,7 +12,8 @@ The default remains PRE_BUILD with plan-only distribution. The explicitly
 authorized project-owned replacement is nevertheless open access: provide
 deterministic JSON packaging and built-in download, and allow public-HTTPS
 webhook delivery only after explicit per-run consent. Open access introduces no
-entitlement, tier, credit, billing, pricing, or LLM gate. Keep access status
+entitlement, tier, credit, billing, or pricing gate, but model execution must
+remain behind the shared monthly LLM cost-budget safeguard. Keep access status
 separate from certification maturity.
 
 Provider calls use the existing cost-budget and run-recording path. Persist

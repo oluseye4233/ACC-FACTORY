@@ -11,6 +11,7 @@ import { eq, inArray } from "drizzle-orm";
 import {
   db,
   harnessArtifactsTable,
+  harnessEngineRunsTable,
   harnessSessionsTable,
   spcPlayerRunsTable,
   usersTable,
@@ -498,6 +499,78 @@ describe("SPC Player supported backend foundation", () => {
       "RUNNING",
       "COMPLETED",
     ]);
+  });
+
+  test("cost-cap rejection leaves the run untouched and does not call the provider", async () => {
+    const catalog = (await (await api("/api/spc-player/catalog")).json()) as Array<{ id: string }>;
+    const createResponse = await api("/api/spc-player/runs", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: `Cost cap ${randomUUID()}`,
+        brief: "Execution must be blocked before any state changes.",
+        selectedCardIds: [catalog[0]!.id],
+      }),
+    });
+    expect(createResponse.status).toBe(201);
+    const created = (await createResponse.json()) as { id: string };
+    const previousCap = process.env.STAFF_MONTHLY_COST_CAP_USD;
+    const [owner] = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.clerkUserId, ownerClerkId))
+      .limit(1);
+    expect(owner).toBeDefined();
+    await db.insert(harnessEngineRunsTable).values({
+      sessionId: null,
+      userId: owner!.id,
+      engineId: 30,
+      modelId: "claude-sonnet-4-6",
+      inputTokens: 1,
+      outputTokens: 1,
+      costUsd: "1.000000",
+      durationMs: 1,
+    });
+    process.env.STAFF_MONTHLY_COST_CAP_USD = "0.01";
+
+    try {
+      const response = await api(`/api/spc-player/runs/${created.id}/execute`, {
+        method: "POST",
+      });
+      expect(response.status).toBe(402);
+      expect(await response.json()).toMatchObject({
+        error: "Monthly LLM cost cap reached",
+        code: "COST_CAP_EXCEEDED",
+        usedUsd: expect.any(Number),
+        capUsd: 0.01,
+        detail: expect.any(String),
+      });
+      expect(callLlmJsonMock).not.toHaveBeenCalled();
+
+      const persisted = (await (
+        await api(`/api/spc-player/runs/${created.id}`)
+      ).json()) as {
+        status: string;
+        executionState: string;
+        stageResults: unknown[];
+        transitions: unknown[];
+      };
+      expect(persisted).toMatchObject({
+        status: "DRAFT",
+        executionState: "IDLE",
+        stageResults: [],
+        transitions: [],
+      });
+      const [execution] = await db
+        .select()
+        .from(spcPlayerRunsTable)
+        .where(eq(spcPlayerRunsTable.id, created.id))
+        .limit(1);
+      expect(execution).toBeUndefined();
+    } finally {
+      if (previousCap === undefined) delete process.env.STAFF_MONTHLY_COST_CAP_USD;
+      else process.env.STAFF_MONTHLY_COST_CAP_USD = previousCap;
+    }
   });
 
   test("simultaneous initial claims invoke once and non-expired RUNNING returns 409", async () => {

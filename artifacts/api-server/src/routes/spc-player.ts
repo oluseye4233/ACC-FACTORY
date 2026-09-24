@@ -29,6 +29,7 @@ import {
 } from "@workspace/api-zod";
 import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { requireAuth } from "../lib/auth";
+import { requireCostBudget } from "../lib/cost-budget";
 import {
   callLlmJson,
   resolveProvider,
@@ -834,6 +835,7 @@ router.get(
 router.post(
   "/spc-player/runs/:id/execute",
   requireAuth,
+  requireCostBudget,
   async (req, res): Promise<void> => {
     const parsed = ExecuteSpcPlayerRunParams.safeParse({ id: req.params.id });
     if (!parsed.success) {
