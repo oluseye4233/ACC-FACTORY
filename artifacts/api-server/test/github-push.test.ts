@@ -57,7 +57,10 @@ const mockGh = vi.hoisted(() => {
     refCalls: 0,
     branchHeadSha: "head-sha",
     advanceBranchBeforeUpdate: false,
+    applyThenThrowOnUpdateRef: false,
     updateRefArgs: [] as Array<{ ref: string; sha: string; force?: boolean }>,
+    getRefCalls: 0,
+    failGetRefCall: null as number | null,
     // ── "existing"-mode controls ────────────────────────────────────────────
     // `repos.get` lookup result / failure for a named target repo.
     repoGetStatus: null as number | null,
@@ -102,7 +105,10 @@ const mockGh = vi.hoisted(() => {
       this.refCalls = 0;
       this.branchHeadSha = "head-sha";
       this.advanceBranchBeforeUpdate = false;
+      this.applyThenThrowOnUpdateRef = false;
       this.updateRefArgs = [];
+      this.getRefCalls = 0;
+      this.failGetRefCall = null;
       this.repoGetStatus = null;
       this.repoInfo = {
         owner: "octo-tester",
@@ -217,6 +223,14 @@ function buildFakeGitHubClient() {
           },
           git: {
             getRef: async () => {
+              mockGh.getRefCalls += 1;
+              if (mockGh.failGetRefCall === mockGh.getRefCalls) {
+                const err = new Error("github getRef response lost") as Error & {
+                  status: number;
+                };
+                err.status = 503;
+                throw err;
+              }
               if (mockGh.getRefStatus !== null) {
                 const err = new Error("github getRef failed") as Error & {
                   status: number;
@@ -268,6 +282,10 @@ function buildFakeGitHubClient() {
                 throw err;
               }
               mockGh.branchHeadSha = args.sha;
+              if (mockGh.applyThenThrowOnUpdateRef) {
+                mockGh.applyThenThrowOnUpdateRef = false;
+                throw new Error("connection dropped after GitHub updated the ref");
+              }
               return { data: {} };
             },
           },
@@ -638,6 +656,41 @@ describe("POST /f10/exports/github", () => {
       errorCode: null,
       result: { commitSha: "commit-sha" },
     });
+  });
+
+  test("verifies the original commit on retry when GitHub updated the ref but lost its reply", async () => {
+    const branch = `lost-reply-${stamp}`;
+    mockGh.applyThenThrowOnUpdateRef = true;
+    // The first getRef reads the parent. The second is the route's immediate
+    // reconciliation read, whose response is also lost; the next request must
+    // recover by checking the persisted commit against the remote branch.
+    mockGh.failGetRefCall = 2;
+
+    const failed = await pushF10(architectId, bundleArtifactId, { branch });
+    expect(failed.status).toBe(502);
+    expect(await failed.json()).toMatchObject({ code: "GITHUB_PUSH_OUTCOME_UNKNOWN" });
+    expect(mockGh.branchHeadSha).toBe("commit-sha");
+    expect(mockGh.commitParents).toEqual([["head-sha"]]);
+    expect(mockGh.updateRefCalls).toBe(1);
+
+    const retried = await pushF10(architectId, bundleArtifactId, { branch });
+    expect(retried.status).toBe(200);
+    expect(await retried.json()).toMatchObject({
+      ok: true,
+      idempotent: false,
+      commitSha: "commit-sha",
+    });
+    // The retry sees that the original commit is already the branch head. It
+    // must neither create nor push another commit.
+    expect(mockGh.commitParents).toEqual([["head-sha"]]);
+    expect(mockGh.updateRefCalls).toBe(1);
+    expect(mockGh.branchHeadSha).toBe("commit-sha");
+
+    const replay = await pushF10(architectId, bundleArtifactId, { branch });
+    expect(replay.status).toBe(200);
+    expect(await replay.json()).toMatchObject({ idempotent: true, commitSha: "commit-sha" });
+    expect(mockGh.commitParents).toHaveLength(1);
+    expect(mockGh.updateRefCalls).toBe(1);
   });
 
   test("atomically fences concurrent identical pushes", async () => {

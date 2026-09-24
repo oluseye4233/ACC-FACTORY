@@ -56,6 +56,31 @@ const GitHubPushBody = ExportBody.extend({
     !/[\x00-\x20~^:?*\[]/u.test(branch),
   "invalid Git branch"),
 });
+type GitHubPushResult = Record<string, unknown>;
+type PendingGitHubRefUpdate = {
+  kind: "F10_GITHUB_REF_UPDATE_PENDING";
+  parentSha: string;
+  commitSha: string;
+  result: GitHubPushResult;
+};
+function readPendingGitHubRefUpdate(value: unknown): PendingGitHubRefUpdate | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const result = record.result;
+  if (
+    record.kind !== "F10_GITHUB_REF_UPDATE_PENDING" ||
+    typeof record.parentSha !== "string" ||
+    typeof record.commitSha !== "string" ||
+    !result || typeof result !== "object" ||
+    (result as Record<string, unknown>).commitSha !== record.commitSha
+  ) return null;
+  return {
+    kind: "F10_GITHUB_REF_UPDATE_PENDING",
+    parentSha: record.parentSha,
+    commitSha: record.commitSha,
+    result: result as GitHubPushResult,
+  };
+}
 const AuthorizeBody = z.object({ provider: z.enum(["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS"]), returnTo: z.string().max(500).optional(), connectionId: z.string().uuid().optional() });
 const DeploymentBody = z.object({
   sourceArtifactId: z.string().uuid(), provider: z.enum(["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS"]),
@@ -311,6 +336,7 @@ router.post("/f10/exports/github", requireAuth, requireTier("ARCHITECT"), async 
     target: [f10GitHubPushesTable.userId, f10GitHubPushesTable.idempotencyKey],
   }).returning();
   let claim = insertedClaim;
+  let pendingCommit: PendingGitHubRefUpdate | null = null;
   if (!claim) {
     const [existingClaim] = await db.select().from(f10GitHubPushesTable).where(and(
       eq(f10GitHubPushesTable.userId, userId),
@@ -321,13 +347,18 @@ router.post("/f10/exports/github", requireAuth, requireTier("ARCHITECT"), async 
       return;
     }
     if (existingClaim?.status === "FAILED") {
+      const existingPendingCommit = readPendingGitHubRefUpdate(existingClaim.result);
       const [reclaimed] = await db.update(f10GitHubPushesTable).set({
-        status: "IN_PROGRESS", errorCode: null, updatedAt: new Date(),
+        status: "IN_PROGRESS",
+        errorCode: null,
+        result: existingPendingCommit ? existingClaim.result : null,
+        updatedAt: new Date(),
       }).where(and(
         eq(f10GitHubPushesTable.id, existingClaim.id),
         eq(f10GitHubPushesTable.status, "FAILED"),
       )).returning();
       claim = reclaimed;
+      pendingCommit = readPendingGitHubRefUpdate(reclaimed?.result);
     }
     if (!claim) {
       res.status(409).json({ error: "This F10 handoff is already being pushed. Wait a moment, then retry.", code: "GITHUB_PUSH_IN_PROGRESS" });
@@ -347,6 +378,8 @@ router.post("/f10/exports/github", requireAuth, requireTier("ARCHITECT"), async 
 
   const [owner, repo] = parsed.data.repository.split("/");
   let branchUpdateConflict = false;
+  let uncertainRefUpdate = false;
+  let clearPendingCommit = false;
   try {
     const gh = getGitHubClientFromToken(decryptApiKey(credential.keyEncrypted));
     const repoInfo = await gh.rest.repos.get({ owner: owner!, repo: repo! });
@@ -368,43 +401,112 @@ router.post("/f10/exports/github", requireAuth, requireTier("ARCHITECT"), async 
       }
       throw error;
     }
-    const headCommit = await gh.rest.git.getCommit({ owner: owner!, repo: repo!, commit_sha: headSha });
-    const tree = await gh.rest.git.createTree({
-      owner: owner!, repo: repo!,
-      base_tree: headCommit.data.tree.sha,
-      tree: exported.files.map(file => ({ path: file.path, mode: "100644" as const, type: "blob" as const, content: file.content.toString("utf8") })),
-    });
-    const commit = await gh.rest.git.createCommit({
-      owner: owner!, repo: repo!, message: `F10 ${parsed.data.outputKind} handoff`, tree: tree.data.sha, parents: [headSha],
-    });
+    let commitSha: string;
+    let parentSha: string;
+    let pushResult: GitHubPushResult;
+    if (pendingCommit) {
+      commitSha = pendingCommit.commitSha;
+      parentSha = pendingCommit.parentSha;
+      pushResult = pendingCommit.result;
+      if (headSha === commitSha) {
+        await db.update(f10GitHubPushesTable).set({
+          status: "COMPLETED", result: pushResult, errorCode: null, updatedAt: new Date(),
+        }).where(eq(f10GitHubPushesTable.id, claim.id));
+        await db.update(integrationCredentialsTable).set({ lastUsedAt: sql`now()` }).where(eq(integrationCredentialsTable.id, credential.id));
+        res.json(pushResult);
+        return;
+      }
+      if (headSha !== parentSha) {
+        // The original update may have landed and then been followed by another
+        // commit. Do not build a second commit or overwrite that newer branch.
+        uncertainRefUpdate = true;
+        throw new Error("The GitHub branch no longer matches the original push parent.");
+      }
+    } else {
+      parentSha = headSha;
+      const headCommit = await gh.rest.git.getCommit({ owner: owner!, repo: repo!, commit_sha: headSha });
+      const tree = await gh.rest.git.createTree({
+        owner: owner!, repo: repo!,
+        base_tree: headCommit.data.tree.sha,
+        tree: exported.files.map(file => ({ path: file.path, mode: "100644" as const, type: "blob" as const, content: file.content.toString("utf8") })),
+      });
+      const commit = await gh.rest.git.createCommit({
+        owner: owner!, repo: repo!, message: `F10 ${parsed.data.outputKind} handoff`, tree: tree.data.sha, parents: [headSha],
+      });
+      commitSha = commit.data.sha;
+      pushResult = {
+        ok: true, idempotent: false, idempotencyKey, repository: repoInfo.data.full_name,
+        branch: parsed.data.branch, commitSha,
+        commitUrl: `${repoInfo.data.html_url}/commit/${commitSha}`,
+        bundleSha256: exported.manifest.bundleSha256, pushedAt: new Date().toISOString(),
+      };
+      pendingCommit = { kind: "F10_GITHUB_REF_UPDATE_PENDING", parentSha, commitSha, result: pushResult };
+      // Store the exact commit before changing the branch ref. If the process
+      // loses the GitHub response, a retry can inspect/reapply this same SHA.
+      await db.update(f10GitHubPushesTable).set({
+        result: pendingCommit, updatedAt: new Date(),
+      }).where(eq(f10GitHubPushesTable.id, claim.id));
+    }
+
+    let refUpdated = false;
     try {
       await gh.rest.git.updateRef({
         owner: owner!, repo: repo!, ref: `heads/${parsed.data.branch}`,
-        sha: commit.data.sha, force: false,
+        sha: commitSha, force: false,
       });
+      refUpdated = true;
     } catch (error) {
       // A 422 from this operation means the new commit is no longer a
       // fast-forward from the remote branch head we based it on.
-      if ((error as { status?: number }).status === 422) branchUpdateConflict = true;
-      throw error;
+      const updateStatus = (error as { status?: number }).status;
+      if (updateStatus === 422) {
+        branchUpdateConflict = true;
+        clearPendingCommit = true;
+        throw error;
+      }
+
+      // A lost response (or server error) does not tell us whether GitHub moved
+      // the ref. Read it back before deciding whether this was a success.
+      if (updateStatus !== 401 && updateStatus !== 403 && updateStatus !== 404) {
+        let observedHead: string | null = null;
+        try {
+          const ref = await gh.rest.git.getRef({ owner: owner!, repo: repo!, ref: `heads/${parsed.data.branch}` });
+          observedHead = ref.data.object.sha;
+        } catch {
+          uncertainRefUpdate = true;
+          throw error;
+        }
+        if (observedHead === commitSha) {
+          refUpdated = true;
+        } else {
+          uncertainRefUpdate = observedHead !== parentSha;
+          throw error;
+        }
+      } else {
+        throw error;
+      }
     }
-    const result = {
-      ok: true, idempotent: false, idempotencyKey, repository: repoInfo.data.full_name,
-      branch: parsed.data.branch, commitSha: commit.data.sha,
-      commitUrl: `${repoInfo.data.html_url}/commit/${commit.data.sha}`,
-      bundleSha256: exported.manifest.bundleSha256, pushedAt: new Date().toISOString(),
-    };
+    if (!refUpdated) throw new Error("GitHub did not confirm the branch update.");
     await db.update(f10GitHubPushesTable).set({
-      status: "COMPLETED", result, errorCode: null, updatedAt: new Date(),
+      status: "COMPLETED", result: pushResult, errorCode: null, updatedAt: new Date(),
     }).where(eq(f10GitHubPushesTable.id, claim.id));
     await db.update(integrationCredentialsTable).set({ lastUsedAt: sql`now()` }).where(eq(integrationCredentialsTable.id, credential.id));
-    res.json(result);
+    res.json(pushResult);
   } catch (error) {
     const status = (error as { status?: number }).status;
-    const code = branchUpdateConflict ? "GITHUB_BRANCH_CONFLICT" : status === 401 ? "GITHUB_BAD_TOKEN" : status === 403 ? "GITHUB_REPO_NOT_AUTHORIZED" : status === 404 ? "GITHUB_REPO_NOT_FOUND" : "GITHUB_PUSH_FAILED";
-    await db.update(f10GitHubPushesTable).set({ status: "FAILED", errorCode: code, updatedAt: new Date() }).where(eq(f10GitHubPushesTable.id, claim.id));
+    const code = branchUpdateConflict ? "GITHUB_BRANCH_CONFLICT" : uncertainRefUpdate ? "GITHUB_PUSH_OUTCOME_UNKNOWN" : status === 401 ? "GITHUB_BAD_TOKEN" : status === 403 ? "GITHUB_REPO_NOT_AUTHORIZED" : status === 404 ? "GITHUB_REPO_NOT_FOUND" : "GITHUB_PUSH_FAILED";
+    await db.update(f10GitHubPushesTable).set({
+      status: "FAILED",
+      errorCode: code,
+      ...(clearPendingCommit ? { result: null } : {}),
+      updatedAt: new Date(),
+    }).where(eq(f10GitHubPushesTable.id, claim.id));
     if (branchUpdateConflict) {
       res.status(409).json({ error: "The GitHub branch changed while this handoff was being prepared. No update was applied; fetch the latest branch and retry.", code });
+      return;
+    }
+    if (uncertainRefUpdate) {
+      res.status(502).json({ error: "GitHub's branch update could not be verified. Retry safely; the original commit will be checked before any update is attempted.", code });
       return;
     }
     if (status === 401) { res.status(401).json({ error: "Your GitHub authorization is no longer valid. Reconnect GitHub, then retry.", code }); return; }
