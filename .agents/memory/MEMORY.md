@@ -39,4 +39,4 @@
 - [LLM output bounds](llm-output-bounds.md) — non-critical generated metadata should be bounded at the schema boundary so valid artifacts do not fail on provider verbosity.
 - [F8 artifact class routing](f8-artifact-class-routing.md) — persist Software/Firmware in the bundle; Software skips F9 while Firmware and legacy bundles retain the machine-floor path.
 - [F9 hardware configuration selection](f9-hardware-config-selection.md) — carry one controlled firmware hardware profile from F8 Code DJ into F9 MECHA evidence and the signed artifact.
-- [Exemplar download filenames](exemplar-download-filenames.md) — downloads use artifact type, readable title, stable library ID, local timestamp, and actual text/JSON extension.
+- [Platform artifact download filenames](artifact-download-filenames.md) — generated project artifacts share a safe type/title/ID/local-time/extension convention; routine account and report exports stay separate.

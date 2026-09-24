@@ -30,6 +30,7 @@ import {
 import { extractApiError } from "@/lib/sse";
 import { downloadZip } from "@/lib/zipExport";
 import { Download, Workflow } from "lucide-react";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
 
 interface Props {
   sessionId: string;
@@ -116,7 +117,14 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
 
   const exportZip = async () => {
     if (!result) return;
-    await downloadZip(`micro-pdd-${sessionId.slice(0, 8)}.zip`, {
+    const artifactId = latestArtifact?.id ?? sessionId;
+    const filename = buildArtifactFilename({
+      type: "MICRO_PDD",
+      title: latestArtifact?.name ?? "Micro PDD",
+      id: artifactId,
+      extension: "zip",
+    });
+    await downloadZip(filename, {
       "cheat-sheet.md": result.cheatSheet,
       "worksheet.md": result.worksheet,
       "build-launch.md": result.buildLaunch,

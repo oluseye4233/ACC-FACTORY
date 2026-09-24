@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type {
   CodebaseBundle,
   HarnessArtifact,
@@ -8,7 +8,14 @@ import {
   buildAgentsMd,
   buildExportFiles,
   SUPPORTED_IDES,
+  exportCodeDjBundle,
 } from "./codeDjExport";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
+
+const { downloadZip } = vi.hoisted(() => ({
+  downloadZip: vi.fn().mockResolvedValue(undefined),
+}));
+vi.mock("./zipExport", () => ({ downloadZip }));
 
 function makeBundle(overrides: Partial<CodebaseBundle> = {}): CodebaseBundle {
   return {
@@ -138,6 +145,35 @@ describe("buildExportFiles", () => {
       bundle.files.length + 1 + SUPPORTED_IDES.length - 1 + 1;
     // -1 because AGENTS.md is also listed in SUPPORTED_IDES.
     expect(Object.keys(files).length).toBe(expected);
+  });
+});
+
+describe("exportCodeDjBundle", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 24, 18, 39, 7));
+    downloadZip.mockClear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("uses the source title and full bundle artifact ID in the ZIP filename", async () => {
+    const bundle = makeBundle();
+    const source = makeSource({ name: "Certified Commerce MVP" });
+
+    await exportCodeDjBundle(bundle, source, makePfp());
+
+    expect(downloadZip).toHaveBeenCalledWith(
+      buildArtifactFilename({
+        type: "CODEBASE_BUNDLE",
+        title: "Certified Commerce MVP",
+        id: bundle.artifactId,
+        extension: "zip",
+      }),
+      expect.any(Object),
+    );
   });
 });
 

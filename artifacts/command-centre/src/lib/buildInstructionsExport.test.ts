@@ -1,9 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import type {
   VdjRecommendation,
   HostingPlan,
 } from "@workspace/api-client-react";
-import { buildInstructionsMd } from "./buildInstructionsExport";
+import { buildInstructionsMd, exportBuildInstructions } from "./buildInstructionsExport";
+
+const { downloadZip } = vi.hoisted(() => ({
+  downloadZip: vi.fn().mockResolvedValue(undefined),
+}));
+vi.mock("./zipExport", () => ({ downloadZip }));
 
 function makeVdj(overrides: Partial<VdjRecommendation> = {}): VdjRecommendation {
   return {
@@ -68,5 +73,27 @@ describe("buildInstructionsMd", () => {
     const neither = buildInstructionsMd(undefined, undefined);
     expect(neither).toContain("No VIBE ORACLE recommendation has been generated");
     expect(neither).toContain("No HOST ORACLE hosting plan has been generated");
+  });
+});
+
+describe("exportBuildInstructions", () => {
+  it("uses the platform artifact filename convention and preserves the ZIP files", async () => {
+    await exportBuildInstructions(
+      "session-123",
+      makeVdj(),
+      makeHostPlan(),
+      "Atlas Launch",
+      "artifact-456",
+    );
+
+    expect(downloadZip).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /^BUILD_INSTRUCTIONS\.ATLAS\.LAUNCH\.ARTIFACT-456\.\d{2}\.\d{2}\.\d{2}\.\d{1,2}-\d{2}-\d{2}(AM|PM)\.zip$/,
+      ),
+      expect.objectContaining({
+        "BUILD_INSTRUCTIONS.md": expect.stringContaining("# BUILD INSTRUCTIONS"),
+        "build-instructions.json": expect.any(String),
+      }),
+    );
   });
 });

@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
 import { exportBuildInstructions } from "@/lib/buildInstructionsExport";
 import { Download, Music2, Rocket, Wrench } from "lucide-react";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
 
 const HOST_LABELS: Record<string, string> = {
   "replit-deployments": "Replit Deployments",
@@ -164,7 +165,16 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
 
   const exportBrief = async () => {
     try {
-      await exportBuildInstructions(sessionId, vdj, hostPlan);
+      const source = artifacts.find(
+        (artifact) => artifact.id === (vdjSourceId || hostSourceId),
+      );
+      await exportBuildInstructions(
+        sessionId,
+        vdj,
+        hostPlan,
+        source?.name ?? "BUILD INSTRUCTIONS",
+        source?.id ?? sessionId,
+      );
       toast({
         title: "BUILD INSTRUCTIONS exported",
         description: "VIBE ORACLE + HOST ORACLE brief downloaded as a ZIP.",

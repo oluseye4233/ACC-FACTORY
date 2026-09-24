@@ -26,6 +26,9 @@
     },
     {
       "path": "./lib/export"
+    },
+    {
+      "path": "./lib/artifact-naming"
     }
   ]
 }

@@ -49,7 +49,7 @@ describe("F9 to OSIRIS to F10 production path", () => {
     const [session] = await db.insert(harnessSessionsTable).values({ userId: tenantId, sessionName: "F9/F10 production path" }).returning();
     sessionId = session!.id;
     const [mvp] = await db.insert(harnessArtifactsTable).values({ sessionId, userId: tenantId, featureId: 7, artifactType: "MVP_PDD", artifactContent: {}, spartanCert: { verdict: "PASS" } }).returning();
-    const [bundle] = await db.insert(harnessArtifactsTable).values({ sessionId, userId: tenantId, featureId: 8, artifactType: "CODEBASE_BUNDLE", artifactContent: { sourceMvpPddArtifactId: mvp!.id } }).returning();
+    const [bundle] = await db.insert(harnessArtifactsTable).values({ sessionId, userId: tenantId, featureId: 8, name: "Production App", artifactType: "CODEBASE_BUNDLE", artifactContent: { sourceMvpPddArtifactId: mvp!.id } }).returning();
     sourceArtifactId = bundle!.id;
     requireAuthMock.mockImplementation(async (req: Request, res: Response, next: NextFunction) => {
       req.localUser = user!;
@@ -145,5 +145,24 @@ describe("F9 to OSIRIS to F10 production path", () => {
     expect(receipts).toHaveLength(1);
     expect(receipts[0]?.downstreamReceiptId).toBe("downstream-e2e-1");
     expect(transitions.map((t) => t.toState)).toEqual(expect.arrayContaining(["DISPATCHING", "ACKNOWLEDGED"]));
+  });
+
+  it("uses the standardized artifact filename for F10 export downloads", async () => {
+    const response = await request("/api/f10/exports/download", {
+      method: "POST",
+      body: JSON.stringify({
+        sourceArtifactId,
+        outputKind: "CODE_DJ",
+        family: "IDE",
+        target: "VS Code",
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("application/zip");
+    expect(response.headers.get("content-disposition")).toMatch(
+      /^attachment; filename="F10_EXPORT\.PRODUCTION.APP\.[A-Z0-9-]+\.\d{2}\.\d{2}\.\d{2}\.\d{1,2}-\d{2}-\d{2}(AM|PM)\.zip"$/,
+    );
+    expect((await response.arrayBuffer()).byteLength).toBeGreaterThan(0);
   });
 });

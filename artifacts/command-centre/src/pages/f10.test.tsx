@@ -44,6 +44,7 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
 
 describe("F10Console", () => {
   let originalClick: any;
+  let downloadedFilename: string | undefined;
 
   afterEach(() => {
     cleanup();
@@ -61,7 +62,10 @@ describe("F10Console", () => {
     Element.prototype.setPointerCapture = vi.fn();
 
     originalClick = HTMLAnchorElement.prototype.click;
-    HTMLAnchorElement.prototype.click = vi.fn();
+    downloadedFilename = undefined;
+    HTMLAnchorElement.prototype.click = vi.fn(function (this: HTMLAnchorElement) {
+      downloadedFilename = this.download;
+    });
 
     global.ResizeObserver = class ResizeObserver {
       observe() {}
@@ -215,5 +219,8 @@ describe("F10Console", () => {
     expect(useDownloadF10Export().mutateAsync).toHaveBeenCalled();
     expect(URL.createObjectURL).toHaveBeenCalled();
     expect(URL.revokeObjectURL).toHaveBeenCalled();
+    expect(downloadedFilename).toMatch(
+      /^F10_EXPORT\.MY.APP\.SRC-1\.\d{2}\.\d{2}\.\d{2}\.\d{1,2}-\d{2}-\d{2}(AM|PM)\.zip$/,
+    );
   });
 });

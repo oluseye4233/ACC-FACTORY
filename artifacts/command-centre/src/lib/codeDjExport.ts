@@ -3,6 +3,7 @@ import type {
   HarnessArtifact,
   PfpReport,
 } from "@workspace/api-client-react";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { downloadZip } from "./zipExport";
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -338,6 +339,11 @@ export async function exportCodeDjBundle(
   pfp?: PfpReport,
 ): Promise<void> {
   const files = buildExportFiles(bundle, source, pfp);
-  const name = `code-dj-${bundle.artifactId.slice(0, 8)}-${bundle.platform}.zip`;
+  const name = buildArtifactFilename({
+    type: "CODEBASE_BUNDLE",
+    title: source?.name ?? bundle.manifest.framework,
+    id: bundle.artifactId,
+    extension: "zip",
+  });
   await downloadZip(name, files);
 }

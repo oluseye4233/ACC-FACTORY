@@ -30,6 +30,7 @@ import { SpcLineage } from "@/components/shared/SpcLineage";
 import { SuggestSpcPanel } from "@/components/shared/SuggestSpcPanel";
 import { downloadZip } from "@/lib/zipExport";
 import { SpcPlayerAdvisoryPrompt } from "@/components/shared/SpcPlayerAdvisoryPrompt";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
 
 const FORGE_STEPS = [
   "CHARTER",
@@ -263,16 +264,16 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
   const exportSpc = async () => {
     if (!spc) return;
     const displayName = spcName.trim() || spc.name || null;
-    const slug = displayName
-      ? displayName
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-+|-+$/g, "")
-          .slice(0, 48) || sessionId.slice(0, 8)
-      : sessionId.slice(0, 8);
+    const artifactId = spc.artifactId ?? latestArtifact?.id ?? sessionId;
+    const filename = buildArtifactFilename({
+      type: "SPC",
+      title: displayName ?? "SPC",
+      id: artifactId,
+      extension: "zip",
+    });
     const heading = displayName ? `# ${displayName}\n\n` : "";
     const body = spc.sections.map((s) => `# ${s.title}\n\n${s.body}`).join("\n\n---\n\n");
-    await downloadZip(`spc-${slug}.zip`, {
+    await downloadZip(filename, {
       "spc.md": heading + body,
       "spc.json": JSON.stringify({ ...spc, name: displayName }, null, 2),
     });

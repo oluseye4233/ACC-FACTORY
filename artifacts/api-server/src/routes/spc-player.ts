@@ -27,6 +27,7 @@ import {
   GetSpcPlayerRunManifestParams,
   GetSpcPlayerRunParams,
 } from "@workspace/api-zod";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { requireAuth } from "../lib/auth";
 import {
   callLlmJson,
@@ -1202,9 +1203,15 @@ router.get(
       res.status(400).json({ error: "SPC Player run has not been executed" });
       return;
     }
+    const filename = buildArtifactFilename({
+      type: "SPC_PLAYER",
+      title: owned.draft.title || owned.draft.brief,
+      id: owned.draft.id,
+      extension: "json",
+    });
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="spc-player-run-${owned.draft.id}.json"`,
+      `attachment; filename="${filename}"`,
     );
     res.type("application/json").send(JSON.stringify(owned.execution.outputPackage, null, 2));
   },
@@ -1236,9 +1243,15 @@ router.get(
         entitlement: "open_access" as const,
       },
     };
+    const filename = buildArtifactFilename({
+      type: "SPC_PLAYER_MANIFEST",
+      title: owned.draft.title || owned.draft.brief,
+      id: owned.draft.id,
+      extension: "json",
+    });
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="spc-player-run-${owned.draft.id}-manifest.json"`,
+      `attachment; filename="${filename}"`,
     );
     res.type("application/json").send(JSON.stringify(manifest, null, 2));
   },

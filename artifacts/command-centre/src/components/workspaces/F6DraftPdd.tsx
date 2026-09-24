@@ -38,6 +38,7 @@ import { downloadZip } from "@/lib/zipExport";
 import { Download, Layers, Sparkles } from "lucide-react";
 
 import { Atlas360ViewPanel } from "./Atlas360ViewPanel";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
 
 const PHASES = ["AUDIT", "TRIANGULATE", "LAYOUT", "ASSEMBLE", "STAMP"] as const;
 
@@ -218,7 +219,14 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
       files["vdj-recommendation.md"] =
         `# VDJ Recommendation\n\n**IDE:** ${vdj.recommendedIde}\n**VIBE:** ${vdj.recommendedVibe}\n\n${vdj.rationale}\n\n## Alternatives\n\n${(vdj.alternatives || []).map((a) => `- ${a.name} (${Math.round(a.fit * 100)}%)`).join("\n")}`;
     }
-    await downloadZip(`atlas-pdd-${sessionId.slice(0, 8)}.zip`, files);
+    const artifactId = pddArtifactId ?? latestPddArtifact?.id ?? sessionId;
+    const filename = buildArtifactFilename({
+      type: "ATLAS_PDD",
+      title: latestPddArtifact?.name ?? "ATLAS PDD",
+      id: artifactId,
+      extension: "zip",
+    });
+    await downloadZip(filename, files);
   };
 
   return (

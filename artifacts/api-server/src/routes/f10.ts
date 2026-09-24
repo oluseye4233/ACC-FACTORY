@@ -15,6 +15,7 @@ import { decryptApiKey } from "../lib/integration-crypto";
 import { getGitHubClientFromToken } from "../lib/github";
 import { requireTier } from "../lib/tier";
 import { COLONIZATION_TARGET_CLASSES, evaluateColonization, evaluatePromotionGate, type ColonizationInput } from "../lib/f10-colonization";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
 
 const router: IRouter = Router();
 const Body = z.object({
@@ -275,9 +276,17 @@ router.post("/f10/exports/manifest", requireAuth, async (req, res): Promise<void
 router.post("/f10/exports/download", requireAuth, async (req, res): Promise<void> => {
   try {
     const result = await makeExport(req.localUser!.id, req.body);
-    const sourceId = String((req.body as Record<string, unknown>)?.sourceArtifactId ?? "source");
+    const source = result.manifest.source as { id: string; name?: string | null };
+    const sourceId = source.id;
+    const sourceTitle = source.name;
+    const filename = buildArtifactFilename({
+      type: "F10_EXPORT",
+      title: sourceTitle ?? "F10 Export",
+      id: sourceId,
+      extension: "zip",
+    });
     res.setHeader("Content-Type", "application/zip");
-    res.setHeader("Content-Disposition", `attachment; filename="f10-${sourceId}.zip"`);
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.setHeader("Content-Length", result.bundle.length);
     res.send(result.bundle);
   } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : "export failed" }); }

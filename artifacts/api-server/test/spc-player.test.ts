@@ -767,7 +767,9 @@ describe("SPC Player supported backend foundation", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toMatch(/^application\/json/);
     expect(response.headers.get("content-disposition")).toMatch(
-      new RegExp(`attachment; filename="spc-player-run-${created.id}-manifest\\.json"`),
+      new RegExp(
+        `^attachment; filename="SPC_PLAYER_MANIFEST\\.[A-Z0-9.]+\\.${created.id.toUpperCase()}\\.\\d{2}\\.\\d{2}\\.\\d{2}\\.\\d{1,2}-\\d{2}-\\d{2}(?:AM|PM)\\.json"$`,
+      ),
     );
     expect(body.manifestVersion).toBe("spc-player-manifest-v2");
     expect(body.run).toMatchObject({ id: created.id, status: "DRAFT" });
@@ -804,8 +806,10 @@ describe("SPC Player supported backend foundation", () => {
     const response = await api(`/api/spc-player/runs/${created.id}/download`);
     const body = (await response.json()) as Record<string, unknown>;
     expect(response.status).toBe(200);
-    expect(response.headers.get("content-disposition")).toContain(
-      `attachment; filename="spc-player-run-${created.id}.json"`,
+    expect(response.headers.get("content-disposition")).toMatch(
+      new RegExp(
+        `^attachment; filename="SPC_PLAYER\\.[A-Z0-9.]+\\.${created.id.toUpperCase()}\\.\\d{2}\\.\\d{2}\\.\\d{2}\\.\\d{1,2}-\\d{2}-\\d{2}(?:AM|PM)\\.json"$`,
+      ),
     );
     expect(body).toHaveProperty("governanceEvaluation");
     expect(JSON.stringify(body)).not.toMatch(/composite(?:Score)?/i);

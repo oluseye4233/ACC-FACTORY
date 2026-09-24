@@ -3,6 +3,7 @@ import type {
   HostingPlan,
 } from "@workspace/api-client-react";
 import { downloadZip } from "./zipExport";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
 
 const HOST_LABELS: Record<string, string> = {
   "replit-deployments": "Replit Deployments",
@@ -129,6 +130,8 @@ export async function exportBuildInstructions(
   sessionId: string,
   vdj?: VdjRecommendation,
   hostPlan?: HostingPlan,
+  title = "BUILD INSTRUCTIONS",
+  artifactId = sessionId,
 ): Promise<void> {
   const files: Record<string, string> = {
     "BUILD_INSTRUCTIONS.md": buildInstructionsMd(vdj, hostPlan),
@@ -138,5 +141,13 @@ export async function exportBuildInstructions(
       2,
     ),
   };
-  await downloadZip(`build-instructions-${sessionId.slice(0, 8)}.zip`, files);
+  await downloadZip(
+    buildArtifactFilename({
+      type: "BUILD_INSTRUCTIONS",
+      title,
+      id: artifactId,
+      extension: "zip",
+    }),
+    files,
+  );
 }

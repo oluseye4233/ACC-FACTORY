@@ -1,3 +1,5 @@
+import { buildArtifactFilename } from "@workspace/artifact-naming";
+
 export type BadgeFormat = "png" | "jpeg" | "svg";
 
 export type StandardBadgeId = "ASPE" | "AISA" | "AISE";
@@ -369,13 +371,22 @@ async function renderCanvas(opts: BadgeCertificateOptions): Promise<HTMLCanvasEl
   return canvas;
 }
 
-function safeFilename(badgeId: string, recipient: string, ext: string): string {
-  const slug = recipient
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 40) || "operator";
-  return `atanda-${badgeId.toLowerCase()}-${slug}.${ext}`;
+export function buildBadgeCertificateFilename(
+  opts: Pick<BadgeCertificateOptions, "badgeId" | "badgeFullName" | "recipientName" | "unlockedAt">,
+  extension: string,
+  downloadedAt = new Date(),
+): string {
+  const recipient = opts.recipientName.trim() || "Operator";
+  const unlocked = formatDate(opts.unlockedAt);
+  return buildArtifactFilename(
+    {
+      type: "CERTIFICATE",
+      title: opts.badgeFullName || opts.badgeId,
+      id: shortId(opts.badgeId, recipient, unlocked),
+      extension,
+    },
+    downloadedAt,
+  );
 }
 
 function escapeXml(s: string): string {
@@ -479,7 +490,7 @@ export async function downloadBadgeCertificate(opts: BadgeCertificateOptions): P
   if (opts.format === "svg") {
     const svg = await buildSvg(opts);
     const blob = new Blob([svg], { type: "image/svg+xml" });
-    downloadBlob(blob, safeFilename(opts.badgeId, opts.recipientName, "svg"));
+    downloadBlob(blob, buildBadgeCertificateFilename(opts, "svg"));
     return;
   }
   const canvas = await renderCanvas(opts);
@@ -488,5 +499,5 @@ export async function downloadBadgeCertificate(opts: BadgeCertificateOptions): P
   const quality = opts.format === "jpeg" ? 0.92 : undefined;
   const dataUrl = canvas.toDataURL(mime, quality);
   const blob = dataUrlToBlob(dataUrl);
-  downloadBlob(blob, safeFilename(opts.badgeId, opts.recipientName, ext));
+  downloadBlob(blob, buildBadgeCertificateFilename(opts, ext));
 }

@@ -50,6 +50,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { queryClient } from "@/lib/queryClient";
 import { api } from "@/lib/api";
 import {
@@ -736,7 +737,12 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `f10-export-${selectedSource.id.substring(0,8)}-${input.family}-${input.target}.zip`;
+      a.download = buildArtifactFilename({
+        type: "F10_EXPORT",
+        title: selectedSource.name ?? "F10 Export",
+        id: selectedSource.id,
+        extension: "zip",
+      });
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

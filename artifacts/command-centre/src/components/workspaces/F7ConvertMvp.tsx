@@ -35,6 +35,7 @@ import { Sparkles, ShieldCheck, Download } from "lucide-react";
 import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 
 import { Atlas360ViewPanel } from "./Atlas360ViewPanel";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
 
 const SPARTAN_STEPS = [
   "SCAN",
@@ -184,7 +185,14 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
       (result.forgeVerified && result.disclaimer
         ? `\n## Disclaimer\n\n${result.disclaimer}\n`
         : "");
-    await downloadZip(`mvp-pdd-${sessionId.slice(0, 8)}.zip`, files);
+    const artifactId = result.artifactId ?? latestArtifact?.id ?? sessionId;
+    const filename = buildArtifactFilename({
+      type: "MVP_PDD",
+      title: latestArtifact?.name ?? "MVP PDD",
+      id: artifactId,
+      extension: "zip",
+    });
+    await downloadZip(filename, files);
   };
 
   const donutData = result?.donut

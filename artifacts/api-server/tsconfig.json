@@ -21,6 +21,9 @@
     },
     {
       "path": "../../lib/integrations-gemini-ai"
+    },
+    {
+      "path": "../../lib/artifact-naming"
     }
   ]
 }

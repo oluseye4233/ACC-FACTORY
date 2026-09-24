@@ -21,6 +21,7 @@ import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
 import { ErrorBanner } from "./_shared";
 import { extractApiError } from "@/lib/sse";
 import { downloadZip } from "@/lib/zipExport";
+import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { Download, LayoutDashboard, ShieldAlert, Loader2 } from "lucide-react";
 
 interface Props {
@@ -118,7 +119,14 @@ export function Atlas360ViewPanel({ sessionId, sessionOrigin, sourceArtifactId, 
     
     files[`atlas-360-${format}.md`] = md;
     
-    await downloadZip(`atlas-360-${format}-${sessionId.slice(0, 8)}.zip`, files);
+    const viewArtifactId = matchingArtifact?.id ?? sourceArtifactId;
+    const filename = buildArtifactFilename({
+      type: "ATLAS_360",
+      title: viewData.title || `ATLAS 360 ${format}`,
+      id: viewArtifactId,
+      extension: "zip",
+    });
+    await downloadZip(filename, files);
   };
 
   return (
