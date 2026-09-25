@@ -8,7 +8,7 @@
 import type { CompanySpendUserRow } from './companySpendUserRow';
 
 /**
- * Who is consuming the shared monthly LLM budget. Same SUM over harness_engine_runs.cost_usd for the current UTC month that the company-wide meter and the requireCostBudget gate use, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.
+ * Who consumed the shared monthly LLM budget. Completed harness_engine_runs.cost_usd for the current UTC month, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.
 
  */
 export interface CompanySpendByUser {

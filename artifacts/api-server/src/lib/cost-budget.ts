@@ -1,7 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
-import { and, gte, sql } from "drizzle-orm";
+import { and, gte, lt, sql } from "drizzle-orm";
 import {
   db,
+  costBudgetReservationsTable,
   harnessEngineRunsTable,
   type Subscriber,
   type SubscriberTier,
@@ -141,6 +142,142 @@ export async function currentMonthCostGlobal(): Promise<number> {
   return Number.isFinite(n) ? n : 0;
 }
 
+/**
+ * Committed spend plus live in-flight reservations for the current UTC month.
+ * One SQL statement gives a consistent snapshot while a reservation is
+ * atomically replaced by its recorded provider run.
+ */
+export async function currentMonthCostGlobalWithReservations(): Promise<number> {
+  // Keep this as one statement so a reservation-to-ledger reconciliation is
+  // observed as either the reservation or the recorded run, never neither.
+  const result = await db.execute<{ total: string }>(sql`
+    SELECT (
+      COALESCE((
+        SELECT SUM(${harnessEngineRunsTable.costUsd})::numeric
+        FROM ${harnessEngineRunsTable}
+        WHERE ${harnessEngineRunsTable.createdAt} >= date_trunc('month', now() at time zone 'utc')
+      ), 0)
+      + COALESCE((
+        SELECT SUM(${costBudgetReservationsTable.amountUsd})::numeric
+        FROM ${costBudgetReservationsTable}
+        WHERE ${costBudgetReservationsTable.createdAt} >= date_trunc('month', now() at time zone 'utc')
+          AND ${costBudgetReservationsTable.expiresAt} > now()
+      ), 0)
+    )::numeric AS total
+  `);
+  const total = result.rows[0]?.total;
+  if (!total) return 0;
+  const n = Number(total);
+  return Number.isFinite(n) ? n : 0;
+}
+
+export interface CostBudgetDenial {
+  status: 402;
+  body: {
+    error: "Monthly LLM cost cap reached";
+    code: "COST_CAP_EXCEEDED";
+    usedUsd: number;
+    capUsd: number;
+    detail: string;
+  };
+}
+
+export class CostBudgetExceededError extends Error {
+  constructor(readonly denial: CostBudgetDenial) {
+    super(denial.body.error);
+    this.name = "CostBudgetExceededError";
+  }
+}
+
+export type CostBudgetReservationResult =
+  | { ok: true; reservationId: string }
+  | { ok: false; denial: CostBudgetDenial };
+
+const COST_BUDGET_RESERVATION_TTL_MS = 60 * 60 * 1000;
+
+function costBudgetDenial(usedUsd: number, capUsd: number): CostBudgetDenial {
+  return {
+    status: 402,
+    body: {
+      error: "Monthly LLM cost cap reached",
+      code: "COST_CAP_EXCEEDED",
+      usedUsd,
+      capUsd,
+      detail:
+        "The company-wide monthly LLM spend cap has been reached or does not have enough remaining balance for a safe model call. It resets at the start of next month UTC. Contact an admin to raise STAFF_MONTHLY_COST_CAP_USD sooner.",
+    },
+  };
+}
+
+/**
+ * Reserve a conservative upper bound for one provider request. A transaction-
+ * scoped PostgreSQL advisory lock makes the sum-and-insert atomic across API
+ * workers. Amounts are rounded upward to the ledger's six decimal places.
+ */
+export async function reserveCostBudget(
+  estimatedCostUsd: number,
+): Promise<CostBudgetReservationResult> {
+  if (!Number.isFinite(estimatedCostUsd) || estimatedCostUsd <= 0) {
+    throw new Error("A positive finite model-call cost estimate is required.");
+  }
+  const amountUsd = (Math.ceil(estimatedCostUsd * 1_000_000) / 1_000_000).toFixed(6);
+
+  return db.transaction(async (tx) => {
+    // All workers use the same lock key. Keep the lock transaction short; it
+    // covers only counting and inserting, never the external provider call.
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(742193, 1)`);
+    await tx
+      .delete(costBudgetReservationsTable)
+      .where(lt(costBudgetReservationsTable.expiresAt, sql`now()`));
+
+    const [spentRows, reservationRows] = await Promise.all([
+      tx
+        .select({
+          total: sql<string>`COALESCE(SUM(${harnessEngineRunsTable.costUsd})::numeric, 0)`,
+        })
+        .from(harnessEngineRunsTable)
+        .where(gte(harnessEngineRunsTable.createdAt, sql`date_trunc('month', now() at time zone 'utc')`)),
+      tx
+        .select({
+          total: sql<string>`COALESCE(SUM(${costBudgetReservationsTable.amountUsd})::numeric, 0)`,
+        })
+        .from(costBudgetReservationsTable)
+        .where(
+          and(
+            gte(costBudgetReservationsTable.createdAt, sql`date_trunc('month', now() at time zone 'utc')`),
+            gte(costBudgetReservationsTable.expiresAt, sql`now()`),
+          ),
+        ),
+    ]);
+    const spentUsd = Number(spentRows[0]?.total ?? 0);
+    const reservedUsd = Number(reservationRows[0]?.total ?? 0);
+    const usedUsd = spentUsd + reservedUsd;
+    const capUsd = globalMonthlyCostCapUsd();
+    maybeDispatchCostCapAlerts(usedUsd, capUsd);
+
+    if (usedUsd >= capUsd || usedUsd + Number(amountUsd) > capUsd) {
+      return { ok: false, denial: costBudgetDenial(usedUsd, capUsd) };
+    }
+
+    const [reservation] = await tx
+      .insert(costBudgetReservationsTable)
+      .values({
+        amountUsd,
+        expiresAt: new Date(Date.now() + COST_BUDGET_RESERVATION_TTL_MS),
+      })
+      .returning({ id: costBudgetReservationsTable.id });
+    if (!reservation) throw new Error("Failed to persist model-call cost reservation.");
+    return { ok: true, reservationId: reservation.id };
+  });
+}
+
+/** Release a reservation after a provider call fails before returning usage. */
+export async function releaseCostBudgetReservation(reservationId: string): Promise<void> {
+  await db
+    .delete(costBudgetReservationsTable)
+    .where(eq(costBudgetReservationsTable.id, reservationId));
+}
+
 export interface CostStatus {
   usedUsd: number;
   capUsd: number;
@@ -220,17 +357,6 @@ export async function requireGlobalCostBudget(
   next();
 }
 
-export interface CostBudgetDenial {
-  status: 402;
-  body: {
-    error: "Monthly LLM cost cap reached";
-    code: "COST_CAP_EXCEEDED";
-    usedUsd: number;
-    capUsd: number;
-    detail: string;
-  };
-}
-
 /**
  * Return the standard global-cap response when spend has reached the cap.
  * Callers that make multiple model calls in one request can recheck between
@@ -241,23 +367,13 @@ export async function getCostBudgetDenial(
   userId: string | null,
 ): Promise<CostBudgetDenial | null> {
   try {
-    const usedUsd = await currentMonthCostGlobal();
+    const usedUsd = await currentMonthCostGlobalWithReservations();
     const capUsd = globalMonthlyCostCapUsd();
     // Fire-and-forget: email admins the first time spend crosses 80/95/100%
     // of the cap this UTC month (exactly-once via cost_cap_notifications).
     maybeDispatchCostCapAlerts(usedUsd, capUsd);
     if (usedUsd >= capUsd) {
-      return {
-        status: 402,
-        body: {
-          error: "Monthly LLM cost cap reached",
-          code: "COST_CAP_EXCEEDED",
-          usedUsd,
-          capUsd,
-          detail:
-            "The company-wide monthly LLM spend cap has been reached. It resets at the start of next month UTC. Contact an admin to raise STAFF_MONTHLY_COST_CAP_USD sooner.",
-        },
-      };
+      return costBudgetDenial(usedUsd, capUsd);
     }
   } catch (err) {
     // Cost-budget lookup must never harden into a hard failure mode — if the

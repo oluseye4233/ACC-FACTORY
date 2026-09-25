@@ -29,7 +29,11 @@ import {
 } from "@workspace/api-zod";
 import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { requireAuth } from "../lib/auth";
-import { getCostBudgetDenial, requireCostBudget } from "../lib/cost-budget";
+import {
+  CostBudgetExceededError,
+  getCostBudgetDenial,
+  requireCostBudget,
+} from "../lib/cost-budget";
 import {
   callLlmJson,
   resolveProvider,
@@ -1029,6 +1033,7 @@ router.post(
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "SPC Player provider execution failed";
+      const budgetExceeded = err instanceof CostBudgetExceededError;
       const failedPersisted = await persistFailure(
         execution.id,
         req.localUser!.id,
@@ -1037,6 +1042,7 @@ router.post(
         transitions,
         message,
         attemptToken,
+        budgetExceeded ? "monthly_cost_cap_reached" : undefined,
       );
       if (!failedPersisted) {
         res.status(409).json({ error: "SPC Player execution attempt was superseded" });

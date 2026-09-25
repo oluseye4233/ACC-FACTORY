@@ -931,7 +931,7 @@ export const GetCompanySpendResponse = zod.object({
   "thresholdPercent": zod.number().describe('Threshold crossed when the alert was sent: 80, 95, or 100 (percent of the monthly cap)'),
   "sentAt": zod.coerce.date().describe('When the admin alert email was dispatched')
 })).describe('One-time admin threshold alert emails (80\/95\/100% of the cap) already dispatched this UTC month, read from the exactly-once cost_cap_notifications stamps. Lets staff see the escalation already happened without pinging admins again.\n')
-}).describe('Company-wide LLM spend for the current UTC calendar month against the single shared monthly cost cap (STAFF_MONTHLY_COST_CAP_USD). Uses the exact same SUM over harness_engine_runs.cost_usd that the requireCostBudget gate enforces, so the meter always matches the server\'s own 402 decision.\n')
+}).describe('Completed company-wide LLM spend for the current UTC month. While a provider call is in flight, enforcement also counts its temporary worst-case reservation, which is replaced by actual spend when the call finishes.\n')
 
 
 /**
@@ -949,7 +949,7 @@ export const GetCompanySpendByUserResponse = zod.object({
   "runs": zod.number().describe('Engine runs recorded this month for this user'),
   "sharePercent": zod.number().describe('This user\'s share of the company-wide month-to-date spend, 0-100')
 }))
-}).describe('Who is consuming the shared monthly LLM budget. Same SUM over harness_engine_runs.cost_usd for the current UTC month that the company-wide meter and the requireCostBudget gate use, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.\n')
+}).describe('Who consumed the shared monthly LLM budget. Completed harness_engine_runs.cost_usd for the current UTC month, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.\n')
 
 
 /**

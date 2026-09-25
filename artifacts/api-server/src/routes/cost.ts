@@ -20,12 +20,10 @@ const router: IRouter = Router();
 /**
  * GET /api/me/company-spend
  *
- * The company-wide spend meter. Returns the current UTC-month SUM over
- * `harness_engine_runs.cost_usd` across ALL users against the single shared
- * cap (`STAFF_MONTHLY_COST_CAP_USD`) — the exact same numbers the
- * `requireCostBudget` gate uses when deciding to refuse an engine run with
- * 402 COST_CAP_EXCEEDED, so what staff see always matches what the server
- * enforces.
+ * The company-wide spend meter. Returns completed provider spend for the
+ * current UTC month. During an in-flight call, the enforcement gate also
+ * counts its temporary worst-case reservation; the reservation is replaced
+ * with actual spend when the provider call finishes.
  *
  * warnLevel thresholds: ok < 80%, warn >= 80%, critical >= 95%,
  * blocked once usedUsd >= capUsd (engine routes are now refusing).
@@ -72,10 +70,9 @@ router.get("/me/company-spend", requireAuth, async (req, res) => {
 /**
  * GET /api/me/company-spend/by-user
  *
- * Who is consuming the shared monthly LLM budget. Groups the exact same
- * current-UTC-month SUM over `harness_engine_runs.cost_usd` that the
- * company-wide meter uses by user, so the per-person rows always add up to
- * the meter's total. Shared view (any authenticated staff member) — the
+ * Who is consuming completed spend from the shared monthly LLM budget.
+ * Groups the current-UTC-month `harness_engine_runs.cost_usd` by user, so the
+ * per-person rows add up to the completed-spend meter. Shared view (any authenticated staff member) — the
  * internal-staff access model gives every code-authenticated member full
  * visibility, letting the team self-correct before the cap blocks everyone.
  */

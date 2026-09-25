@@ -36,3 +36,19 @@ provider response, and otherwise spend again on later stages or final evaluation
 
 **How to apply:** Reuse the shared denial check between calls, retain completed outputs,
 and stop before invoking any subsequent stage.
+
+## Concurrent calls
+
+Every tracked provider call must reserve a conservative maximum charge in shared Postgres
+under a transaction-scoped advisory lock before dispatch. On success, insert the actual
+run row and remove the reservation in one transaction; on provider failure, release it.
+If persisting actual usage fails, keep the reservation until its expiry rather than
+opening an unaccounted-spend gap.
+
+**Why:** Route-level checks and process-local locks cannot coordinate simultaneous
+requests across API workers. An estimate based on the full allowed output plus a
+conservative prompt-token bound prevents concurrent calls from all consuming the same
+remaining balance.
+
+**How to apply:** Keep provider dispatch and reservation in the shared LLM call layer.
+Do not add a per-process counter or remove the reservation before the usage row commits.

@@ -9,6 +9,7 @@ import {
   harnessFeatureStateTable,
   harnessEscalationsTable,
   harnessEngineRunsTable,
+  costBudgetReservationsTable,
   LLM_PROVIDERS,
   type ArtifactType,
   type LlmProvider,
@@ -30,6 +31,11 @@ import { computeCostUsd } from "../lib/pricing";
 import { logger } from "../lib/logger";
 import { maybeDispatchHighCostAlerts } from "../lib/notification-dispatch";
 import { tryIssueSku } from "../lib/sku";
+import {
+  CostBudgetExceededError,
+  releaseCostBudgetReservation,
+  reserveCostBudget,
+} from "../lib/cost-budget";
 
 // Provider-specific default models.
 export const PROVIDER_MODELS: Record<LlmProvider, string> = {
@@ -218,10 +224,11 @@ async function recordRun(
   inputTokens: number,
   outputTokens: number,
   durationMs: number,
-): Promise<void> {
+  reservationId?: string | null,
+): Promise<boolean> {
   try {
     const cost = computeCostUsd(modelId, inputTokens, outputTokens);
-    await db.insert(harnessEngineRunsTable).values({
+    const values = {
       sessionId: ctx.sessionId,
       userId: ctx.userId,
       engineId: ctx.engineId,
@@ -231,7 +238,19 @@ async function recordRun(
       outputTokens,
       costUsd: cost.toFixed(6),
       durationMs,
-    });
+    };
+    if (reservationId) {
+      // Commit actual usage and remove its reservation together, so the
+      // monthly-cap sum cannot observe a gap between the two representations.
+      await db.transaction(async (tx) => {
+        await tx.insert(harnessEngineRunsTable).values(values);
+        await tx
+          .delete(costBudgetReservationsTable)
+          .where(eq(costBudgetReservationsTable.id, reservationId));
+      });
+    } else {
+      await db.insert(harnessEngineRunsTable).values(values);
+    }
     // Fire-and-forget: notify org owners/admins subscribed to high-cost
     // alerts. Crashes are swallowed inside the dispatcher so telemetry stays
     // best-effort. Skipped for session-less runs (ingestion / cartridge) — the
@@ -245,8 +264,12 @@ async function recordRun(
         occurredAt: new Date(),
       });
     }
+    return true;
   } catch (err) {
     logger.warn({ err }, "Failed to record harness_engine_runs row");
+    // Keep the reservation until its TTL expires when recording fails; dropping
+    // it here would let unaccounted provider spend slip through the cap.
+    return false;
   }
 }
 
@@ -308,6 +331,10 @@ export function resolveProvider(
  * Engines call this from their try/catch around resolveProvider.
  */
 export function sendProviderTierError(res: Response, err: unknown): boolean {
+  if (err instanceof CostBudgetExceededError) {
+    res.status(err.denial.status).json(err.denial.body);
+    return true;
+  }
   if (err instanceof ProviderRequiresTierError) {
     res.status(403).json({
       error: "PROVIDER_REQUIRES_TIER",
@@ -592,41 +619,71 @@ export async function callLlm(
     if (block) finalSystem = `${block}\n\n${systemPrompt}`;
   }
 
+  let reservationId: string | null = null;
   let result: { text: string; inputTokens: number; outputTokens: number; modelId: string };
-  switch (provider) {
-    case "openai":
-      result = await callOpenAIImpl(finalSystem, userPrompt, jsonMode);
-      break;
-    case "gemini":
-      result = await callGeminiImpl(finalSystem, userPrompt, jsonMode);
-      break;
-    case "deepseek":
-    case "kimi":
-    case "qwen":
-    case "glm":
-      result = await callOpenAICompatibleImpl(
-        provider,
-        finalSystem,
-        userPrompt,
-        jsonMode,
+  try {
+    if (ctx) {
+      // UTF-8 bytes conservatively upper-bound the prompt token count, while
+      // MAX_TOKENS covers the provider's maximum output for every supported
+      // integration. The reserve is converted to actual usage on completion.
+      const inputTokenUpperBound = Buffer.byteLength(`${finalSystem}\n${userPrompt}`, "utf8");
+      const estimatedCostUsd = computeCostUsd(
+        PROVIDER_MODELS[provider],
+        inputTokenUpperBound,
+        MAX_TOKENS,
       );
-      break;
-    case "claude":
-    default:
-      result = await callClaudeImpl(finalSystem, userPrompt);
-      break;
+      const reservation = await reserveCostBudget(estimatedCostUsd);
+      if (!reservation.ok) throw new CostBudgetExceededError(reservation.denial);
+      reservationId = reservation.reservationId;
+    }
+
+    switch (provider) {
+      case "openai":
+        result = await callOpenAIImpl(finalSystem, userPrompt, jsonMode);
+        break;
+      case "gemini":
+        result = await callGeminiImpl(finalSystem, userPrompt, jsonMode);
+        break;
+      case "deepseek":
+      case "kimi":
+      case "qwen":
+      case "glm":
+        result = await callOpenAICompatibleImpl(
+          provider,
+          finalSystem,
+          userPrompt,
+          jsonMode,
+        );
+        break;
+      case "claude":
+      default:
+        result = await callClaudeImpl(finalSystem, userPrompt);
+        break;
+    }
+    if (ctx) {
+      await recordRun(
+        ctx,
+        provider,
+        result.modelId,
+        result.inputTokens,
+        result.outputTokens,
+        Date.now() - start,
+        reservationId,
+      );
+      // On successful ledger write the reservation was deleted atomically.
+      // If the write failed, leave it to expire rather than undercount spend.
+      reservationId = null;
+    }
+    return result.text;
+  } finally {
+    if (reservationId) {
+      try {
+        await releaseCostBudgetReservation(reservationId);
+      } catch (err) {
+        logger.warn({ err, reservationId }, "Failed to release model-call cost reservation");
+      }
+    }
   }
-  if (ctx) {
-    await recordRun(
-      ctx,
-      provider,
-      result.modelId,
-      result.inputTokens,
-      result.outputTokens,
-      Date.now() - start,
-    );
-  }
-  return result.text;
 }
 
 /** Extract the first JSON object/array from a string (tolerates stray prose). */

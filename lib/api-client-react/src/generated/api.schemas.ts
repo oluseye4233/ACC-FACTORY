@@ -2196,7 +2196,7 @@ export interface CostCapAlertSent {
 }
 
 /**
- * Company-wide LLM spend for the current UTC calendar month against the single shared monthly cost cap (STAFF_MONTHLY_COST_CAP_USD). Uses the exact same SUM over harness_engine_runs.cost_usd that the requireCostBudget gate enforces, so the meter always matches the server's own 402 decision.
+ * Completed company-wide LLM spend for the current UTC month. While a provider call is in flight, enforcement also counts its temporary worst-case reservation, which is replaced by actual spend when the call finishes.
 
  */
 export interface CompanySpend {
@@ -2231,7 +2231,7 @@ export interface CompanySpendUserRow {
 }
 
 /**
- * Who is consuming the shared monthly LLM budget. Same SUM over harness_engine_runs.cost_usd for the current UTC month that the company-wide meter and the requireCostBudget gate use, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.
+ * Who consumed the shared monthly LLM budget. Completed harness_engine_runs.cost_usd for the current UTC month, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.
 
  */
 export interface CompanySpendByUser {

@@ -267,6 +267,13 @@
       "when": 1790086937369,
       "tag": "0037_lonely_wolverine",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1790312118463,
+      "tag": "0038_classy_flatman",
+      "breakpoints": true
     }
   ]
 }
