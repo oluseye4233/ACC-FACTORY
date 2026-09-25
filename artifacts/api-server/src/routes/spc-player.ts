@@ -29,7 +29,7 @@ import {
 } from "@workspace/api-zod";
 import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { requireAuth } from "../lib/auth";
-import { requireCostBudget } from "../lib/cost-budget";
+import { getCostBudgetDenial, requireCostBudget } from "../lib/cost-budget";
 import {
   callLlmJson,
   resolveProvider,
@@ -641,13 +641,22 @@ async function persistFailure(
   transitions: Transition[],
   error: string,
   attemptToken: string,
+  reason?: string,
 ): Promise<boolean> {
   const now = new Date();
   const updated = await fencedUpdate(executionId, userId, attemptToken, {
       status: "failed",
       stageResults: stages,
       governanceEvaluation: null,
-      transitions: [...transitions, { from: "RUNNING", to: "FAILED", at: now.toISOString() }],
+      transitions: [
+        ...transitions,
+        {
+          from: "RUNNING",
+          to: "FAILED",
+          at: now.toISOString(),
+          ...(reason ? { reason } : {}),
+        },
+      ],
       executionAdvisory: executionAdvisory(profile, stages),
       distributionPlan: PLAN_ONLY_DISTRIBUTION,
       error,
@@ -927,9 +936,30 @@ router.post(
 
     let provider: LlmProvider = "claude";
     let governanceEvaluation: GovernanceEvaluation | null = null;
+    const stopIfCostCapReached = async (): Promise<boolean> => {
+      const denial = await getCostBudgetDenial(req, req.localUser!.id);
+      if (!denial) return false;
+      const failedPersisted = await persistFailure(
+        execution.id,
+        req.localUser!.id,
+        profile,
+        stages,
+        transitions,
+        denial.body.error,
+        attemptToken,
+        "monthly_cost_cap_reached",
+      );
+      if (!failedPersisted) {
+        res.status(409).json({ error: "SPC Player execution attempt was superseded" });
+      } else {
+        res.status(denial.status).json(denial.body);
+      }
+      return true;
+    };
     try {
       provider = resolveProvider(req, input.data.provider, "claude");
       for (let index = 0; index < orderedCards.length; index += 1) {
+        if (await stopIfCostCapReached()) return;
         const card = orderedCards[index]!;
         const result = await callLlmJson(
           provider,
@@ -970,6 +1000,7 @@ router.post(
           return;
         }
       }
+      if (await stopIfCostCapReached()) return;
       const evaluation = await callLlmJson(
         provider,
         "You are the final governance evaluator for a conservative generic SPC Player run derived from a user-authorized REVERB v3 source. Evaluate only the retained card results below. Return independent integer scores from 0 through 100 for clarity, truthfulness, and detectability. Never return a composite score.",

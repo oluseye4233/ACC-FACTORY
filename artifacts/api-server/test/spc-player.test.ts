@@ -16,6 +16,7 @@ import {
   spcPlayerRunsTable,
   usersTable,
 } from "@workspace/db";
+import { currentMonthCostGlobal } from "../src/lib/cost-budget";
 import { ensureStaffSubscriber, ensureStaffUser } from "../src/lib/staff-auth";
 
 const { callLlmJsonMock, resolveProviderMock } = vi.hoisted(() => ({
@@ -567,6 +568,91 @@ describe("SPC Player supported backend foundation", () => {
         .where(eq(spcPlayerRunsTable.id, created.id))
         .limit(1);
       expect(execution).toBeUndefined();
+    } finally {
+      if (previousCap === undefined) delete process.env.STAFF_MONTHLY_COST_CAP_USD;
+      else process.env.STAFF_MONTHLY_COST_CAP_USD = previousCap;
+    }
+  });
+
+  test("stops after a provider call crosses the monthly cap and keeps completed stages retryable", async () => {
+    const catalog = (await (await api("/api/spc-player/catalog")).json()) as Array<{ id: string }>;
+    const createResponse = await api("/api/spc-player/runs", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: `Mid-run cost cap ${randomUUID()}`,
+        brief: "Stop after the first card crosses the monthly cap.",
+        selectedCardIds: [catalog[0]!.id, catalog[1]!.id],
+      }),
+    });
+    const created = (await createResponse.json()) as { id: string };
+    const [owner] = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.clerkUserId, ownerClerkId))
+      .limit(1);
+    expect(owner).toBeDefined();
+
+    const previousCap = process.env.STAFF_MONTHLY_COST_CAP_USD;
+    const usedBefore = await currentMonthCostGlobal();
+    process.env.STAFF_MONTHLY_COST_CAP_USD = String(usedBefore + 0.5);
+    const original = callLlmJsonMock.getMockImplementation()!;
+    callLlmJsonMock.mockImplementation(async (...args: unknown[]) => {
+      const result = await original(...args);
+      await db.insert(harnessEngineRunsTable).values({
+        sessionId: null,
+        userId: owner!.id,
+        engineId: 30,
+        modelId: "claude-sonnet-4-6",
+        inputTokens: 1,
+        outputTokens: 1,
+        costUsd: "1.000000",
+        durationMs: 1,
+      });
+      return result;
+    });
+
+    try {
+      const response = await api(`/api/spc-player/runs/${created.id}/execute`, {
+        method: "POST",
+      });
+      expect(response.status).toBe(402);
+      expect(await response.json()).toMatchObject({
+        error: "Monthly LLM cost cap reached",
+        code: "COST_CAP_EXCEEDED",
+        usedUsd: expect.any(Number),
+        capUsd: usedBefore + 0.5,
+        detail: expect.any(String),
+      });
+      expect(callLlmJsonMock).toHaveBeenCalledTimes(1);
+
+      const persisted = (await (
+        await api(`/api/spc-player/runs/${created.id}`)
+      ).json()) as {
+        status: string;
+        canExecute: boolean;
+        stageResults: Array<{ stageIndex: number; cardId: string; invoked: boolean }>;
+        governanceEvaluation: unknown;
+        transitions: Array<{ from: string; to: string; reason?: string }>;
+        error: string | null;
+      };
+      expect(persisted).toMatchObject({
+        status: "FAILED",
+        canExecute: true,
+        governanceEvaluation: null,
+        error: "Monthly LLM cost cap reached",
+      });
+      expect(persisted.stageResults).toHaveLength(1);
+      expect(persisted.stageResults[0]).toMatchObject({
+        stageIndex: 0,
+        cardId: catalog[0]!.id,
+        invoked: true,
+      });
+      expect(persisted.transitions.at(-1)).toMatchObject({
+        from: "RUNNING",
+        to: "FAILED",
+        reason: "monthly_cost_cap_reached",
+      });
     } finally {
       if (previousCap === undefined) delete process.env.STAFF_MONTHLY_COST_CAP_USD;
       else process.env.STAFF_MONTHLY_COST_CAP_USD = previousCap;

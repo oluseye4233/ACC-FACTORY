@@ -25,3 +25,14 @@ runs table required a session. Both holes had to close for the cap to actually b
   queries; it would silently re-open the pre-session hole.
 - Any code touching a run row must treat `sessionId` as nullable end-to-end (schema, the
   `RunContext`/serializer types, and the cost-summary `RecentRun` response type).
+
+Routes that make several model calls during one request must recheck the shared cap
+immediately before each call; the request middleware only protects the initial entry.
+If a call crosses the cap, persist the completed partial results in a retryable failed
+state before returning the standard 402 response, and do not invoke later stages.
+
+**Why:** A multi-call workflow can pass its initial check, cross the global cap on one
+provider response, and otherwise spend again on later stages or final evaluation.
+
+**How to apply:** Reuse the shared denial check between calls, retain completed outputs,
+and stop before invoking any subsequent stage.

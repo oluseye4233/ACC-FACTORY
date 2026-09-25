@@ -190,7 +190,12 @@ export async function requireCostBudget(
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  return enforceGlobalCostBudget(req, res, next, userId);
+  const denial = await getCostBudgetDenial(req, userId);
+  if (denial) {
+    res.status(denial.status).json(denial.body);
+    return;
+  }
+  next();
 }
 
 /**
@@ -207,15 +212,34 @@ export async function requireGlobalCostBudget(
   res: Response,
   next: NextFunction,
 ): Promise<void> {
-  return enforceGlobalCostBudget(req, res, next, null);
+  const denial = await getCostBudgetDenial(req, null);
+  if (denial) {
+    res.status(denial.status).json(denial.body);
+    return;
+  }
+  next();
 }
 
-async function enforceGlobalCostBudget(
+export interface CostBudgetDenial {
+  status: 402;
+  body: {
+    error: "Monthly LLM cost cap reached";
+    code: "COST_CAP_EXCEEDED";
+    usedUsd: number;
+    capUsd: number;
+    detail: string;
+  };
+}
+
+/**
+ * Return the standard global-cap response when spend has reached the cap.
+ * Callers that make multiple model calls in one request can recheck between
+ * calls and preserve their own execution state before sending this response.
+ */
+export async function getCostBudgetDenial(
   req: Request,
-  res: Response,
-  next: NextFunction,
   userId: string | null,
-): Promise<void> {
+): Promise<CostBudgetDenial | null> {
   try {
     const usedUsd = await currentMonthCostGlobal();
     const capUsd = globalMonthlyCostCapUsd();
@@ -223,22 +247,23 @@ async function enforceGlobalCostBudget(
     // of the cap this UTC month (exactly-once via cost_cap_notifications).
     maybeDispatchCostCapAlerts(usedUsd, capUsd);
     if (usedUsd >= capUsd) {
-      res.status(402).json({
-        error: "Monthly LLM cost cap reached",
-        code: "COST_CAP_EXCEEDED",
-        usedUsd,
-        capUsd,
-        detail:
-          "The company-wide monthly LLM spend cap has been reached. It resets at the start of next month UTC. Contact an admin to raise STAFF_MONTHLY_COST_CAP_USD sooner.",
-      });
-      return;
+      return {
+        status: 402,
+        body: {
+          error: "Monthly LLM cost cap reached",
+          code: "COST_CAP_EXCEEDED",
+          usedUsd,
+          capUsd,
+          detail:
+            "The company-wide monthly LLM spend cap has been reached. It resets at the start of next month UTC. Contact an admin to raise STAFF_MONTHLY_COST_CAP_USD sooner.",
+        },
+      };
     }
-    next();
   } catch (err) {
     // Cost-budget lookup must never harden into a hard failure mode — if the
     // SUM query fails (DB blip), log and let the request through. The worst
     // case is a brief window where one engine call slips past the spend ceiling.
     req.log.warn({ err, userId }, "requireCostBudget lookup failed; allowing request");
-    next();
   }
+  return null;
 }
