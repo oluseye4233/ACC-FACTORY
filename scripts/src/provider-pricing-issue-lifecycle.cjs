@@ -120,12 +120,30 @@ async function syncProviderPricingReviewIssue({ github, context, core, env }) {
       const missing = source.missingModels?.length
         ? `\nConfigured model mentions no longer found: ${source.missingModels.join(", ")}.`
         : "";
+      const differences = [];
+      if (source.addedModels?.length) {
+        differences.push(`- Newly listed models: ${source.addedModels.join(", ")}`);
+      }
+      if (source.retiredModels?.length) {
+        differences.push(`- Retired models: ${source.retiredModels.join(", ")}`);
+      }
+      for (const rate of source.addedModelRates || []) {
+        differences.push(
+          `- New model rate: ${rate.modelId} ${rate.field}: ${rate.formattedCurrent ?? rate.current ?? "(not listed)"}`,
+        );
+      }
+      for (const change of source.rateChanges || []) {
+        differences.push(
+          `- Rate change: ${change.modelId} ${change.field}: ${change.formattedPrevious ?? change.previous ?? "(not listed)"} -> ${change.formattedCurrent ?? change.current ?? "(not listed)"}`,
+        );
+      }
       return [
         `### Source changed: ${source.id} (${source.provider})`,
         `- Models: ${models}`,
         `- Official source: ${source.url}`,
         `- Reviewed fingerprint: \`${source.reviewedHash || "(none recorded)"}\``,
         `- Current fingerprint: \`${source.currentHash}\`${missing}`,
+        ...differences,
       ].join("\n");
     }
     return [

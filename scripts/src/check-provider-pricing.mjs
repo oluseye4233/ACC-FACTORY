@@ -2,6 +2,11 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  compareProviderRates,
+  extractProviderRates,
+  formatProviderRate,
+} from "./provider-pricing-extractors.mjs";
 
 const manifestPath = fileURLToPath(
   new URL("../data/provider-pricing-snapshots.json", import.meta.url),
@@ -27,6 +32,23 @@ function normalizeDocument(body) {
     .trim();
 }
 
+function emptyComparison() {
+  return {
+    addedModels: [],
+    retiredModels: [],
+    addedModelRates: [],
+    rateChanges: [],
+  };
+}
+
+function hasRateChanges(comparison) {
+  return (
+    comparison.addedModels.length > 0 ||
+    comparison.retiredModels.length > 0 ||
+    comparison.rateChanges.length > 0
+  );
+}
+
 export async function fetchReviewedSource(source, fetchImpl = fetch) {
   const response = await fetchImpl(source.url, {
     headers: {
@@ -50,13 +72,19 @@ export async function fetchReviewedSource(source, fetchImpl = fetch) {
   }
 
   const normalized = normalizeDocument(document);
-  const expectedModelMentions = source.modelMentions ?? source.modelIds;
+  const expectedModelMentions = source.modelMentions ?? source.modelIds ?? [];
   const missingModels = expectedModelMentions.filter(
     (mention) => !normalized.toLowerCase().includes(mention.toLowerCase()),
   );
+  const hasReviewedRateSnapshot =
+    Object.hasOwn(source, "rates") || Array.isArray(source.observedModelIds);
+  const currentRates = hasReviewedRateSnapshot
+    ? extractProviderRates(source, document)
+    : undefined;
 
   return {
     currentHash: createHash("sha256").update(normalized, "utf8").digest("hex"),
+    currentRates,
     missingModels,
   };
 }
@@ -65,18 +93,29 @@ export async function inspectSources(sources, fetchImpl = fetch) {
   return Promise.all(
     sources.map(async (source) => {
       try {
-        const { currentHash, missingModels } = await fetchReviewedSource(
-          source,
-          fetchImpl,
-        );
+        const { currentHash, currentRates, missingModels } =
+          await fetchReviewedSource(source, fetchImpl);
+        const comparison = currentRates
+          ? compareProviderRates(
+              source.rates,
+              currentRates,
+              source.observedModelIds,
+            )
+          : emptyComparison();
+        const status =
+          source.sha256 === currentHash &&
+          missingModels.length === 0 &&
+          !hasRateChanges(comparison)
+            ? "ok"
+            : "changed";
+
         return {
           source,
           currentHash,
+          currentRates,
           missingModels,
-          status:
-            source.sha256 === currentHash && missingModels.length === 0
-              ? "ok"
-              : "changed",
+          comparison,
+          status,
         };
       } catch (error) {
         return {
@@ -89,29 +128,50 @@ export async function inspectSources(sources, fetchImpl = fetch) {
   );
 }
 
+function reportSource(result) {
+  const comparison = result.comparison ?? emptyComparison();
+  const rates = result.currentRates ?? {};
+  return {
+    id: result.source.id,
+    provider: result.source.provider,
+    url: result.source.url,
+    modelIds: result.source.modelIds,
+    status: result.status,
+    reviewedHash: result.source.sha256,
+    currentHash: result.currentHash,
+    missingModels: result.missingModels,
+    addedModels: comparison.addedModels,
+    retiredModels: comparison.retiredModels,
+    addedModelRates: comparison.addedModelRates.map((addition) => ({
+      ...addition,
+      formattedCurrent: formatProviderRate(
+        addition.current,
+        rates[addition.modelId],
+        addition.field,
+      ),
+    })),
+    rateChanges: comparison.rateChanges.map((change) => ({
+      ...change,
+      formattedPrevious: formatProviderRate(
+        change.previous,
+        result.source.rates?.[change.modelId],
+        change.field,
+      ),
+      formattedCurrent: formatProviderRate(
+        change.current,
+        rates[change.modelId],
+        change.field,
+      ),
+    })),
+    error: result.error,
+  };
+}
+
 async function writeGithubOutputs(status, sources, fatalError) {
   if (!GITHUB_OUTPUT) return;
   const report = Buffer.from(
     JSON.stringify({
-      sources: sources.map(
-        ({
-          source,
-          status: sourceStatus,
-          currentHash,
-          missingModels,
-          error,
-        }) => ({
-          id: source.id,
-          provider: source.provider,
-          url: source.url,
-          modelIds: source.modelIds,
-          status: sourceStatus,
-          reviewedHash: source.sha256,
-          currentHash,
-          missingModels,
-          error,
-        }),
-      ),
+      sources: sources.map(reportSource),
       fatalError,
     }),
     "utf8",
@@ -126,32 +186,78 @@ async function writeGithubOutputs(status, sources, fatalError) {
 function logReviewResults(results) {
   const changed = results.filter(({ status }) => status === "changed");
   const unavailable = results.filter(({ status }) => status === "unavailable");
-  if (changed.length > 0) {
-    console.error(
-      `Provider pricing review required: ${changed.length} of ${results.length} official source(s) changed.`,
-    );
-  }
-  for (const { source, currentHash, status, error, missingModels } of results) {
-    if (status === "ok") continue;
-    console.error(
-      `- ${source.id} (${source.provider}; models: ${source.modelIds.join(", ") || "review source for new/retired models"}): ${status === "changed" ? "source fingerprint changed" : "source could not be verified"}`,
-    );
-    console.error(`  Source: ${source.url}`);
-    if (status === "changed") {
-      console.error(`  Reviewed SHA-256: ${source.sha256 || "(none recorded)"}`);
-      console.error(`  Current SHA-256:  ${currentHash}`);
-      if (missingModels?.length > 0) {
-        console.error(
-          `  Configured model mention(s) no longer found: ${missingModels.join(", ")}`,
-        );
-      }
-    } else {
-      console.error(`  Error: ${error}`);
-    }
-  }
   if (changed.length > 0 || unavailable.length > 0) {
     console.error(
-      "Review changed provider pages for rate, model ID, and billing-rule changes. An unavailable page needs verification when service returns. A fingerprint change alone is not proof of a price change. Production prices must only change in a separately reviewed code change. After review, run `pnpm --filter @workspace/scripts run check-provider-pricing -- --accept-current` to record the new source fingerprints.",
+      `Provider pricing review required: ${changed.length} of ${results.length} source(s) changed; ${unavailable.length} unavailable.`,
+    );
+  }
+
+  for (const result of results) {
+    const { source, currentHash, status, error, missingModels } = result;
+    if (status === "ok") continue;
+    console.error(
+      `- ${source.id} (${source.provider}; configured models: ${source.modelIds.join(", ") || "(none)"}): ${status === "changed" ? "review required" : "source could not be verified"}`,
+    );
+    console.error(`  Source: ${source.url}`);
+    if (status === "unavailable") {
+      console.error(`  Error: ${error}`);
+      continue;
+    }
+
+    console.error(`  Reviewed SHA-256: ${source.sha256 || "(none recorded)"}`);
+    console.error(`  Current SHA-256:  ${currentHash}`);
+    if (missingModels?.length > 0) {
+      console.error(
+        `  Configured model mention(s) no longer found: ${missingModels.join(", ")}`,
+      );
+    }
+
+    const comparison = result.comparison ?? emptyComparison();
+    const currentRates = result.currentRates ?? {};
+    if (comparison.addedModels.length > 0) {
+      console.error(
+        `  Newly listed model(s): ${comparison.addedModels.join(", ")}`,
+      );
+    }
+    if (comparison.retiredModels.length > 0) {
+      console.error(
+        `  Retired model(s): ${comparison.retiredModels.join(", ")}`,
+      );
+    }
+    for (const addition of comparison.addedModelRates) {
+      console.error(
+        `  New model rate: ${addition.modelId} ${addition.field}: ${formatProviderRate(addition.current, currentRates[addition.modelId], addition.field)}`,
+      );
+    }
+    for (const change of comparison.rateChanges) {
+      const previous = formatProviderRate(
+        change.previous,
+        source.rates?.[change.modelId],
+        change.field,
+      );
+      const current = formatProviderRate(
+        change.current,
+        currentRates[change.modelId],
+        change.field,
+      );
+      console.error(
+        `  Rate change: ${change.modelId} ${change.field}: ${previous} -> ${current}`,
+      );
+    }
+    if (
+      source.sha256 !== currentHash &&
+      comparison.addedModels.length === 0 &&
+      comparison.retiredModels.length === 0 &&
+      comparison.rateChanges.length === 0 &&
+      missingModels?.length === 0
+    ) {
+      console.error("  No extracted model or rate changes; the page changed elsewhere.");
+    }
+  }
+
+  if (changed.length > 0 || unavailable.length > 0) {
+    console.error(
+      "Review the linked provider pages and each extracted difference. A fingerprint change alone is not proof of a price change. This check never updates production prices. After review, run `pnpm --filter @workspace/scripts run check-provider-pricing -- --accept-current` to record the source fingerprints and observational rate snapshots.",
     );
   }
   if (results.some(({ missingModels }) => missingModels?.length > 0)) {
@@ -161,17 +267,19 @@ function logReviewResults(results) {
   }
 }
 
-export async function run({ acceptCurrent = ACCEPT_CURRENT } = {}) {
-  const currentDate = new Date().toISOString().slice(0, 10);
+export async function run({
+  acceptCurrent = ACCEPT_CURRENT,
+  fetchImpl = fetch,
+} = {}) {
   const rawManifest = await readFile(manifestPath, "utf8");
   const manifest = JSON.parse(rawManifest);
   if (!Array.isArray(manifest.sources) || manifest.sources.length === 0) {
     throw new Error("Provider pricing snapshot manifest has no sources.");
   }
-  const results = await inspectSources(manifest.sources);
-  const changed = results.filter(
-    ({ status }) => status === "changed",
-  );
+
+  const currentDate = new Date().toISOString().slice(0, 10);
+  const results = await inspectSources(manifest.sources, fetchImpl);
+  const changed = results.filter(({ status }) => status === "changed");
   const unavailable = results.filter(({ status }) => status === "unavailable");
   const missingModels = results.some(
     ({ missingModels: absent }) => absent?.length > 0,
@@ -186,35 +294,36 @@ export async function run({ acceptCurrent = ACCEPT_CURRENT } = {}) {
     }
     if (changed.length === 0) {
       await writeGithubOutputs("ok", results);
-      console.log("All official provider pricing sources match their reviewed fingerprints.");
+      console.log(
+        "All official provider pricing sources match their reviewed fingerprints and extracted rate snapshots.",
+      );
       return;
     }
 
-    for (const { source, currentHash } of changed) {
+    for (const result of changed) {
+      const { source, currentHash, currentRates } = result;
       source.sha256 = currentHash;
       source.reviewedOn = currentDate;
+      if (currentRates) {
+        source.rates = currentRates;
+        source.observedModelIds = Object.keys(currentRates).sort();
+      }
       console.log(
-        `Accepted ${source.id} source fingerprint for ${source.modelIds.join(", ")} (${source.url}).`,
+        `Accepted ${source.id} source fingerprint${currentRates ? " and extracted rate snapshot" : ""} (${source.modelIds.join(", ")}) (${source.url}).`,
       );
     }
     await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
     await writeGithubOutputs("ok", results);
     console.log(
-      "Updated source fingerprints only. No model prices were changed; commit this manifest update for review.",
+      "Updated source fingerprints and observational rate snapshots only. Production model prices were not changed; commit this manifest update for review.",
     );
     return;
   }
 
-  if (changed.length === 0) {
-    if (unavailable.length > 0) {
-      await writeGithubOutputs("needs_review", results);
-      logReviewResults(results);
-      process.exitCode = 1;
-      return;
-    }
+  if (changed.length === 0 && unavailable.length === 0) {
     await writeGithubOutputs("ok", results);
     console.log(
-      `All ${results.length} official provider pricing sources match their reviewed fingerprints.`,
+      `All ${results.length} official provider pricing sources match their reviewed fingerprints and extracted rate snapshots.`,
     );
     return;
   }

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "sources": [
     {
       "id": "anthropic",
@@ -8,9 +8,39 @@
       "modelIds": [
         "claude-sonnet-4-6"
       ],
+      "observedModelIds": [
+        "claude-fable-5",
+        "claude-fable-5-1",
+        "claude-haiku-3-5",
+        "claude-haiku-4-5",
+        "claude-mythos-5",
+        "claude-mythos-5-1",
+        "claude-opus-4",
+        "claude-opus-4-1",
+        "claude-opus-4-5",
+        "claude-opus-4-6",
+        "claude-opus-4-7",
+        "claude-opus-4-8",
+        "claude-opus-5",
+        "claude-opus-5-5",
+        "claude-sonnet-4",
+        "claude-sonnet-4-5",
+        "claude-sonnet-4-6",
+        "claude-sonnet-5"
+      ],
       "modelMentions": [
         "Claude Sonnet 4.6"
       ],
+      "rates": {
+        "claude-sonnet-4-6": {
+          "currency": "USD",
+          "inputPerMTok": 3,
+          "outputPerMTok": 15,
+          "cacheWrite5mPerMTok": 3.75,
+          "cacheWrite1hPerMTok": 6,
+          "cachedInputPerMTok": 0.3
+        }
+      },
       "sha256": "e1cf26444d6e70fca3e8e3437c8c21224d787ae30306041ad05a5735a0ddfadd",
       "reviewedOn": "2026-09-26"
     },
@@ -21,6 +51,37 @@
       "modelIds": [
         "gpt-5.4"
       ],
+      "observedModelIds": [
+        "gpt-5.4"
+      ],
+      "rates": {
+        "gpt-5.4": {
+          "currency": "USD",
+          "inputPerMTok": 2.5,
+          "cachedInputPerMTok": 0.25,
+          "outputPerMTok": 15,
+          "inputTiers": [
+            {
+              "maxInputTokens": 272000,
+              "rates": {
+                "currency": "USD",
+                "inputPerMTok": 2.5,
+                "cachedInputPerMTok": 0.25,
+                "outputPerMTok": 15
+              }
+            },
+            {
+              "maxInputTokens": "unbounded",
+              "rates": {
+                "currency": "USD",
+                "inputPerMTok": 5,
+                "cachedInputPerMTok": 0.5,
+                "outputPerMTok": 22.5
+              }
+            }
+          ]
+        }
+      },
       "sha256": "2b50726f03080b532633d07bb963a2f14826c84e86c60e6c65160ee0f123e638",
       "reviewedOn": "2026-09-26"
     },
@@ -31,6 +92,64 @@
       "modelIds": [
         "gemini-3.1-pro-preview"
       ],
+      "observedModelIds": [
+        "gemini-2.5-computer-use-preview-10-2025",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-image",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash-preview-tts",
+        "gemini-2.5-pro",
+        "gemini-2.5-pro-preview-tts",
+        "gemini-3-flash-preview",
+        "gemini-3-pro-image",
+        "gemini-3.1-flash-image",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite-image",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-3.1-pro-preview",
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.5-live-translate-preview",
+        "gemini-3.5-transcribe",
+        "gemini-3.5-transcribe-live",
+        "gemini-3.6-flash",
+        "gemini-3.7-flash",
+        "gemini-3.8-flash",
+        "gemini-3.8-flash-lite-tts",
+        "gemini-3.8-flash-tts",
+        "gemini-3.8-live",
+        "gemini-omni-1.1-flash",
+        "gemini-omni-flash-preview",
+        "gemini-robotics-er-2",
+        "gemini-robotics-er-2-streaming"
+      ],
+      "rates": {
+        "gemini-3.1-pro-preview": {
+          "currency": "USD",
+          "inputPerMTok": 2,
+          "cachedInputPerMTok": 0.2,
+          "outputPerMTok": 12,
+          "cacheStoragePerMTokHour": 4.5,
+          "inputTiers": [
+            {
+              "maxInputTokens": 200000,
+              "rates": {
+                "inputPerMTok": 2,
+                "outputPerMTok": 12,
+                "cachedInputPerMTok": 0.2
+              }
+            },
+            {
+              "maxInputTokens": "unbounded",
+              "rates": {
+                "inputPerMTok": 4,
+                "outputPerMTok": 18,
+                "cachedInputPerMTok": 0.4
+              }
+            }
+          ]
+        }
+      },
       "sha256": "5665b99cf9420978f64b28a6a9f367f51ea886b3bc6d4657cff043c8815894c5",
       "reviewedOn": "2026-09-26"
     },
@@ -41,6 +160,30 @@
       "modelIds": [
         "deepseek-flash"
       ],
+      "observedModelIds": [
+        "deepseek-flash",
+        "deepseek-v4-pro"
+      ],
+      "rates": {
+        "deepseek-flash": {
+          "currency": "USD",
+          "rateVariants": {
+            "offPeak": {
+              "cachedInputPerMTok": 0.003,
+              "inputPerMTok": 0.15,
+              "outputPerMTok": 0.6
+            },
+            "peak": {
+              "cachedInputPerMTok": 0.006,
+              "inputPerMTok": 0.3,
+              "outputPerMTok": 1.2
+            }
+          },
+          "inputPerMTok": 0.3,
+          "cachedInputPerMTok": 0.006,
+          "outputPerMTok": 1.2
+        }
+      },
       "sha256": "b36866ba6516ed978ee9f3f23919dfb00d8ae4f6169e41897e8cd386fde5d934",
       "reviewedOn": "2026-09-26"
     },
@@ -51,6 +194,22 @@
       "modelIds": [
         "kimi-k3"
       ],
+      "observedModelIds": [
+        "kimi-k2.6",
+        "kimi-k2.7-code",
+        "kimi-k2.7-code-highspeed",
+        "kimi-k3"
+      ],
+      "rates": {
+        "kimi-k3": {
+          "currency": "USD",
+          "cacheWrite5mPerMTok": 3,
+          "cacheWrite1hPerMTok": 6,
+          "cachedInputPerMTok": 0.3,
+          "inputPerMTok": 3,
+          "outputPerMTok": 15
+        }
+      },
       "sha256": "e77c81733bc2beab44fe655046c3b9238ecec529c90049eb48b0dbe1a3ecf4ef",
       "reviewedOn": "2026-09-26"
     },
@@ -61,6 +220,94 @@
       "modelIds": [
         "qwen3.7-plus"
       ],
+      "observedModelIds": [
+        "qwen-flash",
+        "qwen-flash-2025-07-28",
+        "qwen-plus",
+        "qwen-plus-2025-01-25",
+        "qwen-plus-2025-04-28",
+        "qwen-plus-2025-07-14",
+        "qwen-plus-2025-07-28",
+        "qwen-plus-2025-09-11",
+        "qwen-plus-2025-12-01",
+        "qwen-plus-latest",
+        "qwen-vl-max",
+        "qwen-vl-plus",
+        "qwen3-coder-30b-a3b-instruct",
+        "qwen3-coder-480b-a35b-instruct",
+        "qwen3-coder-flash",
+        "qwen3-coder-flash-2025-07-28",
+        "qwen3-coder-next",
+        "qwen3-coder-plus",
+        "qwen3-coder-plus-2025-07-22",
+        "qwen3-coder-plus-2025-09-23",
+        "qwen3-max",
+        "qwen3-max-2025-09-23",
+        "qwen3-max-2026-01-23",
+        "qwen3-max-preview",
+        "qwen3-vl-flash",
+        "qwen3-vl-flash-2025-10-15",
+        "qwen3-vl-flash-2026-01-22",
+        "qwen3-vl-plus",
+        "qwen3-vl-plus-2025-09-23",
+        "qwen3-vl-plus-2025-12-19",
+        "qwen3.5-122b-a10b",
+        "qwen3.5-27b",
+        "qwen3.5-35b-a3b",
+        "qwen3.5-397b-a17b",
+        "qwen3.5-flash",
+        "qwen3.5-flash-2026-02-23",
+        "qwen3.5-plus",
+        "qwen3.5-plus-2026-02-15",
+        "qwen3.5-plus-2026-04-20",
+        "qwen3.6-27b",
+        "qwen3.6-35b-a3b",
+        "qwen3.6-flash",
+        "qwen3.6-flash-2026-04-16",
+        "qwen3.6-max-preview",
+        "qwen3.6-plus",
+        "qwen3.6-plus-2026-04-02",
+        "qwen3.7-flash",
+        "qwen3.7-flash-2026-07-15",
+        "qwen3.7-max",
+        "qwen3.7-max-2026-05-17",
+        "qwen3.7-max-2026-05-20",
+        "qwen3.7-max-2026-06-08",
+        "qwen3.7-max-preview",
+        "qwen3.7-plus",
+        "qwen3.7-plus-2026-05-26",
+        "qwen3.8-2.4t-a95b",
+        "qwen3.8-27b",
+        "qwen3.8-flash",
+        "qwen3.8-max",
+        "qwen3.8-max-0902"
+      ],
+      "rates": {
+        "qwen3.7-plus": {
+          "currency": "USD",
+          "inputPerMTok": 0.4,
+          "outputPerMTok": 1.6,
+          "thinkingOutputPerMTok": 1.6,
+          "inputTiers": [
+            {
+              "maxInputTokens": 256000,
+              "rates": {
+                "inputPerMTok": 0.4,
+                "outputPerMTok": 1.6,
+                "thinkingOutputPerMTok": 1.6
+              }
+            },
+            {
+              "maxInputTokens": 1000000,
+              "rates": {
+                "inputPerMTok": 1.2,
+                "outputPerMTok": 4.8,
+                "thinkingOutputPerMTok": 4.8
+              }
+            }
+          ]
+        }
+      },
       "sha256": "49d1e28e1cff0ede43f006907917d64acfaaf3b66f6c1b8d9ff3dcf6ef55fbe5",
       "reviewedOn": "2026-09-26"
     },
@@ -71,6 +318,42 @@
       "modelIds": [
         "glm-5.3"
       ],
+      "observedModelIds": [
+        "glm-4-air-250414",
+        "glm-4-airx",
+        "glm-4-assistant",
+        "glm-4-flashx-250414",
+        "glm-4-long",
+        "glm-4-plus",
+        "glm-4.1v-thinking-flashx",
+        "glm-4.5-air",
+        "glm-4.5v",
+        "glm-4.6v",
+        "glm-4.6v-flashx",
+        "glm-4.7",
+        "glm-4.7-flashx",
+        "glm-4v-plus-0111",
+        "glm-5",
+        "glm-5-turbo",
+        "glm-5.1",
+        "glm-5.2",
+        "glm-5.3",
+        "glm-5.3-flash",
+        "glm-5.3-flashx",
+        "glm-5v-turbo",
+        "glm-ocr",
+        "glm-z1-air",
+        "glm-z1-airx",
+        "glm-z1-flashx"
+      ],
+      "rates": {
+        "glm-5.3": {
+          "currency": "CNY",
+          "inputPerMTok": 8,
+          "outputPerMTok": 28,
+          "cachedInputPerMTok": 2
+        }
+      },
       "sha256": "d757a153583883914c614d66b56513bbb564d3f3186b10789730575a5cc6d8a0",
       "reviewedOn": "2026-09-26"
     },
@@ -81,6 +364,17 @@
       "modelIds": [
         "glm-5.3"
       ],
+      "observedModelIds": [
+        "glm-5.3"
+      ],
+      "rates": {
+        "glm-5.3": {
+          "currency": "USD",
+          "inputPerMTok": 1.4,
+          "outputPerMTok": 4.4,
+          "cachedInputPerMTok": 0.26
+        }
+      },
       "sha256": "c4b9826c1302e845a1bccae4437e434eb450477b24eafb3c7f1a52e3a4309e60",
       "reviewedOn": "2026-09-26"
     }

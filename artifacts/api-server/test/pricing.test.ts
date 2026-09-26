@@ -14,6 +14,8 @@ type ProviderPricingSnapshotManifest = {
     provider: string;
     url: string;
     modelIds: string[];
+    observedModelIds?: string[];
+    rates?: Record<string, unknown>;
     sha256: string;
     reviewedOn: string;
   }>;
@@ -57,6 +59,14 @@ describe("provider token pricing", () => {
           monitoredSource?.modelIds,
           `${modelId} is attributed to its monitored source`,
         ).toContain(modelId);
+        expect(
+          monitoredSource?.observedModelIds,
+          `${modelId} is in the reviewed provider model catalog`,
+        ).toContain(modelId);
+        expect(
+          monitoredSource?.rates?.[modelId],
+          `${modelId} has a separate provider-rate observation`,
+        ).toBeDefined();
         expect(monitoredSource?.sha256, `${modelId} source fingerprint`).toMatch(
           /^[a-f0-9]{64}$/,
         );

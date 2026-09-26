@@ -301,6 +301,26 @@ test("existing duplicate alerts consolidate around the same issue on later failu
         currentHash: "new-fingerprint",
         reviewedHash: "old-fingerprint",
         modelIds: ["model-b"],
+        addedModels: ["model-b-new"],
+        retiredModels: ["model-b-retired"],
+        addedModelRates: [
+          {
+            modelId: "model-b-new",
+            field: "inputPerMTok",
+            current: 2,
+            formattedCurrent: "2 USD",
+          },
+        ],
+        rateChanges: [
+          {
+            modelId: "model-b",
+            field: "inputPerMTok",
+            previous: 1,
+            current: 1.5,
+            formattedPrevious: "1 USD",
+            formattedCurrent: "1.5 USD",
+          },
+        ],
       },
     ],
   };
@@ -316,6 +336,18 @@ test("existing duplicate alerts consolidate around the same issue on later failu
   assert.match(
     mock.issues.find(({ number }) => number === 7).body,
     /actions\/runs\/201/,
+  );
+  assert.match(
+    mock.issues.find(({ number }) => number === 7).body,
+    /Newly listed models: model-b-new/,
+  );
+  assert.match(
+    mock.issues.find(({ number }) => number === 7).body,
+    /Retired models: model-b-retired/,
+  );
+  assert.match(
+    mock.issues.find(({ number }) => number === 7).body,
+    /Rate change: model-b inputPerMTok: 1 USD -> 1.5 USD/,
   );
 
   await syncProviderPricingReviewIssue({
