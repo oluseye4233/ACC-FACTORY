@@ -8,3 +8,11 @@ Monitor official provider rate-card text as a review signal; a page fingerprint 
 **Why:** Provider documentation differs in format and may change for unrelated editorial reasons. The Kimi API pricing HTML page did not include its rate table in fetched text, while its official Markdown page did. A broad source-change signal is safer than silently missing an update, but it needs human triage.
 
 **How to apply:** When adding or changing a monitored provider, verify that the fetched representation contains the model name and rate details, include an official source and review date with its price entry, and require an explicit reviewed change before accepting a new fingerprint. Add model-name aliases where public docs do not show the API ID verbatim. If a configured model mention disappears, keep the alert open until its retirement or renamed identity is reviewed and the manifest is updated.
+
+## Workflow freshness monitoring
+
+A scheduled workflow cannot detect its own future absence; freshness checks must run independently. Preserve the last successful run's timestamp and link in the deduplicated alert so the context remains available after GitHub expires old run records.
+
+**Why:** If the only check is inside the weekly workflow, a disabled or skipped schedule produces no execution capable of raising an alert. Old successful workflow runs are eventually removed under GitHub's retention policy.
+
+**How to apply:** Schedule the watchdog separately, use a grace window longer than the source-check cadence, and close its alert only after a successful check. Keep the last-known success in durable alert content when refreshing the alert.
