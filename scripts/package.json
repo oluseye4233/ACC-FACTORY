@@ -10,6 +10,7 @@
     "cleanup-test-cost-data": "tsx ./src/cleanup-test-cost-data.ts",
     "cron-tick": "tsx ./src/cron-tick.ts",
     "check-provider-pricing": "node ./src/check-provider-pricing.mjs",
+    "test": "node --test ./src/check-provider-pricing.test.mjs",
     "migration-status": "tsx ./src/migration-status.ts",
     "seed-f1000-invites": "tsx ./src/seed-f1000-invites.ts",
     "build-f1000-qr": "tsx ./src/build-f1000-qr.ts",

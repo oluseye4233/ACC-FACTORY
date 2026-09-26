@@ -1,11 +1,13 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const manifestPath = fileURLToPath(
   new URL("../data/provider-pricing-snapshots.json", import.meta.url),
 );
 const ACCEPT_CURRENT = process.argv.slice(2).includes("--accept-current");
+const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
 
 function normalizeDocument(body) {
   return body
@@ -25,8 +27,8 @@ function normalizeDocument(body) {
     .trim();
 }
 
-async function fetchReviewedSource(source) {
-  const response = await fetch(source.url, {
+export async function fetchReviewedSource(source, fetchImpl = fetch) {
+  const response = await fetchImpl(source.url, {
     headers: {
       accept: "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8",
       "user-agent": "ATANDA-provider-pricing-review/1.0",
@@ -52,35 +54,138 @@ async function fetchReviewedSource(source) {
   const missingModels = expectedModelMentions.filter(
     (mention) => !normalized.toLowerCase().includes(mention.toLowerCase()),
   );
-  if (missingModels.length > 0) {
-    throw new Error(
-      `${source.id}: configured model ID(s) no longer appear in the official source: ${missingModels.join(", ")}`,
-    );
-  }
 
-  return createHash("sha256").update(normalized, "utf8").digest("hex");
+  return {
+    currentHash: createHash("sha256").update(normalized, "utf8").digest("hex"),
+    missingModels,
+  };
 }
 
-async function main() {
+export async function inspectSources(sources, fetchImpl = fetch) {
+  return Promise.all(
+    sources.map(async (source) => {
+      try {
+        const { currentHash, missingModels } = await fetchReviewedSource(
+          source,
+          fetchImpl,
+        );
+        return {
+          source,
+          currentHash,
+          missingModels,
+          status:
+            source.sha256 === currentHash && missingModels.length === 0
+              ? "ok"
+              : "changed",
+        };
+      } catch (error) {
+        return {
+          source,
+          status: "unavailable",
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }),
+  );
+}
+
+async function writeGithubOutputs(status, sources, fatalError) {
+  if (!GITHUB_OUTPUT) return;
+  const report = Buffer.from(
+    JSON.stringify({
+      sources: sources.map(
+        ({
+          source,
+          status: sourceStatus,
+          currentHash,
+          missingModels,
+          error,
+        }) => ({
+          id: source.id,
+          provider: source.provider,
+          url: source.url,
+          modelIds: source.modelIds,
+          status: sourceStatus,
+          reviewedHash: source.sha256,
+          currentHash,
+          missingModels,
+          error,
+        }),
+      ),
+      fatalError,
+    }),
+    "utf8",
+  ).toString("base64");
+  await writeFile(
+    GITHUB_OUTPUT,
+    `result=${status}\nreport=${report}\n`,
+    { flag: "a" },
+  );
+}
+
+function logReviewResults(results) {
+  const changed = results.filter(({ status }) => status === "changed");
+  const unavailable = results.filter(({ status }) => status === "unavailable");
+  if (changed.length > 0) {
+    console.error(
+      `Provider pricing review required: ${changed.length} of ${results.length} official source(s) changed.`,
+    );
+  }
+  for (const { source, currentHash, status, error, missingModels } of results) {
+    if (status === "ok") continue;
+    console.error(
+      `- ${source.id} (${source.provider}; models: ${source.modelIds.join(", ") || "review source for new/retired models"}): ${status === "changed" ? "source fingerprint changed" : "source could not be verified"}`,
+    );
+    console.error(`  Source: ${source.url}`);
+    if (status === "changed") {
+      console.error(`  Reviewed SHA-256: ${source.sha256 || "(none recorded)"}`);
+      console.error(`  Current SHA-256:  ${currentHash}`);
+      if (missingModels?.length > 0) {
+        console.error(
+          `  Configured model mention(s) no longer found: ${missingModels.join(", ")}`,
+        );
+      }
+    } else {
+      console.error(`  Error: ${error}`);
+    }
+  }
+  if (changed.length > 0 || unavailable.length > 0) {
+    console.error(
+      "Review changed provider pages for rate, model ID, and billing-rule changes. An unavailable page needs verification when service returns. A fingerprint change alone is not proof of a price change. Production prices must only change in a separately reviewed code change. After review, run `pnpm --filter @workspace/scripts run check-provider-pricing -- --accept-current` to record the new source fingerprints.",
+    );
+  }
+  if (results.some(({ missingModels }) => missingModels?.length > 0)) {
+    console.error(
+      "A configured model mention is missing from an accessible source. Confirm the model's status and update the reviewed model list before accepting the new fingerprint.",
+    );
+  }
+}
+
+export async function run({ acceptCurrent = ACCEPT_CURRENT } = {}) {
+  const currentDate = new Date().toISOString().slice(0, 10);
   const rawManifest = await readFile(manifestPath, "utf8");
   const manifest = JSON.parse(rawManifest);
   if (!Array.isArray(manifest.sources) || manifest.sources.length === 0) {
     throw new Error("Provider pricing snapshot manifest has no sources.");
   }
-
-  const currentDate = new Date().toISOString().slice(0, 10);
-  const results = await Promise.all(
-    manifest.sources.map(async (source) => ({
-      source,
-      currentHash: await fetchReviewedSource(source),
-    })),
-  );
+  const results = await inspectSources(manifest.sources);
   const changed = results.filter(
-    ({ source, currentHash }) => source.sha256 !== currentHash,
+    ({ status }) => status === "changed",
+  );
+  const unavailable = results.filter(({ status }) => status === "unavailable");
+  const missingModels = results.some(
+    ({ missingModels: absent }) => absent?.length > 0,
   );
 
-  if (ACCEPT_CURRENT) {
+  if (acceptCurrent) {
+    if (unavailable.length > 0 || missingModels) {
+      await writeGithubOutputs("needs_review", results);
+      logReviewResults(results);
+      process.exitCode = 1;
+      return;
+    }
     if (changed.length === 0) {
+      await writeGithubOutputs("ok", results);
       console.log("All official provider pricing sources match their reviewed fingerprints.");
       return;
     }
@@ -93,6 +198,7 @@ async function main() {
       );
     }
     await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    await writeGithubOutputs("ok", results);
     console.log(
       "Updated source fingerprints only. No model prices were changed; commit this manifest update for review.",
     );
@@ -100,32 +206,29 @@ async function main() {
   }
 
   if (changed.length === 0) {
+    if (unavailable.length > 0) {
+      await writeGithubOutputs("needs_review", results);
+      logReviewResults(results);
+      process.exitCode = 1;
+      return;
+    }
+    await writeGithubOutputs("ok", results);
     console.log(
       `All ${results.length} official provider pricing sources match their reviewed fingerprints.`,
     );
     return;
   }
 
-  console.error(
-    `Provider pricing review required: ${changed.length} of ${results.length} official source(s) changed.`,
-  );
-  for (const { source, currentHash } of changed) {
-    console.error(
-      `- ${source.id} (${source.provider}; models: ${source.modelIds.join(", ") || "review source for new/retired models"})`,
-    );
-    console.error(`  Source: ${source.url}`);
-    console.error(`  Reviewed SHA-256: ${source.sha256 || "(none recorded)"}`);
-    console.error(`  Current SHA-256:  ${currentHash}`);
-  }
-  console.error(
-    "Review the linked provider pages for rate, model ID, and billing-rule changes. Update production prices only in a separately reviewed code change. After review, run `pnpm --filter @workspace/scripts run check-provider-pricing -- --accept-current` to record the new source fingerprints.",
-  );
+  await writeGithubOutputs("needs_review", results);
+  logReviewResults(results);
   process.exitCode = 1;
 }
 
-main().catch((error) => {
-  console.error(
-    `Provider pricing source check failed: ${error instanceof Error ? error.message : String(error)}`,
-  );
-  process.exitCode = 1;
-});
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  run().catch(async (error) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Provider pricing source check failed: ${message}`);
+    await writeGithubOutputs("needs_review", [], message);
+    process.exitCode = 1;
+  });
+}
