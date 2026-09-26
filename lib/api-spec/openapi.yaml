@@ -368,6 +368,69 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /admin/provider-billing/{month}:
+    parameters:
+      - name: month
+        in: path
+        required: true
+        description: UTC calendar month in YYYY-MM format
+        schema: { type: string, pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$" }
+    get:
+      operationId: adminGetProviderBillingReport
+      tags: [admin]
+      summary: Compare monthly provider bills with internal model-use estimates
+      responses:
+        "200":
+          description: Monthly estimate-to-bill comparison
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProviderBillingReport" }
+        "400":
+          description: Invalid month
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: adminImportProviderBillingReport
+      tags: [admin]
+      summary: Import normalized CSV billing line items for a UTC month
+      parameters:
+        - name: X-Report-Filename
+          in: header
+          required: false
+          schema: { type: string, maxLength: 255 }
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema:
+              type: string
+              description: CSV columns provider, model, amount_usd; one or more provider groups
+      responses:
+        "200":
+          description: Billing rows imported; matching provider-month reports are replaced
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProviderBillingImportResult" }
+        "400":
+          description: Invalid month or CSV
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "413":
+          description: CSV exceeds the 1 MB upload limit
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /me/profile:
     patch:
       operationId: updateMyProfile
@@ -4141,6 +4204,75 @@ components:
         users:
           type: array
           items: { $ref: "#/components/schemas/CompanySpendUserRow" }
+
+    ProviderBillingModelComparison:
+      type: object
+      required: [modelId, estimatedUsd, reportedUsd, differenceUsd, explanation, materialDifference]
+      properties:
+        modelId: { type: string }
+        estimatedUsd: { type: number }
+        reportedUsd: { type: ["number", "null"] }
+        differenceUsd:
+          {
+            type: ["number", "null"],
+            description: "Reported amount minus internal estimate; null until a provider report is uploaded",
+          }
+        explanation:
+          {
+            type: string,
+            description: "Plain-language comparison for this provider/model; distinguishes missing invoice coverage",
+          }
+        materialDifference: { type: boolean }
+
+    ProviderBillingProviderComparison:
+      type: object
+      required: [provider, reportUploaded, estimatedUsd, reportedUsd, differenceUsd, materialDifference, explanation, models]
+      properties:
+        provider: { type: string }
+        reportUploaded: { type: boolean }
+        fileName: { type: ["string", "null"] }
+        importedAt: { type: ["string", "null"], format: date-time }
+        estimatedUsd: { type: number }
+        reportedUsd: { type: ["number", "null"] }
+        differenceUsd: { type: ["number", "null"] }
+        materialDifference: { type: boolean }
+        explanation: { type: string }
+        models:
+          type: array
+          items: { $ref: "#/components/schemas/ProviderBillingModelComparison" }
+
+    ProviderBillingReport:
+      type: object
+      required: [month, estimatedUsd, reportedUsd, comparedEstimatedUsd, differenceUsd, materialDifferenceCount, providers]
+      description: >
+        Admin-only monthly comparison of UTC model-run estimates and uploaded
+        provider billing reports. Only providers with uploaded bills contribute
+        to comparedEstimatedUsd and differenceUsd; uncovered providers remain
+        visible with null reported values.
+      properties:
+        month: { type: string, pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$" }
+        estimatedUsd: { type: number, description: "Internal estimates across all providers for the month" }
+        reportedUsd: { type: ["number", "null"], description: "Sum of provider-reported amounts uploaded for the month" }
+        comparedEstimatedUsd: { type: number, description: "Internal estimates for providers with an uploaded bill" }
+        differenceUsd: { type: ["number", "null"], description: "Reported minus estimated amount for providers with uploaded bills" }
+        materialDifferenceCount: { type: integer }
+        providers:
+          type: array
+          items: { $ref: "#/components/schemas/ProviderBillingProviderComparison" }
+
+    ProviderBillingImportResult:
+      type: object
+      required: [month, providers, importedLines, replacedProviders]
+      properties:
+        month: { type: string }
+        providers:
+          type: array
+          items: { type: string }
+        importedLines: { type: integer }
+        replacedProviders:
+          type: array
+          description: Provider reports for this month replaced by this import
+          items: { type: string }
 
     UpdateProfileInput:
       type: object

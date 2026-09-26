@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": "anthropic",
+      "provider": "claude",
+      "url": "https://docs.anthropic.com/en/docs/about-claude/pricing",
+      "modelIds": [
+        "claude-sonnet-4-6"
+      ],
+      "modelMentions": [
+        "Claude Sonnet 4.6"
+      ],
+      "sha256": "e1cf26444d6e70fca3e8e3437c8c21224d787ae30306041ad05a5735a0ddfadd",
+      "reviewedOn": "2026-09-26"
+    },
+    {
+      "id": "openai",
+      "provider": "openai",
+      "url": "https://developers.openai.com/api/docs/models/gpt-5.4",
+      "modelIds": [
+        "gpt-5.4"
+      ],
+      "sha256": "2b50726f03080b532633d07bb963a2f14826c84e86c60e6c65160ee0f123e638",
+      "reviewedOn": "2026-09-26"
+    },
+    {
+      "id": "google",
+      "provider": "gemini",
+      "url": "https://ai.google.dev/gemini-api/docs/pricing?hl=en",
+      "modelIds": [
+        "gemini-3.1-pro-preview"
+      ],
+      "sha256": "5665b99cf9420978f64b28a6a9f367f51ea886b3bc6d4657cff043c8815894c5",
+      "reviewedOn": "2026-09-26"
+    },
+    {
+      "id": "deepseek",
+      "provider": "deepseek",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing",
+      "modelIds": [
+        "deepseek-flash"
+      ],
+      "sha256": "b36866ba6516ed978ee9f3f23919dfb00d8ae4f6169e41897e8cd386fde5d934",
+      "reviewedOn": "2026-09-26"
+    },
+    {
+      "id": "moonshot",
+      "provider": "kimi",
+      "url": "https://platform.kimi.ai/docs/pricing/chat.md",
+      "modelIds": [
+        "kimi-k3"
+      ],
+      "sha256": "e77c81733bc2beab44fe655046c3b9238ecec529c90049eb48b0dbe1a3ecf4ef",
+      "reviewedOn": "2026-09-26"
+    },
+    {
+      "id": "qwen",
+      "provider": "qwen",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/model-pricing",
+      "modelIds": [
+        "qwen3.7-plus"
+      ],
+      "sha256": "49d1e28e1cff0ede43f006907917d64acfaaf3b66f6c1b8d9ff3dcf6ef55fbe5",
+      "reviewedOn": "2026-09-26"
+    },
+    {
+      "id": "glm-cn",
+      "provider": "glm",
+      "url": "https://docs.bigmodel.cn/cn/guide/start/pricing",
+      "modelIds": [
+        "glm-5.3"
+      ],
+      "sha256": "d757a153583883914c614d66b56513bbb564d3f3186b10789730575a5cc6d8a0",
+      "reviewedOn": "2026-09-26"
+    },
+    {
+      "id": "glm-international",
+      "provider": "glm",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/glm-5-3-by-zhipu",
+      "modelIds": [
+        "glm-5.3"
+      ],
+      "sha256": "c4b9826c1302e845a1bccae4437e434eb450477b24eafb3c7f1a52e3a4309e60",
+      "reviewedOn": "2026-09-26"
+    }
+  ]
+}

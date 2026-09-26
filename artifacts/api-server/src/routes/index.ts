@@ -29,6 +29,7 @@ import spcPlayerRouter from "./spc-player";
 import osirisRouter from "./osiris";
 import f10Router from "./f10";
 import f11Router from "./f11";
+import providerBillingRouter from "./provider-billing";
 
 const router: IRouter = Router();
 
@@ -51,6 +52,7 @@ router.use(spcPlayerRouter);
 router.use(osirisRouter);
 router.use(f10Router);
 router.use(f11Router);
+router.use(providerBillingRouter);
 router.use(harnessRouter);
 router.use(ingestRouter);
 router.use(cartridgeRouter);

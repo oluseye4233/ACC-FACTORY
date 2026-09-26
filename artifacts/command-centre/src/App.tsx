@@ -30,6 +30,7 @@ import Cartridge from "@/pages/cartridge";
 import F0Dashboard from "@/pages/f0";
 import AdminBadges from "@/pages/admin-badges";
 import AdminOps from "@/pages/admin-ops";
+import AdminProviderBilling from "@/pages/admin-provider-billing";
 import Ascension from "@/pages/ascension";
 import F10Console from "@/pages/f10";
 import Activity from "@/pages/activity";
@@ -96,6 +97,7 @@ function AuthenticatedRoutes() {
       <Route path="/account" component={Account} />
       <Route path="/admin/badges" component={AdminBadges} />
       <Route path="/admin/ops" component={AdminOps} />
+      <Route path="/admin/provider-billing" component={AdminProviderBilling} />
       <Route path="/me/activity" component={Activity} />
       <Route path="/me/costs" component={MeCosts} />
       <Route path="/exemplars" component={Exemplars} />

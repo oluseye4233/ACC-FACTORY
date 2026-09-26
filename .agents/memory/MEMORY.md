@@ -41,3 +41,5 @@
 - [F9 hardware configuration selection](f9-hardware-config-selection.md) — carry one controlled firmware hardware profile from F8 Code DJ into F9 MECHA evidence and the signed artifact.
 - [Platform artifact download filenames](artifact-download-filenames.md) — generated project artifacts share a safe type/title/ID/local-time/extension convention; routine account and report exports stay separate.
 - [Company spend reservations](company-spend-reservations.md) — keep completed charges distinct from temporary reservations; availability and enforcement percentages include both.
+- [Provider pricing source monitoring](provider-pricing-source-monitoring.md) — upstream pricing pages vary by provider; fingerprint readable rate-card content for human review, never auto-apply rates.
+- [OpenAPI non-JSON request bodies](openapi-non-json-bodies.md) — raw text bodies need a custom fetch helper; generated string clients JSON-stringify even for text/csv.

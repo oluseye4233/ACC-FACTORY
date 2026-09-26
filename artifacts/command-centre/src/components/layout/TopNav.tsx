@@ -44,6 +44,7 @@ export function TopNav() {
           ...STAFF_LINKS,
           { href: "/admin/badges", label: "Admin" },
           { href: "/admin/ops", label: "Ops" },
+          { href: "/admin/provider-billing", label: "Provider bills" },
         ]
       : STAFF_LINKS;
 

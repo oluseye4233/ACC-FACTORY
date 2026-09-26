@@ -40,17 +40,9 @@ import {
   releaseCostBudgetReservation,
   reserveCostBudget,
 } from "../lib/cost-budget";
+import { PROVIDER_MODELS } from "./provider-models";
 
-// Provider-specific default models.
-export const PROVIDER_MODELS: Record<LlmProvider, string> = {
-  claude: "claude-sonnet-4-6",
-  openai: "gpt-5.4",
-  gemini: "gemini-3.1-pro-preview",
-  deepseek: "deepseek-flash",
-  kimi: "kimi-k3",
-  qwen: "qwen3.7-plus",
-  glm: "glm-5.3",
-};
+export { PROVIDER_MODELS } from "./provider-models";
 // Legacy export — Anthropic-only callers still reference MODEL.
 export const MODEL = PROVIDER_MODELS.claude;
 export const MAX_TOKENS = 16384;

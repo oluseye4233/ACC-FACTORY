@@ -156,6 +156,8 @@ import type {
   PricingPayload,
   PromptDiagnostic,
   PromptLibraryPage,
+  ProviderBillingImportResult,
+  ProviderBillingReport,
   RateLimitedResponse,
   ReaderCodeInput,
   RecordF0DiscoveryInput,
@@ -2449,6 +2451,155 @@ export function useGetCompanySpendByUser<TData = Awaited<ReturnType<typeof getCo
 
 
 
+
+export const getAdminGetProviderBillingReportUrl = (month: string,) => {
+
+
+
+
+  return `/api/admin/provider-billing/${month}`
+}
+
+/**
+ * @summary Compare monthly provider bills with internal model-use estimates
+ */
+export const adminGetProviderBillingReport = async (month: string, options?: RequestInit): Promise<ProviderBillingReport> => {
+
+  return customFetch<ProviderBillingReport>(getAdminGetProviderBillingReportUrl(month),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminGetProviderBillingReportQueryKey = (month: string,) => {
+    return [
+    `/api/admin/provider-billing/${month}`
+    ] as const;
+    }
+
+
+export const getAdminGetProviderBillingReportQueryOptions = <TData = Awaited<ReturnType<typeof adminGetProviderBillingReport>>, TError = ErrorType<ErrorResponse | UnauthorizedResponse | ForbiddenResponse>>(month: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminGetProviderBillingReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminGetProviderBillingReportQueryKey(month);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetProviderBillingReport>>> = ({ signal }) => adminGetProviderBillingReport(month, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(month), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminGetProviderBillingReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AdminGetProviderBillingReportQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetProviderBillingReport>>>
+export type AdminGetProviderBillingReportQueryError = ErrorType<ErrorResponse | UnauthorizedResponse | ForbiddenResponse>
+
+
+/**
+ * @summary Compare monthly provider bills with internal model-use estimates
+ */
+
+export function useAdminGetProviderBillingReport<TData = Awaited<ReturnType<typeof adminGetProviderBillingReport>>, TError = ErrorType<ErrorResponse | UnauthorizedResponse | ForbiddenResponse>>(
+ month: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminGetProviderBillingReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAdminGetProviderBillingReportQueryOptions(month,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAdminImportProviderBillingReportUrl = (month: string,) => {
+
+
+
+
+  return `/api/admin/provider-billing/${month}`
+}
+
+/**
+ * @summary Import normalized CSV billing line items for a UTC month
+ */
+export const adminImportProviderBillingReport = async (month: string,
+    adminImportProviderBillingReportBody: string, options?: RequestInit): Promise<ProviderBillingImportResult> => {
+
+  return customFetch<ProviderBillingImportResult>(getAdminImportProviderBillingReportUrl(month),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'text/csv', ...options?.headers },
+    body: JSON.stringify(
+      adminImportProviderBillingReportBody,)
+  }
+);}
+
+
+
+
+export const getAdminImportProviderBillingReportMutationOptions = <TError = ErrorType<ErrorResponse | UnauthorizedResponse | ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminImportProviderBillingReport>>, TError,{month: string;data: BodyType<string>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminImportProviderBillingReport>>, TError,{month: string;data: BodyType<string>}, TContext> => {
+
+const mutationKey = ['adminImportProviderBillingReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminImportProviderBillingReport>>, {month: string;data: BodyType<string>}> = (props) => {
+          const {month,data} = props ?? {};
+
+          return  adminImportProviderBillingReport(month,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminImportProviderBillingReportMutationResult = NonNullable<Awaited<ReturnType<typeof adminImportProviderBillingReport>>>
+    export type AdminImportProviderBillingReportMutationBody = BodyType<string>
+    export type AdminImportProviderBillingReportMutationError = ErrorType<ErrorResponse | UnauthorizedResponse | ForbiddenResponse>
+
+    /**
+ * @summary Import normalized CSV billing line items for a UTC month
+ */
+export const useAdminImportProviderBillingReport = <TError = ErrorType<ErrorResponse | UnauthorizedResponse | ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminImportProviderBillingReport>>, TError,{month: string;data: BodyType<string>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminImportProviderBillingReport>>,
+        TError,
+        {month: string;data: BodyType<string>},
+        TContext
+      > => {
+      return useMutation(getAdminImportProviderBillingReportMutationOptions(options));
+    }
 
 export const getUpdateMyProfileUrl = () => {
 

@@ -34,9 +34,42 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return payload as T;
 }
 
+async function requestCsv<T>(
+  path: string,
+  csv: string,
+  fileName: string,
+): Promise<T> {
+  const safeFileName = fileName
+    .replace(/[^\x20-\x7E]/g, "_")
+    .replace(/[\\/\r\n]/g, "_")
+    .slice(0, 255);
+  const res = await fetch(`${basePath}${path}`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "text/csv",
+      "X-Report-Filename": safeFileName || "provider-billing.csv",
+    },
+    body: csv,
+  });
+  const contentType = res.headers.get("content-type") ?? "";
+  const isJson = contentType.includes("application/json");
+  const payload: unknown = isJson ? await res.json().catch(() => null) : await res.text();
+  if (!res.ok) {
+    const msg =
+      typeof payload === "object" && payload && "error" in (payload as Record<string, unknown>)
+        ? String((payload as { error: unknown }).error)
+        : `Request failed: ${res.status}`;
+    throw new ApiError(res.status, payload, msg);
+  }
+  return payload as T;
+}
+
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
+  postCsv: <T>(path: string, csv: string, fileName: string) =>
+    requestCsv<T>(path, csv, fileName),
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
   delete: <T>(path: string) => request<T>("DELETE", path),
 };

@@ -34,6 +34,11 @@ export const harnessEngineRunsTable = pgTable(
       t.userId,
       t.createdAt,
     ),
+    providerCreatedModelIdx: index("harness_engine_runs_created_provider_model_idx").on(
+      t.createdAt,
+      t.provider,
+      t.modelId,
+    ),
   }),
 );
 
