@@ -2262,6 +2262,57 @@ export interface ProviderBillingModelComparison {
   explanation: string;
   materialDifference: boolean;
 }
+
+export interface ProviderBillingProviderComparison {
+  provider: string;
+  reportUploaded: boolean;
+  /** @nullable */
+  fileName?: string | null;
+  /** @nullable */
+  importedAt?: string | null;
+  estimatedUsd: number;
+  /** @nullable */
+  reportedUsd: number | null;
+  /** @nullable */
+  differenceUsd: number | null;
+  materialDifference: boolean;
+  explanation: string;
+  models: ProviderBillingModelComparison[];
+}
+
+/**
+ * Admin-only monthly comparison of UTC model-run estimates and uploaded provider billing reports. Only providers with uploaded bills contribute to comparedEstimatedUsd and differenceUsd; uncovered providers remain visible with null reported values.
+
+ */
+export interface ProviderBillingReport {
+  /** @pattern ^[0-9]{4}-(0[1-9]|1[0-2])$ */
+  month: string;
+  /** Internal estimates across all providers for the month */
+  estimatedUsd: number;
+  /**
+     * Sum of provider-reported amounts uploaded for the month
+     * @nullable
+     */
+  reportedUsd: number | null;
+  /** Internal estimates for providers with an uploaded bill */
+  comparedEstimatedUsd: number;
+  /**
+     * Reported minus estimated amount for providers with uploaded bills
+     * @nullable
+     */
+  differenceUsd: number | null;
+  materialDifferenceCount: number;
+  providers: ProviderBillingProviderComparison[];
+}
+
+export interface ProviderBillingImportResult {
+  month: string;
+  providers: string[];
+  importedLines: number;
+  /** Provider reports for this month replaced by this import */
+  replacedProviders: string[];
+}
+
 export interface UpdateProfileInput {
   /**
      * @minLength 1
@@ -4372,50 +4423,3 @@ limit?: number;
 export type VerifyCertificateParams = {
 cert: string;
 };
-
-export interface ProviderBillingImportResult {
-  month: string;
-  providers: string[];
-  importedLines: number;
-  /** Provider reports for this month replaced by this import */
-  replacedProviders: string[];
-}
-
- */
-export interface ProviderBillingReport {
-  /** @pattern ^[0-9]{4}-(0[1-9]|1[0-2])$ */
-  month: string;
-  /** Internal estimates across all providers for the month */
-  estimatedUsd: number;
-  /**
-     * Sum of provider-reported amounts uploaded for the month
-     * @nullable
-     */
-  reportedUsd: number | null;
-  /** Internal estimates for providers with an uploaded bill */
-  comparedEstimatedUsd: number;
-  /**
-     * Reported minus estimated amount for providers with uploaded bills
-     * @nullable
-     */
-  differenceUsd: number | null;
-  materialDifferenceCount: number;
-  providers: ProviderBillingProviderComparison[];
-}
-
-export interface ProviderBillingProviderComparison {
-  provider: string;
-  reportUploaded: boolean;
-  /** @nullable */
-  fileName?: string | null;
-  /** @nullable */
-  importedAt?: string | null;
-  estimatedUsd: number;
-  /** @nullable */
-  reportedUsd: number | null;
-  /** @nullable */
-  differenceUsd: number | null;
-  materialDifference: boolean;
-  explanation: string;
-  models: ProviderBillingModelComparison[];
-}

@@ -55,6 +55,7 @@ export const listF10ColonizationRunsResponseVaultHandleOneHandleRegExp = new Reg
 export const listF10ColonizationRunsResponseVaultHandleOneDeploymentSubjectMax = 500;
 
 
+
 export const ListF10ColonizationRunsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "runId": zod.string(),
@@ -166,6 +167,7 @@ export const createF10ColonizationRunBodyVaultHandleHandleRegExp = new RegExp('^
 export const createF10ColonizationRunBodyVaultHandleDeploymentSubjectMax = 500;
 
 
+
 export const CreateF10ColonizationRunBody = zod.object({
   "requestClass": zod.enum(['RUN', 'SENSE_ONLY', 'RE_VERIFY', 'ROLLBACK']).default(createF10ColonizationRunBodyRequestClassDefault),
   "artifactRef": zod.string().min(1).max(createF10ColonizationRunBodyArtifactRefMax),
@@ -234,6 +236,7 @@ export const getF10ColonizationRunResponsePromotionConsentOneDeploymentSubjectMa
 export const getF10ColonizationRunResponsePromotionConsentOneExactWriteHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
 export const getF10ColonizationRunResponseVaultHandleOneHandleRegExp = new RegExp('^vault-handle:[A-Za-z0-9_-]{16,200}$');
 export const getF10ColonizationRunResponseVaultHandleOneDeploymentSubjectMax = 500;
+
 
 
 export const GetF10ColonizationRunResponse = zod.object({
@@ -334,6 +337,7 @@ export const promoteF10ColonizationRunBodyVaultHandleHandleRegExp = new RegExp('
 export const promoteF10ColonizationRunBodyVaultHandleDeploymentSubjectMax = 500;
 
 
+
 export const PromoteF10ColonizationRunBody = zod.object({
   "deploymentSubject": zod.string().min(1).max(promoteF10ColonizationRunBodyDeploymentSubjectMax),
   "ucgColCertificate": zod.object({
@@ -378,6 +382,7 @@ export const promoteF10ColonizationRunResponsePromotionConsentOneDeploymentSubje
 export const promoteF10ColonizationRunResponsePromotionConsentOneExactWriteHashRegExp = new RegExp('^sha256:[a-f0-9]{64}$');
 export const promoteF10ColonizationRunResponseVaultHandleOneHandleRegExp = new RegExp('^vault-handle:[A-Za-z0-9_-]{16,200}$');
 export const promoteF10ColonizationRunResponseVaultHandleOneDeploymentSubjectMax = 500;
+
 
 
 export const PromoteF10ColonizationRunResponse = zod.object({
@@ -531,6 +536,7 @@ export const pushF10ExportToGitHubBodyTwoRepositoryRegExp = new RegExp('^[A-Za-z
 export const pushF10ExportToGitHubBodyTwoBranchMax = 255;
 
 
+
 export const PushF10ExportToGitHubBody = zod.object({
   "sourceArtifactId": zod.string().uuid(),
   "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
@@ -568,6 +574,7 @@ export const listF10DestinationsResponseOneSecretRefRegExp = new RegExp('^F10_SE
 export const listF10DestinationsResponseOneAuthorizationScopesMax = 50;
 
 
+
 export const ListF10DestinationsResponseItem = zod.object({
   "name": zod.string().min(1).max(listF10DestinationsResponseOneNameMax),
   "adapterId": zod.enum(['https']),
@@ -593,6 +600,7 @@ export const createF10DestinationBodySecretRefRegExp = new RegExp('^F10_SECRET_[
 export const createF10DestinationBodyAuthorizationScopesMax = 50;
 
 
+
 export const CreateF10DestinationBody = zod.object({
   "name": zod.string().min(1).max(createF10DestinationBodyNameMax),
   "adapterId": zod.enum(['https']),
@@ -611,6 +619,7 @@ export const listF10ProviderConnectionsResponseOneNameMax = 120;
 export const listF10ProviderConnectionsResponseOneScopesMax = 50;
 
 
+
 export const ListF10ProviderConnectionsResponseItem = zod.object({
   "provider": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS']),
   "name": zod.string().min(1).max(listF10ProviderConnectionsResponseOneNameMax),
@@ -625,6 +634,7 @@ export const ListF10ProviderConnectionsResponse = zod.array(ListF10ProviderConne
 
 
 export const authorizeF10ProviderConnectionBodyReturnToMax = 500;
+
 
 
 export const AuthorizeF10ProviderConnectionBody = zod.object({
@@ -668,7 +678,18 @@ export const ListF10BundleDeploymentsResponse = zod.array(ListF10BundleDeploymen
  */
 
 
+
+
+
+
+
+
+
+
+
+
 export const createF10BundleDeploymentBodyReleaseIntentMax = 200;
+
 
 
 export const CreateF10BundleDeploymentBody = zod.object({
@@ -763,6 +784,7 @@ export const revokeF10DestinationResponseOneNameMax = 120;
 
 export const revokeF10DestinationResponseOneSecretRefRegExp = new RegExp('^F10_SECRET_[A-Z0-9_]+$');
 export const revokeF10DestinationResponseOneAuthorizationScopesMax = 50;
+
 
 
 export const RevokeF10DestinationResponse = zod.object({
@@ -931,14 +953,80 @@ export const GetCompanySpendByUserResponse = zod.object({
 }))
 }).describe('Who is consuming the shared monthly LLM budget. Same SUM over harness_engine_runs.cost_usd for the current UTC month that the company-wide meter and the requireCostBudget gate use, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.\n')
 
+
 /**
  * @summary Compare monthly provider bills with internal model-use estimates
  */
 export const adminGetProviderBillingReportPathMonthRegExp = new RegExp('^[0-9]{4}-(0[1-9]|1[0-2])$');
+
+
+export const AdminGetProviderBillingReportParams = zod.object({
+  "month": zod.coerce.string().regex(adminGetProviderBillingReportPathMonthRegExp).describe('UTC calendar month in YYYY-MM format')
+})
+
+export const adminGetProviderBillingReportResponseMonthRegExp = new RegExp('^[0-9]{4}-(0[1-9]|1[0-2])$');
+
+
+export const AdminGetProviderBillingReportResponse = zod.object({
+  "month": zod.string().regex(adminGetProviderBillingReportResponseMonthRegExp),
+  "estimatedUsd": zod.number().describe('Internal estimates across all providers for the month'),
+  "reportedUsd": zod.number().nullable().describe('Sum of provider-reported amounts uploaded for the month'),
+  "comparedEstimatedUsd": zod.number().describe('Internal estimates for providers with an uploaded bill'),
+  "differenceUsd": zod.number().nullable().describe('Reported minus estimated amount for providers with uploaded bills'),
+  "materialDifferenceCount": zod.number(),
+  "providers": zod.array(zod.object({
+  "provider": zod.string(),
+  "reportUploaded": zod.boolean(),
+  "fileName": zod.string().nullish(),
+  "importedAt": zod.coerce.date().nullish(),
+  "estimatedUsd": zod.number(),
+  "reportedUsd": zod.number().nullable(),
+  "differenceUsd": zod.number().nullable(),
+  "materialDifference": zod.boolean(),
+  "explanation": zod.string(),
+  "models": zod.array(zod.object({
+  "modelId": zod.string(),
+  "estimatedUsd": zod.number(),
+  "reportedUsd": zod.number().nullable(),
+  "differenceUsd": zod.number().nullable().describe('Reported amount minus internal estimate; null until a provider report is uploaded'),
+  "explanation": zod.string().describe('Plain-language comparison for this provider\/model; distinguishes missing invoice coverage'),
+  "materialDifference": zod.boolean()
+}))
+}))
+}).describe('Admin-only monthly comparison of UTC model-run estimates and uploaded provider billing reports. Only providers with uploaded bills contribute to comparedEstimatedUsd and differenceUsd; uncovered providers remain visible with null reported values.\n')
+
+
+/**
+ * @summary Import normalized CSV billing line items for a UTC month
+ */
+export const adminImportProviderBillingReportPathMonthRegExp = new RegExp('^[0-9]{4}-(0[1-9]|1[0-2])$');
+
+
+export const AdminImportProviderBillingReportParams = zod.object({
+  "month": zod.coerce.string().regex(adminImportProviderBillingReportPathMonthRegExp).describe('UTC calendar month in YYYY-MM format')
+})
+
+export const adminImportProviderBillingReportHeaderXReportFilenameMax = 255;
+
+
+
+export const AdminImportProviderBillingReportHeader = zod.object({
+  "X-Report-Filename": zod.string().max(adminImportProviderBillingReportHeaderXReportFilenameMax).optional()
+})
+
+export const AdminImportProviderBillingReportResponse = zod.object({
+  "month": zod.string(),
+  "providers": zod.array(zod.string()),
+  "importedLines": zod.number(),
+  "replacedProviders": zod.array(zod.string()).describe('Provider reports for this month replaced by this import')
+})
+
+
 /**
  * @summary Update the calling user's display name
  */
 export const updateMyProfileBodyDisplayNameMax = 120;
+
 
 
 export const UpdateMyProfileBody = zod.object({
@@ -1014,6 +1102,7 @@ export const ListSessionsResponse = zod.array(ListSessionsResponseItem)
 export const createSessionBodySessionNameMax = 255;
 
 
+
 export const CreateSessionBody = zod.object({
   "sessionName": zod.string().min(1).max(createSessionBodySessionNameMax),
   "preferredModelProvider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
@@ -1025,6 +1114,7 @@ export const GetSessionParams = zod.object({
 })
 
 export const getSessionResponseFeatureStateItemFeatureIdMax = 7;
+
 
 
 export const GetSessionResponse = zod.object({
@@ -1109,6 +1199,7 @@ export const UpdateSessionParams = zod.object({
 export const updateSessionBodySessionNameMax = 255;
 
 
+
 export const UpdateSessionBody = zod.object({
   "sessionName": zod.string().min(1).max(updateSessionBodySessionNameMax).optional(),
   "status": zod.string().optional(),
@@ -1137,6 +1228,7 @@ export const DeleteSessionParams = zod.object({
  * @summary List the 7 Context Craft pillar mini-quest badges (earned + locked)
  */
 export const listMyContextCraftBadgesResponseLetterMax = 1;
+
 
 
 export const ListMyContextCraftBadgesResponseItem = zod.object({
@@ -1209,6 +1301,7 @@ export const startSessionFromIngestionBodySeedPromptMax = 4000;
 export const startSessionFromIngestionBodyDetectedTitleMax = 500;
 
 
+
 export const StartSessionFromIngestionBody = zod.object({
   "sessionName": zod.string().min(1).max(startSessionFromIngestionBodySessionNameMax).optional(),
   "seedPrompt": zod.string().min(startSessionFromIngestionBodySeedPromptMin).max(startSessionFromIngestionBodySeedPromptMax).optional(),
@@ -1221,6 +1314,7 @@ export const ListFeatureStateParams = zod.object({
 })
 
 export const listFeatureStateResponseFeatureIdMax = 7;
+
 
 
 export const ListFeatureStateResponseItem = zod.object({
@@ -1505,6 +1599,7 @@ export const RenameArtifactParams = zod.object({
 export const renameArtifactBodyNameMax = 120;
 
 
+
 export const RenameArtifactBody = zod.object({
   "name": zod.string().min(1).max(renameArtifactBodyNameMax)
 })
@@ -1567,6 +1662,7 @@ export const RenameArtifactResponse = zod.object({
  * @summary ATLAS Prompt Diagnostic
  */
 export const harnessF1BodyPromptMin = 10;
+
 
 
 export const HarnessF1Body = zod.object({
@@ -1648,6 +1744,7 @@ export const magnetTestKitBodyPromptMin = 10;
 export const magnetTestKitBodyPromptMax = 20000;
 
 
+
 export const MagnetTestKitBody = zod.object({
   "prompt": zod.string().min(magnetTestKitBodyPromptMin).max(magnetTestKitBodyPromptMax),
   "email": zod.string().email().nullish()
@@ -1673,6 +1770,7 @@ export const MagnetTestKitResponse = zod.object({
  */
 export const magnetCalculatorBodyArtifactMin = 10;
 export const magnetCalculatorBodyArtifactMax = 20000;
+
 
 
 export const MagnetCalculatorBody = zod.object({
@@ -1818,6 +1916,7 @@ export const HarnessF4Response = zod.object({
 export const harnessF5BodyStepMax = 7;
 
 
+
 export const HarnessF5Body = zod.object({
   "sessionId": zod.string().uuid(),
   "step": zod.number().min(1).max(harnessF5BodyStepMax).optional(),
@@ -1849,6 +1948,7 @@ export const HarnessF5Response = zod.object({
  * @summary SPC Builder — FORGE.COMMIT synthesis (SSE stream)
  */
 export const harnessF5FinalizeStreamBodyNameMax = 120;
+
 
 
 export const HarnessF5FinalizeStreamBody = zod.object({
@@ -1971,6 +2071,7 @@ export const HarnessF7StreamBody = zod.object({
 export const harnessF8BodyNotesMax = 2000;
 
 
+
 export const HarnessF8Body = zod.object({
   "sessionId": zod.string().uuid(),
   "mvpPddArtifactId": zod.string().uuid(),
@@ -2020,6 +2121,7 @@ export const harnessF9MechaBodyPhasesMin = 7;
 export const harnessF9MechaBodyPhasesMax = 7;
 
 
+
 export const HarnessF9MechaBody = zod.object({
   "sessionId": zod.string().uuid(),
   "sourceArtifactId": zod.string().uuid(),
@@ -2060,6 +2162,7 @@ export const ListHarnessF9RunsQueryParams = zod.object({
 export const listHarnessF9RunsResponseEvidenceItemPhaseMax = 7;
 
 export const listHarnessF9RunsResponseRefusalPhaseHaltedMax = 7;
+
 
 
 export const ListHarnessF9RunsResponseItem = zod.object({
@@ -2112,6 +2215,7 @@ export const ListHarnessF9RunsResponse = zod.array(ListHarnessF9RunsResponseItem
  * @summary Host DJ — recommend a host + deployment journey from a certified MVP PDD (Architect tier)
  */
 export const harnessF8HdjBodyNotesMax = 2000;
+
 
 
 export const HarnessF8HdjBody = zod.object({
@@ -2232,6 +2336,7 @@ export const harnessPfpResponseFciMin = 0;
 export const harnessPfpResponseFciMax = 100;
 
 
+
 export const HarnessPfpResponse = zod.object({
   "artifactId": zod.string().uuid(),
   "f0ReportCode": zod.string().nullish().describe('F0 advisory report code assigned at report-generation time, formatted [CODE]-[SKU]-[TIMESTAMP] and anchored to the owning MVP PDD\'s SKU. Null when the source MVP PDD has no SKU yet.'),
@@ -2271,6 +2376,7 @@ export const harnessPddViewResponsePartsItemPartMin = 0;
 export const harnessPddViewResponsePartsItemPartMax = 11;
 
 export const harnessPddViewResponseStagesItemStageMax = 8;
+
 
 
 export const HarnessPddViewResponse = zod.object({
@@ -2316,6 +2422,7 @@ export const f1000StatusResponseClaimedMin = 0;
 export const f1000StatusResponseRemainingMin = 0;
 
 
+
 export const F1000StatusResponse = zod.object({
   "total": zod.number().min(f1000StatusResponseTotalMin),
   "claimed": zod.number().min(f1000StatusResponseClaimedMin),
@@ -2327,6 +2434,7 @@ export const F1000StatusResponse = zod.object({
 /**
  * @summary Claim the next available F1000 invite code (public, IP rate-limited)
  */
+
 
 
 export const F1000ActivateResponse = zod.object({
@@ -2341,9 +2449,12 @@ export const F1000ActivateResponse = zod.object({
  */
 
 
+
 export const F1000RedeemBody = zod.object({
   "code": zod.string().min(1)
 })
+
+
 
 
 export const F1000RedeemResponse = zod.object({
@@ -2388,6 +2499,7 @@ export const getIngestionCreditsResponseConsumedMin = 0;
 export const getIngestionCreditsResponseTotalMin = 0;
 
 
+
 export const GetIngestionCreditsResponse = zod.object({
   "available": zod.number().min(getIngestionCreditsResponseAvailableMin),
   "consumed": zod.number().min(getIngestionCreditsResponseConsumedMin),
@@ -2416,6 +2528,7 @@ export const getCartridgeCreditsResponseAvailableMin = 0;
 export const getCartridgeCreditsResponseConsumedMin = 0;
 
 export const getCartridgeCreditsResponseTotalMin = 0;
+
 
 
 export const GetCartridgeCreditsResponse = zod.object({
@@ -2469,6 +2582,7 @@ export const StartSessionFromCartridgeParams = zod.object({
 })
 
 export const startSessionFromCartridgeBodySessionNameMax = 255;
+
 
 
 export const StartSessionFromCartridgeBody = zod.object({
@@ -2700,6 +2814,7 @@ export const getSpcPlayerRegistryResponseEnvironmentsMin = 10;
 export const getSpcPlayerRegistryResponseEnvironmentsMax = 10;
 
 
+
 export const GetSpcPlayerRegistryResponse = zod.object({
   "productionId": zod.string(),
   "version": zod.string(),
@@ -2806,6 +2921,7 @@ export const ListMyPromptsResponse = zod.object({
 export const listMyBadgesResponseRevocationCountMin = 0;
 
 
+
 export const ListMyBadgesResponseItem = zod.object({
   "badgeId": zod.enum(['ASPE', 'AISA', 'AISE', 'AISA_PWDD', 'AISE_BUILD']),
   "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED', 'REVOKED']),
@@ -2838,6 +2954,7 @@ export const ClaimAiseBadgeBody = zod.object({
 export const claimAiseBadgeResponseRevocationCountMin = 0;
 
 
+
 export const ClaimAiseBadgeResponseItem = zod.object({
   "badgeId": zod.enum(['ASPE', 'AISA', 'AISE', 'AISA_PWDD', 'AISE_BUILD']),
   "status": zod.enum(['LOCKED', 'UNLOCKED', 'CLAIMED', 'REVOKED']),
@@ -2862,6 +2979,7 @@ export const ClaimAiseBadgeResponse = zod.array(ClaimAiseBadgeResponseItem)
 export const claimEngineerBadgeBodyEvidenceNoteMax = 500;
 
 
+
 export const ClaimEngineerBadgeBody = zod.object({
   "url": zod.string().url(),
   "evidenceNote": zod.string().min(1).max(claimEngineerBadgeBodyEvidenceNoteMax),
@@ -2869,6 +2987,7 @@ export const ClaimEngineerBadgeBody = zod.object({
 })
 
 export const claimEngineerBadgeResponseRevocationCountMin = 0;
+
 
 
 export const ClaimEngineerBadgeResponseItem = zod.object({
@@ -2895,11 +3014,14 @@ export const ClaimEngineerBadgeResponse = zod.array(ClaimEngineerBadgeResponseIt
 export const adminRevokeBadgeBodyReasonMax = 1000;
 
 
+
 export const AdminRevokeBadgeBody = zod.object({
   "userId": zod.string().uuid(),
   "badgeId": zod.enum(['AISE', 'AISE_BUILD']),
   "reason": zod.string().min(1).max(adminRevokeBadgeBodyReasonMax)
 })
+
+
 
 
 export const AdminRevokeBadgeResponse = zod.object({
@@ -2918,6 +3040,7 @@ export const AdminRevokeBadgeResponse = zod.object({
 export const adminRestoreBadgeBodyNoteMax = 1000;
 
 
+
 export const AdminRestoreBadgeBody = zod.object({
   "userId": zod.string().uuid(),
   "badgeId": zod.enum(['AISE', 'AISE_BUILD']),
@@ -2925,6 +3048,7 @@ export const AdminRestoreBadgeBody = zod.object({
 })
 
 export const adminRestoreBadgeResponseRevocationCountMin = 0;
+
 
 
 export const AdminRestoreBadgeResponse = zod.object({
@@ -2947,6 +3071,7 @@ export const AdminPreviewBadgeRevocationQueryParams = zod.object({
 })
 
 export const adminPreviewBadgeRevocationResponseRevocationCountMin = 0;
+
 
 
 export const AdminPreviewBadgeRevocationResponse = zod.object({
@@ -3021,6 +3146,7 @@ export const AdminGetCronStatusResponse = zod.object({
  */
 export const harnessEvolveBodyMaArtifactIdsMin = 2;
 export const harnessEvolveBodyMaArtifactIdsMax = 12;
+
 
 
 export const HarnessEvolveBody = zod.object({
@@ -3110,6 +3236,7 @@ export const VerifyCertificateResponse = zod.object({
 export const getMyJstResponseCountMin = 0;
 
 
+
 export const GetMyJstResponse = zod.object({
   "latest": zod.union([zod.object({
   "id": zod.string().uuid(),
@@ -3149,6 +3276,7 @@ export const submitMyJstBodyTalentScoreMax = 10;
 export const submitMyJstBodyNotesMax = 2000;
 
 
+
 export const SubmitMyJstBody = zod.object({
   "jobsScore": zod.number().min(1).max(submitMyJstBodyJobsScoreMax).describe('Jobs — paid work \/ market demand for what you do (1-10).'),
   "skillsScore": zod.number().min(1).max(submitMyJstBodySkillsScoreMax).describe('Skills — learned, practised capability (1-10).'),
@@ -3157,6 +3285,7 @@ export const SubmitMyJstBody = zod.object({
 })
 
 export const submitMyJstResponseCountMin = 0;
+
 
 
 export const SubmitMyJstResponse = zod.object({
@@ -3195,6 +3324,8 @@ export const getMyAscensionResponseCompletedCountMin = 0;
 export const getMyAscensionResponseRungsItemProgressMin = 0;
 
 
+
+
 export const GetMyAscensionResponse = zod.object({
   "track": zod.enum(['default', 'atomic_prompt_v1']),
   "readerCode": zod.string().nullable(),
@@ -3225,6 +3356,7 @@ export const GetMyAscensionResponse = zod.object({
 export const claimReaderCodeBodyCodeMax = 64;
 
 
+
 export const ClaimReaderCodeBody = zod.object({
   "code": zod.string().min(1).max(claimReaderCodeBodyCodeMax)
 })
@@ -3241,6 +3373,7 @@ export const ClaimReaderCodeResponse = zod.object({
  * @summary Import the user's JST score from the ARK.ONECRAFT platform
  */
 export const importJstFromArkResponseCountMin = 0;
+
 
 
 export const ImportJstFromArkResponse = zod.object({
@@ -3343,6 +3476,7 @@ export const ListF0EngagementsResponse = zod.array(ListF0EngagementsResponseItem
 export const createF0EngagementBodyTitleMax = 200;
 
 
+
 export const CreateF0EngagementBody = zod.object({
   "title": zod.string().min(1).max(createF0EngagementBodyTitleMax),
   "sessionId": zod.string().uuid().optional(),
@@ -3391,6 +3525,7 @@ export const GenerateF0DiscoveryParams = zod.object({
 export const generateF0DiscoveryBodyNotesMax = 2000;
 
 
+
 export const GenerateF0DiscoveryBody = zod.object({
   "notes": zod.string().max(generateF0DiscoveryBodyNotesMax).optional(),
   "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
@@ -3420,6 +3555,7 @@ export const RecordF0DiscoveryParams = zod.object({
 export const recordF0DiscoveryBodyAnswersItemAnswerMax = 4000;
 
 export const recordF0DiscoveryBodyAnswersMax = 7;
+
 
 
 export const RecordF0DiscoveryBody = zod.object({
@@ -3454,6 +3590,7 @@ export const GenerateF0ReportParams = zod.object({
 export const generateF0ReportBodyNotesMax = 2000;
 
 
+
 export const GenerateF0ReportBody = zod.object({
   "service": zod.enum(['PRODUCT_VIABILITY', 'MARKET_VIABILITY', 'CAPI_POSITIONING', 'CUSTOMER_ACQUISITION', 'GO_TO_MARKET', 'FINANCIAL_PROJECTIONS', 'PRODUCT_SYNTHESIS_ADVISORY', 'OFFICER_ANALYSIS', 'COMPETITIVE_TEARDOWN', 'PRICING_STRATEGY', 'BRAND_NARRATIVE', 'INVESTOR_READINESS', 'MATHMON_MAX', 'EVE_MAX']),
   "notes": zod.string().max(generateF0ReportBodyNotesMax).optional(),
@@ -3469,6 +3606,7 @@ export const GenerateF0ChallengeParams = zod.object({
 })
 
 export const generateF0ChallengeBodyNotesMax = 2000;
+
 
 
 export const GenerateF0ChallengeBody = zod.object({
@@ -3506,6 +3644,7 @@ export const ListF0RetainersResponse = zod.array(ListF0RetainersResponseItem)
  * @summary Activate F0 Retainer Mode
  */
 export const createF0RetainerBodyTitleMax = 200;
+
 
 
 export const CreateF0RetainerBody = zod.object({
@@ -3559,6 +3698,7 @@ export const createF0RetainerTaskBodyStageMax = 8;
 export const createF0RetainerTaskBodyEstCostUsdMin = 0;
 
 
+
 export const CreateF0RetainerTaskBody = zod.object({
   "title": zod.string().min(1).max(createF0RetainerTaskBodyTitleMax),
   "detail": zod.string().max(createF0RetainerTaskBodyDetailMax).optional(),
@@ -3605,6 +3745,7 @@ export const generateF0CommentaryBodyStageMax = 8;
 export const generateF0CommentaryBodyNotesMax = 2000;
 
 
+
 export const GenerateF0CommentaryBody = zod.object({
   "stage": zod.string().max(generateF0CommentaryBodyStageMax),
   "sessionId": zod.string().uuid().optional(),
@@ -3630,6 +3771,7 @@ export const GenerateF0MonitoringParams = zod.object({
 })
 
 export const generateF0MonitoringBodySignalsMax = 4000;
+
 
 
 export const GenerateF0MonitoringBody = zod.object({
@@ -3718,6 +3860,7 @@ export const getSpcDevKitResponseCardsMin = 6;
 export const getSpcDevKitResponseCardsMax = 6;
 
 
+
 export const GetSpcDevKitResponse = zod.object({
   "id": zod.string().uuid(),
   "name": zod.enum(['SPC Dev Kit']),
@@ -3803,6 +3946,7 @@ export const listSpcPlayerRunsResponseOutputPackageOneScoresTruthfulnessMax = 10
 
 export const listSpcPlayerRunsResponseOutputPackageOneScoresDetectabilityMin = 0;
 export const listSpcPlayerRunsResponseOutputPackageOneScoresDetectabilityMax = 100;
+
 
 
 export const ListSpcPlayerRunsResponseItem = zod.object({
@@ -3985,6 +4129,7 @@ export const getSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMin = 0;
 export const getSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMax = 100;
 
 
+
 export const GetSpcPlayerRunResponse = zod.object({
   "id": zod.string().uuid(),
   "ownerUserId": zod.string().uuid(),
@@ -4148,6 +4293,7 @@ export const executeSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMin =
 export const executeSpcPlayerRunResponseOutputPackageOneScoresDetectabilityMax = 100;
 
 
+
 export const ExecuteSpcPlayerRunResponse = zod.object({
   "id": zod.string().uuid(),
   "ownerUserId": zod.string().uuid(),
@@ -4306,6 +4452,7 @@ export const deliverSpcPlayerRunResponseStatusCodeMin = 200;
 export const deliverSpcPlayerRunResponseStatusCodeMax = 299;
 
 
+
 export const DeliverSpcPlayerRunResponse = zod.object({
   "runId": zod.string().uuid(),
   "connector": zod.enum(['webhook']),
@@ -4342,6 +4489,7 @@ export const downloadSpcPlayerRunResponseScoresTruthfulnessMax = 100;
 
 export const downloadSpcPlayerRunResponseScoresDetectabilityMin = 0;
 export const downloadSpcPlayerRunResponseScoresDetectabilityMax = 100;
+
 
 
 export const DownloadSpcPlayerRunResponse = zod.object({
@@ -4437,6 +4585,7 @@ export const getSpcPlayerRunManifestResponseRunOutputPackageOneScoresDetectabili
 
 export const getSpcPlayerRunManifestResponseGovernanceScorePolicyAxesMin = 3;
 export const getSpcPlayerRunManifestResponseGovernanceScorePolicyAxesMax = 3;
+
 
 
 export const GetSpcPlayerRunManifestResponse = zod.object({
@@ -4566,59 +4715,3 @@ export const GetSpcPlayerRunManifestResponse = zod.object({
   "entitlement": zod.enum(['open_access'])
 })
 })
-
-/**
- * @summary Import normalized CSV billing line items for a UTC month
- */
-export const adminImportProviderBillingReportPathMonthRegExp = new RegExp('^[0-9]{4}-(0[1-9]|1[0-2])$');
-
-export const AdminImportProviderBillingReportResponse = zod.object({
-  "month": zod.string(),
-  "providers": zod.array(zod.string()),
-  "importedLines": zod.number(),
-  "replacedProviders": zod.array(zod.string()).describe('Provider reports for this month replaced by this import')
-})
-
-export const AdminImportProviderBillingReportHeader = zod.object({
-  "X-Report-Filename": zod.string().max(adminImportProviderBillingReportHeaderXReportFilenameMax).optional()
-})
-
-export const AdminGetProviderBillingReportResponse = zod.object({
-  "month": zod.string().regex(adminGetProviderBillingReportResponseMonthRegExp),
-  "estimatedUsd": zod.number().describe('Internal estimates across all providers for the month'),
-  "reportedUsd": zod.number().nullable().describe('Sum of provider-reported amounts uploaded for the month'),
-  "comparedEstimatedUsd": zod.number().describe('Internal estimates for providers with an uploaded bill'),
-  "differenceUsd": zod.number().nullable().describe('Reported minus estimated amount for providers with uploaded bills'),
-  "materialDifferenceCount": zod.number(),
-  "providers": zod.array(zod.object({
-  "provider": zod.string(),
-  "reportUploaded": zod.boolean(),
-  "fileName": zod.string().nullish(),
-  "importedAt": zod.coerce.date().nullish(),
-  "estimatedUsd": zod.number(),
-  "reportedUsd": zod.number().nullable(),
-  "differenceUsd": zod.number().nullable(),
-  "materialDifference": zod.boolean(),
-  "explanation": zod.string(),
-  "models": zod.array(zod.object({
-  "modelId": zod.string(),
-  "estimatedUsd": zod.number(),
-  "reportedUsd": zod.number().nullable(),
-  "differenceUsd": zod.number().nullable().describe('Reported amount minus internal estimate; null until a provider report is uploaded'),
-  "explanation": zod.string().describe('Plain-language comparison for this provider\/model; distinguishes missing invoice coverage'),
-  "materialDifference": zod.boolean()
-}))
-}))
-}).describe('Admin-only monthly comparison of UTC model-run estimates and uploaded provider billing reports. Only providers with uploaded bills contribute to comparedEstimatedUsd and differenceUsd; uncovered providers remain visible with null reported values.\n')
-
-export const AdminGetProviderBillingReportParams = zod.object({
-  "month": zod.coerce.string().regex(adminGetProviderBillingReportPathMonthRegExp).describe('UTC calendar month in YYYY-MM format')
-})
-
-export const adminGetProviderBillingReportResponseMonthRegExp = new RegExp('^[0-9]{4}-(0[1-9]|1[0-2])$');
-
-export const AdminImportProviderBillingReportParams = zod.object({
-  "month": zod.coerce.string().regex(adminImportProviderBillingReportPathMonthRegExp).describe('UTC calendar month in YYYY-MM format')
-})
-
-export const adminImportProviderBillingReportHeaderXReportFilenameMax = 255;
