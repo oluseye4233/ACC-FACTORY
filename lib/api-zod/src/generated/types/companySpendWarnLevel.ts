@@ -7,7 +7,7 @@
  */
 
 /**
- * ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached
+ * Based on completed charges plus reservations: ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached
  */
 export type CompanySpendWarnLevel = typeof CompanySpendWarnLevel[keyof typeof CompanySpendWarnLevel];
 

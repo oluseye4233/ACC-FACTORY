@@ -4013,13 +4013,16 @@ components:
       type: object
       description: >
         Company-wide LLM spend for the current UTC calendar month against the
-        single shared monthly cost cap (STAFF_MONTHLY_COST_CAP_USD). Uses the
-        exact same SUM over harness_engine_runs.cost_usd that the
-        requireCostBudget gate enforces, so the meter always matches the
-        server's own 402 decision.
+        single shared monthly cost cap (STAFF_MONTHLY_COST_CAP_USD). Completed
+        provider charges and active in-flight reservations are reported
+        separately. The gate uses their sum; on success a reservation is
+        atomically replaced by the recorded provider charge, and on failure it
+        is released.
       required:
         [
           usedUsd,
+          reservedUsd,
+          remainingUsd,
           capUsd,
           percentUsed,
           overCap,
@@ -4031,23 +4034,33 @@ components:
         usedUsd:
           {
             type: number,
-            description: "Month-to-date company-wide LLM spend (USD)",
+            description: "Completed month-to-date company-wide provider charges (USD); excludes temporary reservations",
+          }
+        reservedUsd:
+          {
+            type: number,
+            description: "Active, unexpired worst-case reservations for in-flight model calls (USD); not completed charges",
+          }
+        remainingUsd:
+          {
+            type: number,
+            description: "Usable budget remaining after completed charges and active reservations; never below zero (USD)",
           }
         capUsd: { type: number, description: "The shared monthly cap (USD)" }
         percentUsed:
           {
             type: number,
-            description: "usedUsd / capUsd as a percentage, clamped to [0, 100]",
+            description: "(usedUsd + reservedUsd) / capUsd as a percentage, clamped to [0, 100]",
           }
         overCap:
           {
             type: boolean,
-            description: "True once engine routes are being refused with 402 COST_CAP_EXCEEDED",
+            description: "True when completed charges plus active reservations reach the point that engine routes are refused with 402 COST_CAP_EXCEEDED",
           }
         warnLevel:
           type: string
           enum: [ok, warn, critical, blocked]
-          description: "ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached"
+          description: "Based on completed charges plus reservations: ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached"
         monthResetsAt:
           {
             type: string,

@@ -45,36 +45,46 @@ const TEXT_COLORS: Record<CompanySpend["warnLevel"], string> = {
 
 /**
  * Compact company-wide LLM spend meter for the portal header. Shows the
- * current-month spend against the shared STAFF_MONTHLY_COST_CAP_USD cap so
- * staff can see the ceiling coming before engine runs start refusing with
- * 402 COST_CAP_EXCEEDED.
+ * completed charges against the shared cap, with active reservations shown
+ * separately so staff can distinguish in-flight estimates from actual spend.
  */
 export function CompanySpendMeter() {
   const { data } = useGetCompanySpend({
     query: { queryKey: getGetCompanySpendQueryKey(), refetchInterval: 60_000, staleTime: 30_000, retry: false },
   });
   if (!data) return null;
-  const { usedUsd, capUsd, percentUsed, warnLevel } = data;
+  const { usedUsd, reservedUsd, remainingUsd, capUsd, percentUsed, warnLevel } = data;
+  const visibleReservedUsd = Math.min(reservedUsd, Math.max(0, capUsd - usedUsd));
   return (
     <Link
       href="/me/costs"
       className="hidden md:flex flex-col gap-1 min-w-[150px] max-w-[190px] shrink group"
-      title={`Company LLM spend this month: ${fmtUsd(usedUsd)} of ${fmtUsd(capUsd)} (${percentUsed.toFixed(1)}%). Resets ${fmtResetDate(data.monthResetsAt)} UTC.`}
+      title={`Completed charges: ${fmtUsd(usedUsd)}. Temporarily reserved for in-flight calls: ${fmtUsd(reservedUsd)}. Available: ${fmtUsd(remainingUsd)} of ${fmtUsd(capUsd)}. Reservations are replaced by actual charges when calls finish and released when calls fail. Resets ${fmtResetDate(data.monthResetsAt)} UTC.`}
       data-testid="link-company-spend-meter"
     >
       <div className="flex items-baseline justify-between gap-2 font-mono text-[10px] uppercase tracking-wider">
         <span className="text-muted-foreground group-hover:text-foreground transition-colors">
-          LLM spend
+          Completed
         </span>
         <span className={`tabular-nums font-semibold ${TEXT_COLORS[warnLevel]}`} data-testid="text-company-spend">
           {fmtUsd(usedUsd)} / {fmtUsd(capUsd)}
         </span>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className={`h-full ${BAR_COLORS[warnLevel]} transition-all`}
-          style={{ width: `${Math.min(100, Math.max(percentUsed > 0 ? 2 : 0, percentUsed)).toFixed(2)}%` }}
-        />
+        <div className="flex h-full w-full">
+          <div
+            className={`h-full ${BAR_COLORS[warnLevel]} transition-all`}
+            style={{ width: `${Math.min(100, Math.max(0, (usedUsd / capUsd) * 100)).toFixed(2)}%` }}
+          />
+          <div
+            className="h-full bg-sky-500 transition-all"
+            style={{ width: `${Math.min(100, Math.max(0, (visibleReservedUsd / capUsd) * 100)).toFixed(2)}%` }}
+          />
+        </div>
+      </div>
+      <div className="flex justify-between gap-2 text-[9px] leading-none text-muted-foreground">
+        <span>In flight: {fmtUsd(reservedUsd)}</span>
+        <span>{fmtUsd(remainingUsd)} available</span>
       </div>
     </Link>
   );
@@ -90,7 +100,7 @@ export function CompanySpendBanner() {
     query: { queryKey: getGetCompanySpendQueryKey(), refetchInterval: 60_000, staleTime: 30_000, retry: false },
   });
   if (!data || data.warnLevel === "ok") return null;
-  const { usedUsd, capUsd, percentUsed, warnLevel } = data;
+  const { usedUsd, reservedUsd, remainingUsd, capUsd, percentUsed, warnLevel } = data;
   const resetDate = fmtResetDate(data.monthResetsAt);
 
   // The one-time admin threshold emails already dispatched this month —
@@ -109,15 +119,15 @@ export function CompanySpendBanner() {
     warnLevel === "blocked"
       ? "Monthly LLM cost cap reached — engine runs are paused."
       : warnLevel === "critical"
-        ? `Company LLM spend is at ${percentUsed.toFixed(1)}% of this month's cap.`
-        : `Company LLM spend has passed 80% of this month's cap (${percentUsed.toFixed(1)}%).`;
+        ? `Company LLM budget is at ${percentUsed.toFixed(1)}% of this month's cap.`
+        : `Company LLM budget has passed 80% of this month's cap (${percentUsed.toFixed(1)}%).`;
 
   const detail =
     warnLevel === "blocked"
-      ? `The company-wide cap of ${fmtUsd(capUsd)} has been used. Runs resume when the counter resets on ${resetDate} UTC, or sooner if an admin raises STAFF_MONTHLY_COST_CAP_USD.`
+      ? `Completed charges (${fmtUsd(usedUsd)}) plus temporary reservations (${fmtUsd(reservedUsd)}) have reached the ${fmtUsd(capUsd)} cap. Reservations are not completed charges; they are replaced by actual costs when calls finish and released when calls fail. Runs resume when the counter resets on ${resetDate} UTC, or sooner if an admin raises the cap.`
       : warnLevel === "critical"
-        ? `${fmtUsd(usedUsd)} of ${fmtUsd(capUsd)} used — engine runs will start refusing once the cap is hit. Pace heavy engines (F6/F7/F8) or ask an admin to raise the cap.`
-        : `${fmtUsd(usedUsd)} of ${fmtUsd(capUsd)} used this month. Consider pacing heavy engines (F6/F7/F8) or asking an admin to raise the cap before work is blocked.`;
+        ? `${fmtUsd(usedUsd)} completed and ${fmtUsd(reservedUsd)} reserved; ${fmtUsd(remainingUsd)} remains available. Engine runs will start refusing once the cap is hit.`
+        : `${fmtUsd(usedUsd)} completed and ${fmtUsd(reservedUsd)} reserved; ${fmtUsd(remainingUsd)} remains available this month.`;
 
   return (
     <div

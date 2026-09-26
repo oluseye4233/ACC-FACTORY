@@ -921,17 +921,19 @@ export const GetMyUsageResponse = zod.object({
  * @summary Company-wide month-to-date LLM spend vs. the shared monthly cost cap
  */
 export const GetCompanySpendResponse = zod.object({
-  "usedUsd": zod.number().describe('Month-to-date company-wide LLM spend (USD)'),
+  "usedUsd": zod.number().describe('Completed month-to-date company-wide provider charges (USD); excludes temporary reservations'),
+  "reservedUsd": zod.number().describe('Active, unexpired worst-case reservations for in-flight model calls (USD); not completed charges'),
+  "remainingUsd": zod.number().describe('Usable budget remaining after completed charges and active reservations; never below zero (USD)'),
   "capUsd": zod.number().describe('The shared monthly cap (USD)'),
-  "percentUsed": zod.number().describe('usedUsd \/ capUsd as a percentage, clamped to [0, 100]'),
-  "overCap": zod.boolean().describe('True once engine routes are being refused with 402 COST_CAP_EXCEEDED'),
-  "warnLevel": zod.enum(['ok', 'warn', 'critical', 'blocked']).describe('ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached'),
+  "percentUsed": zod.number().describe('(usedUsd + reservedUsd) \/ capUsd as a percentage, clamped to [0, 100]'),
+  "overCap": zod.boolean().describe('True when completed charges plus active reservations reach the point that engine routes are refused with 402 COST_CAP_EXCEEDED'),
+  "warnLevel": zod.enum(['ok', 'warn', 'critical', 'blocked']).describe('Based on completed charges plus reservations: ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached'),
   "monthResetsAt": zod.coerce.date().describe('Start of next UTC month, when the spend counter resets'),
   "alertsSent": zod.array(zod.object({
   "thresholdPercent": zod.number().describe('Threshold crossed when the alert was sent: 80, 95, or 100 (percent of the monthly cap)'),
   "sentAt": zod.coerce.date().describe('When the admin alert email was dispatched')
 })).describe('One-time admin threshold alert emails (80\/95\/100% of the cap) already dispatched this UTC month, read from the exactly-once cost_cap_notifications stamps. Lets staff see the escalation already happened without pinging admins again.\n')
-}).describe('Completed company-wide LLM spend for the current UTC month. While a provider call is in flight, enforcement also counts its temporary worst-case reservation, which is replaced by actual spend when the call finishes.\n')
+}).describe('Company-wide LLM spend for the current UTC calendar month against the single shared monthly cost cap (STAFF_MONTHLY_COST_CAP_USD). Completed provider charges and active in-flight reservations are reported separately. The gate uses their sum; on success a reservation is atomically replaced by the recorded provider charge, and on failure it is released.\n')
 
 
 /**
@@ -949,7 +951,7 @@ export const GetCompanySpendByUserResponse = zod.object({
   "runs": zod.number().describe('Engine runs recorded this month for this user'),
   "sharePercent": zod.number().describe('This user\'s share of the company-wide month-to-date spend, 0-100')
 }))
-}).describe('Who consumed the shared monthly LLM budget. Completed harness_engine_runs.cost_usd for the current UTC month, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.\n')
+}).describe('Who is consuming the shared monthly LLM budget. Same SUM over harness_engine_runs.cost_usd for the current UTC month that the company-wide meter and the requireCostBudget gate use, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.\n')
 
 
 /**

@@ -27,7 +27,10 @@ import {
   GeminiIntegrationNotConfiguredError,
 } from "@workspace/integrations-gemini-ai";
 import type { Request, Response } from "express";
-import { computeCostUsd } from "../lib/pricing";
+import {
+  computeCostUsd,
+  computeWorstCaseReservationUsd,
+} from "../lib/pricing";
 import { logger } from "../lib/logger";
 import { maybeDispatchHighCostAlerts } from "../lib/notification-dispatch";
 import { tryIssueSku } from "../lib/sku";
@@ -225,9 +228,15 @@ async function recordRun(
   outputTokens: number,
   durationMs: number,
   reservationId?: string | null,
+  cachedInputTokens = 0,
 ): Promise<boolean> {
   try {
-    const cost = computeCostUsd(modelId, inputTokens, outputTokens);
+    const cost = computeCostUsd(
+      modelId,
+      inputTokens,
+      outputTokens,
+      cachedInputTokens,
+    );
     const values = {
       sessionId: ctx.sessionId,
       userId: ctx.userId,
@@ -358,10 +367,48 @@ export function sendProviderTierError(res: Response, err: unknown): boolean {
 
 // ─── Generic LLM call layer ───────────────────────────────────────────────
 
+type LlmCallResult = {
+  text: string;
+  inputTokens: number;
+  outputTokens: number;
+  cachedInputTokens?: number;
+  modelId: string;
+};
+
+class ProviderUsageUnavailableError extends Error {
+  constructor(label: string) {
+    super(`Provider response did not include a valid ${label} token count.`);
+    this.name = "ProviderUsageUnavailableError";
+  }
+}
+
+function requiredTokenCount(label: string, ...values: unknown[]): number {
+  const value = values.find(
+    (candidate) =>
+      typeof candidate === "number" &&
+      Number.isSafeInteger(candidate) &&
+      candidate >= 0,
+  );
+  if (typeof value !== "number") {
+    throw new ProviderUsageUnavailableError(label);
+  }
+  return value;
+}
+
+function optionalTokenCount(...values: unknown[]): number {
+  const value = values.find(
+    (candidate) =>
+      typeof candidate === "number" &&
+      Number.isSafeInteger(candidate) &&
+      candidate >= 0,
+  );
+  return typeof value === "number" ? value : 0;
+}
+
 async function callClaudeImpl(
   systemPrompt: string,
   userPrompt: string,
-): Promise<{ text: string; inputTokens: number; outputTokens: number; modelId: string }> {
+): Promise<LlmCallResult> {
   const modelId = PROVIDER_MODELS.claude;
   let client;
   try {
@@ -382,8 +429,8 @@ async function callClaudeImpl(
   const text = block && block.type === "text" ? block.text : "";
   return {
     text,
-    inputTokens: message.usage?.input_tokens ?? 0,
-    outputTokens: message.usage?.output_tokens ?? 0,
+    inputTokens: requiredTokenCount("input", message.usage?.input_tokens),
+    outputTokens: requiredTokenCount("output", message.usage?.output_tokens),
     modelId,
   };
 }
@@ -392,7 +439,7 @@ async function callOpenAIImpl(
   systemPrompt: string,
   userPrompt: string,
   jsonMode: boolean,
-): Promise<{ text: string; inputTokens: number; outputTokens: number; modelId: string }> {
+): Promise<LlmCallResult> {
   const modelId = PROVIDER_MODELS.openai;
   let client;
   try {
@@ -415,8 +462,11 @@ async function callOpenAIImpl(
   const text = completion.choices[0]?.message?.content ?? "";
   return {
     text,
-    inputTokens: completion.usage?.prompt_tokens ?? 0,
-    outputTokens: completion.usage?.completion_tokens ?? 0,
+    inputTokens: requiredTokenCount("input", completion.usage?.prompt_tokens),
+    outputTokens: requiredTokenCount("output", completion.usage?.completion_tokens),
+    cachedInputTokens: optionalTokenCount(
+      completion.usage?.prompt_tokens_details?.cached_tokens,
+    ),
     modelId,
   };
 }
@@ -425,7 +475,7 @@ async function callGeminiImpl(
   systemPrompt: string,
   userPrompt: string,
   jsonMode: boolean,
-): Promise<{ text: string; inputTokens: number; outputTokens: number; modelId: string }> {
+): Promise<LlmCallResult> {
   const modelId = PROVIDER_MODELS.gemini;
   let client;
   try {
@@ -465,8 +515,11 @@ async function callGeminiImpl(
   const usage = response.usageMetadata;
   return {
     text,
-    inputTokens: usage?.promptTokenCount ?? 0,
-    outputTokens: usage?.candidatesTokenCount ?? 0,
+    inputTokens: requiredTokenCount("input", usage?.promptTokenCount),
+    // Google bills thinking tokens at the output rate as well as candidate text.
+    outputTokens:
+      requiredTokenCount("candidate output", usage?.candidatesTokenCount) +
+      optionalTokenCount(usage?.thoughtsTokenCount),
     modelId,
   };
 }
@@ -506,17 +559,9 @@ interface OpenAICompatibleResponse {
     completion_tokens?: unknown;
     input_tokens?: unknown;
     output_tokens?: unknown;
+    prompt_cache_hit_tokens?: unknown;
+    prompt_tokens_details?: { cached_tokens?: unknown };
   };
-}
-
-function tokenCount(...values: unknown[]): number {
-  const value = values.find(
-    (candidate) =>
-      typeof candidate === "number" &&
-      Number.isFinite(candidate) &&
-      candidate >= 0,
-  );
-  return typeof value === "number" ? value : 0;
 }
 
 async function callOpenAICompatibleImpl(
@@ -524,7 +569,7 @@ async function callOpenAICompatibleImpl(
   systemPrompt: string,
   userPrompt: string,
   jsonMode: boolean,
-): Promise<{ text: string; inputTokens: number; outputTokens: number; modelId: string }> {
+): Promise<LlmCallResult> {
   const config = OPENAI_COMPATIBLE_PROVIDER_CONFIG[provider];
   const apiKey = process.env[config.apiKeyEnv];
   if (!apiKey) {
@@ -593,8 +638,20 @@ async function callOpenAICompatibleImpl(
   const usage = payload.usage;
   return {
     text,
-    inputTokens: tokenCount(usage?.prompt_tokens, usage?.input_tokens),
-    outputTokens: tokenCount(usage?.completion_tokens, usage?.output_tokens),
+    inputTokens: requiredTokenCount(
+      "input",
+      usage?.prompt_tokens,
+      usage?.input_tokens,
+    ),
+    outputTokens: requiredTokenCount(
+      "output",
+      usage?.completion_tokens,
+      usage?.output_tokens,
+    ),
+    cachedInputTokens: optionalTokenCount(
+      usage?.prompt_cache_hit_tokens,
+      usage?.prompt_tokens_details?.cached_tokens,
+    ),
     modelId,
   };
 }
@@ -620,14 +677,17 @@ export async function callLlm(
   }
 
   let reservationId: string | null = null;
-  let result: { text: string; inputTokens: number; outputTokens: number; modelId: string };
+  let result: LlmCallResult;
   try {
     if (ctx) {
-      // UTF-8 bytes conservatively upper-bound the prompt token count, while
-      // MAX_TOKENS covers the provider's maximum output for every supported
-      // integration. The reserve is converted to actual usage on completion.
-      const inputTokenUpperBound = Buffer.byteLength(`${finalSystem}\n${userPrompt}`, "utf8");
-      const estimatedCostUsd = computeCostUsd(
+      // One token cannot represent less than one UTF-8 byte. The extra margin
+      // covers message framing and role separators; MAX_TOKENS covers every
+      // provider's configured output ceiling. Always reserve uncached rates.
+      const inputTokenUpperBound =
+        Buffer.byteLength(finalSystem, "utf8") +
+        Buffer.byteLength(userPrompt, "utf8") +
+        256;
+      const estimatedCostUsd = computeWorstCaseReservationUsd(
         PROVIDER_MODELS[provider],
         inputTokenUpperBound,
         MAX_TOKENS,
@@ -637,31 +697,40 @@ export async function callLlm(
       reservationId = reservation.reservationId;
     }
 
-    switch (provider) {
-      case "openai":
-        result = await callOpenAIImpl(finalSystem, userPrompt, jsonMode);
-        break;
-      case "gemini":
-        result = await callGeminiImpl(finalSystem, userPrompt, jsonMode);
-        break;
-      case "deepseek":
-      case "kimi":
-      case "qwen":
-      case "glm":
-        result = await callOpenAICompatibleImpl(
-          provider,
-          finalSystem,
-          userPrompt,
-          jsonMode,
-        );
-        break;
-      case "claude":
-      default:
-        result = await callClaudeImpl(finalSystem, userPrompt);
-        break;
+    try {
+      switch (provider) {
+        case "openai":
+          result = await callOpenAIImpl(finalSystem, userPrompt, jsonMode);
+          break;
+        case "gemini":
+          result = await callGeminiImpl(finalSystem, userPrompt, jsonMode);
+          break;
+        case "deepseek":
+        case "kimi":
+        case "qwen":
+        case "glm":
+          result = await callOpenAICompatibleImpl(
+            provider,
+            finalSystem,
+            userPrompt,
+            jsonMode,
+          );
+          break;
+        case "claude":
+        default:
+          result = await callClaudeImpl(finalSystem, userPrompt);
+          break;
+      }
+    } catch (err) {
+      if (reservationId && err instanceof ProviderUsageUnavailableError) {
+        // The provider returned a response but omitted billing usage. Keep the
+        // maximum reservation rather than committing a zero-cost run.
+        reservationId = null;
+      }
+      throw err;
     }
     if (ctx) {
-      await recordRun(
+      const recorded = await recordRun(
         ctx,
         provider,
         result.modelId,
@@ -669,9 +738,17 @@ export async function callLlm(
         result.outputTokens,
         Date.now() - start,
         reservationId,
+        result.cachedInputTokens ?? 0,
       );
+      if (!recorded) {
+        // Keep the reservation until its TTL expires so failed telemetry cannot
+        // remove the only accounting for provider spend already incurred.
+        reservationId = null;
+        throw new Error(
+          "Provider usage completed but could not be recorded; the cost reservation remains active until it expires.",
+        );
+      }
       // On successful ledger write the reservation was deleted atomically.
-      // If the write failed, leave it to expire rather than undercount spend.
       reservationId = null;
     }
     return result.text;

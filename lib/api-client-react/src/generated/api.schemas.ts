@@ -2176,7 +2176,7 @@ export interface UsageReport {
 }
 
 /**
- * ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached
+ * Based on completed charges plus reservations: ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached
  */
 export type CompanySpendWarnLevel = typeof CompanySpendWarnLevel[keyof typeof CompanySpendWarnLevel];
 
@@ -2196,19 +2196,23 @@ export interface CostCapAlertSent {
 }
 
 /**
- * Completed company-wide LLM spend for the current UTC month. While a provider call is in flight, enforcement also counts its temporary worst-case reservation, which is replaced by actual spend when the call finishes.
+ * Company-wide LLM spend for the current UTC calendar month against the single shared monthly cost cap (STAFF_MONTHLY_COST_CAP_USD). Completed provider charges and active in-flight reservations are reported separately. The gate uses their sum; on success a reservation is atomically replaced by the recorded provider charge, and on failure it is released.
 
  */
 export interface CompanySpend {
-  /** Month-to-date company-wide LLM spend (USD) */
+  /** Completed month-to-date company-wide provider charges (USD); excludes temporary reservations */
   usedUsd: number;
+  /** Active, unexpired worst-case reservations for in-flight model calls (USD); not completed charges */
+  reservedUsd: number;
+  /** Usable budget remaining after completed charges and active reservations; never below zero (USD) */
+  remainingUsd: number;
   /** The shared monthly cap (USD) */
   capUsd: number;
-  /** usedUsd / capUsd as a percentage, clamped to [0, 100] */
+  /** (usedUsd + reservedUsd) / capUsd as a percentage, clamped to [0, 100] */
   percentUsed: number;
-  /** True once engine routes are being refused with 402 COST_CAP_EXCEEDED */
+  /** True when completed charges plus active reservations reach the point that engine routes are refused with 402 COST_CAP_EXCEEDED */
   overCap: boolean;
-  /** ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached */
+  /** Based on completed charges plus reservations: ok < 80%, warn >= 80%, critical >= 95%, blocked = cap reached */
   warnLevel: CompanySpendWarnLevel;
   /** Start of next UTC month, when the spend counter resets */
   monthResetsAt: string;
@@ -2231,7 +2235,7 @@ export interface CompanySpendUserRow {
 }
 
 /**
- * Who consumed the shared monthly LLM budget. Completed harness_engine_runs.cost_usd for the current UTC month, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.
+ * Who is consuming the shared monthly LLM budget. Same SUM over harness_engine_runs.cost_usd for the current UTC month that the company-wide meter and the requireCostBudget gate use, grouped by user and sorted by spend (highest first). Only users with at least one run this month appear.
 
  */
 export interface CompanySpendByUser {

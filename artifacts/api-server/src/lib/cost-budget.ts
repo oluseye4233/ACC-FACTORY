@@ -142,33 +142,53 @@ export async function currentMonthCostGlobal(): Promise<number> {
   return Number.isFinite(n) ? n : 0;
 }
 
+export interface GlobalMonthlyCostBreakdown {
+  /** Completed provider charges recorded in the run ledger. */
+  usedUsd: number;
+  /** Active, unexpired worst-case estimates reserved for in-flight calls. */
+  reservedUsd: number;
+}
+
+/**
+ * Read completed charges and active reservations from one database snapshot.
+ * A successful call replaces its reservation with a run row transactionally,
+ * so this query cannot observe an artificial gap between those two states.
+ */
+export async function currentMonthCostGlobalBreakdown(): Promise<GlobalMonthlyCostBreakdown> {
+  const result = await db.execute<{
+    used_usd: string;
+    reserved_usd: string;
+  }>(sql`
+    SELECT
+      COALESCE((
+        SELECT SUM(${harnessEngineRunsTable.costUsd})::numeric
+        FROM ${harnessEngineRunsTable}
+        WHERE ${harnessEngineRunsTable.createdAt} >= date_trunc('month', now() at time zone 'utc')
+      ), 0)::numeric AS used_usd,
+      COALESCE((
+        SELECT SUM(${costBudgetReservationsTable.amountUsd})::numeric
+        FROM ${costBudgetReservationsTable}
+        WHERE ${costBudgetReservationsTable.createdAt} >= date_trunc('month', now() at time zone 'utc')
+          AND ${costBudgetReservationsTable.expiresAt} >= now()
+      ), 0)::numeric AS reserved_usd
+  `);
+  const row = result.rows[0];
+  const used = Number(row?.used_usd ?? 0);
+  const reserved = Number(row?.reserved_usd ?? 0);
+  return {
+    usedUsd: Number.isFinite(used) ? used : 0,
+    reservedUsd: Number.isFinite(reserved) ? reserved : 0,
+  };
+}
+
 /**
  * Committed spend plus live in-flight reservations for the current UTC month.
  * One SQL statement gives a consistent snapshot while a reservation is
  * atomically replaced by its recorded provider run.
  */
 export async function currentMonthCostGlobalWithReservations(): Promise<number> {
-  // Keep this as one statement so a reservation-to-ledger reconciliation is
-  // observed as either the reservation or the recorded run, never neither.
-  const result = await db.execute<{ total: string }>(sql`
-    SELECT (
-      COALESCE((
-        SELECT SUM(${harnessEngineRunsTable.costUsd})::numeric
-        FROM ${harnessEngineRunsTable}
-        WHERE ${harnessEngineRunsTable.createdAt} >= date_trunc('month', now() at time zone 'utc')
-      ), 0)
-      + COALESCE((
-        SELECT SUM(${costBudgetReservationsTable.amountUsd})::numeric
-        FROM ${costBudgetReservationsTable}
-        WHERE ${costBudgetReservationsTable.createdAt} >= date_trunc('month', now() at time zone 'utc')
-          AND ${costBudgetReservationsTable.expiresAt} > now()
-      ), 0)
-    )::numeric AS total
-  `);
-  const total = result.rows[0]?.total;
-  if (!total) return 0;
-  const n = Number(total);
-  return Number.isFinite(n) ? n : 0;
+  const { usedUsd, reservedUsd } = await currentMonthCostGlobalBreakdown();
+  return usedUsd + reservedUsd;
 }
 
 export interface CostBudgetDenial {

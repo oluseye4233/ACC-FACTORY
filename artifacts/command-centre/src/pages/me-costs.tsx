@@ -67,7 +67,7 @@ function CapMeter({ summary }: { summary: CostSummary }) {
             ? ` · personal tier ${summary.tier} (elevated by team membership)`
             : ""}
         </span>
-        <span className={`font-semibold ${textColor}`}>{percentUsed.toFixed(1)}% used</span>
+        <span className={`font-semibold ${textColor}`}>{percentUsed.toFixed(1)}% of budget committed</span>
       </div>
       {overCap ? (
         <div className="mt-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
@@ -88,7 +88,7 @@ function CompanySpendCard() {
     query: { queryKey: getGetCompanySpendQueryKey(), refetchInterval: 60_000, staleTime: 30_000, retry: false },
   });
   if (!data) return null;
-  const { usedUsd, capUsd, percentUsed, warnLevel } = data;
+  const { usedUsd, reservedUsd, remainingUsd, capUsd, percentUsed, warnLevel } = data;
   const barColor =
     warnLevel === "blocked" || warnLevel === "critical"
       ? "bg-red-600"
@@ -102,19 +102,49 @@ function CompanySpendCard() {
         ? "text-amber-700"
         : "text-emerald-700";
   const resetDate = new Date(data.monthResetsAt);
+  const visibleReservedUsd = Math.min(reservedUsd, Math.max(0, capUsd - usedUsd));
   return (
     <div className="rounded-lg border bg-card p-6 shadow-sm" data-testid="card-company-spend">
       <div className="flex items-baseline justify-between gap-4 mb-2">
-        <h2 className="text-lg font-semibold">Company-wide LLM spend (this month)</h2>
+        <h2 className="text-lg font-semibold">Company-wide LLM budget (this month)</h2>
         <div className={`text-2xl font-mono tabular-nums ${textColor}`}>
           {fmtUsd(usedUsd)} <span className="text-base text-muted-foreground">/ {fmtUsd(capUsd)}</span>
         </div>
       </div>
-      <div className="h-3 w-full overflow-hidden rounded-full bg-muted">
+      <p className="mb-2 text-xs text-muted-foreground">Completed provider charges; temporary reservations are shown separately.</p>
+      <div
+        className="flex h-3 w-full overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-label="Company monthly budget used, including active reservations"
+        aria-valuemin={0}
+        aria-valuemax={capUsd}
+        aria-valuenow={Math.min(capUsd, usedUsd + reservedUsd)}
+        data-testid="meter-company-spend"
+      >
         <div
           className={`h-full ${barColor} transition-all`}
-          style={{ width: `${Math.min(100, Math.max(percentUsed > 0 ? 2 : 0, percentUsed)).toFixed(2)}%` }}
+          style={{ width: `${Math.min(100, Math.max(0, (usedUsd / capUsd) * 100)).toFixed(2)}%` }}
+          data-testid="meter-completed-spend"
         />
+        <div
+          className="h-full bg-sky-500 transition-all"
+          style={{ width: `${Math.min(100, Math.max(0, (visibleReservedUsd / capUsd) * 100)).toFixed(2)}%` }}
+          data-testid="meter-reserved-spend"
+        />
+      </div>
+      <div className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3" data-testid="row-company-spend-breakdown">
+        <div>
+          <div className="text-xs text-muted-foreground">Completed charges</div>
+          <div className="font-mono tabular-nums" data-testid="text-company-spend-completed">{fmtUsd(usedUsd)}</div>
+        </div>
+        <div>
+          <div className="text-xs text-muted-foreground">Temporarily reserved · in-flight calls</div>
+          <div className="font-mono tabular-nums text-sky-700" data-testid="text-company-spend-reserved">{fmtUsd(reservedUsd)}</div>
+        </div>
+        <div>
+          <div className="text-xs text-muted-foreground">Available before cap</div>
+          <div className="font-mono tabular-nums" data-testid="text-company-spend-remaining">{fmtUsd(remainingUsd)}</div>
+        </div>
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
         <span>
@@ -127,6 +157,9 @@ function CompanySpendCard() {
         </span>
         <span className={`font-semibold ${textColor}`}>{percentUsed.toFixed(1)}% used</span>
       </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Reservations are estimates, not completed charges. When a model call finishes, its reservation is replaced by the actual charge; failed calls release the reservation.
+      </p>
       {data.alertsSent.length > 0 ? (
         <div
           className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3 text-xs"

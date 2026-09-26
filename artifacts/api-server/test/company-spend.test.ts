@@ -14,18 +14,21 @@ import express, {
   type NextFunction,
 } from "express";
 import type { Server } from "node:http";
-import { sql } from "drizzle-orm";
-import { db, usersTable, harnessEngineRunsTable } from "@workspace/db";
+import { eq, sql } from "drizzle-orm";
+import {
+  db,
+  usersTable,
+  harnessEngineRunsTable,
+  costBudgetReservationsTable,
+} from "@workspace/db";
 
 // ---------------------------------------------------------------------------
 // GET /api/me/company-spend — the staff-facing spend meter.
 //
-// The whole point of the endpoint is that its numbers MUST match the
-// requireCostBudget gate's own 402 decision: same global SUM over
-// harness_engine_runs.cost_usd for the current UTC month, same
-// STAFF_MONTHLY_COST_CAP_USD cap. These tests pin that equivalence plus the
-// warnLevel thresholds (ok < 80% <= warn < 95% <= critical < blocked) that
-// drive the front-end banner.
+// The endpoint must match the requireCostBudget gate's own 402 decision:
+// completed run spend plus active reservations against the same
+// STAFF_MONTHLY_COST_CAP_USD cap. These tests also pin the warning thresholds
+// that drive the front-end banner.
 // ---------------------------------------------------------------------------
 
 vi.mock("../src/lib/auth", async (importOriginal) => {
@@ -121,6 +124,8 @@ async function getSpend(capUsd?: number) {
   expect(res.status).toBe(200);
   return (await res.json()) as {
     usedUsd: number;
+    reservedUsd: number;
+    remainingUsd: number;
     capUsd: number;
     percentUsed: number;
     overCap: boolean;
@@ -132,17 +137,21 @@ async function getSpend(capUsd?: number) {
 
 describe("GET /me/company-spend", () => {
   test("matches the enforcement gate's own numbers (same SUM, same cap)", async () => {
-    const { currentMonthCostGlobal, globalMonthlyCostCapUsd } = await import(
-      "../src/lib/cost-budget"
-    );
+    const {
+      currentMonthCostGlobal,
+      currentMonthCostGlobalWithReservations,
+      globalMonthlyCostCapUsd,
+    } = await import("../src/lib/cost-budget");
     const body = await getSpend();
     const gateUsed = await currentMonthCostGlobal();
     const gateCap = globalMonthlyCostCapUsd();
+    const gateUsedWithReservations = await currentMonthCostGlobalWithReservations();
     // Same SUM (allow a whisker for concurrent suites writing runs to the
     // shared dev DB between the two reads).
     expect(Math.abs(body.usedUsd - gateUsed)).toBeLessThan(0.05);
     expect(body.capUsd).toBe(gateCap);
     expect(body.usedUsd).toBeGreaterThanOrEqual(1); // our seeded run
+    expect(Math.abs(body.usedUsd + body.reservedUsd - gateUsedWithReservations)).toBeLessThan(0.05);
     // First instant of next UTC month.
     const reset = new Date(body.monthResetsAt);
     expect(reset.getUTCDate()).toBe(1);
@@ -150,17 +159,47 @@ describe("GET /me/company-spend", () => {
     expect(reset.getTime()).toBeGreaterThan(Date.now());
   });
 
+  test("reports completed charges, live reservations, and usable budget separately", async () => {
+    const [reservation] = await db
+      .insert(costBudgetReservationsTable)
+      .values({
+        amountUsd: "0.123456",
+        expiresAt: new Date(Date.now() + 5 * 60_000),
+      })
+      .returning({ id: costBudgetReservationsTable.id });
+
+    try {
+      const body = await getSpend(1_000_000_000);
+      expect(body.reservedUsd).toBeGreaterThanOrEqual(0.123456);
+      expect(body.remainingUsd).toBeCloseTo(
+        body.capUsd - body.usedUsd - body.reservedUsd,
+        3,
+      );
+      expect(body.percentUsed).toBeCloseTo(
+        ((body.usedUsd + body.reservedUsd) / body.capUsd) * 100,
+        5,
+      );
+      expect(body.overCap).toBe(false);
+    } finally {
+      if (reservation) {
+        await db
+          .delete(costBudgetReservationsTable)
+          .where(eq(costBudgetReservationsTable.id, reservation.id));
+      }
+    }
+  });
+
   test("warnLevel=ok below 80%", async () => {
-    const { usedUsd } = await getSpend();
-    const body = await getSpend(usedUsd / 0.5); // 50% used
+    const { usedUsd, reservedUsd } = await getSpend();
+    const body = await getSpend((usedUsd + reservedUsd) / 0.5); // 50% budgeted
     expect(body.warnLevel).toBe("ok");
     expect(body.overCap).toBe(false);
     expect(body.percentUsed).toBeLessThan(80);
   });
 
   test("warnLevel=warn at >=80%", async () => {
-    const { usedUsd } = await getSpend();
-    const body = await getSpend(usedUsd / 0.85); // 85% used
+    const { usedUsd, reservedUsd } = await getSpend();
+    const body = await getSpend((usedUsd + reservedUsd) / 0.85); // 85% budgeted
     expect(body.warnLevel).toBe("warn");
     expect(body.overCap).toBe(false);
     expect(body.percentUsed).toBeGreaterThanOrEqual(80);
@@ -168,16 +207,16 @@ describe("GET /me/company-spend", () => {
   });
 
   test("warnLevel=critical at >=95%", async () => {
-    const { usedUsd } = await getSpend();
-    const body = await getSpend(usedUsd / 0.97); // 97% used
+    const { usedUsd, reservedUsd } = await getSpend();
+    const body = await getSpend((usedUsd + reservedUsd) / 0.97); // 97% budgeted
     expect(body.warnLevel).toBe("critical");
     expect(body.overCap).toBe(false);
     expect(body.percentUsed).toBeGreaterThanOrEqual(95);
   });
 
   test("warnLevel=blocked once the cap is reached — the exact condition the 402 gate uses", async () => {
-    const { usedUsd } = await getSpend();
-    const body = await getSpend(Math.max(0.01, usedUsd * 0.5)); // cap below spend
+    const { usedUsd, reservedUsd } = await getSpend();
+    const body = await getSpend(Math.max(0.01, (usedUsd + reservedUsd) * 0.5)); // cap below budgeted amount
     expect(body.warnLevel).toBe("blocked");
     expect(body.overCap).toBe(true);
     expect(body.percentUsed).toBe(100);
@@ -190,7 +229,7 @@ describe("GET /me/company-spend", () => {
 
   test("alertsSent mirrors this month's cost_cap_notifications stamps", async () => {
     const { costCapNotificationsTable } = await import("@workspace/db");
-    const { eq, and } = await import("drizzle-orm");
+    const { and } = await import("drizzle-orm");
     const month = new Date().toISOString().slice(0, 7);
 
     // Snapshot what's already stamped this month on the shared dev DB —

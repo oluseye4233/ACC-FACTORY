@@ -10,7 +10,7 @@ import {
 } from "@workspace/db";
 import { requireAdmin, requireAuth } from "../lib/auth";
 import {
-  currentMonthCostGlobal,
+  currentMonthCostGlobalBreakdown,
   globalMonthlyCostCapUsd,
   loadCostStatus,
 } from "../lib/cost-budget";
@@ -20,13 +20,13 @@ const router: IRouter = Router();
 /**
  * GET /api/me/company-spend
  *
- * The company-wide spend meter. Returns completed provider spend for the
- * current UTC month. During an in-flight call, the enforcement gate also
- * counts its temporary worst-case reservation; the reservation is replaced
- * with actual spend when the provider call finishes.
+ * The company-wide spend meter. Reports completed charges and active
+ * worst-case reservations separately. Enforcement and remaining balance use
+ * their sum; successful calls atomically replace a reservation with actual
+ * spend, while failed calls release it.
  *
  * warnLevel thresholds: ok < 80%, warn >= 80%, critical >= 95%,
- * blocked once usedUsd >= capUsd (engine routes are now refusing).
+ * blocked once completed spend plus reservations reaches the cap.
  *
  * alertsSent lists the one-time admin threshold emails (80/95/100%) already
  * dispatched this UTC month — read straight from the `cost_cap_notifications`
@@ -34,9 +34,14 @@ const router: IRouter = Router();
  * skip a duplicate manual ping.
  */
 router.get("/me/company-spend", requireAuth, async (req, res) => {
-  const [usedUsd, capUsd] = [await currentMonthCostGlobal(), globalMonthlyCostCapUsd()];
-  const overCap = usedUsd >= capUsd;
-  const rawPercent = capUsd > 0 ? (usedUsd / capUsd) * 100 : 100;
+  const [{ usedUsd, reservedUsd }, capUsd] = [
+    await currentMonthCostGlobalBreakdown(),
+    globalMonthlyCostCapUsd(),
+  ];
+  const budgetedUsd = usedUsd + reservedUsd;
+  const remainingUsd = Math.max(0, capUsd - budgetedUsd);
+  const overCap = budgetedUsd >= capUsd;
+  const rawPercent = capUsd > 0 ? (budgetedUsd / capUsd) * 100 : 100;
   const percentUsed = Math.min(100, Math.max(0, rawPercent));
   const warnLevel = overCap
     ? "blocked"
@@ -64,7 +69,17 @@ router.get("/me/company-spend", requireAuth, async (req, res) => {
     sentAt: r.sentAt.toISOString(),
   }));
 
-  res.json({ usedUsd, capUsd, percentUsed, overCap, warnLevel, monthResetsAt, alertsSent });
+  res.json({
+    usedUsd,
+    reservedUsd,
+    remainingUsd,
+    capUsd,
+    percentUsed,
+    overCap,
+    warnLevel,
+    monthResetsAt,
+    alertsSent,
+  });
 });
 
 /**
