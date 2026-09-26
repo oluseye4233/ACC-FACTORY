@@ -22,7 +22,8 @@ import {
   computeForgeVerified,
   FORGE_VERIFIED_DISCLAIMER,
 } from "../lib/mathmon";
-import { loadLatestMap, sessionMaxJcse } from "../lib/mathmon-store";
+import { loadLatestMap, sessionBestJcseScorecards, sessionMaxJcse } from "../lib/mathmon-store";
+import { buildMathmonScorecard, type Scorecard } from "../lib/scorecards";
 
 const SPARTAN_STEPS = [
   { id: "SCAN", label: "SCAN — enumerate sections, count tokens" },
@@ -127,9 +128,10 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
   // sub-scores (never the model's self-report), read the session JCSE, and apply
   // the absolute gate: forgeVerified = (jcse ≥ 45 AND mathmon ≥ 70). Written
   // once, here, onto the certified MVP PDD.
-  const [map, sessionJcse] = await Promise.all([
+  const [map, sessionJcse, sourceScorecards] = await Promise.all([
     loadLatestMap(sessionId, guard.userId),
     sessionMaxJcse(sessionId),
+    sessionBestJcseScorecards(sessionId),
   ]);
   const mathmonScore = map
     ? computeMathmonScore({
@@ -139,6 +141,21 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
       })
     : null;
   const forgeVerified = computeForgeVerified(sessionJcse, mathmonScore);
+  const jcseScorecards = (sourceScorecards as Scorecard[]).filter((card) => card.kind === "JCSE");
+  const mathmonScorecards = map
+    ? [
+        (map.scorecard as Scorecard | null) ??
+          buildMathmonScorecard({
+            scores: {
+              mathCoherence: map.mathCoherence,
+              applicability: map.applicability,
+              predictiveReliability: map.predictiveReliability,
+            },
+            score: mathmonScore ?? 0,
+          }),
+      ]
+    : [];
+  const scorecards = [...jcseScorecards, ...mathmonScorecards];
 
   const cert = {
     certId: generateCertId(),
@@ -157,6 +174,8 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
     featureId: 7,
     artifactType: "MVP_PDD",
     artifactContent: { sections: out.sections, donut: out.donut },
+    scorecards,
+    jcseScore: sessionJcse,
     spartanCert: cert,
     mathmonScore,
     forgeVerified,
@@ -194,6 +213,7 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
     cert,
     forgeVerified,
     mathmonScore,
+    scorecards,
     disclaimer: forgeVerified ? FORGE_VERIFIED_DISCLAIMER : null,
     artifactId: artifact.id,
   });

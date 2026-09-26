@@ -219,6 +219,16 @@ interface MapComplete {
   mathmonScore: number;
   disclaimer: string;
   sections: MapSection[];
+  scorecard: {
+    kind: string;
+    dimensions: Array<{
+      key: string;
+      score: number;
+      explanation: string;
+      actions: string[];
+    }>;
+    advisoryReport: { steps: Array<{ action: string }> };
+  };
 }
 
 // Seed an intake, wire the matching LLM fixture, drive the MAP SSE handler once,
@@ -492,6 +502,23 @@ describe("MAP (Mathematical Applicability Profile) — POST /api/harness/map", (
         },
       ],
       ...rawSubScores,
+      scoreFeedback: {
+        mathCoherence: {
+          explanation: "The equations use defined variables and are internally consistent.",
+          gaps: ["The assumptions are not stress-tested."],
+          actions: ["Run a sensitivity check across the key assumptions."],
+        },
+        applicability: {
+          explanation: "The model is only partly connected to the intake targets.",
+          gaps: ["One optimization target is not represented."],
+          actions: ["Map each optimization target to a model output."],
+        },
+        predictiveReliability: {
+          explanation: "Data quality supports strong but not certain predictions.",
+          gaps: ["No held-out validation data is identified."],
+          actions: ["Define a held-out dataset and compare predicted with observed results."],
+        },
+      },
     };
     const key = writeClaudeFixture(MAP_SYSTEM, userPrompt, mapOutput);
 
@@ -532,6 +559,15 @@ describe("MAP (Mathematical Applicability Profile) — POST /api/harness/map", (
       expect(complete!.predictiveReliability).toBe(expectedPr);
       // Composite recomputed server-side from the clamped sub-scores.
       expect(complete!.mathmonScore).toBe(expectedComposite);
+      expect(complete!.scorecard.kind).toBe("MATHMON");
+      expect(
+        complete!.scorecard.dimensions.find((dimension) => dimension.key === "mathCoherence"),
+      ).toMatchObject({
+        score: expectedMc,
+        explanation: "The equations use defined variables and are internally consistent.",
+        actions: ["Run a sensitivity check across the key assumptions."],
+      });
+      expect(complete!.scorecard.advisoryReport.steps).toHaveLength(3);
       // Disclaimer appended to the RANGE-ONLY economic projections section.
       const econ = complete!.sections.find((s) => s.key === "economic_projections");
       expect(econ).toBeDefined();
@@ -556,6 +592,11 @@ describe("MAP (Mathematical Applicability Profile) — POST /api/harness/map", (
       expect(row.predictiveReliability).toBe(expectedPr);
       expect(row.disclaimer).toBe(FORGE_VERIFIED_DISCLAIMER);
       expect(row.intakeId).toBe(intakeRow.id);
+      expect(row.scorecard).toMatchObject({
+        kind: "MATHMON",
+        score: expectedComposite,
+        advisoryReport: { steps: expect.any(Array) },
+      });
     } finally {
       removeFixture(key);
       await srv.close();

@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import type { Request, Response } from "express";
 import { HarnessF1Body } from "@workspace/api-zod";
 import { F1_SYSTEM } from "./prompts";
+import { buildJcseScorecard, type JcsePillar, type ScorecardFeedback } from "../lib/scorecards";
 import {
   advanceFeatureState,
   callLlmJson,
@@ -83,16 +84,41 @@ export async function handleF1(req: Request, res: Response): Promise<void> {
   }
   // Trust deterministic cert mapping over LLM-stated tier.
   const certTier = certTierForJcse(out.jcse.total);
+  const scores = {
+    SYSTEM: out.jcse.system,
+    ROLE: out.jcse.role,
+    INSTRUCTION: out.jcse.instruction,
+    EXAMPLE: out.jcse.example,
+    CONSTRAINT: out.jcse.constraint,
+    FORMAT: out.jcse.format,
+    DATA: out.jcse.data,
+  } satisfies Record<JcsePillar, number>;
+  const feedback: Partial<Record<Lowercase<JcsePillar>, ScorecardFeedback>> = {};
+  for (const pillar of out.pillars) {
+    feedback[pillar.pillar.toLowerCase() as Lowercase<JcsePillar>] = {
+      explanation: pillar.notes,
+      actions: pillar.gapHints,
+    };
+  }
+  const scorecard = buildJcseScorecard({
+    score: out.jcse.total,
+    scores,
+    maxScores: Object.fromEntries(out.pillars.map((pillar) => [pillar.pillar, pillar.max])) as Partial<Record<JcsePillar, number>>,
+    feedback,
+    strengths: out.strengths,
+    gaps: out.gaps,
+  });
   const artifact = await persistArtifact({
     sessionId,
     userId: guard.userId,
     featureId: 1,
     artifactType: "PROMPT_DIAGNOSTIC",
     artifactContent: out,
+    scorecards: [scorecard],
     jcseScore: out.jcse.total,
     certTier,
     provider,
   });
   await advanceFeatureState(sessionId, 1);
-  res.json({ ...out, certTier, artifactId: artifact.id });
+  res.json({ ...out, certTier, scorecard, artifactId: artifact.id });
 }

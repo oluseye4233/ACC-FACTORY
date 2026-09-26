@@ -1076,6 +1076,36 @@ export const GetSessionResponse = zod.object({
   "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
+  "scorecards": zod.array(zod.object({
+  "kind": zod.enum(['JCSE', 'MATHMON']),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "summary": zod.string(),
+  "calculation": zod.string(),
+  "dimensions": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "weightPercent": zod.number().nullable(),
+  "weightedContribution": zod.number().nullable(),
+  "explanation": zod.string(),
+  "gaps": zod.array(zod.string()),
+  "actions": zod.array(zod.string())
+})),
+  "strengths": zod.array(zod.string()),
+  "gaps": zod.array(zod.string()),
+  "advisoryReport": zod.object({
+  "summary": zod.string(),
+  "steps": zod.array(zod.object({
+  "priority": zod.enum(['HIGH', 'MEDIUM', 'LOW']),
+  "title": zod.string(),
+  "why": zod.string(),
+  "action": zod.string(),
+  "expectedImpact": zod.string()
+}))
+})
+})),
   "sku": zod.string().nullish(),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -1241,6 +1271,36 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
+  "scorecards": zod.array(zod.object({
+  "kind": zod.enum(['JCSE', 'MATHMON']),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "summary": zod.string(),
+  "calculation": zod.string(),
+  "dimensions": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "weightPercent": zod.number().nullable(),
+  "weightedContribution": zod.number().nullable(),
+  "explanation": zod.string(),
+  "gaps": zod.array(zod.string()),
+  "actions": zod.array(zod.string())
+})),
+  "strengths": zod.array(zod.string()),
+  "gaps": zod.array(zod.string()),
+  "advisoryReport": zod.object({
+  "summary": zod.string(),
+  "steps": zod.array(zod.object({
+  "priority": zod.enum(['HIGH', 'MEDIUM', 'LOW']),
+  "title": zod.string(),
+  "why": zod.string(),
+  "action": zod.string(),
+  "expectedImpact": zod.string()
+}))
+})
+})),
   "sku": zod.string().nullish(),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -1303,6 +1363,36 @@ export const GetSessionMathmonResponse = zod.object({
   "applicability": zod.number(),
   "predictiveReliability": zod.number(),
   "mathmonScore": zod.number(),
+  "scorecard": zod.union([zod.object({
+  "kind": zod.enum(['JCSE', 'MATHMON']),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "summary": zod.string(),
+  "calculation": zod.string(),
+  "dimensions": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "weightPercent": zod.number().nullable(),
+  "weightedContribution": zod.number().nullable(),
+  "explanation": zod.string(),
+  "gaps": zod.array(zod.string()),
+  "actions": zod.array(zod.string())
+})),
+  "strengths": zod.array(zod.string()),
+  "gaps": zod.array(zod.string()),
+  "advisoryReport": zod.object({
+  "summary": zod.string(),
+  "steps": zod.array(zod.object({
+  "priority": zod.enum(['HIGH', 'MEDIUM', 'LOW']),
+  "title": zod.string(),
+  "why": zod.string(),
+  "action": zod.string(),
+  "expectedImpact": zod.string()
+}))
+})
+}),zod.null()]),
   "disclaimer": zod.string(),
   "provider": zod.string().nullish(),
   "modelId": zod.string().nullish(),
@@ -1326,6 +1416,36 @@ export const GetArtifactResponse = zod.object({
   "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
+  "scorecards": zod.array(zod.object({
+  "kind": zod.enum(['JCSE', 'MATHMON']),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "summary": zod.string(),
+  "calculation": zod.string(),
+  "dimensions": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "weightPercent": zod.number().nullable(),
+  "weightedContribution": zod.number().nullable(),
+  "explanation": zod.string(),
+  "gaps": zod.array(zod.string()),
+  "actions": zod.array(zod.string())
+})),
+  "strengths": zod.array(zod.string()),
+  "gaps": zod.array(zod.string()),
+  "advisoryReport": zod.object({
+  "summary": zod.string(),
+  "steps": zod.array(zod.object({
+  "priority": zod.enum(['HIGH', 'MEDIUM', 'LOW']),
+  "title": zod.string(),
+  "why": zod.string(),
+  "action": zod.string(),
+  "expectedImpact": zod.string()
+}))
+})
+})),
   "sku": zod.string().nullish(),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -1353,6 +1473,36 @@ export const ListArtifactsResponseItem = zod.object({
   "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
+  "scorecards": zod.array(zod.object({
+  "kind": zod.enum(['JCSE', 'MATHMON']),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "summary": zod.string(),
+  "calculation": zod.string(),
+  "dimensions": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "weightPercent": zod.number().nullable(),
+  "weightedContribution": zod.number().nullable(),
+  "explanation": zod.string(),
+  "gaps": zod.array(zod.string()),
+  "actions": zod.array(zod.string())
+})),
+  "strengths": zod.array(zod.string()),
+  "gaps": zod.array(zod.string()),
+  "advisoryReport": zod.object({
+  "summary": zod.string(),
+  "steps": zod.array(zod.object({
+  "priority": zod.enum(['HIGH', 'MEDIUM', 'LOW']),
+  "title": zod.string(),
+  "why": zod.string(),
+  "action": zod.string(),
+  "expectedImpact": zod.string()
+}))
+})
+})),
   "sku": zod.string().nullish(),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -1393,6 +1543,36 @@ export const RenameArtifactResponse = zod.object({
   "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
+  "scorecards": zod.array(zod.object({
+  "kind": zod.enum(['JCSE', 'MATHMON']),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "summary": zod.string(),
+  "calculation": zod.string(),
+  "dimensions": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "weightPercent": zod.number().nullable(),
+  "weightedContribution": zod.number().nullable(),
+  "explanation": zod.string(),
+  "gaps": zod.array(zod.string()),
+  "actions": zod.array(zod.string())
+})),
+  "strengths": zod.array(zod.string()),
+  "gaps": zod.array(zod.string()),
+  "advisoryReport": zod.object({
+  "summary": zod.string(),
+  "steps": zod.array(zod.object({
+  "priority": zod.enum(['HIGH', 'MEDIUM', 'LOW']),
+  "title": zod.string(),
+  "why": zod.string(),
+  "action": zod.string(),
+  "expectedImpact": zod.string()
+}))
+})
+})),
   "sku": zod.string().nullish(),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),
@@ -1453,6 +1633,36 @@ export const HarnessF1Response = zod.object({
 }),
   "strengths": zod.array(zod.string()),
   "gaps": zod.array(zod.string()),
+  "scorecard": zod.object({
+  "kind": zod.enum(['JCSE', 'MATHMON']),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "summary": zod.string(),
+  "calculation": zod.string(),
+  "dimensions": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "weightPercent": zod.number().nullable(),
+  "weightedContribution": zod.number().nullable(),
+  "explanation": zod.string(),
+  "gaps": zod.array(zod.string()),
+  "actions": zod.array(zod.string())
+})),
+  "strengths": zod.array(zod.string()),
+  "gaps": zod.array(zod.string()),
+  "advisoryReport": zod.object({
+  "summary": zod.string(),
+  "steps": zod.array(zod.object({
+  "priority": zod.enum(['HIGH', 'MEDIUM', 'LOW']),
+  "title": zod.string(),
+  "why": zod.string(),
+  "action": zod.string(),
+  "expectedImpact": zod.string()
+}))
+})
+}),
   "artifactId": zod.string().uuid().nullish()
 })
 
@@ -1560,6 +1770,36 @@ export const HarnessF2Response = zod.object({
   "total": zod.number()
 }),
   "certTier": zod.enum(['BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'NONE']),
+  "scorecard": zod.object({
+  "kind": zod.enum(['JCSE', 'MATHMON']),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "summary": zod.string(),
+  "calculation": zod.string(),
+  "dimensions": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "weightPercent": zod.number().nullable(),
+  "weightedContribution": zod.number().nullable(),
+  "explanation": zod.string(),
+  "gaps": zod.array(zod.string()),
+  "actions": zod.array(zod.string())
+})),
+  "strengths": zod.array(zod.string()),
+  "gaps": zod.array(zod.string()),
+  "advisoryReport": zod.object({
+  "summary": zod.string(),
+  "steps": zod.array(zod.object({
+  "priority": zod.enum(['HIGH', 'MEDIUM', 'LOW']),
+  "title": zod.string(),
+  "why": zod.string(),
+  "action": zod.string(),
+  "expectedImpact": zod.string()
+}))
+})
+}),
   "artifactId": zod.string().uuid().nullish()
 })
 
@@ -2854,6 +3094,36 @@ export const HarnessEvolveResponse = zod.object({
   "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "name": zod.string().nullish(),
   "artifactContent": zod.record(zod.string(), zod.unknown()),
+  "scorecards": zod.array(zod.object({
+  "kind": zod.enum(['JCSE', 'MATHMON']),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "summary": zod.string(),
+  "calculation": zod.string(),
+  "dimensions": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "weightPercent": zod.number().nullable(),
+  "weightedContribution": zod.number().nullable(),
+  "explanation": zod.string(),
+  "gaps": zod.array(zod.string()),
+  "actions": zod.array(zod.string())
+})),
+  "strengths": zod.array(zod.string()),
+  "gaps": zod.array(zod.string()),
+  "advisoryReport": zod.object({
+  "summary": zod.string(),
+  "steps": zod.array(zod.object({
+  "priority": zod.enum(['HIGH', 'MEDIUM', 'LOW']),
+  "title": zod.string(),
+  "why": zod.string(),
+  "action": zod.string(),
+  "expectedImpact": zod.string()
+}))
+})
+})),
   "sku": zod.string().nullish(),
   "jcseScore": zod.number().nullish(),
   "certTier": zod.string().nullish(),

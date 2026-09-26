@@ -9,6 +9,7 @@ import type { AtomicPromptTuple } from './atomicPromptTuple';
 import type { CertTier } from './certTier';
 import type { JcseBreakdown } from './jcseBreakdown';
 import type { PillarAssessment } from './pillarAssessment';
+import type { Scorecard } from './scorecard';
 
 export interface PromptDiagnostic {
   jcse: JcseBreakdown;
@@ -17,6 +18,7 @@ export interface PromptDiagnostic {
   atomicPrompt: AtomicPromptTuple;
   strengths: string[];
   gaps: string[];
+  scorecard: Scorecard;
   /** @nullable */
   artifactId?: string | null;
 }

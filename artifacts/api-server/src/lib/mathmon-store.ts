@@ -21,6 +21,22 @@ export async function sessionMaxJcse(sessionId: string): Promise<number | null> 
   return typeof max === "number" ? max : null;
 }
 
+/** Scorecards attached to the session artifact with the highest JCSE score. */
+export async function sessionBestJcseScorecards(sessionId: string): Promise<unknown[]> {
+  const rows = await db
+    .select({ scorecards: harnessArtifactsTable.scorecards })
+    .from(harnessArtifactsTable)
+    .where(
+      and(
+        eq(harnessArtifactsTable.sessionId, sessionId),
+        sql`${harnessArtifactsTable.jcseScore} is not null`,
+      ),
+    )
+    .orderBy(desc(harnessArtifactsTable.jcseScore), desc(harnessArtifactsTable.createdAt))
+    .limit(1);
+  return rows[0]?.scorecards ?? [];
+}
+
 /** Latest MATHMON intake report for a session (most recent first). */
 export async function loadLatestIntake(
   sessionId: string,

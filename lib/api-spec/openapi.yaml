@@ -4336,10 +4336,68 @@ components:
         unlockedAt: { type: ["string", "null"], format: date-time }
         updatedAt: { type: string, format: date-time }
 
+    ScorecardDimension:
+      type: object
+      required:
+        [key, label, score, maxScore, weightPercent, weightedContribution, explanation, gaps, actions]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        score: { type: integer }
+        maxScore: { type: integer }
+        weightPercent: { type: ["number", "null"] }
+        weightedContribution: { type: ["number", "null"] }
+        explanation: { type: string }
+        gaps:
+          type: array
+          items: { type: string }
+        actions:
+          type: array
+          items: { type: string }
+
+    ScorecardAdvisoryStep:
+      type: object
+      required: [priority, title, why, action, expectedImpact]
+      properties:
+        priority: { type: string, enum: [HIGH, MEDIUM, LOW] }
+        title: { type: string }
+        why: { type: string }
+        action: { type: string }
+        expectedImpact: { type: string }
+
+    ScorecardAdvisoryReport:
+      type: object
+      required: [summary, steps]
+      properties:
+        summary: { type: string }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/ScorecardAdvisoryStep" }
+
+    Scorecard:
+      type: object
+      required: [kind, score, maxScore, summary, calculation, dimensions, strengths, gaps, advisoryReport]
+      properties:
+        kind: { type: string, enum: [JCSE, MATHMON] }
+        score: { type: integer }
+        maxScore: { type: integer }
+        summary: { type: string }
+        calculation: { type: string }
+        dimensions:
+          type: array
+          items: { $ref: "#/components/schemas/ScorecardDimension" }
+        strengths:
+          type: array
+          items: { type: string }
+        gaps:
+          type: array
+          items: { type: string }
+        advisoryReport: { $ref: "#/components/schemas/ScorecardAdvisoryReport" }
+
     HarnessArtifact:
       type: object
       required:
-        [id, sessionId, featureId, artifactType, artifactContent, createdAt]
+        [id, sessionId, featureId, artifactType, artifactContent, scorecards, createdAt]
       properties:
         id: { type: string, format: uuid }
         sessionId: { type: string, format: uuid }
@@ -4347,6 +4405,9 @@ components:
         artifactType: { $ref: "#/components/schemas/ArtifactType" }
         name: { type: ["string", "null"] }
         artifactContent: { type: object, additionalProperties: true }
+        scorecards:
+          type: array
+          items: { $ref: "#/components/schemas/Scorecard" }
         sku: { type: ["string", "null"] }
         jcseScore: { type: ["integer", "null"] }
         certTier: { type: ["string", "null"] }
@@ -4405,7 +4466,7 @@ components:
 
     PromptDiagnostic:
       type: object
-      required: [jcse, certTier, pillars, atomicPrompt, strengths, gaps]
+      required: [jcse, certTier, pillars, atomicPrompt, strengths, gaps, scorecard]
       properties:
         jcse: { $ref: "#/components/schemas/JcseBreakdown" }
         certTier: { $ref: "#/components/schemas/CertTier" }
@@ -4419,15 +4480,17 @@ components:
         gaps:
           type: array
           items: { type: string }
+        scorecard: { $ref: "#/components/schemas/Scorecard" }
         artifactId: { type: ["string", "null"], format: uuid }
 
     AtomicPrompt:
       type: object
-      required: [tuple, jcse, certTier]
+      required: [tuple, jcse, certTier, scorecard]
       properties:
         tuple: { $ref: "#/components/schemas/AtomicPromptTuple" }
         jcse: { $ref: "#/components/schemas/JcseBreakdown" }
         certTier: { $ref: "#/components/schemas/CertTier" }
+        scorecard: { $ref: "#/components/schemas/Scorecard" }
         artifactId: { type: ["string", "null"], format: uuid }
 
     MagnetTestKitInput:
@@ -4728,6 +4791,9 @@ components:
             c: { type: number }
         forgeVerified: { type: boolean }
         mathmonScore: { type: ["integer", "null"] }
+        scorecards:
+          type: array
+          items: { $ref: "#/components/schemas/Scorecard" }
         disclaimer: { type: ["string", "null"] }
         artifactId: { type: ["string", "null"], format: uuid }
 
@@ -4806,6 +4872,7 @@ components:
           applicability,
           predictiveReliability,
           mathmonScore,
+           scorecard,
           disclaimer,
           createdAt,
         ]
@@ -4819,6 +4886,10 @@ components:
         applicability: { type: integer }
         predictiveReliability: { type: integer }
         mathmonScore: { type: integer }
+        scorecard:
+          oneOf:
+            - { $ref: "#/components/schemas/Scorecard" }
+            - { type: "null" }
         disclaimer: { type: string }
         provider: { type: ["string", "null"] }
         modelId: { type: ["string", "null"] }

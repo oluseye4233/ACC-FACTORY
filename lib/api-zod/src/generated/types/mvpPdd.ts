@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { MvpPddDonut } from './mvpPddDonut';
+import type { Scorecard } from './scorecard';
 import type { SpartanCert } from './spartanCert';
 import type { SpcSection } from './spcSection';
 
@@ -16,6 +17,7 @@ export interface MvpPdd {
   forgeVerified?: boolean;
   /** @nullable */
   mathmonScore?: number | null;
+  scorecards?: Scorecard[];
   /** @nullable */
   disclaimer?: string | null;
   /** @nullable */

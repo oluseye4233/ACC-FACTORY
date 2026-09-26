@@ -21,6 +21,7 @@ import { Card } from "@/components/ui/card";
 import { JCSECounter } from "@/components/shared/JCSECounter";
 import { CertTierChip } from "@/components/shared/CertTierChip";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
+import { ScorecardPanel } from "@/components/shared/ScorecardPanel";
 import { WorkspaceShell, ErrorBanner, PILLAR_LABELS } from "./_shared";
 import {
   ProviderOverride,
@@ -217,40 +218,49 @@ export function F2BuildAtomic({ sessionId, artifacts }: Props) {
           </Card>
 
           {result && (
-            <Card className="p-5 bg-card/50">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
-                  Certified
-                </h4>
-                <CertTierChip tier={result.certTier} />
-              </div>
-              {latestArtifact?.provider && (
-                <div className="mb-3">
-                  <GeneratedBy
-                    provider={latestArtifact.provider}
-                    modelId={latestArtifact.modelId}
-                    testId="f2-generated-by"
-                  />
+            <>
+              <Card className="p-5 bg-card/50">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-secondary">
+                    Certified
+                  </h4>
+                  <CertTierChip tier={result.certTier} />
                 </div>
-              )}
-              <div className="flex items-baseline gap-3">
-                <JCSECounter score={result.jcse.total} size="md" />
-                <div className="grid grid-cols-7 gap-1 flex-1">
-                  {PILLAR_LABELS.map((label) => {
-                    const k = label.toLowerCase() as keyof typeof result.jcse;
-                    const v = result.jcse[k] as number;
-                    return (
-                      <div key={label} className="text-center">
-                        <div className="font-mono text-[9px] text-muted-foreground">
-                          {label.slice(0, 3)}
+                {latestArtifact?.provider && (
+                  <div className="mb-3">
+                    <GeneratedBy
+                      provider={latestArtifact.provider}
+                      modelId={latestArtifact.modelId}
+                      testId="f2-generated-by"
+                    />
+                  </div>
+                )}
+                <div className="flex items-baseline gap-3">
+                  <JCSECounter score={result.jcse.total} size="md" />
+                  <div className="grid grid-cols-7 gap-1 flex-1">
+                    {PILLAR_LABELS.map((label) => {
+                      const k = label.toLowerCase() as keyof typeof result.jcse;
+                      const v = result.jcse[k] as number;
+                      return (
+                        <div key={label} className="text-center">
+                          <div className="font-mono text-[9px] text-muted-foreground">
+                            {label.slice(0, 3)}
+                          </div>
+                          <div className="font-mono text-xs font-bold">{v}</div>
                         </div>
-                        <div className="font-mono text-xs font-bold">{v}</div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+              {result.scorecard && (
+                <ScorecardPanel
+                  scorecard={result.scorecard}
+                  defaultOpen
+                  testId="f2"
+                />
+              )}
+            </>
           )}
         </div>
       </div>

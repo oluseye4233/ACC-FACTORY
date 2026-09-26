@@ -20,6 +20,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CertTierChip } from "@/components/shared/CertTierChip";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
+import { ScorecardPanel } from "@/components/shared/ScorecardPanel";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
 import {
@@ -311,6 +312,14 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
                     : "MATHMON not profiled · not FORGE VERIFIED"}
                 </div>
               )}
+              {(result.scorecards ?? []).map((scorecard, index) => (
+                <div key={`${scorecard.kind}-${index}`} className="mt-3 w-full text-left">
+                  <ScorecardPanel
+                    scorecard={scorecard}
+                    testId={`f7-${index}`}
+                  />
+                </div>
+              ))}
               {latestArtifact?.provider && (
                 <div className="mt-3">
                   <GeneratedBy

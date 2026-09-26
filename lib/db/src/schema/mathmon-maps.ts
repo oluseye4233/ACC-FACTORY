@@ -32,6 +32,8 @@ export const mathmonMapsTable = pgTable(
     // { sections: [{ key, title, body }] } — governing_equations, simulations,
     // optimisation_goals, risk_models, economic_projections, performance_metrics
     map: jsonb("map").notNull(),
+    // Per-subscore explanations and prioritized improvement steps for this MAP.
+    scorecard: jsonb("scorecard").$type<unknown>(),
     // MATHMON sub-scores, 0–100. The composite is derived, never stored here.
     mathCoherence: integer("math_coherence").notNull(),
     applicability: integer("applicability").notNull(),

@@ -16,6 +16,7 @@ import {
   computeMathmonScore,
   FORGE_VERIFIED_DISCLAIMER,
 } from "../lib/mathmon";
+import { buildMathmonScorecard, MathmonFeedbackSchema, type ScorecardFeedback } from "../lib/scorecards";
 import { loadLatestIntake } from "../lib/mathmon-store";
 
 const MAP_STEPS = [
@@ -37,6 +38,7 @@ const MapOutputSchema = z.object({
   mathCoherence: z.number(),
   applicability: z.number(),
   predictiveReliability: z.number(),
+  scoreFeedback: MathmonFeedbackSchema.optional(),
 });
 
 const Body = z.object({
@@ -147,6 +149,15 @@ export async function handleMapStream(req: Request, res: Response): Promise<void
     applicability,
     predictiveReliability,
   });
+  const scores = { mathCoherence, applicability, predictiveReliability };
+  const feedback = out.scoreFeedback as
+    | Partial<Record<keyof typeof scores, ScorecardFeedback>>
+    | undefined;
+  const scorecard = buildMathmonScorecard({
+    scores,
+    score: mathmonScore,
+    feedback,
+  });
 
   // Append the mandatory FORGE VERIFIED disclaimer to the RANGE-ONLY economic
   // projections section (defence-in-depth — the prompt already demands ranges).
@@ -163,6 +174,7 @@ export async function handleMapStream(req: Request, res: Response): Promise<void
       userId: guard.userId,
       intakeId: intake.id,
       map: { sections },
+      scorecard,
       mathCoherence,
       applicability,
       predictiveReliability,
@@ -181,6 +193,7 @@ export async function handleMapStream(req: Request, res: Response): Promise<void
     applicability,
     predictiveReliability,
     mathmonScore,
+    scorecard,
     disclaimer: FORGE_VERIFIED_DISCLAIMER,
     createdAt: row!.createdAt,
   });

@@ -32,6 +32,7 @@ import {
   computeWorstCaseReservationUsd,
 } from "../lib/pricing";
 import { logger } from "../lib/logger";
+import type { Scorecard } from "../lib/scorecards";
 import { maybeDispatchHighCostAlerts } from "../lib/notification-dispatch";
 import { tryIssueSku } from "../lib/sku";
 import {
@@ -129,6 +130,7 @@ export interface PersistArtifactInput {
   artifactType: ArtifactType;
   name?: string | null;
   artifactContent: Record<string, unknown>;
+  scorecards?: Scorecard[];
   jcseScore?: number | null;
   certTier?: string | null;
   groState?: string;
@@ -160,6 +162,7 @@ export async function persistArtifact(
       artifactType: input.artifactType,
       name: input.name ?? null,
       artifactContent: input.artifactContent,
+      scorecards: input.scorecards ?? [],
       sku,
       jcseScore: input.jcseScore ?? null,
       certTier: input.certTier ?? null,

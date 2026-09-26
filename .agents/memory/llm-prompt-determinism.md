@@ -31,3 +31,18 @@ fixtures (grep the fixture JSON for a field unique to that engine's response, e.
 `orchestrationPattern` for DE-SPC), delete the orphans, then re-record one per
 provider with `RECORD=1 vitest run -t "<engine>"`. All three AI providers
 (claude/openai/gemini) are reachable via the `AI_INTEGRATIONS_*` proxy env vars.
+
+## Intentional prompt edits also invalidate replay fixtures
+
+Changing an engine's system prompt or user prompt changes the replay-cache key,
+even when the response schema change is optional. Offline provider tests then
+fail closed with `MissingFixtureError`; this is a stale-fixture signal, not
+evidence that the engine route itself is broken.
+
+**Why:** fixture lookup hashes the provider request payload, including prompt
+text, so behavioral prompt changes require matching fixture updates.
+
+**How to apply:** identify the full provider/engine fixture matrix before changing
+prompt text. Re-record fixtures only when provider calls are intended; otherwise
+preserve the current prompt contract and test the new fallback/serialization path
+with deterministic fixtures.

@@ -340,6 +340,11 @@ describe("provider switching end-to-end across remaining engines", () => {
           const verdict = classifyFailure(res.status, body);
           if (verdict.kind === "skip") return ctx.skip(`${provider} F2: ${verdict.reason}`);
           expect(res.status, `body=${body.slice(0, 400)}`).toBe(200);
+          const result = JSON.parse(body) as {
+            scorecard?: { kind: string; advisoryReport?: { steps: unknown[] } };
+          };
+          expect(result.scorecard?.kind).toBe("JCSE");
+          expect(result.scorecard?.advisoryReport?.steps.length).toBeGreaterThan(0);
           await assertRunRecorded(fx.sessionId, 2, provider);
         } finally {
           await srv.close();
@@ -607,6 +612,11 @@ describe("provider switching end-to-end across remaining engines", () => {
           const verdict = classifyFailure(res.status, body);
           if (verdict.kind === "skip") return ctx.skip(`${provider} DE-SPC: ${verdict.reason}`);
           expect(res.status, `body=${body.slice(0, 400)}`).toBe(200);
+          const result = JSON.parse(body) as {
+            scorecards?: Array<{ kind: string; advisoryReport?: { steps: unknown[] } }>;
+          };
+          const jcseScorecard = result.scorecards?.find((scorecard) => scorecard.kind === "JCSE");
+          expect(jcseScorecard?.advisoryReport?.steps.length).toBeGreaterThan(0);
           // DE-SPC uses engineId=8.
           await assertRunRecorded(fx.sessionId, 8, provider);
         } finally {

@@ -2391,6 +2391,62 @@ export interface FeatureState {
   updatedAt: string;
 }
 
+export type ScorecardKind = typeof ScorecardKind[keyof typeof ScorecardKind];
+
+
+export const ScorecardKind = {
+  JCSE: 'JCSE',
+  MATHMON: 'MATHMON',
+} as const;
+
+export interface ScorecardDimension {
+  key: string;
+  label: string;
+  score: number;
+  maxScore: number;
+  /** @nullable */
+  weightPercent: number | null;
+  /** @nullable */
+  weightedContribution: number | null;
+  explanation: string;
+  gaps: string[];
+  actions: string[];
+}
+
+export type ScorecardAdvisoryStepPriority = typeof ScorecardAdvisoryStepPriority[keyof typeof ScorecardAdvisoryStepPriority];
+
+
+export const ScorecardAdvisoryStepPriority = {
+  HIGH: 'HIGH',
+  MEDIUM: 'MEDIUM',
+  LOW: 'LOW',
+} as const;
+
+export interface ScorecardAdvisoryStep {
+  priority: ScorecardAdvisoryStepPriority;
+  title: string;
+  why: string;
+  action: string;
+  expectedImpact: string;
+}
+
+export interface ScorecardAdvisoryReport {
+  summary: string;
+  steps: ScorecardAdvisoryStep[];
+}
+
+export interface Scorecard {
+  kind: ScorecardKind;
+  score: number;
+  maxScore: number;
+  summary: string;
+  calculation: string;
+  dimensions: ScorecardDimension[];
+  strengths: string[];
+  gaps: string[];
+  advisoryReport: ScorecardAdvisoryReport;
+}
+
 /**
  * @nullable
  */
@@ -2422,6 +2478,7 @@ export interface HarnessArtifact {
   /** @nullable */
   name?: string | null;
   artifactContent: HarnessArtifactArtifactContent;
+  scorecards: Scorecard[];
   /** @nullable */
   sku?: string | null;
   /** @nullable */
@@ -2523,6 +2580,7 @@ export interface PromptDiagnostic {
   atomicPrompt: AtomicPromptTuple;
   strengths: string[];
   gaps: string[];
+  scorecard: Scorecard;
   /** @nullable */
   artifactId?: string | null;
 }
@@ -2531,6 +2589,7 @@ export interface AtomicPrompt {
   tuple: AtomicPromptTuple;
   jcse: JcseBreakdown;
   certTier: CertTier;
+  scorecard: Scorecard;
   /** @nullable */
   artifactId?: string | null;
 }
@@ -2857,6 +2916,7 @@ export interface MvpPdd {
   forgeVerified?: boolean;
   /** @nullable */
   mathmonScore?: number | null;
+  scorecards?: Scorecard[];
   /** @nullable */
   disclaimer?: string | null;
   /** @nullable */
@@ -2926,6 +2986,7 @@ export interface MathmonMap {
   applicability: number;
   predictiveReliability: number;
   mathmonScore: number;
+  scorecard: Scorecard | null;
   disclaimer: string;
   /** @nullable */
   provider?: string | null;

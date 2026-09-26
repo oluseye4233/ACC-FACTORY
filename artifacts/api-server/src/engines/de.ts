@@ -13,6 +13,12 @@ import {
 } from "./shared";
 import { logger } from "../lib/logger";
 import {
+  buildJcseScorecard,
+  JcsePillarFeedbackSchema,
+  type JcsePillar,
+  type ScorecardFeedback,
+} from "../lib/scorecards";
+import {
   EMPTY_SPC_QUALITY_SCORES,
   SPC_PLAYER_REGISTRY_VERSION,
 } from "../lib/spc-player";
@@ -98,6 +104,7 @@ const DeSpcSchema = z.object({
     data: z.number().int().min(0).max(6),
     total: z.number().int().min(0).max(50),
   }),
+  jcsePillarFeedback: JcsePillarFeedbackSchema.optional(),
   notes: z.string().optional(),
 });
 
@@ -179,6 +186,24 @@ export async function handleEvolve(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  const scores = {
+    SYSTEM: synth.jcse.system,
+    ROLE: synth.jcse.role,
+    INSTRUCTION: synth.jcse.instruction,
+    EXAMPLE: synth.jcse.example,
+    CONSTRAINT: synth.jcse.constraint,
+    FORMAT: synth.jcse.format,
+    DATA: synth.jcse.data,
+  } satisfies Record<JcsePillar, number>;
+  const feedback = synth.jcsePillarFeedback as
+    | Partial<Record<Lowercase<JcsePillar>, ScorecardFeedback>>
+    | undefined;
+  const scorecard = buildJcseScorecard({
+    score: synth.jcse.total,
+    scores,
+    feedback,
+  });
+
   const artifact = await persistArtifact({
     sessionId,
     userId: owns.userId,
@@ -190,6 +215,7 @@ export async function handleEvolve(req: Request, res: Response): Promise<void> {
       spcDevKitRegistryVersion: SPC_PLAYER_REGISTRY_VERSION,
       qualityScores: { ...EMPTY_SPC_QUALITY_SCORES },
     },
+    scorecards: [scorecard],
     jcseScore: synth.jcse.total,
     certTier: certTierForJcse(synth.jcse.total),
     groState: "SAFE_LIFE",

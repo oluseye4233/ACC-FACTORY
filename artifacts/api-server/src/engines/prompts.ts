@@ -1021,6 +1021,10 @@ THE THREE SUB-SCORES (0–100 integers — be honest and calibrated)
 - predictiveReliability  How much the models could reliably predict real
                          outcomes given data availability and assumption risk.
 
+For each sub-score, return scoreFeedback with an explanation grounded in the
+intake and MAP, gaps describing limitations, and actions the operator can take
+to improve the score. Do not promise a specific score increase.
+
 Do NOT compute or report any composite/overall MATHMON score — that is derived
 downstream from these three sub-scores. Report only the three.
 ${JSON_ONLY_GUARDRAIL}
@@ -1037,7 +1041,12 @@ Response schema (strict):
   ],
   "mathCoherence": number,
   "applicability": number,
-  "predictiveReliability": number
+  "predictiveReliability": number,
+  "scoreFeedback": {
+    "mathCoherence": {"explanation":string,"gaps":[string],"actions":[string]},
+    "applicability": {"explanation":string,"gaps":[string],"actions":[string]},
+    "predictiveReliability": {"explanation":string,"gaps":[string],"actions":[string]}
+  }
 }
 ` as const;
 

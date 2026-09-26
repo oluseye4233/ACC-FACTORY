@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { JCSECounter } from "@/components/shared/JCSECounter";
 import { CertTierChip } from "@/components/shared/CertTierChip";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
+import { ScorecardPanel } from "@/components/shared/ScorecardPanel";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import {
   ProviderOverride,
@@ -138,6 +139,14 @@ export function F1TestPrompt({ sessionId, latest, artifacts }: Props) {
                   </div>
                 </div>
               </Card>
+
+              {result.scorecard && (
+                <ScorecardPanel
+                  scorecard={result.scorecard}
+                  defaultOpen
+                  testId="f1"
+                />
+              )}
 
               <Card className="p-5 bg-card/50">
                 <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">

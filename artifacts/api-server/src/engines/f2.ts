@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import type { Request, Response } from "express";
 import { HarnessF2Body } from "@workspace/api-zod";
 import { F2_SYSTEM } from "./prompts";
+import { buildJcseScorecard, JcsePillarFeedbackSchema, type JcsePillar, type ScorecardFeedback } from "../lib/scorecards";
 import {
   advanceFeatureState,
   callLlmJson,
@@ -32,6 +33,7 @@ const F2OutputSchema = z.object({
     data: z.number().int(),
     total: z.number().int(),
   }),
+  jcsePillarFeedback: JcsePillarFeedbackSchema.optional(),
   certTier: z.enum(["BRONZE", "SILVER", "GOLD", "PLATINUM", "NONE"]),
 });
 
@@ -69,16 +71,36 @@ export async function handleF2(req: Request, res: Response): Promise<void> {
     return;
   }
   const certTier = certTierForJcse(out.jcse.total);
+  const scores = {
+    SYSTEM: out.jcse.system,
+    ROLE: out.jcse.role,
+    INSTRUCTION: out.jcse.instruction,
+    EXAMPLE: out.jcse.example,
+    CONSTRAINT: out.jcse.constraint,
+    FORMAT: out.jcse.format,
+    DATA: out.jcse.data,
+  } satisfies Record<JcsePillar, number>;
+  const feedback = out.jcsePillarFeedback as
+    | Partial<Record<Lowercase<JcsePillar>, ScorecardFeedback>>
+    | undefined;
+  const scorecard = buildJcseScorecard({ score: out.jcse.total, scores, feedback });
   const artifact = await persistArtifact({
     sessionId,
     userId: guard.userId,
     featureId: 2,
     artifactType: "ATOMIC_PROMPT",
     artifactContent: out,
+    scorecards: [scorecard],
     jcseScore: out.jcse.total,
     certTier,
     provider,
   });
   await advanceFeatureState(sessionId, 2);
-  res.json({ ...out, certTier, artifactId: artifact.id });
+  res.json({
+    tuple: out.tuple,
+    jcse: out.jcse,
+    certTier,
+    scorecard,
+    artifactId: artifact.id,
+  });
 }

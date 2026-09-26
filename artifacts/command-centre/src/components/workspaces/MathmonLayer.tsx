@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
+import { ScorecardPanel } from "@/components/shared/ScorecardPanel";
 import {
   ProviderOverride,
   overrideToBody,
@@ -50,7 +51,7 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
   );
 }
 
-export function MathmonLayer({ sessionId, artifacts: _artifacts }: Props) {
+export function MathmonLayer({ sessionId, artifacts }: Props) {
   const qc = useQueryClient();
   const { toast } = useToast();
 
@@ -134,6 +135,11 @@ export function MathmonLayer({ sessionId, artifacts: _artifacts }: Props) {
   const map = liveMap ?? state?.map ?? null;
   const sessionJcse = state?.sessionJcse ?? null;
   const mathmonScore = map?.mathmonScore ?? state?.mathmonScore ?? null;
+  const jcseScorecard = [...artifacts]
+    .filter((artifact) => artifact.jcseScore === sessionJcse)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .flatMap((artifact) => artifact.scorecards ?? [])
+    .find((scorecard) => scorecard.kind === "JCSE");
 
   const jcsePass = sessionJcse != null && sessionJcse >= GATE_JCSE;
   const mathmonPass = mathmonScore != null && mathmonScore >= GATE_MATHMON;
@@ -265,6 +271,19 @@ export function MathmonLayer({ sessionId, artifacts: _artifacts }: Props) {
                     <ScoreBar label="Applicability" value={map.applicability} />
                     <ScoreBar label="Predictive Rel." value={map.predictiveReliability} />
                   </div>
+                  {map.scorecard && (
+                    <ScorecardPanel
+                      scorecard={map.scorecard}
+                      defaultOpen
+                      testId="mathmon-map"
+                    />
+                  )}
+                  {jcseScorecard && (
+                    <ScorecardPanel
+                      scorecard={jcseScorecard}
+                      testId="mathmon-jcse"
+                    />
+                  )}
                   <div className="space-y-2">
                     {map.sections.map((s) => (
                       <details

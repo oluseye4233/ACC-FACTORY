@@ -5,6 +5,7 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { Scorecard } from './scorecard';
 import type { SpcSection } from './spcSection';
 
 export interface MathmonMap {
@@ -15,6 +16,7 @@ export interface MathmonMap {
   applicability: number;
   predictiveReliability: number;
   mathmonScore: number;
+  scorecard: Scorecard | null;
   disclaimer: string;
   /** @nullable */
   provider?: string | null;

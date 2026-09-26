@@ -8,11 +8,13 @@
 import type { AtomicPromptTuple } from './atomicPromptTuple';
 import type { CertTier } from './certTier';
 import type { JcseBreakdown } from './jcseBreakdown';
+import type { Scorecard } from './scorecard';
 
 export interface AtomicPrompt {
   tuple: AtomicPromptTuple;
   jcse: JcseBreakdown;
   certTier: CertTier;
+  scorecard: Scorecard;
   /** @nullable */
   artifactId?: string | null;
 }

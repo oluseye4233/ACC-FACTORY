@@ -2,6 +2,7 @@ import { HarnessArtifact } from "@workspace/api-client-react";
 import { format } from "date-fns";
 import { CertTierChip } from "./CertTierChip";
 import { GRODot } from "./GRODot";
+import { ScorecardPanel } from "./ScorecardPanel";
 import { FileText, Sparkles } from "lucide-react";
 import {
   Tooltip,
@@ -71,11 +72,16 @@ export function ArtifactTray({ artifacts, onSelect }: ArtifactTrayProps) {
             </span>
           ) : null;
           return (
-            <button
+            <div
               key={artifact.id}
-              onClick={() => onSelect?.(artifact)}
-              className="flex flex-col gap-2 p-3 text-left border rounded-md hover:bg-accent/50 transition-colors"
+              className="overflow-hidden rounded-md border"
             >
+              <button
+                type="button"
+                onClick={() => onSelect?.(artifact)}
+                data-testid={`artifact-select-${artifact.id}`}
+                className="flex w-full flex-col gap-2 p-3 text-left hover:bg-accent/50 transition-colors"
+              >
               <div className="flex items-center justify-between w-full">
                 <span className="font-mono text-xs font-bold text-primary">
                   {artifact.artifactType.replace(/_/g, " ")}
@@ -99,6 +105,16 @@ export function ArtifactTray({ artifacts, onSelect }: ArtifactTrayProps) {
                 {artifact.jcseScore !== null && artifact.jcseScore !== undefined && (
                   <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
                     JCSE: <span className="text-foreground">{artifact.jcseScore}</span>
+                  </span>
+                )}
+                {artifact.mathmonScore !== null && artifact.mathmonScore !== undefined && (
+                  <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
+                    MATHMON: <span className="text-foreground">{artifact.mathmonScore}</span>
+                  </span>
+                )}
+                {artifact.forgeVerified && (
+                  <span className="text-[10px] font-mono text-secondary">
+                    FORGE VERIFIED
                   </span>
                 )}
 
@@ -168,7 +184,19 @@ export function ArtifactTray({ artifacts, onSelect }: ArtifactTrayProps) {
                   </Tooltip>
                 ) : null}
               </div>
-            </button>
+              </button>
+              {(artifact.scorecards ?? []).map((scorecard, index) => (
+                <div
+                  key={`${artifact.id}-${scorecard.kind}-${index}`}
+                  className="px-3 pb-3"
+                >
+                  <ScorecardPanel
+                    scorecard={scorecard}
+                    testId={`artifact-${artifact.id}-${index}`}
+                  />
+                </div>
+              ))}
+            </div>
           );
         })}
       </div>

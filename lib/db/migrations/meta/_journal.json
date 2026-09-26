@@ -274,6 +274,13 @@
       "when": 1790312118463,
       "tag": "0038_classy_flatman",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1790437860086,
+      "tag": "0039_regular_chronomancer",
+      "breakpoints": true
     }
   ]
 }

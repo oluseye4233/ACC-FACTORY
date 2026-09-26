@@ -9,6 +9,7 @@ import type { ArtifactType } from './artifactType';
 import type { HarnessArtifactArtifactContent } from './harnessArtifactArtifactContent';
 import type { HarnessArtifactProvider } from './harnessArtifactProvider';
 import type { HarnessArtifactSpartanCert } from './harnessArtifactSpartanCert';
+import type { Scorecard } from './scorecard';
 
 export interface HarnessArtifact {
   id: string;
@@ -18,6 +19,7 @@ export interface HarnessArtifact {
   /** @nullable */
   name?: string | null;
   artifactContent: HarnessArtifactArtifactContent;
+  scorecards: Scorecard[];
   /** @nullable */
   sku?: string | null;
   /** @nullable */

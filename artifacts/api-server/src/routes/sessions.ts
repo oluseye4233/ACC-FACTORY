@@ -17,6 +17,14 @@ import {
   FORGE_VERIFIED_DISCLAIMER,
 } from "../lib/mathmon";
 import {
+  buildJcseScorecard,
+  buildMathmonScorecard,
+  JCSE_PILLARS,
+  type JcsePillar,
+  type Scorecard,
+  type ScorecardFeedback,
+} from "../lib/scorecards";
+import {
   loadLatestIntake,
   loadLatestMap,
   sessionMaxJcse,
@@ -124,6 +132,61 @@ export interface ArtifactRunMeta {
   createdAt: Date;
 }
 
+function scorecardsForArtifact(
+  artifact: typeof harnessArtifactsTable.$inferSelect,
+): Scorecard[] {
+  if (artifact.scorecards.length > 0) return artifact.scorecards as Scorecard[];
+  if (artifact.jcseScore == null) return [];
+  const content = artifact.artifactContent as Record<string, unknown>;
+  const jcse = content.jcse;
+  if (!jcse || typeof jcse !== "object" || Array.isArray(jcse)) return [];
+  const breakdown = jcse as Record<string, unknown>;
+  const value = (key: string) =>
+    typeof breakdown[key] === "number" ? breakdown[key] as number : 0;
+  const scores = {
+    SYSTEM: value("system"),
+    ROLE: value("role"),
+    INSTRUCTION: value("instruction"),
+    EXAMPLE: value("example"),
+    CONSTRAINT: value("constraint"),
+    FORMAT: value("format"),
+    DATA: value("data"),
+  } satisfies Record<JcsePillar, number>;
+  const feedback: Partial<Record<Lowercase<JcsePillar>, ScorecardFeedback>> = {};
+  const maxScores: Partial<Record<JcsePillar, number>> = {};
+  const rawPillars = Array.isArray(content.pillars) ? content.pillars : [];
+  for (const raw of rawPillars) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+    const pillar = raw as Record<string, unknown>;
+    if (
+      typeof pillar.pillar !== "string" ||
+      !JCSE_PILLARS.includes(pillar.pillar as JcsePillar)
+    ) {
+      continue;
+    }
+    const key = pillar.pillar as JcsePillar;
+    if (typeof pillar.max === "number") maxScores[key] = pillar.max;
+    feedback[key.toLowerCase() as Lowercase<JcsePillar>] = {
+      explanation: typeof pillar.notes === "string" ? pillar.notes : undefined,
+      actions: Array.isArray(pillar.gapHints)
+        ? pillar.gapHints.filter((hint): hint is string => typeof hint === "string")
+        : undefined,
+    };
+  }
+  const strengths = Array.isArray(content.strengths) ? content.strengths : [];
+  const gaps = Array.isArray(content.gaps) ? content.gaps : [];
+  return [
+    buildJcseScorecard({
+      score: artifact.jcseScore,
+      scores,
+      maxScores,
+      feedback,
+      strengths: strengths.filter((value): value is string => typeof value === "string"),
+      gaps: gaps.filter((value): value is string => typeof value === "string"),
+    }),
+  ];
+}
+
 function serializeArtifact(
   a: typeof harnessArtifactsTable.$inferSelect,
   run?: ArtifactRunMeta | null,
@@ -135,6 +198,7 @@ function serializeArtifact(
     artifactType: a.artifactType,
     name: a.name,
     artifactContent: a.artifactContent as Record<string, unknown>,
+    scorecards: scorecardsForArtifact(a),
     sku: a.sku,
     jcseScore: a.jcseScore,
     certTier: a.certTier,
@@ -417,6 +481,16 @@ router.get("/sessions/:id/mathmon", requireAuth, async (req, res): Promise<void>
           applicability: map.applicability,
           predictiveReliability: map.predictiveReliability,
           mathmonScore: mathmonScore ?? 0,
+          scorecard:
+            (map.scorecard as Scorecard | null) ??
+            buildMathmonScorecard({
+              scores: {
+                mathCoherence: map.mathCoherence,
+                applicability: map.applicability,
+                predictiveReliability: map.predictiveReliability,
+              },
+              score: mathmonScore ?? 0,
+            }),
           disclaimer: map.disclaimer,
           provider: map.provider,
           modelId: map.modelId,
