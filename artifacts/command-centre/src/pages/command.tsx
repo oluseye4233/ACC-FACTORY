@@ -385,6 +385,35 @@ export default function Command() {
               )}
             </div>
           </header>
+          <section
+            aria-label="Start here: platform guide"
+            className="mb-6 flex flex-col gap-3 rounded-xl border border-primary/40 bg-primary/10 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+          >
+            <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+              <span className="font-display text-lg tracking-wider text-foreground sm:text-xl">
+                START HERE
+              </span>
+              <svg
+                viewBox="0 0 88 32"
+                className="h-8 w-12 shrink-0 text-primary sm:w-20"
+                fill="none"
+                aria-hidden="true"
+                focusable="false"
+                data-testid="guide-start-arrow"
+              >
+                <path d="M3 22C20 4 42 4 77 16M64 4L81 17L63 28" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <Button asChild className="min-h-11 gap-2 font-mono font-bold tracking-wider">
+                <Link href="/guide" data-testid="button-dashboard-guide">
+                  <BookOpen className="h-4 w-4" aria-hidden="true" />
+                  GUIDE
+                </Link>
+              </Button>
+            </div>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              New to the platform? See what is available, understand the workflow, and choose your next step.
+            </p>
+          </section>
           {refreshFailures.length > 0 && (
             <div
               className="mb-4 flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3"

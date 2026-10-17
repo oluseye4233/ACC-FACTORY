@@ -153,6 +153,16 @@ describe("Command Deck", () => {
     }
   });
 
+  it("shows a prominent guide button and a Start Here arrow before the dashboard actions", () => {
+    render(<Command />);
+    const guide = screen.getByRole("link", { name: "GUIDE" });
+    expect(guide.getAttribute("href")).toBe("/guide");
+    expect(screen.getByText("START HERE")).toBeTruthy();
+    expect(screen.getByTestId("guide-start-arrow").getAttribute("aria-hidden")).toBe("true");
+    expect(guide.closest("section")?.getAttribute("aria-label")).toBe("Start here: platform guide");
+    expect(guide.compareDocumentPosition(screen.getByTestId("button-build-something")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("waits for all metric requests and ignores repeated combined refresh clicks", async () => {
     let resolveSessions!: (value?: unknown) => void;
     let resolveHealth!: (value?: unknown) => void;
