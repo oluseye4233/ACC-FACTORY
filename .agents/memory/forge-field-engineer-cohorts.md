@@ -21,6 +21,12 @@ The student identity provider must persist across public entry, sign-in and auth
 
 **How to apply:** Preserve SDK loading before student redirects, wildcard callback routes and cookie-only browser transport. Do not replace the staff entrance or add a Bearer-token workaround.
 
+Shared registration and invitation links must resolve for existing staff sessions as well as signed-out invitees and signed-in students; preserve invitation tokens across authenticated entry redirects.
+
+**Why:** The owner may open a QR link while already signed in as staff. Signed-out registration can render successfully while the authenticated route table falls through to 404, so an anonymous HTTP 200 or screenshot alone does not validate a shared enrollment link.
+
+**How to apply:** Check all three session states when changing public enrollment URLs. Redirect existing identities to Training without changing their roles, and retain invitation context without allowing arbitrary external redirects.
+
 Unfinalised programme reservations remain held until metered settlement or confirmed failure, even after their timeout.
 
 **Why:** A dead worker or expired reservation is not evidence of zero provider charge. Automatically restoring a lifetime allowance on timeout could repeatedly fund unrecorded calls.

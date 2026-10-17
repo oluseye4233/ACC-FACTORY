@@ -44,6 +44,7 @@ import Guide from "@/pages/guide";
 import BoomerangPage from "@/pages/boomerang";
 import LearningPage, { LearningCohortPage } from "@/pages/learning";
 import { StudentIdentityProvider, StudentLogin, StudentSignOut, useStudentIdentity } from "@/components/learning-auth";
+import { authenticatedLearningEntry } from "@/lib/learning-entry";
 import Status from "@/pages/status";
 import CalculateYourSavings from "@/pages/calculate-your-savings";
 import { AccessGate } from "@/components/AccessGate";
@@ -152,6 +153,8 @@ function Gate() {
 
   // If the session lookup fails hard, still let public routes resolve.
   const session = data ?? { authenticated: false };
+  const learningEntry = authenticatedLearningEntry(requestedPath, window.location.search, session.authenticated);
+  if (learningEntry) return <Redirect to={learningEntry} />;
   const studentLoginPath = requestedPath.startsWith("/learn-login") || requestedPath.startsWith("/learn-register");
   const studentPath = requestedPath.startsWith("/learn") || requestedPath.startsWith("/teach/");
   if (!session.authenticated && studentPath && !identity.isLoaded) return <LoadingScreen />;
@@ -193,7 +196,7 @@ function Gate() {
   }
 
   if (session.student) {
-    if (studentLoginPath || requestedPath === "/command" || requestedPath === "/") return <Redirect to="/learn" />;
+    if (requestedPath === "/command" || requestedPath === "/") return <Redirect to="/learn" />;
     return <StaffSessionProvider session={session}>
       <AuthenticatedRoutes />
     </StaffSessionProvider>;
