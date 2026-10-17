@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import Guide from "./guide";
 
 vi.mock("@/components/layout/TopNav", () => ({ TopNav: () => null }));
@@ -41,6 +41,8 @@ vi.mock("@assets/guide/costs.png", () => ({ default: "costs.png" }));
 vi.mock("@assets/guide/account.png", () => ({ default: "account.png" }));
 vi.mock("@assets/guide/verify.png", () => ({ default: "verify.png" }));
 
+afterEach(cleanup);
+
 describe("Guide Page - ATANDA Site Map", () => {
   it("renders the ATANDA site map section with correct data-testids", () => {
     render(<Guide />);
@@ -64,5 +66,35 @@ describe("Guide Page - ATANDA Site Map", () => {
     expect(screen.getByText("HOST ORACLE")).toBeTruthy();
     expect(screen.getByText("ASSURANCE OVERLAYS")).toBeTruthy();
     expect(screen.getAllByText("SPC PLAYER")[0]).toBeTruthy();
+  });
+
+  it("separates observed baseline, limited preparation and inactive release features", () => {
+    render(<Guide />);
+    expect(screen.getByRole("heading", { name: "CURRENT PLATFORM STATUS" })).toBeTruthy();
+    expect(screen.getAllByTestId("guide-platform-status")).toHaveLength(9);
+    const imprima = screen.getByRole("heading", { name: "IMPRIMA" }).closest("article")!;
+    expect(within(imprima).getByText("LIMITED · PRIVATE PREPARATION")).toBeTruthy();
+    expect(imprima.textContent).toContain("FINAL approval remain blocked");
+    const sprint = screen.getByRole("heading", { name: "SHORT SPRINTS" }).closest("article")!;
+    expect(sprint.textContent).toContain("do not certify a sprint");
+    const verification = screen.getByRole("heading", { name: "Independent XVL / VTE & full F12" }).closest("article")!;
+    expect(within(verification).getByText("INCOMPLETE · NOT ACTIVE")).toBeTruthy();
+    expect(screen.getByText("LIBRARY AVAILABLE · PUBLIC MARKET CLOSED")).toBeTruthy();
+    expect(screen.getByText("DEFERRED · CLASS B")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Check current readiness" }).getAttribute("href")).toBe("/status");
+  });
+
+  it("documents PDF limits, preparation navigation and historical illustrations without false screenshots", () => {
+    render(<Guide />);
+    const ingestion = screen.getByTestId("guide-walkthrough-ingest");
+    expect(ingestion.textContent).toContain("maximum 1 MB");
+    expect(ingestion.textContent).toContain("scanned PDFs need OCR");
+    const operations = screen.getByTestId("guide-walkthrough-operations");
+    expect(within(operations).getByRole("link", { name: /OPEN ARTIFACT OPERATIONS/ }).getAttribute("href")).toBe("/operations");
+    expect(operations.textContent).toContain("Private preparation");
+    expect(screen.queryByTestId("guide-shot-spc-player")).toBeNull();
+    expect(screen.queryByTestId("guide-shot-atlas360")).toBeNull();
+    expect(screen.queryByText("Live screenshot")).toBeNull();
+    expect(screen.getAllByText("Reference screenshot").length).toBeGreaterThan(0);
   });
 });

@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { TopNav } from "@/components/layout/TopNav";
 import { Footer } from "@/components/layout/Footer";
+import { PlatformStatus } from "@/components/guide/PlatformStatus";
 import {
   BookOpen,
   FileText,
@@ -52,8 +53,6 @@ import shotActivity from "@assets/guide/activity.png";
 import shotCosts from "@assets/guide/costs.png";
 import shotAccount from "@assets/guide/account.png";
 import shotVerify from "@assets/guide/verify.png";
-import shotSpcPlayer from "@assets/guide/command.png"; // Fallback to command.png
-import shotAtlas360 from "@assets/guide/sessions.png"; // Fallback to sessions.png
 
 const VIDEOS = [
   {
@@ -153,9 +152,9 @@ type Walkthrough = {
   routeLabel: string;
   tagline: string;
   steps: readonly string[];
-  /** Real screenshot of the live workspace. */
-  shot: string;
-  /** Optional animated scroll-through of the live workspace. */
+  /** Historical illustration; not current readiness evidence. */
+  shot?: string;
+  /** Optional recorded scroll-through. */
   gif?: string;
 };
 
@@ -189,7 +188,7 @@ const WALKTHROUGHS: readonly Walkthrough[] = [
       "The linear track guides you F1 → F7. The left column shows where you came from, the center what you are doing now, and the right where you are going next.",
       "Advance engine by engine. Each workspace streams its output live; completed results are persisted and waiting in the session artifacts tray.",
       "At F7, the SPARTAN compressor certifies the MVP PDD and stamps a public verification URL.",
-      "Architect-grade finish: run F8 CODE ORACLE on the certified spec to scaffold a runnable codebase — export as ZIP, IDE bundle, or push straight to GitHub."
+      "After eligible F7 certification, use F8 CODE ORACLE / CODE DJ for a codebase or IDE bundle. GitHub delivery is handled through F10 and its authorization gates."
     ],
     shot: shotSessions,
     gif: gifSessions,
@@ -203,12 +202,11 @@ const WALKTHROUGHS: readonly Walkthrough[] = [
     tagline:
       "Generate structured execution plans or assurance audit profiles directly from your PDD.",
     steps: [
-      "From a session containing a generated PDD, open the ATLAS 360 View panel in the workspace.",
+      "With Practitioner access, open the ATLAS 360 View panel on an existing F6/F7 PDD. These are document side-steps, not numbered production stages.",
       "Select PLAN to generate a 12-part technical execution plan for builders.",
-      "Select SCAN to generate an 8-stage assurance audit profile for governance and compliance.",
+      "Select SCAN to generate an 8-stage assurance audit profile. Generated views do not constitute independent verification or host-framework certification.",
       "Export the generated views as one ZIP containing both Markdown and JSON files for external workflows."
     ],
-    shot: shotAtlas360,
   },
   {
     id: "f0",
@@ -237,7 +235,7 @@ const WALKTHROUGHS: readonly Walkthrough[] = [
     tagline:
       "Already have a design document? Feed it in and let the HARNESS certify it.",
     steps: [
-      "Upload or paste the document you already have — an IPDD (Ingestion Product Design Document): a PDD, SDD, concept note, spec sheet, or brief.",
+      "Upload a TXT, Markdown, text-based PDF or DOCX file (maximum 1 MB), or paste at least 50 characters. Image-only scanned PDFs need OCR first; encrypted or corrupt files may be rejected.",
       "The ingestion engine parses it and seeds a session pre-loaded with your document's substance.",
       "Run the seeded session down the standard F1 → F7 line.",
       "Because the session originated from ingestion, F7 certifies a PWDD — a PromptWare Design Document — instead of a regular MVP PDD.",
@@ -265,10 +263,11 @@ const WALKTHROUGHS: readonly Walkthrough[] = [
     title: "EXEMPLARS",
     route: "/exemplars",
     routeLabel: "Browse Exemplars",
-    tagline: "Canonical, high-performing SPCs and PDDs to study — or fork.",
+    tagline: "Your artifact library and the qualified supply catalog for a future Sphinx public launch.",
     steps: [
-      "Browse the library of certified exemplar specs, including both canonical HARNESS references and staff-contributed assets.",
-      "Upload your own files (SPC, MA, MPDD, PDD) to the open backend marketplace to share with other operators.",
+      "Browse reference assets and your own library. An uploaded file is not automatically certified or commercially eligible.",
+      "Add SPC, MA, MPDD and PDD assets to your library. Eligible owner-controlled items can opt into Sphinx supply only when minimum internal standards are met.",
+      "Sphinx public launch is currently closed. Supply opt-in does not publish a public listing or activate checkout; commercial transactions remain external.",
       "Open any exemplar to read the full document the way a build team would receive it.",
       "Hit FORK TO SESSION to clone an exemplar into your own session and evolve it from a proven baseline.",
     ],
@@ -281,14 +280,28 @@ const WALKTHROUGHS: readonly Walkthrough[] = [
     route: "/spc-player",
     routeLabel: "Open SPC Player",
     tagline:
-      "Open-access, plan-first cockpit for executing capability briefs and producing reviewable packages.",
+      "Signed-in, plan-only cockpit for capability briefs and reviewable advisory packages.",
     steps: [
       "Register a new capability brief by defining the project title, operational context, and selecting required capability cards from the Dev Kit registry.",
-      "Execute the run without a tier, entitlement, credit, billing, or LLM gate.",
+      "Run ordered capability cards sequentially without a tier, entitlement, credit, billing, or LLM gate. Sign-in and owner access still apply; this is not provider execution.",
       "Download the final JSON package with separate clarity, truthfulness, and detectability figures.",
       "Optionally authorize a public HTTPS webhook for that run, then deliver the package. Environment sketches are documentation, not live integrations."
     ],
-    shot: shotSpcPlayer,
+  },
+  {
+    id: "operations",
+    icon: FileText,
+    title: "IMPRIMA & SHORT SPRINTS",
+    route: "/operations",
+    routeLabel: "Open Artifact Operations",
+    tagline: "Private drafts and proposals now; full governed operation remains gated.",
+    steps: [
+      "Choose IMPRIMA or SHORT SPRINTS, then use the Private preparation lane. Only eligible saved sources that you own appear in the source list.",
+      "For IMPRIMA, enter document metadata, choose HTML, DOCX or PDF formats, and prepare a private DRAFT package.",
+      "For SHORT SPRINTS, choose SC_ONE or SC_TWO and prepare a private proposal package with its manifest and supporting files.",
+      "Review the saved preparation and download its files or ZIP. These outputs do not grant FINAL approval, certification, marketplace eligibility, deployment or release.",
+      "The full workflow stays disabled when required database protections are missing. Independent verifier and governance gates must also pass before protected actions can proceed.",
+    ],
   },
   {
     id: "prompts",
@@ -369,8 +382,9 @@ const WALKTHROUGHS: readonly Walkthrough[] = [
     tagline: "Profile, notification preferences, and external connections.",
     steps: [
       "Set your notification preferences — including F0 retainer alert emails.",
-      "Connect GitHub (one-click OAuth or a pasted token) to enable F8's push-to-GitHub delivery channel.",
-      "Connect Sphinx to enable marketplace publishing when the channel is live.",
+      "Manage available connected services; use F10 for authorized GitHub delivery of eligible F8 output.",
+      "Manage qualified Sphinx supply from Exemplar. Public marketplace activation remains closed.",
+      "Use the navigation theme control to switch between light and dark appearance.",
     ],
     shot: shotAccount,
   },
@@ -392,6 +406,7 @@ const WALKTHROUGHS: readonly Walkthrough[] = [
 ] as const;
 
 const QUICK_NAV = [
+  { href: "#platform-status", label: "CURRENT STATUS" },
   { href: "#role-model", label: "ATANDA SITE MAP" },
   { href: "#walkthroughs", label: "FEATURE WALKTHROUGHS" },
   { href: "#videos", label: "VIDEOS" },
@@ -496,7 +511,7 @@ const SYSTEM_STAGES: StageDetail[] = [
     process: "SPARTAN compressor executes a math-audited rubric pass and scope/risk lock.",
     output: "Certified MVP PDD (or PWDD if ingested).",
     gate: "SPARTAN Certification (JCSE ≥ 45, MATHMON ≥ 70). Public verification URL stamped.",
-    handoff: "F8 for Build or F9 for Machine Floor.",
+    handoff: "F8 for the post-certification build branch; firmware then follows the F9 machine-floor path.",
     type: "rail"
   },
   {
@@ -507,7 +522,7 @@ const SYSTEM_STAGES: StageDetail[] = [
     process: "Scaffolds a complete codebase against a chosen platform.",
     output: "CODEBASE_BUNDLE (up to 12 files + manifest).",
     gate: "Refuses uncertified input. Architect-tier only.",
-    handoff: "F9 MECHA ULTRA SI.",
+    handoff: "Software uses code/IDE export and eligible F10 handoff; firmware and legacy bundles retain F9.",
     type: "build"
   },
   {
@@ -648,8 +663,8 @@ export default function Guide() {
                 HOW THE <span className="text-primary">HARNESS</span> WORKS
               </h1>
               <p className="font-serif text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                The full demo walkthrough for every feature on the floor — plus the
-                video library and source publications behind the doctrine.
+                What you can use now, what remains gated, and how to navigate the
+                HARNESS — with walkthroughs and reference publications.
               </p>
               <nav
                 className="flex flex-wrap justify-center gap-2 pt-2"
@@ -670,6 +685,8 @@ export default function Guide() {
           </div>
         </section>
 
+        <PlatformStatus />
+
         {/* ATANDA Site Map */}
         <section id="role-model" className="py-16 md:py-20 bg-background scroll-mt-24">
           <div className="container px-4 md:px-6">
@@ -678,11 +695,12 @@ export default function Guide() {
                 ATANDA SITE MAP
               </h2>
               <p className="text-muted-foreground font-serif text-lg mb-6">
-                How an idea becomes a certified specification, codebase, signed machine artifact, custodied asset, and controlled release.
+                The implemented production model, not a statement that every downstream gate is active.
+                Use the current status section above for operating limits.
               </p>
 
               <div className="bg-muted/30 p-6 rounded-lg border text-sm font-mono text-left space-y-4">
-                <p className="text-secondary font-bold uppercase tracking-wider mb-2">Authoritative Model</p>
+                <p className="text-secondary font-bold uppercase tracking-wider mb-2">Production model · evidence gates apply</p>
                 <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
                   <div>
                     <p className="text-foreground"><span className="text-primary font-bold">F0</span> is Advisory/SOLVA: upstream intelligence and the return point for OSIRIS deviations.</p>
@@ -775,7 +793,7 @@ export default function Guide() {
                     </div>
                     <div className="p-4 border bg-card rounded-lg">
                       <div className="font-mono text-[10px] font-bold text-primary mb-2 uppercase">3. Native Provider Deployment</div>
-                      <div className="text-xs text-muted-foreground font-serif">AWS, Azure, OpenAI Agents, and Gemini Agents. User-owned provider authorization → queued → dispatch → ACK receipt. Export remains the fallback.</div>
+                      <div className="text-xs text-muted-foreground font-serif">Provider lanes require supported adapters, user-owned authorization and qualified evidence. Listing a provider is not proof it is connected or operational; an ACK proves acceptance, not execution. Export is a separate handoff, not fallback release approval.</div>
                     </div>
                   </div>
                 </div>
@@ -793,8 +811,8 @@ export default function Guide() {
                 FEATURE WALKTHROUGHS
               </h2>
               <p className="text-muted-foreground font-serif text-lg">
-                Step-by-step demo of every workspace on the floor. Each one links straight
-                into the live feature.
+                Navigation and operating instructions for implemented workspaces. Access and evidence
+                gates apply. Recorded images are historical illustrations, not current live-status proof.
               </p>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
@@ -815,18 +833,18 @@ export default function Guide() {
                   <p className="text-sm font-serif text-muted-foreground leading-snug mb-4">
                     {w.tagline}
                   </p>
-                  <div className="relative mb-4 overflow-hidden rounded-md border bg-background">
+                  {w.shot && <div className="relative mb-4 overflow-hidden rounded-md border bg-background">
                     <img
                       src={w.gif ?? w.shot}
-                      alt={`${w.title} — live workspace`}
+                      alt={`${w.title} — historical workspace illustration`}
                       loading="lazy"
                       className="w-full h-auto"
                       data-testid={`guide-shot-${w.id}`}
                     />
                     <span className="absolute bottom-2 right-2 rounded border border-border bg-background/85 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground">
-                      {w.gif ? "Live scroll-through" : "Live screenshot"}
+                      {w.gif ? "Recorded walkthrough" : "Reference screenshot"}
                     </span>
-                  </div>
+                  </div>}
                   <ol className="space-y-2.5 mb-5">
                     {w.steps.map((step, i) => (
                       <li key={i} className="flex gap-3 text-sm leading-snug">
