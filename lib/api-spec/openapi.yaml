@@ -26,6 +26,22 @@ tags:
   - name: magnet
 
 paths:
+  /learn:
+    $ref: "./learning.yaml#/paths/~1learn"
+  /learn/cohorts:
+    $ref: "./learning.yaml#/paths/~1learn~1cohorts"
+  /learn/cohorts/{id}:
+    $ref: "./learning.yaml#/paths/~1learn~1cohorts~1{id}"
+  /learn/cohorts/{id}/manage:
+    $ref: "./learning.yaml#/paths/~1learn~1cohorts~1{id}~1manage"
+  /learn/redeem:
+    $ref: "./learning.yaml#/paths/~1learn~1redeem"
+  /learn/attempts:
+    $ref: "./learning.yaml#/paths/~1learn~1attempts"
+  /learn/reviews:
+    $ref: "./learning.yaml#/paths/~1learn~1reviews"
+  /learn/portfolio/{id}:
+    $ref: "./learning.yaml#/paths/~1learn~1portfolio~1{id}"
   /boomerang/origins:
     get:
       operationId: getBoomerangOrigins

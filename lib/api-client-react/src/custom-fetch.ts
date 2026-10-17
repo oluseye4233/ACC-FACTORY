@@ -336,6 +336,10 @@ export async function customFetch<T = unknown>(
   }
 
   const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
+  if (typeof window !== "undefined") {
+    const membership = window.sessionStorage.getItem("ffe-membership");
+    if (membership) headers.set("x-learning-membership", membership);
+  }
 
   if (
     typeof init.body === "string" &&

@@ -6,6 +6,8 @@ import {
   type User,
 } from "@workspace/db";
 import { effectiveTier, loadMembershipsForUser, type MembershipRow } from "./orgs";
+import { learningIdentity } from "./learning-identity";
+import { activeLearningMembership, learningRouteAllowed, learningCallContext } from "./learning-access";
 import {
   STAFF_COOKIE,
   ensureStaffSubscriber,
@@ -24,6 +26,8 @@ declare global {
       effectiveTier?: SubscriberTier;
       /** Memberships at request-time; loaded once by `requireAuth` for downstream reuse. */
       memberships?: MembershipRow[];
+      studentVerifiedEmail?: string;
+      education?: { cohortId: string; membershipId: string };
     }
   }
 }
@@ -44,7 +48,28 @@ export async function requireAuth(
 ): Promise<void> {
   const session = parseSession(req.signedCookies?.[STAFF_COOKIE]);
   if (!session) {
-    res.status(401).json({ error: "Unauthorized" });
+    try {
+      const identity = await learningIdentity(req);
+      if (!identity) { res.status(401).json({ error: "Unauthorized" }); return; }
+      req.localUser = identity.user; req.subscriber = identity.subscriber;
+      req.clerkUserId = identity.user.clerkUserId; req.studentVerifiedEmail = identity.email;
+      req.effectiveTier = identity.subscriber.tier;
+      req.memberships = [];
+      const hint = req.get("x-learning-membership");
+      if (hint && !/^[a-f0-9-]{36}$/i.test(hint)) { res.status(400).json({ error: "Invalid training membership" }); return; }
+      const enrolled = await activeLearningMembership(identity.user.id, hint);
+      if (!learningRouteAllowed(req.method, req.path, Boolean(enrolled))) {
+        res.status(403).json({ error: "This action is outside your active training subscription" }); return;
+      }
+      if (enrolled) {
+        req.education = { cohortId: enrolled.cohort.id, membershipId: enrolled.member.id };
+        learningCallContext.run({ userId: identity.user.id, ...req.education }, () => next());
+      } else next();
+    } catch (error) {
+      // No fallback to staff privileges or unverified identities.
+      req.log.error({ err: error }, "student identity resolution failed");
+      res.status(503).json({ error: "Student identity service unavailable" });
+    }
     return;
   }
 

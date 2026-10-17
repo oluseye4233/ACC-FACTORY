@@ -15,10 +15,11 @@ export class ApiError extends Error {
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const membership = typeof window === "undefined" ? null : window.sessionStorage.getItem("ffe-membership");
   const res = await fetch(`${basePath}${path}`, {
     method,
     credentials: "include",
-    headers: body ? { "Content-Type": "application/json" } : undefined,
+    headers: { ...(body ? { "Content-Type": "application/json" } : {}), ...(membership ? { "x-learning-membership": membership } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   });
   const contentType = res.headers.get("content-type") ?? "";

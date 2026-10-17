@@ -8,6 +8,8 @@ export type StaffSession = {
   handle?: string;
   role?: string;
   tier?: string;
+  student?: boolean;
+  trainingActive?: boolean;
 };
 
 const SESSION_KEY = ["staff-session"] as const;

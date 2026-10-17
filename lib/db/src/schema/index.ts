@@ -50,3 +50,4 @@ export * from "./xvl-verification-runs";
 export * from "./vte-verification-failures";
 export * from "./artifact-operations";
 export * from "./boomerang";
+export * from "./learning";

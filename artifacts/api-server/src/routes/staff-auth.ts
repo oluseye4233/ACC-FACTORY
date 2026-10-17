@@ -1,5 +1,7 @@
 import { Router, type IRouter, type Request } from "express";
 import { z } from "zod";
+import { learningIdentity } from "../lib/learning-identity";
+import { activeLearningMembership } from "../lib/learning-access";
 import {
   STAFF_COOKIE,
   accessCodeConfigured,
@@ -126,10 +128,18 @@ router.post("/auth/logout", (_req, res): void => {
  * show the access-code screen. Resolves everything from the signed cookie; all
  * staff are ADMIN / INSTITUTION so no DB round-trip is needed here.
  */
-router.get("/auth/session", (req, res): void => {
+router.get("/auth/session", async (req, res): Promise<void> => {
   const session = parseSession(req.signedCookies?.[STAFF_COOKIE]);
   if (!session) {
-    res.json({ authenticated: false });
+    try {
+      const identity = await learningIdentity(req);
+      if (!identity) { res.json({ authenticated: false }); return; }
+      const enrolled = await activeLearningMembership(identity.user.id);
+      res.json({ authenticated: true, name: identity.user.displayName, handle: identity.user.id,
+        role: "USER", tier: identity.subscriber.tier, student: true, trainingActive: Boolean(enrolled) });
+    } catch {
+      res.status(503).json({ error: "Student identity service unavailable" });
+    }
     return;
   }
   res.json({

@@ -8,6 +8,501 @@
 import * as zod from 'zod';
 
 
+export const GetLearningHomeResponse = zod.object({
+  "plan": zod.string(),
+  "price": zod.number(),
+  "curriculumVersion": zod.string(),
+  "lessons": zod.array(zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "stage": zod.string(),
+  "track": zod.string(),
+  "mode": zod.string(),
+  "source": zod.string(),
+  "purpose": zod.string(),
+  "input": zod.string(),
+  "example": zod.string(),
+  "expected": zod.string(),
+  "exercise": zod.string(),
+  "rubric": zod.array(zod.string()),
+  "href": zod.string(),
+  "required": zod.boolean(),
+  "artifactType": zod.string().nullable()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "userId": zod.string(),
+  "name": zod.string(),
+  "role": zod.string(),
+  "state": zod.string(),
+  "track": zod.string(),
+  "completedAt": zod.string().nullable(),
+  "spentUsd": zod.number(),
+  "reservedUsd": zod.number()
+})),
+  "cohorts": zod.array(zod.object({
+  "id": zod.string(),
+  "ownerId": zod.string(),
+  "title": zod.string(),
+  "state": zod.string(),
+  "capacity": zod.number().int(),
+  "budgetUsd": zod.number(),
+  "studentBudgetUsd": zod.number(),
+  "spentUsd": zod.number(),
+  "reservedUsd": zod.number(),
+  "curriculumVersion": zod.string(),
+  "endsAt": zod.string(),
+  "createdAt": zod.string()
+})),
+  "assignments": zod.array(zod.object({
+  "id": zod.string(),
+  "membershipId": zod.string(),
+  "lessonKey": zod.string(),
+  "state": zod.string(),
+  "version": zod.number().int(),
+  "submissions": zod.array(zod.object({
+  "id": zod.string(),
+  "version": zod.number().int(),
+  "mode": zod.string(),
+  "text": zod.string(),
+  "artifactIds": zod.array(zod.string()),
+  "sourceHash": zod.string(),
+  "sourceChanged": zod.boolean(),
+  "createdAt": zod.string(),
+  "reviews": zod.array(zod.object({
+  "id": zod.string(),
+  "decision": zod.string(),
+  "feedback": zod.string(),
+  "createdAt": zod.string()
+}))
+}))
+})),
+  "canCreateCohort": zod.boolean(),
+  "terms": zod.string()
+})
+
+
+export const createLearningCohortBodyTitleMin = 3;
+export const createLearningCohortBodyTitleMax = 160;
+
+export const createLearningCohortBodyCapacityMax = 500;
+
+export const createLearningCohortBodyBudgetUsdMin = 0;
+export const createLearningCohortBodyBudgetUsdMax = 100000;
+
+export const createLearningCohortBodyStudentBudgetUsdMin = 0;
+export const createLearningCohortBodyStudentBudgetUsdMax = 1000;
+
+
+
+export const CreateLearningCohortBody = zod.object({
+  "title": zod.string().min(createLearningCohortBodyTitleMin).max(createLearningCohortBodyTitleMax),
+  "capacity": zod.number().int().min(1).max(createLearningCohortBodyCapacityMax),
+  "budgetUsd": zod.number().min(createLearningCohortBodyBudgetUsdMin).max(createLearningCohortBodyBudgetUsdMax),
+  "studentBudgetUsd": zod.number().min(createLearningCohortBodyStudentBudgetUsdMin).max(createLearningCohortBodyStudentBudgetUsdMax),
+  "endsAt": zod.coerce.date()
+})
+
+export const CreateLearningCohortResponse = zod.object({
+  "id": zod.string(),
+  "ownerId": zod.string(),
+  "title": zod.string(),
+  "state": zod.string(),
+  "capacity": zod.number().int(),
+  "budgetUsd": zod.number(),
+  "studentBudgetUsd": zod.number(),
+  "spentUsd": zod.number(),
+  "reservedUsd": zod.number(),
+  "curriculumVersion": zod.string(),
+  "endsAt": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+export const GetLearningCohortParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetLearningCohortResponse = zod.object({
+  "plan": zod.string(),
+  "price": zod.number(),
+  "curriculumVersion": zod.string(),
+  "lessons": zod.array(zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "stage": zod.string(),
+  "track": zod.string(),
+  "mode": zod.string(),
+  "source": zod.string(),
+  "purpose": zod.string(),
+  "input": zod.string(),
+  "example": zod.string(),
+  "expected": zod.string(),
+  "exercise": zod.string(),
+  "rubric": zod.array(zod.string()),
+  "href": zod.string(),
+  "required": zod.boolean(),
+  "artifactType": zod.string().nullable()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "userId": zod.string(),
+  "name": zod.string(),
+  "role": zod.string(),
+  "state": zod.string(),
+  "track": zod.string(),
+  "completedAt": zod.string().nullable(),
+  "spentUsd": zod.number(),
+  "reservedUsd": zod.number()
+})),
+  "cohorts": zod.array(zod.object({
+  "id": zod.string(),
+  "ownerId": zod.string(),
+  "title": zod.string(),
+  "state": zod.string(),
+  "capacity": zod.number().int(),
+  "budgetUsd": zod.number(),
+  "studentBudgetUsd": zod.number(),
+  "spentUsd": zod.number(),
+  "reservedUsd": zod.number(),
+  "curriculumVersion": zod.string(),
+  "endsAt": zod.string(),
+  "createdAt": zod.string()
+})),
+  "assignments": zod.array(zod.object({
+  "id": zod.string(),
+  "membershipId": zod.string(),
+  "lessonKey": zod.string(),
+  "state": zod.string(),
+  "version": zod.number().int(),
+  "submissions": zod.array(zod.object({
+  "id": zod.string(),
+  "version": zod.number().int(),
+  "mode": zod.string(),
+  "text": zod.string(),
+  "artifactIds": zod.array(zod.string()),
+  "sourceHash": zod.string(),
+  "sourceChanged": zod.boolean(),
+  "createdAt": zod.string(),
+  "reviews": zod.array(zod.object({
+  "id": zod.string(),
+  "decision": zod.string(),
+  "feedback": zod.string(),
+  "createdAt": zod.string()
+}))
+}))
+})),
+  "canCreateCohort": zod.boolean(),
+  "terms": zod.string()
+}).and(zod.object({
+  "isOwner": zod.boolean(),
+  "issuedInviteToken": zod.string().optional(),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "state": zod.string(),
+  "expiresAt": zod.string()
+})),
+  "audit": zod.array(zod.object({
+  "id": zod.string(),
+  "action": zod.string(),
+  "subjectId": zod.string(),
+  "createdAt": zod.string()
+}))
+}))
+
+
+export const ManageLearningCohortParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const ManageLearningCohortBody = zod.object({
+  "action": zod.enum(['STATE', 'INVITE', 'REVOKE_INVITE', 'MEMBERSHIP', 'COMPLETE']),
+  "state": zod.string().optional(),
+  "email": zod.string().email().optional(),
+  "role": zod.enum(['STUDENT', 'INSTRUCTOR']).optional(),
+  "subjectId": zod.string().uuid().optional(),
+  "track": zod.enum(['BOTH', 'ARCHITECT', 'ENGINEER']).optional()
+})
+
+export const ManageLearningCohortResponse = zod.object({
+  "plan": zod.string(),
+  "price": zod.number(),
+  "curriculumVersion": zod.string(),
+  "lessons": zod.array(zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "stage": zod.string(),
+  "track": zod.string(),
+  "mode": zod.string(),
+  "source": zod.string(),
+  "purpose": zod.string(),
+  "input": zod.string(),
+  "example": zod.string(),
+  "expected": zod.string(),
+  "exercise": zod.string(),
+  "rubric": zod.array(zod.string()),
+  "href": zod.string(),
+  "required": zod.boolean(),
+  "artifactType": zod.string().nullable()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "userId": zod.string(),
+  "name": zod.string(),
+  "role": zod.string(),
+  "state": zod.string(),
+  "track": zod.string(),
+  "completedAt": zod.string().nullable(),
+  "spentUsd": zod.number(),
+  "reservedUsd": zod.number()
+})),
+  "cohorts": zod.array(zod.object({
+  "id": zod.string(),
+  "ownerId": zod.string(),
+  "title": zod.string(),
+  "state": zod.string(),
+  "capacity": zod.number().int(),
+  "budgetUsd": zod.number(),
+  "studentBudgetUsd": zod.number(),
+  "spentUsd": zod.number(),
+  "reservedUsd": zod.number(),
+  "curriculumVersion": zod.string(),
+  "endsAt": zod.string(),
+  "createdAt": zod.string()
+})),
+  "assignments": zod.array(zod.object({
+  "id": zod.string(),
+  "membershipId": zod.string(),
+  "lessonKey": zod.string(),
+  "state": zod.string(),
+  "version": zod.number().int(),
+  "submissions": zod.array(zod.object({
+  "id": zod.string(),
+  "version": zod.number().int(),
+  "mode": zod.string(),
+  "text": zod.string(),
+  "artifactIds": zod.array(zod.string()),
+  "sourceHash": zod.string(),
+  "sourceChanged": zod.boolean(),
+  "createdAt": zod.string(),
+  "reviews": zod.array(zod.object({
+  "id": zod.string(),
+  "decision": zod.string(),
+  "feedback": zod.string(),
+  "createdAt": zod.string()
+}))
+}))
+})),
+  "canCreateCohort": zod.boolean(),
+  "terms": zod.string()
+}).and(zod.object({
+  "isOwner": zod.boolean(),
+  "issuedInviteToken": zod.string().optional(),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "state": zod.string(),
+  "expiresAt": zod.string()
+})),
+  "audit": zod.array(zod.object({
+  "id": zod.string(),
+  "action": zod.string(),
+  "subjectId": zod.string(),
+  "createdAt": zod.string()
+}))
+}))
+
+
+export const redeemLearningInvitationBodyTokenMin = 40;
+export const redeemLearningInvitationBodyTokenMax = 200;
+
+
+
+export const RedeemLearningInvitationBody = zod.object({
+  "token": zod.string().min(redeemLearningInvitationBodyTokenMin).max(redeemLearningInvitationBodyTokenMax),
+  "acceptFreeTerms": zod.boolean()
+})
+
+export const RedeemLearningInvitationResponse = zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "userId": zod.string(),
+  "name": zod.string(),
+  "role": zod.string(),
+  "state": zod.string(),
+  "track": zod.string(),
+  "completedAt": zod.string().nullable(),
+  "spentUsd": zod.number(),
+  "reservedUsd": zod.number()
+})
+
+
+export const saveLearningAttemptBodyExpectedVersionMin = 0;
+
+export const saveLearningAttemptBodyTextMax = 12000;
+
+export const saveLearningAttemptBodyArtifactIdsMax = 12;
+
+
+
+export const SaveLearningAttemptBody = zod.object({
+  "membershipId": zod.string().uuid(),
+  "lessonKey": zod.string(),
+  "action": zod.enum(['START', 'SUBMIT']),
+  "expectedVersion": zod.number().int().min(saveLearningAttemptBodyExpectedVersionMin),
+  "mode": zod.enum(['ACTUAL_PLATFORM', 'SIMULATION', 'REFLECTION']).optional(),
+  "text": zod.string().max(saveLearningAttemptBodyTextMax).optional(),
+  "artifactIds": zod.array(zod.string().uuid()).max(saveLearningAttemptBodyArtifactIdsMax).optional()
+})
+
+export const SaveLearningAttemptResponse = zod.object({
+  "id": zod.string(),
+  "membershipId": zod.string(),
+  "lessonKey": zod.string(),
+  "state": zod.string(),
+  "version": zod.number().int(),
+  "submissions": zod.array(zod.object({
+  "id": zod.string(),
+  "version": zod.number().int(),
+  "mode": zod.string(),
+  "text": zod.string(),
+  "artifactIds": zod.array(zod.string()),
+  "sourceHash": zod.string(),
+  "sourceChanged": zod.boolean(),
+  "createdAt": zod.string(),
+  "reviews": zod.array(zod.object({
+  "id": zod.string(),
+  "decision": zod.string(),
+  "feedback": zod.string(),
+  "createdAt": zod.string()
+}))
+}))
+})
+
+
+
+export const reviewLearningAttemptBodyFeedbackMin = 10;
+export const reviewLearningAttemptBodyFeedbackMax = 4000;
+
+
+
+export const ReviewLearningAttemptBody = zod.object({
+  "submissionId": zod.string().uuid(),
+  "expectedVersion": zod.number().int().min(1),
+  "decision": zod.enum(['LEARNING_COMPLETE', 'REVISION_REQUIRED']),
+  "feedback": zod.string().min(reviewLearningAttemptBodyFeedbackMin).max(reviewLearningAttemptBodyFeedbackMax)
+})
+
+export const ReviewLearningAttemptResponse = zod.object({
+  "id": zod.string(),
+  "membershipId": zod.string(),
+  "lessonKey": zod.string(),
+  "state": zod.string(),
+  "version": zod.number().int(),
+  "submissions": zod.array(zod.object({
+  "id": zod.string(),
+  "version": zod.number().int(),
+  "mode": zod.string(),
+  "text": zod.string(),
+  "artifactIds": zod.array(zod.string()),
+  "sourceHash": zod.string(),
+  "sourceChanged": zod.boolean(),
+  "createdAt": zod.string(),
+  "reviews": zod.array(zod.object({
+  "id": zod.string(),
+  "decision": zod.string(),
+  "feedback": zod.string(),
+  "createdAt": zod.string()
+}))
+}))
+})
+
+
+export const GetLearningPortfolioParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetLearningPortfolioResponse = zod.object({
+  "plan": zod.string(),
+  "price": zod.number(),
+  "curriculumVersion": zod.string(),
+  "lessons": zod.array(zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "stage": zod.string(),
+  "track": zod.string(),
+  "mode": zod.string(),
+  "source": zod.string(),
+  "purpose": zod.string(),
+  "input": zod.string(),
+  "example": zod.string(),
+  "expected": zod.string(),
+  "exercise": zod.string(),
+  "rubric": zod.array(zod.string()),
+  "href": zod.string(),
+  "required": zod.boolean(),
+  "artifactType": zod.string().nullable()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "userId": zod.string(),
+  "name": zod.string(),
+  "role": zod.string(),
+  "state": zod.string(),
+  "track": zod.string(),
+  "completedAt": zod.string().nullable(),
+  "spentUsd": zod.number(),
+  "reservedUsd": zod.number()
+})),
+  "cohorts": zod.array(zod.object({
+  "id": zod.string(),
+  "ownerId": zod.string(),
+  "title": zod.string(),
+  "state": zod.string(),
+  "capacity": zod.number().int(),
+  "budgetUsd": zod.number(),
+  "studentBudgetUsd": zod.number(),
+  "spentUsd": zod.number(),
+  "reservedUsd": zod.number(),
+  "curriculumVersion": zod.string(),
+  "endsAt": zod.string(),
+  "createdAt": zod.string()
+})),
+  "assignments": zod.array(zod.object({
+  "id": zod.string(),
+  "membershipId": zod.string(),
+  "lessonKey": zod.string(),
+  "state": zod.string(),
+  "version": zod.number().int(),
+  "submissions": zod.array(zod.object({
+  "id": zod.string(),
+  "version": zod.number().int(),
+  "mode": zod.string(),
+  "text": zod.string(),
+  "artifactIds": zod.array(zod.string()),
+  "sourceHash": zod.string(),
+  "sourceChanged": zod.boolean(),
+  "createdAt": zod.string(),
+  "reviews": zod.array(zod.object({
+  "id": zod.string(),
+  "decision": zod.string(),
+  "feedback": zod.string(),
+  "createdAt": zod.string()
+}))
+}))
+})),
+  "canCreateCohort": zod.boolean(),
+  "terms": zod.string()
+})
+
+
 export const GetBoomerangOriginsResponse = zod.object({
   "origins": zod.array(zod.object({
   "kind": zod.enum(['SESSION', 'F0']),

@@ -82,6 +82,10 @@ packageExtensions:
       zod: "^3.25.76"
 
 overrides:
+  # Keep the test transformer on the app's Vite major, not an auto-installed
+  # Vite 8 optional peer (which is incompatible with the current React plugin).
+  "vitest>vite": "7.3.3"
+  "@vitest/mocker>vite": "7.3.3"
   # replit uses linux-x64 only, we can exclude all other platforms
   "esbuild>@esbuild/darwin-arm64": "-"
   "esbuild>@esbuild/darwin-x64": "-"

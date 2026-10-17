@@ -17,3 +17,9 @@ schema peers bound to their compatible application major through pnpm package
 extensions; do not migrate application schemas just to satisfy accidental
 hoisting. After a tooling upgrade, regenerate, typecheck the entire workspace
 and run the full test suite, not only shared-library checks.
+
+Keep the test runner on the application's compatible Vite major.
+
+**Why:** Updating unrelated SDKs can re-resolve Vitest's optional Vite peer to a newer major even while the app's direct Vite stays unchanged. The existing React transform plugin then fails to compile JSX in tests, despite the app server still starting.
+
+**How to apply:** Preserve the targeted test-tool Vite overrides when changing dependencies. Verify both app and test-runner resolution; do not upgrade the application framework just to repair an accidental test peer.

@@ -35,11 +35,15 @@ const FEATURE_COL: Record<number, string> = {
   7: "f7_today",
   8: "f8_today",
 };
+const educationLimits: Record<number, number> = { 1: 20, 2: 20, 3: 10, 4: 10, 5: 10, 6: 5, 7: 5, 8: 2 };
 
 export function requireTier(minTier: SubscriberTier) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const sub = req.subscriber;
     const userId = req.localUser?.id;
+    // An education capability is not a paid tier and cannot confer institution privileges.
+    // The independent student-route policy limits this to curriculum operations.
+    if (req.education && minTier !== "INSTITUTION") { next(); return; }
     if (!sub || !userId) {
       res.status(401).json({ error: "Unauthorized" });
       return;
@@ -90,7 +94,7 @@ export function rateLimit(featureId: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) {
       return;
     }
     const tier = req.effectiveTier ?? sub.tier;
-    const limit = RATE_LIMITS[tier][featureId] ?? 0;
+    const limit = req.education ? educationLimits[featureId] ?? 0 : RATE_LIMITS[tier][featureId] ?? 0;
     if (limit === 0) {
       res.status(403).json({ error: `Feature F${featureId} not available on ${tier}` });
       return;

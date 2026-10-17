@@ -1,0 +1,277 @@
+openapi: 3.1.0
+info: { title: Learning, version: 1.0.0 }
+paths:
+  /learn:
+    get:
+      operationId: getLearningHome
+      tags: [learning]
+      responses:
+        "200":
+          description: Owned learning progress
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LearningHome" }
+  /learn/cohorts:
+    post:
+      operationId: createLearningCohort
+      tags: [learning]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, capacity, budgetUsd, studentBudgetUsd, endsAt]
+              properties:
+                title: { type: string, minLength: 3, maxLength: 160 }
+                capacity: { type: integer, minimum: 1, maximum: 500 }
+                budgetUsd: { type: number, minimum: 0, maximum: 100000 }
+                studentBudgetUsd: { type: number, minimum: 0, maximum: 1000 }
+                endsAt: { type: string, format: date-time }
+      responses:
+        "201":
+          description: Created draft
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LearningCohort" }
+  /learn/cohorts/{id}:
+    get:
+      operationId: getLearningCohort
+      tags: [learning]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Assigned teaching workspace
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LearningCohortDetail" }
+  /learn/cohorts/{id}/manage:
+    post:
+      operationId: manageLearningCohort
+      tags: [learning]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [STATE, INVITE, REVOKE_INVITE, MEMBERSHIP, COMPLETE] }
+                state: { type: string }
+                email: { type: string, format: email }
+                role: { type: string, enum: [STUDENT, INSTRUCTOR] }
+                subjectId: { type: string, format: uuid }
+                track: { type: string, enum: [BOTH, ARCHITECT, ENGINEER] }
+      responses:
+        "200":
+          description: Updated workspace; invitation token returned once only
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LearningCohortDetail" }
+  /learn/redeem:
+    post:
+      operationId: redeemLearningInvitation
+      tags: [learning]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, acceptFreeTerms]
+              properties:
+                token: { type: string, minLength: 40, maxLength: 200 }
+                acceptFreeTerms: { type: boolean }
+      responses:
+        "200":
+          description: Accepted membership
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LearningMembership" }
+  /learn/attempts:
+    post:
+      operationId: saveLearningAttempt
+      tags: [learning]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [membershipId, lessonKey, action, expectedVersion]
+              properties:
+                membershipId: { type: string, format: uuid }
+                lessonKey: { type: string }
+                action: { type: string, enum: [START, SUBMIT] }
+                expectedVersion: { type: integer, minimum: 0 }
+                mode: { type: string, enum: [ACTUAL_PLATFORM, SIMULATION, REFLECTION] }
+                text: { type: string, maxLength: 12000 }
+                artifactIds: { type: array, maxItems: 12, items: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Saved owned lesson attempt
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LearningAssignment" }
+  /learn/reviews:
+    post:
+      operationId: reviewLearningAttempt
+      tags: [learning]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [submissionId, expectedVersion, decision, feedback]
+              properties:
+                submissionId: { type: string, format: uuid }
+                expectedVersion: { type: integer, minimum: 1 }
+                decision: { type: string, enum: [LEARNING_COMPLETE, REVISION_REQUIRED] }
+                feedback: { type: string, minLength: 10, maxLength: 4000 }
+      responses:
+        "200":
+          description: Learning review only; Quest state unchanged
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LearningAssignment" }
+  /learn/portfolio/{id}:
+    get:
+      operationId: getLearningPortfolio
+      tags: [learning]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Owned exportable learning record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LearningHome" }
+components:
+  schemas:
+    LearningLesson:
+      type: object
+      required: [key, title, stage, track, mode, source, purpose, input, example, expected, exercise, rubric, href, required, artifactType]
+      properties:
+        key: { type: string }
+        title: { type: string }
+        stage: { type: string }
+        track: { type: string }
+        mode: { type: string }
+        source: { type: string }
+        purpose: { type: string }
+        input: { type: string }
+        example: { type: string }
+        expected: { type: string }
+        exercise: { type: string }
+        rubric: { type: array, items: { type: string } }
+        href: { type: string }
+        required: { type: boolean }
+        artifactType: { type: [string, "null"] }
+    LearningCohort:
+      type: object
+      required: [id, ownerId, title, state, capacity, budgetUsd, studentBudgetUsd, spentUsd, reservedUsd, curriculumVersion, endsAt, createdAt]
+      properties:
+        id: { type: string }
+        ownerId: { type: string }
+        title: { type: string }
+        state: { type: string }
+        capacity: { type: integer }
+        budgetUsd: { type: number }
+        studentBudgetUsd: { type: number }
+        spentUsd: { type: number }
+        reservedUsd: { type: number }
+        curriculumVersion: { type: string }
+        endsAt: { type: string }
+        createdAt: { type: string }
+    LearningMembership:
+      type: object
+      required: [id, cohortId, userId, name, role, state, track, completedAt, spentUsd, reservedUsd]
+      properties:
+        id: { type: string }
+        cohortId: { type: string }
+        userId: { type: string }
+        name: { type: string }
+        role: { type: string }
+        state: { type: string }
+        track: { type: string }
+        completedAt: { type: [string, "null"] }
+        spentUsd: { type: number }
+        reservedUsd: { type: number }
+    LearningReview:
+      type: object
+      required: [id, decision, feedback, createdAt]
+      properties:
+        id: { type: string }
+        decision: { type: string }
+        feedback: { type: string }
+        createdAt: { type: string }
+    LearningSubmission:
+      type: object
+      required: [id, version, mode, text, artifactIds, sourceHash, sourceChanged, createdAt, reviews]
+      properties:
+        id: { type: string }
+        version: { type: integer }
+        mode: { type: string }
+        text: { type: string }
+        artifactIds: { type: array, items: { type: string } }
+        sourceHash: { type: string }
+        sourceChanged: { type: boolean }
+        createdAt: { type: string }
+        reviews: { type: array, items: { $ref: "#/components/schemas/LearningReview" } }
+    LearningAssignment:
+      type: object
+      required: [id, membershipId, lessonKey, state, version, submissions]
+      properties:
+        id: { type: string }
+        membershipId: { type: string }
+        lessonKey: { type: string }
+        state: { type: string }
+        version: { type: integer }
+        submissions: { type: array, items: { $ref: "#/components/schemas/LearningSubmission" } }
+    LearningHome:
+      type: object
+      required: [plan, price, curriculumVersion, lessons, memberships, cohorts, assignments, canCreateCohort, terms]
+      properties:
+        plan: { type: string }
+        price: { type: number }
+        curriculumVersion: { type: string }
+        lessons: { type: array, items: { $ref: "#/components/schemas/LearningLesson" } }
+        memberships: { type: array, items: { $ref: "#/components/schemas/LearningMembership" } }
+        cohorts: { type: array, items: { $ref: "#/components/schemas/LearningCohort" } }
+        assignments: { type: array, items: { $ref: "#/components/schemas/LearningAssignment" } }
+        canCreateCohort: { type: boolean }
+        terms: { type: string }
+    LearningCohortDetail:
+      allOf:
+        - { $ref: "#/components/schemas/LearningHome" }
+        - type: object
+          required: [invitations, audit, isOwner]
+          properties:
+            isOwner: { type: boolean }
+            issuedInviteToken: { type: string }
+            invitations:
+              type: array
+              items:
+                type: object
+                required: [id, email, role, state, expiresAt]
+                properties:
+                  id: { type: string }
+                  email: { type: string }
+                  role: { type: string }
+                  state: { type: string }
+                  expiresAt: { type: string }
+            audit:
+              type: array
+              items:
+                type: object
+                required: [id, action, subjectId, createdAt]
+                properties:
+                  id: { type: string }
+                  action: { type: string }
+                  subjectId: { type: string }
+                  createdAt: { type: string }

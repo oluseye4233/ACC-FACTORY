@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { maybeAwardContextCraftBadges } from "../lib/badges";
+import { learningCallContext } from "../lib/learning-access";
 import { z } from "zod/v4";
 import { randomUUID } from "node:crypto";
 import {
@@ -10,6 +11,7 @@ import {
   harnessEscalationsTable,
   harnessEngineRunsTable,
   costBudgetReservationsTable,
+  learningChargesTable,
   LLM_PROVIDERS,
   type ArtifactType,
   type LlmProvider,
@@ -253,6 +255,8 @@ async function recordRun(
       // monthly-cap sum cannot observe a gap between the two representations.
       await db.transaction(async (tx) => {
         await tx.insert(harnessEngineRunsTable).values(values);
+        await tx.update(learningChargesTable).set({ state: "SETTLED", amountUsd: cost.toFixed(6) })
+          .where(eq(learningChargesTable.reservationId, reservationId));
         await tx
           .delete(costBudgetReservationsTable)
           .where(eq(costBudgetReservationsTable.id, reservationId));
@@ -664,6 +668,7 @@ export async function callLlm(
   opts?: { jsonMode?: boolean },
 ): Promise<string> {
   const start = Date.now();
+  if (learningCallContext.getStore() && !ctx) throw new Error("Training model calls require an attributable usage context");
   const jsonMode = opts?.jsonMode ?? false;
 
   // Inject CARTRIDGE CONTEXT (scope-first, protected) for cartridge sessions.

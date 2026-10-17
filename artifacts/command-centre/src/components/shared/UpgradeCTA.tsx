@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { useStaffSession } from "@/lib/staff-session";
 
 interface UpgradeCTAProps {
   open: boolean;
@@ -26,7 +27,27 @@ type MeResult = {
   subscriber: { f1000Member: boolean; tier: string };
 };
 
-export function UpgradeCTA({
+export function UpgradeCTA(props: UpgradeCTAProps) {
+  const session = useStaffSession();
+  const [, setLocation] = useLocation();
+  if (session.student) return <AlertDialog open={props.open} onOpenChange={props.onOpenChange}>
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Training allowance or access limit</AlertDialogTitle>
+        <AlertDialogDescription>
+          FORGE FIELD ENGINEER is free. This request exceeds an available allowance or is outside your current training access.
+          Contact your instructor to check cohort funding, daily limits and membership status. You do not need to buy an upgrade to resolve a training limit.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Close</AlertDialogCancel>
+        <AlertDialogAction onClick={() => { props.onOpenChange(false); setLocation("/learn"); }}>Return to training</AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>;
+  return <CommercialUpgradeCTA {...props} />;
+}
+function CommercialUpgradeCTA({
   open,
   onOpenChange,
   message = "This feature requires a higher tier.",

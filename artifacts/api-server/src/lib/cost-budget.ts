@@ -4,12 +4,17 @@ import {
   db,
   costBudgetReservationsTable,
   harnessEngineRunsTable,
+  learningChargesTable,
+  learningCohortsTable,
+  learningMembershipsTable,
   type Subscriber,
   type SubscriberTier,
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { MONTHLY_COST_CAP_USD } from "./tier";
 import { maybeDispatchCostCapAlerts } from "./cost-cap-alerts";
+import { learningCallContext } from "./learning-access";
+import { usage } from "./learning-service";
 
 /**
  * Parse a `YYYY-MM-DD` env value as midnight UTC of that day. Returns null
@@ -279,6 +284,26 @@ export async function reserveCostBudget(
       return { ok: false, denial: costBudgetDenial(usedUsd, capUsd) };
     }
 
+    const education = learningCallContext.getStore();
+    if (education) {
+      const [m] = await tx.select().from(learningMembershipsTable).where(eq(learningMembershipsTable.id, education.membershipId));
+      const [c] = await tx.select().from(learningCohortsTable).where(eq(learningCohortsTable.id, education.cohortId));
+      if (!m || !c || m.userId !== education.userId || m.cohortId !== c.id ||
+        m.role !== "STUDENT" || m.state !== "ACTIVE" || c.state !== "ACTIVE" || c.endsAt <= new Date()) {
+        const denial = costBudgetDenial(0, 0);
+        denial.body.detail = "Your training membership is no longer active. Ask the cohort owner for help.";
+        return { ok: false, denial };
+      }
+      for (const scope of [undefined, education.userId]) {
+        const totals = await usage(tx, c.id, scope);
+        const limit = Number(scope ? c.studentBudgetUsd : c.budgetUsd);
+        if (totals.spentUsd + totals.reservedUsd + Number(amountUsd) > limit) {
+          const denial = costBudgetDenial(totals.spentUsd + totals.reservedUsd, limit);
+          denial.body.detail = "The funded training allowance cannot cover this request. Reading and portfolio export remain available; contact your instructor.";
+          return { ok: false, denial };
+        }
+      }
+    }
     const [reservation] = await tx
       .insert(costBudgetReservationsTable)
       .values({
@@ -287,15 +312,21 @@ export async function reserveCostBudget(
       })
       .returning({ id: costBudgetReservationsTable.id });
     if (!reservation) throw new Error("Failed to persist model-call cost reservation.");
+    if (education) await tx.insert(learningChargesTable).values({
+      cohortId: education.cohortId, userId: education.userId, reservationId: reservation.id,
+      amountUsd, expiresAt: new Date(Date.now() + COST_BUDGET_RESERVATION_TTL_MS),
+    });
     return { ok: true, reservationId: reservation.id };
   });
 }
 
 /** Release a reservation after a provider call fails before returning usage. */
 export async function releaseCostBudgetReservation(reservationId: string): Promise<void> {
-  await db
-    .delete(costBudgetReservationsTable)
-    .where(eq(costBudgetReservationsTable.id, reservationId));
+  await db.transaction(async (tx) => {
+    await tx.update(learningChargesTable).set({ state: "RELEASED", amountUsd: "0" })
+      .where(eq(learningChargesTable.reservationId, reservationId));
+    await tx.delete(costBudgetReservationsTable).where(eq(costBudgetReservationsTable.id, reservationId));
+  });
 }
 
 export interface CostStatus {

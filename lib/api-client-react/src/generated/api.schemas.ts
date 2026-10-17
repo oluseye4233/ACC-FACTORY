@@ -5261,6 +5261,116 @@ export interface SpcPlayerDeliveryResult {
   statusCode: number;
 }
 
+export interface LearningLesson {
+  key: string;
+  title: string;
+  stage: string;
+  track: string;
+  mode: string;
+  source: string;
+  purpose: string;
+  input: string;
+  example: string;
+  expected: string;
+  exercise: string;
+  rubric: string[];
+  href: string;
+  required: boolean;
+  /** @nullable */
+  artifactType: string | null;
+}
+
+export interface LearningCohort {
+  id: string;
+  ownerId: string;
+  title: string;
+  state: string;
+  capacity: number;
+  budgetUsd: number;
+  studentBudgetUsd: number;
+  spentUsd: number;
+  reservedUsd: number;
+  curriculumVersion: string;
+  endsAt: string;
+  createdAt: string;
+}
+
+export interface LearningMembership {
+  id: string;
+  cohortId: string;
+  userId: string;
+  name: string;
+  role: string;
+  state: string;
+  track: string;
+  /** @nullable */
+  completedAt: string | null;
+  spentUsd: number;
+  reservedUsd: number;
+}
+
+export interface LearningReview {
+  id: string;
+  decision: string;
+  feedback: string;
+  createdAt: string;
+}
+
+export interface LearningSubmission {
+  id: string;
+  version: number;
+  mode: string;
+  text: string;
+  artifactIds: string[];
+  sourceHash: string;
+  sourceChanged: boolean;
+  createdAt: string;
+  reviews: LearningReview[];
+}
+
+export interface LearningAssignment {
+  id: string;
+  membershipId: string;
+  lessonKey: string;
+  state: string;
+  version: number;
+  submissions: LearningSubmission[];
+}
+
+export interface LearningHome {
+  plan: string;
+  price: number;
+  curriculumVersion: string;
+  lessons: LearningLesson[];
+  memberships: LearningMembership[];
+  cohorts: LearningCohort[];
+  assignments: LearningAssignment[];
+  canCreateCohort: boolean;
+  terms: string;
+}
+
+export type LearningCohortDetailInvitationsItem = {
+  id: string;
+  email: string;
+  role: string;
+  state: string;
+  expiresAt: string;
+};
+
+export type LearningCohortDetailAuditItem = {
+  id: string;
+  action: string;
+  subjectId: string;
+  createdAt: string;
+};
+
+export type LearningCohortDetail = LearningHome & {
+  isOwner: boolean;
+  issuedInviteToken?: string;
+  invitations: LearningCohortDetailInvitationsItem[];
+  audit: LearningCohortDetailAuditItem[];
+};
+
 /**
  * Unauthorized
  */
@@ -5280,6 +5390,126 @@ export type NotFoundResponse = ErrorResponse;
  * Rate limit exceeded
  */
 export type RateLimitedResponse = ErrorResponse;
+
+export type CreateLearningCohortBody = {
+  /**
+     * @minLength 3
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minimum 1
+     * @maximum 500
+     */
+  capacity: number;
+  /**
+     * @minimum 0
+     * @maximum 100000
+     */
+  budgetUsd: number;
+  /**
+     * @minimum 0
+     * @maximum 1000
+     */
+  studentBudgetUsd: number;
+  endsAt: string;
+};
+
+export type ManageLearningCohortBodyAction = typeof ManageLearningCohortBodyAction[keyof typeof ManageLearningCohortBodyAction];
+
+
+export const ManageLearningCohortBodyAction = {
+  STATE: 'STATE',
+  INVITE: 'INVITE',
+  REVOKE_INVITE: 'REVOKE_INVITE',
+  MEMBERSHIP: 'MEMBERSHIP',
+  COMPLETE: 'COMPLETE',
+} as const;
+
+export type ManageLearningCohortBodyRole = typeof ManageLearningCohortBodyRole[keyof typeof ManageLearningCohortBodyRole];
+
+
+export const ManageLearningCohortBodyRole = {
+  STUDENT: 'STUDENT',
+  INSTRUCTOR: 'INSTRUCTOR',
+} as const;
+
+export type ManageLearningCohortBodyTrack = typeof ManageLearningCohortBodyTrack[keyof typeof ManageLearningCohortBodyTrack];
+
+
+export const ManageLearningCohortBodyTrack = {
+  BOTH: 'BOTH',
+  ARCHITECT: 'ARCHITECT',
+  ENGINEER: 'ENGINEER',
+} as const;
+
+export type ManageLearningCohortBody = {
+  action: ManageLearningCohortBodyAction;
+  state?: string;
+  email?: string;
+  role?: ManageLearningCohortBodyRole;
+  subjectId?: string;
+  track?: ManageLearningCohortBodyTrack;
+};
+
+export type RedeemLearningInvitationBody = {
+  /**
+     * @minLength 40
+     * @maxLength 200
+     */
+  token: string;
+  acceptFreeTerms: boolean;
+};
+
+export type SaveLearningAttemptBodyAction = typeof SaveLearningAttemptBodyAction[keyof typeof SaveLearningAttemptBodyAction];
+
+
+export const SaveLearningAttemptBodyAction = {
+  START: 'START',
+  SUBMIT: 'SUBMIT',
+} as const;
+
+export type SaveLearningAttemptBodyMode = typeof SaveLearningAttemptBodyMode[keyof typeof SaveLearningAttemptBodyMode];
+
+
+export const SaveLearningAttemptBodyMode = {
+  ACTUAL_PLATFORM: 'ACTUAL_PLATFORM',
+  SIMULATION: 'SIMULATION',
+  REFLECTION: 'REFLECTION',
+} as const;
+
+export type SaveLearningAttemptBody = {
+  membershipId: string;
+  lessonKey: string;
+  action: SaveLearningAttemptBodyAction;
+  /** @minimum 0 */
+  expectedVersion: number;
+  mode?: SaveLearningAttemptBodyMode;
+  /** @maxLength 12000 */
+  text?: string;
+  /** @maxItems 12 */
+  artifactIds?: string[];
+};
+
+export type ReviewLearningAttemptBodyDecision = typeof ReviewLearningAttemptBodyDecision[keyof typeof ReviewLearningAttemptBodyDecision];
+
+
+export const ReviewLearningAttemptBodyDecision = {
+  LEARNING_COMPLETE: 'LEARNING_COMPLETE',
+  REVISION_REQUIRED: 'REVISION_REQUIRED',
+} as const;
+
+export type ReviewLearningAttemptBody = {
+  submissionId: string;
+  /** @minimum 1 */
+  expectedVersion: number;
+  decision: ReviewLearningAttemptBodyDecision;
+  /**
+     * @minLength 10
+     * @maxLength 4000
+     */
+  feedback: string;
+};
 
 export type ListBoomerangCasesParams = {
 originKind?: ListBoomerangCasesOriginKind;

@@ -372,6 +372,13 @@
       "when": 1792263281520,
       "tag": "0052_sweet_jackpot",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1792270471979,
+      "tag": "0053_rapid_fabian_cortez",
+      "breakpoints": true
     }
   ]
 }

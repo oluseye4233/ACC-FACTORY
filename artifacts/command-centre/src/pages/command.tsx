@@ -472,6 +472,7 @@ export default function Command() {
                 <UtilityAction href="/ingest" icon={FileUp} label="Import Existing" description="Bring in a document" />
                 <UtilityAction href="/exemplars" icon={Library} label="Open Library" description="Browse proven examples" />
                 <UtilityAction href="/quests" icon={Trophy} label="View Quests" description="Track operator progress" />
+                <UtilityAction href="/learn" icon={Trophy} label="FORGE FIELD ENGINEER" description="Manage invite-only training cohorts" />
                 <UtilityAction href="/f0" icon={Briefcase} label="F0 Advisory" description="Open business intelligence" />
                 <UtilityAction href="/spc-player" icon={PlaySquare} label="SPC Player" description="Build and run a Kit Deck" />
                 <UtilityAction href="/boomerang" icon={RefreshCw} label="Boomerang" description="Request, return and review F-stage support" />

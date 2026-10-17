@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { StudentSignOut } from "@/components/learning-auth";
 import { Button } from "@/components/ui/button";
 import { useStaffSession, useLogout } from "@/lib/staff-session";
 import {
@@ -17,6 +18,7 @@ import {
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const STAFF_LINKS: Array<{ href: string; label: string }> = [
+  { href: "/learn", label: "Training" },
   { href: "/command", label: "Command" },
   { href: "/guide", label: "Guide" },
   { href: "/boomerang", label: "Boomerang" },
@@ -43,7 +45,8 @@ export function TopNav() {
   const session = useStaffSession();
   const logout = useLogout();
 
-  const links =
+  const allowedStudentLinks = new Set(["/learn", "/guide", "/sessions", "/ascension", "/quests", "/boomerang", "/spc-player", "/ingest", "/cartridge", "/f0"]);
+  const links = session.student ? STAFF_LINKS.filter((l) => allowedStudentLinks.has(l.href)) :
     session.role === "ADMIN"
       ? [
           ...STAFF_LINKS,
@@ -88,7 +91,7 @@ export function TopNav() {
 
         <div className="flex items-center gap-3 shrink-0">
           <ThemeToggle />
-          <CompanySpendMeter />
+          {!session.student && <CompanySpendMeter />}
           {session.name ? (
             <span
               className="hidden sm:inline-block max-w-40 truncate font-mono text-xs uppercase tracking-wider text-muted-foreground"
@@ -98,7 +101,7 @@ export function TopNav() {
               {session.name}
             </span>
           ) : null}
-          <Button
+          {session.student ? <StudentSignOut /> : <Button
             variant="ghost"
             size="sm"
             onClick={signOut}
@@ -106,7 +109,7 @@ export function TopNav() {
             data-testid="button-logout"
           >
             LOG OUT
-          </Button>
+          </Button>}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button
@@ -137,13 +140,13 @@ export function TopNav() {
                     {l.label}
                   </button>
                 ))}
-                <Button
+                {session.student ? <StudentSignOut /> : <Button
                   variant="ghost"
                   onClick={signOut}
                   className="mt-6 justify-start font-mono text-sm text-muted-foreground"
                 >
                   LOG OUT
-                </Button>
+                </Button>}
               </nav>
             </SheetContent>
           </Sheet>
@@ -163,7 +166,7 @@ export function TopNav() {
           </Link>
         ))}
       </nav>
-      <CompanySpendBanner />
+      {!session.student && <CompanySpendBanner />}
     </header>
   );
 }

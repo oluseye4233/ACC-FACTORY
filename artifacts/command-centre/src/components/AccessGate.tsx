@@ -109,6 +109,7 @@ export function AccessGate() {
         </form>
 
         <p className="mt-6 text-center">
+            <Link href="/learn-login" className="block mb-4 text-sm text-primary underline" data-testid="link-student-login">FORGE FIELD ENGINEER · Student sign-in</Link>
             <Link href="/status" className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground underline-offset-4 hover:text-foreground hover:underline" data-testid="link-service-status">
             Service status
           </Link>
