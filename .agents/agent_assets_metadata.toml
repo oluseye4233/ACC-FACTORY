@@ -546,3 +546,31 @@ mtime_ms = 1792268938760
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/96d080bf-2e55-40bf-ba32-302c2489da3a/6684ec9f-d390-4142-99a8-c5711a181272"
 storage_version_token = "1792268989467262"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "xZUpVd9fk6nowancwfi4R"
+uri = "file://generated-artifacts/forge-field-engineer-qr/FORGE_FIELD_ENGINEER_registration_QR.png"
+type = "image"
+title = "FORGE FIELD ENGINEER — Registration QR"
+description = "High-resolution PNG linking to the live free student registration page. An individual invitation is still required to join a cohort."
+logical_id = "abbcc2b1-d21b-4088-aaa6-69420c13a217"
+content_hash = "sha256:740cf5b74d028d7df92fb5237d70f99b12b65c0cd4cd100cb498c116013e24da"
+size = 9997
+mtime_ms = 1792273587488
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/abbcc2b1-d21b-4088-aaa6-69420c13a217/b310db6f-1978-4a5e-9204-dc112b82ae59"
+storage_version_token = "1792273596552538"
+content_type = "image/png"
+
+[[outputs]]
+id = "s3RC_RT4rDYInJ6xJov8c"
+uri = "file://generated-artifacts/forge-field-engineer-qr/FORGE_FIELD_ENGINEER_registration_QR.svg"
+type = "image"
+title = "Registration QR — Print-ready SVG"
+description = "Scalable vector version of the same QR code for invitations, posters and printed materials."
+logical_id = "99e16ee4-7d33-4e24-a5e6-ae87d5ed836c"
+content_hash = "sha256:d702e9271a0c32d049b8fffcdc54858ac33601e9e8dca46ecc95a53e8533821d"
+size = 3127
+mtime_ms = 1792273587476
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/99e16ee4-7d33-4e24-a5e6-ae87d5ed836c/caac52ef-7160-48b9-bd16-a33ff3590e40"
+storage_version_token = "1792273597294644"
+content_type = "image/svg+xml"
