@@ -26,6 +26,64 @@ tags:
   - name: magnet
 
 paths:
+  /boomerang/origins:
+    get:
+      operationId: getBoomerangOrigins
+      tags: [Boomerang]
+      responses:
+        "200":
+          description: Owned origins and supported stage labels; no execution entitlement implied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BoomerangOrigins"
+  /boomerang/cases:
+    get:
+      operationId: listBoomerangCases
+      tags: [Boomerang]
+      parameters:
+        - { name: originKind, in: query, schema: { type: string, enum: [SESSION, F0] } }
+        - { name: originId, in: query, schema: { type: string, format: uuid } }
+        - { name: stage, in: query, schema: { type: string } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        "200":
+          description: Owner-scoped cases, newest first, at most 50 per page
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/BoomerangCase" } }
+    post:
+      operationId: createBoomerangCase
+      tags: [Boomerang]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BoomerangInput" }
+      responses:
+        "201":
+          description: Supporting-work request with server-frozen origin baseline
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BoomerangCase" }
+  /boomerang/cases/{id}/transition:
+    post:
+      operationId: transitionBoomerangCase
+      tags: [Boomerang]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BoomerangTransitionInput" }
+      responses:
+        "200":
+          description: Versioned return or review; never advances the originating workflow
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BoomerangCase" }
+        "409": { description: "Stale version, changed source, or invalid transition" }
   /harness/sessions/{sessionId}/short-sprints/preflight:
     get:
       operationId: getShortSprintPreflight
@@ -3043,6 +3101,73 @@ components:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   schemas:
+    BoomerangOrigin:
+      type: object
+      required: [kind, id, label]
+      properties:
+        kind: { type: string, enum: [SESSION, F0] }
+        id: { type: string, format: uuid }
+        label: { type: string }
+    BoomerangOrigins:
+      type: object
+      required: [origins, stages]
+      properties:
+        origins: { type: array, items: { $ref: "#/components/schemas/BoomerangOrigin" } }
+        stages: { type: array, items: { type: string } }
+    BoomerangInput:
+      type: object
+      additionalProperties: false
+      required: [originKind, originId, stage, title, brief]
+      properties:
+        originKind: { type: string, enum: [SESSION, F0] }
+        originId: { type: string, format: uuid }
+        stage: { type: string, enum: [F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F9.5, F10, F11, F12, F6-VDJ, MM] }
+        title: { type: string, minLength: 3, maxLength: 200 }
+        brief: { type: string, minLength: 10, maxLength: 8000 }
+    BoomerangTransitionInput:
+      type: object
+      additionalProperties: false
+      required: [action, expectedVersion]
+      properties:
+        action: { type: string, enum: [RETURN, ACCEPT, REQUEST_REVISION, REJECT, CANCEL] }
+        expectedVersion: { type: integer, minimum: 1 }
+        resultText: { type: string, minLength: 10, maxLength: 40000 }
+        spcPlayerRunId: { type: string, format: uuid }
+        note: { type: string, maxLength: 4000 }
+    BoomerangEvent:
+      type: object
+      required: [action, at, note, resultHash, resultText, spcPlayerRunId]
+      properties:
+        action: { type: string }
+        at: { type: string, format: date-time }
+        note: { type: string }
+        resultHash: { type: ["string", "null"] }
+        resultText: { type: ["string", "null"] }
+        spcPlayerRunId: { type: ["string", "null"], format: uuid }
+    BoomerangCase:
+      type: object
+      required: [id, originKind, originId, stage, title, brief, sourceHash, state, version, resultText, resultHash, spcPlayerRunId, history, createdAt, updatedAt, sourceChanged, originAvailable, originHref, advisoryOnly, releaseAllowed]
+      properties:
+        id: { type: string, format: uuid }
+        originKind: { type: string, enum: [SESSION, F0] }
+        originId: { type: string, format: uuid }
+        stage: { type: string }
+        title: { type: string }
+        brief: { type: string }
+        sourceHash: { type: string }
+        state: { type: string, enum: [REQUESTED, RETURNED, ACCEPTED, REVISION_REQUESTED, REJECTED, CANCELLED] }
+        version: { type: integer }
+        resultText: { type: ["string", "null"] }
+        resultHash: { type: ["string", "null"] }
+        spcPlayerRunId: { type: ["string", "null"], format: uuid }
+        history: { type: array, items: { $ref: "#/components/schemas/BoomerangEvent" } }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        sourceChanged: { type: boolean }
+        originAvailable: { type: boolean }
+        originHref: { type: string }
+        advisoryOnly: { type: boolean }
+        releaseAllowed: { type: boolean }
     ArtifactPreparationInput:
       type: object
       additionalProperties: false

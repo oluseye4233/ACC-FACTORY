@@ -1,5 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+vi.mock("@/components/boomerang", () => ({
+  BoomerangPanel: ({ stage, readOnly }: { stage: string; readOnly?: boolean }) =>
+    <div data-testid="mock-boomerang-panel" data-stage={stage} data-readonly={String(Boolean(readOnly))} />,
+}));
 import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
 
 // ---------- mocks ----------

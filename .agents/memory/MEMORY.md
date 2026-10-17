@@ -51,3 +51,4 @@
 - [Preparation vs protected workflows](preparation-vs-protected-workflows.md) — a limited private draft/package lane is not fallback approval, certification or deployment; keep SQL-protected operations closed.
 - [PDFKit runtime packaging](pdfkit-runtime-packaging.md) — externalize PDFKit in the bundled API so sibling font assets remain resolvable.
 - [Artifact byte integrity](artifact-byte-integrity.md) — JSONB key reordering can change serialized file hashes; archive exact bytes and never silently rewrite a bound manifest.
+- [Boomerang review boundary](boomerang-review-boundary.md) — acceptance is reviewed supporting input, never automatic execution or release; conservative origin snapshots prevent stale adoption.

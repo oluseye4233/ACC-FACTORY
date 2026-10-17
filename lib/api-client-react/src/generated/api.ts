@@ -48,6 +48,10 @@ import type {
   AtlasPddJson,
   AtomicPrompt,
   BadgeProgress,
+  BoomerangCase,
+  BoomerangInput,
+  BoomerangOrigins,
+  BoomerangTransitionInput,
   CartridgeCheckoutInput,
   CartridgeCreditsSummary,
   CartridgePackage,
@@ -156,6 +160,7 @@ import type {
   JstInput,
   JstSummary,
   LaunchReadiness,
+  ListBoomerangCasesParams,
   ListHarnessF9RunsParams,
   ListMyPromptsParams,
   MagnetCalculatorInput,
@@ -243,6 +248,368 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetBoomerangOriginsUrl = () => {
+
+
+
+
+  return `/api/boomerang/origins`
+}
+
+export const getBoomerangOrigins = async ( options?: Parameters<typeof customFetch>[1]): Promise<BoomerangOrigins> => {
+
+  return customFetch<BoomerangOrigins>(getGetBoomerangOriginsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBoomerangOriginsQueryKey = () => {
+    return [
+    `/api/boomerang/origins`
+    ] as const;
+    }
+
+
+export const getGetBoomerangOriginsQueryOptions = <TData = Awaited<ReturnType<typeof getBoomerangOrigins>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBoomerangOrigins>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBoomerangOriginsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBoomerangOrigins>>> = ({ signal }) => getBoomerangOrigins({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBoomerangOrigins>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBoomerangOriginsQueryResult = NonNullable<Awaited<ReturnType<typeof getBoomerangOrigins>>>
+export type GetBoomerangOriginsQueryError = ErrorType<unknown>
+
+
+export function useGetBoomerangOrigins<TData = Awaited<ReturnType<typeof getBoomerangOrigins>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBoomerangOrigins>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBoomerangOrigins>>,
+          TError,
+          Awaited<ReturnType<typeof getBoomerangOrigins>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBoomerangOrigins<TData = Awaited<ReturnType<typeof getBoomerangOrigins>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBoomerangOrigins>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBoomerangOrigins>>,
+          TError,
+          Awaited<ReturnType<typeof getBoomerangOrigins>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBoomerangOrigins<TData = Awaited<ReturnType<typeof getBoomerangOrigins>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBoomerangOrigins>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBoomerangOrigins<TData = Awaited<ReturnType<typeof getBoomerangOrigins>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBoomerangOrigins>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBoomerangOriginsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListBoomerangCasesUrl = (params?: ListBoomerangCasesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/boomerang/cases?${stringifiedParams}` : `/api/boomerang/cases`
+}
+
+export const listBoomerangCases = async (params?: ListBoomerangCasesParams, options?: Parameters<typeof customFetch>[1]): Promise<BoomerangCase[]> => {
+
+  return customFetch<BoomerangCase[]>(getListBoomerangCasesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBoomerangCasesQueryKey = (params?: ListBoomerangCasesParams,) => {
+    return [
+    `/api/boomerang/cases`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListBoomerangCasesQueryOptions = <TData = Awaited<ReturnType<typeof listBoomerangCases>>, TError = ErrorType<unknown>>(params?: ListBoomerangCasesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBoomerangCases>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBoomerangCasesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBoomerangCases>>> = ({ signal }) => listBoomerangCases(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBoomerangCases>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBoomerangCasesQueryResult = NonNullable<Awaited<ReturnType<typeof listBoomerangCases>>>
+export type ListBoomerangCasesQueryError = ErrorType<unknown>
+
+
+export function useListBoomerangCases<TData = Awaited<ReturnType<typeof listBoomerangCases>>, TError = ErrorType<unknown>>(
+ params: undefined |  ListBoomerangCasesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBoomerangCases>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBoomerangCases>>,
+          TError,
+          Awaited<ReturnType<typeof listBoomerangCases>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBoomerangCases<TData = Awaited<ReturnType<typeof listBoomerangCases>>, TError = ErrorType<unknown>>(
+ params?: ListBoomerangCasesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBoomerangCases>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBoomerangCases>>,
+          TError,
+          Awaited<ReturnType<typeof listBoomerangCases>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBoomerangCases<TData = Awaited<ReturnType<typeof listBoomerangCases>>, TError = ErrorType<unknown>>(
+ params?: ListBoomerangCasesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBoomerangCases>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBoomerangCases<TData = Awaited<ReturnType<typeof listBoomerangCases>>, TError = ErrorType<unknown>>(
+ params?: ListBoomerangCasesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBoomerangCases>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBoomerangCasesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateBoomerangCaseUrl = () => {
+
+
+
+
+  return `/api/boomerang/cases`
+}
+
+export const createBoomerangCase = async (boomerangInput: BoomerangInput, options?: Parameters<typeof customFetch>[1]): Promise<BoomerangCase> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<BoomerangCase>(getCreateBoomerangCaseUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(boomerangInput)
+  }
+);}
+
+
+
+
+
+export const getCreateBoomerangCaseMutationKey = () => ['createBoomerangCase'] as const;
+
+export const getCreateBoomerangCaseMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBoomerangCase>>, TError,CreateBoomerangCaseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createBoomerangCase>>, TError,CreateBoomerangCaseMutationVariables, TContext> => {
+
+const mutationKey = getCreateBoomerangCaseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createBoomerangCase>>, CreateBoomerangCaseMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createBoomerangCase(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateBoomerangCaseMutationResult = NonNullable<Awaited<ReturnType<typeof createBoomerangCase>>>
+    export type CreateBoomerangCaseMutationBody = BodyType<BoomerangInput>
+    export type CreateBoomerangCaseMutationError = ErrorType<unknown>
+    export type CreateBoomerangCaseMutationVariables = {data: BodyType<BoomerangInput>}
+
+    export const useCreateBoomerangCase = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBoomerangCase>>, TError,CreateBoomerangCaseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createBoomerangCase>>,
+        TError,
+        CreateBoomerangCaseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateBoomerangCaseMutationOptions(options), queryClient);
+    }
+
+export const getTransitionBoomerangCaseUrl = (id: string,) => {
+
+
+
+
+  return `/api/boomerang/cases/${id}/transition`
+}
+
+export const transitionBoomerangCase = async (id: string,
+    boomerangTransitionInput: BoomerangTransitionInput, options?: Parameters<typeof customFetch>[1]): Promise<BoomerangCase> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<BoomerangCase>(getTransitionBoomerangCaseUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(boomerangTransitionInput)
+  }
+);}
+
+
+
+
+
+export const getTransitionBoomerangCaseMutationKey = () => ['transitionBoomerangCase'] as const;
+
+export const getTransitionBoomerangCaseMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transitionBoomerangCase>>, TError,TransitionBoomerangCaseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof transitionBoomerangCase>>, TError,TransitionBoomerangCaseMutationVariables, TContext> => {
+
+const mutationKey = getTransitionBoomerangCaseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof transitionBoomerangCase>>, TransitionBoomerangCaseMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  transitionBoomerangCase(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TransitionBoomerangCaseMutationResult = NonNullable<Awaited<ReturnType<typeof transitionBoomerangCase>>>
+    export type TransitionBoomerangCaseMutationBody = BodyType<BoomerangTransitionInput>
+    export type TransitionBoomerangCaseMutationError = ErrorType<void>
+    export type TransitionBoomerangCaseMutationVariables = {id: string;data: BodyType<BoomerangTransitionInput>}
+
+    export const useTransitionBoomerangCase = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transitionBoomerangCase>>, TError,TransitionBoomerangCaseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof transitionBoomerangCase>>,
+        TError,
+        TransitionBoomerangCaseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTransitionBoomerangCaseMutationOptions(options), queryClient);
+    }
 
 export const getGetShortSprintPreflightUrl = (sessionId: string,
     params?: GetShortSprintPreflightParams,) => {

@@ -304,6 +304,22 @@ const WALKTHROUGHS: readonly Walkthrough[] = [
     ],
   },
   {
+    id: "boomerang",
+    icon: Workflow,
+    title: "BOOMERANG · WHOLE-PROCESS SUPPORT",
+    route: "/boomerang",
+    routeLabel: "Open Boomerang",
+    tagline: "Request supporting work, return it to its origin, and record a review decision.",
+    steps: [
+      "Choose an owned F0 engagement or session and its exact stage. F1–F12, F9.5, F6-VDJ and MM are covered; F12 remains supporting-work only.",
+      "Describe the support needed. The server freezes a fingerprint of the current source baseline.",
+      "Complete the supporting work separately. Return either bounded text or a completed SPC Player run that you own; the platform preserves its returned content and hash.",
+      "Accept as supporting input, request a revision with reasons, or reject. All decisions and previous returns remain in the request history.",
+      "If the source baseline changes, return and acceptance stop. Create a fresh request against the current source instead of silently approving stale advice.",
+      "Accepted support is visible for operator review; it is not automatically executed or injected into engine prompts, and never grants stage advancement, certification, custody or release.",
+    ],
+  },
+  {
     id: "prompts",
     icon: ScrollText,
     title: "PROMPTS",

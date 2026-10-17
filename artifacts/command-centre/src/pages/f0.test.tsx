@@ -12,6 +12,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // retainer clears the banner and updates the open-alert count WITHOUT a reload.
 
 vi.mock("@/components/layout/TopNav", () => ({ TopNav: () => null }));
+vi.mock("@/components/boomerang", () => ({
+  BoomerangPanel: () => <div data-testid="mock-boomerang-f0" />,
+}));
 vi.mock("@/components/layout/Footer", () => ({ Footer: () => null }));
 vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast: vi.fn() }) }));
 

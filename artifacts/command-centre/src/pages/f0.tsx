@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
+import { BoomerangPanel } from "@/components/boomerang";
 import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -360,7 +361,17 @@ export default function F0Dashboard() {
             </div>
 
             {engagementId && (
-              <EngagementPanel engagementId={engagementId} onClose={() => setEngagementId(null)} />
+              <>
+                <EngagementPanel engagementId={engagementId} onClose={() => setEngagementId(null)} />
+                <details className="mt-4 rounded-lg border bg-card p-3">
+                  <summary className="cursor-pointer font-mono text-xs font-bold text-primary">
+                    BOOMERANG · F0 advisory support
+                  </summary>
+                  <div className="mt-3">
+                    <BoomerangPanel key={engagementId} originKind="F0" originId={engagementId} stage="F0" />
+                  </div>
+                </details>
+              </>
             )}
             {retainerId && (
               <RetainerPanel retainerId={retainerId} onClose={() => setRetainerId(null)} />

@@ -40,6 +40,7 @@ import Activity from "@/pages/activity";
 import MeCosts from "@/pages/me-costs";
 import TestYourAgent from "@/pages/test-your-agent";
 import Guide from "@/pages/guide";
+import BoomerangPage from "@/pages/boomerang";
 import Status from "@/pages/status";
 import CalculateYourSavings from "@/pages/calculate-your-savings";
 import { AccessGate } from "@/components/AccessGate";
@@ -94,6 +95,7 @@ function AuthenticatedRoutes() {
       <Route path="/status" component={Status} />
       <Route path="/command" component={Command} />
       <Route path="/guide" component={Guide} />
+      <Route path="/boomerang" component={BoomerangPage} />
       <Route path="/sessions" component={Sessions} />
       <Route path="/session/new" component={SessionNew} />
       <Route path="/ingest" component={Ingest} />

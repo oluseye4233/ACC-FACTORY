@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, useLocation } from "wouter";
+import { useParams, useLocation, Link } from "wouter";
+import { ENGINES } from "@/lib/constants";
 import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import {
   getGetSpcPlayerRunQueryKey,
   getGetSpcPlayerWebhookAuthorizationQueryKey,
   getListSpcPlayerRunsQueryKey,
+  getListBoomerangCasesQueryKey,
   getListSessionArtifactsQueryKey,
   getDownloadSpcPlayerRunUrl,
   type SpcPlayerRun,
@@ -172,7 +174,7 @@ export default function SpcPlayerDetail() {
   const handleReturnToOrigin = () => {
     if (!id || !run?.originSessionId || run.originFeatureId == null) return;
     const confirmed = window.confirm(
-      `Return this completed plan-only package to session ${run.originSessionId.slice(0, 8)} at F${run.originFeatureId}? It will be supporting input only and will not certify or advance the stage.`,
+      `Return this completed plan-only package to session ${run.originSessionId.slice(0, 8)} at ${ENGINES.find((engine) => engine.id === run.originFeatureId)?.name ?? "the recorded stage"}? It will be supporting input only and will not certify or advance the stage.`,
     );
     if (!confirmed) return;
     returnRun.mutate(
@@ -191,9 +193,10 @@ export default function SpcPlayerDetail() {
           queryClient.invalidateQueries({
             queryKey: getListSessionArtifactsQueryKey(run.originSessionId!),
           });
+          queryClient.invalidateQueries({ queryKey: getListBoomerangCasesQueryKey() });
           toast({
             title: "Supporting package returned",
-            description: `Attached to F${run.originFeatureId} without advancing the stage.`,
+            description: `Attached to ${ENGINES.find((engine) => engine.id === run.originFeatureId)?.name ?? "the recorded stage"} without advancing the stage. Review supporting work in Boomerang.`,
           });
         },
         onError: (err: any) => {
@@ -460,10 +463,10 @@ export default function SpcPlayerDetail() {
                   data-testid="spc-player-return-panel"
                 >
                   <div className="font-mono text-xs font-bold uppercase tracking-wider text-primary">
-                    Return to F{run.originFeatureId}
+                    Return to {ENGINES.find((engine) => engine.id === run.originFeatureId)?.name ?? "recorded stage"}
                   </div>
                   <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-                    The package remains plan-only. Returning attaches it as supporting documentation or process input and does not certify or advance the stage.
+                    The package remains plan-only. New origin-bound runs enter Boomerang review when returned. Historical runs without a departure baseline remain legacy supporting attachments. No return certifies or advances the stage.
                   </p>
                   {run.returnedArtifactId ? (
                     <Button
@@ -488,6 +491,9 @@ export default function SpcPlayerDetail() {
                       {returnRun.isPending ? "RETURNING…" : "CONFIRM RETURN TO ORIGIN"}
                     </Button>
                   )}
+                  <Link href={`/boomerang?originKind=SESSION&originId=${encodeURIComponent(run.originSessionId)}&stage=${encodeURIComponent(ENGINES.find((engine) => engine.id === run.originFeatureId)?.name ?? "F1")}`} className="mt-3 block text-xs text-primary underline">
+                    Open Boomerang review for this origin
+                  </Link>
                 </div>
               ) : null
             )}

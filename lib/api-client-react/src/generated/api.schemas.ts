@@ -5,6 +5,154 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+export type BoomerangOriginKind = typeof BoomerangOriginKind[keyof typeof BoomerangOriginKind];
+
+
+export const BoomerangOriginKind = {
+  SESSION: 'SESSION',
+  F0: 'F0',
+} as const;
+
+export interface BoomerangOrigin {
+  kind: BoomerangOriginKind;
+  id: string;
+  label: string;
+}
+
+export interface BoomerangOrigins {
+  origins: BoomerangOrigin[];
+  stages: string[];
+}
+
+export type BoomerangInputOriginKind = typeof BoomerangInputOriginKind[keyof typeof BoomerangInputOriginKind];
+
+
+export const BoomerangInputOriginKind = {
+  SESSION: 'SESSION',
+  F0: 'F0',
+} as const;
+
+export type BoomerangInputStage = typeof BoomerangInputStage[keyof typeof BoomerangInputStage];
+
+
+export const BoomerangInputStage = {
+  F0: 'F0',
+  F1: 'F1',
+  F2: 'F2',
+  F3: 'F3',
+  F4: 'F4',
+  F5: 'F5',
+  F6: 'F6',
+  F7: 'F7',
+  F8: 'F8',
+  F9: 'F9',
+  F95: 'F9.5',
+  F10: 'F10',
+  F11: 'F11',
+  F12: 'F12',
+  'F6-VDJ': 'F6-VDJ',
+  MM: 'MM',
+} as const;
+
+export interface BoomerangInput {
+  originKind: BoomerangInputOriginKind;
+  originId: string;
+  stage: BoomerangInputStage;
+  /**
+     * @minLength 3
+     * @maxLength 200
+     */
+  title: string;
+  /**
+     * @minLength 10
+     * @maxLength 8000
+     */
+  brief: string;
+}
+
+export type BoomerangTransitionInputAction = typeof BoomerangTransitionInputAction[keyof typeof BoomerangTransitionInputAction];
+
+
+export const BoomerangTransitionInputAction = {
+  RETURN: 'RETURN',
+  ACCEPT: 'ACCEPT',
+  REQUEST_REVISION: 'REQUEST_REVISION',
+  REJECT: 'REJECT',
+  CANCEL: 'CANCEL',
+} as const;
+
+export interface BoomerangTransitionInput {
+  action: BoomerangTransitionInputAction;
+  /** @minimum 1 */
+  expectedVersion: number;
+  /**
+     * @minLength 10
+     * @maxLength 40000
+     */
+  resultText?: string;
+  spcPlayerRunId?: string;
+  /** @maxLength 4000 */
+  note?: string;
+}
+
+export interface BoomerangEvent {
+  action: string;
+  at: string;
+  note: string;
+  /** @nullable */
+  resultHash: string | null;
+  /** @nullable */
+  resultText: string | null;
+  /** @nullable */
+  spcPlayerRunId: string | null;
+}
+
+export type BoomerangCaseOriginKind = typeof BoomerangCaseOriginKind[keyof typeof BoomerangCaseOriginKind];
+
+
+export const BoomerangCaseOriginKind = {
+  SESSION: 'SESSION',
+  F0: 'F0',
+} as const;
+
+export type BoomerangCaseState = typeof BoomerangCaseState[keyof typeof BoomerangCaseState];
+
+
+export const BoomerangCaseState = {
+  REQUESTED: 'REQUESTED',
+  RETURNED: 'RETURNED',
+  ACCEPTED: 'ACCEPTED',
+  REVISION_REQUESTED: 'REVISION_REQUESTED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export interface BoomerangCase {
+  id: string;
+  originKind: BoomerangCaseOriginKind;
+  originId: string;
+  stage: string;
+  title: string;
+  brief: string;
+  sourceHash: string;
+  state: BoomerangCaseState;
+  version: number;
+  /** @nullable */
+  resultText: string | null;
+  /** @nullable */
+  resultHash: string | null;
+  /** @nullable */
+  spcPlayerRunId: string | null;
+  history: BoomerangEvent[];
+  createdAt: string;
+  updatedAt: string;
+  sourceChanged: boolean;
+  originAvailable: boolean;
+  originHref: string;
+  advisoryOnly: boolean;
+  releaseAllowed: boolean;
+}
+
 export type ArtifactPreparationInputOptions = { [key: string]: unknown };
 
 export interface ArtifactPreparationInput {
@@ -5132,6 +5280,24 @@ export type NotFoundResponse = ErrorResponse;
  * Rate limit exceeded
  */
 export type RateLimitedResponse = ErrorResponse;
+
+export type ListBoomerangCasesParams = {
+originKind?: ListBoomerangCasesOriginKind;
+originId?: string;
+stage?: string;
+/**
+ * @minimum 0
+ */
+offset?: number;
+};
+
+export type ListBoomerangCasesOriginKind = typeof ListBoomerangCasesOriginKind[keyof typeof ListBoomerangCasesOriginKind];
+
+
+export const ListBoomerangCasesOriginKind = {
+  SESSION: 'SESSION',
+  F0: 'F0',
+} as const;
 
 export type GetShortSprintPreflightParams = {
 circuit?: GetShortSprintPreflightCircuit;

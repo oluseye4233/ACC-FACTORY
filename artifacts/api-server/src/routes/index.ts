@@ -33,11 +33,13 @@ import providerBillingRouter from "./provider-billing";
 import xvlVerificationRouter from "./xvl-verification";
 import shortSprintsRouter from "./short-sprints";
 import artifactOperationsRouter from "./artifact-operations";
+import boomerangRouter from "./boomerang";
 import { guardSkippedEngine } from "../lib/artifact-operations/engine-guard";
 
 const router: IRouter = Router();
 router.use(guardSkippedEngine);
 router.use(artifactOperationsRouter);
+router.use(boomerangRouter);
 
 router.use(healthRouter);
 router.use(staffAuthRouter);

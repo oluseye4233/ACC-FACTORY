@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { BOOMERANG_FEATURES, boomerangHash, boomerangOrigin } from "../lib/boomerang";
 import { randomUUID } from "node:crypto";
 import dns from "node:dns/promises";
 import https from "node:https";
@@ -7,6 +8,7 @@ import { and, asc, desc, eq, inArray, isNull, lte, or } from "drizzle-orm";
 import { z } from "zod/v4";
 import {
   db,
+  boomerangCasesTable,
   exemplarLibraryItemsTable,
   harnessSessionsTable,
   spcDevKitsTable,
@@ -849,6 +851,11 @@ router.post(
       }
     }
 
+    const originStage = originFeatureId === undefined ? undefined
+      : Object.keys(BOOMERANG_FEATURES).find((stage) => BOOMERANG_FEATURES[stage] === originFeatureId);
+    const boomerangBaseline = originSessionId && originStage
+      ? await boomerangOrigin(db, req.localUser!.id, "SESSION", originSessionId, originStage)
+      : null;
     const [run] = await db
       .insert(spcPlayerDraftRunsTable)
       .values({
@@ -861,7 +868,9 @@ router.post(
         selectedCardIds,
         profile: parsed.data.profile ?? "full",
         status: "DRAFT",
-        governance: GOVERNANCE,
+        governance: boomerangBaseline ? { ...GOVERNANCE, boomerangBaseline: {
+          hash: boomerangBaseline.hash, refs: boomerangBaseline.refs, stage: originStage,
+        } } : GOVERNANCE,
         outputPackage: null,
       })
       .returning();
@@ -979,6 +988,34 @@ router.post(
         return { draft, execution, artifact: existingArtifact };
       }
 
+      // New origin-bound runs freeze their source at departure. Old runs retain
+      // their historical support-only behavior; never invent a past baseline.
+      const baseline = (draft.governance as { boomerangBaseline?: {
+        hash: string; refs: unknown; stage: string;
+      } }).boomerangBaseline;
+      if (baseline) {
+        const current = await boomerangOrigin(tx, userId, "SESSION", draft.originSessionId, baseline.stage);
+        if (current.hash !== baseline.hash) {
+          return { errorStatus: 409 as const, error: "Origin source changed since departure. Create a fresh Boomerang request against the current source." };
+        }
+        const resultText = JSON.stringify(execution.outputPackage, null, 2);
+        if (resultText.length > 40_000) {
+          return { errorStatus: 409 as const, error: "Package exceeds the Boomerang return limit. Use the workspace to return a bounded supporting summary." };
+        }
+        const resultHash = boomerangHash({ resultText, runId: draft.id, sourceHash: baseline.hash });
+        await tx.insert(boomerangCasesTable).values({
+          id: draft.id, userId, originKind: "SESSION", originId: draft.originSessionId,
+          stage: baseline.stage, title: draft.title, brief: draft.brief,
+          sourceHash: baseline.hash, sourceRefs: baseline.refs, state: "RETURNED", version: 2,
+          resultText, resultHash, spcPlayerRunId: draft.id,
+          history: [
+            { action: "REQUESTED", at: draft.createdAt.toISOString(), note: draft.brief,
+              resultHash: null, resultText: null, spcPlayerRunId: draft.id },
+            { action: "RETURN", at: new Date().toISOString(), note: "Returned from the originating SPC Player run; awaiting operator review.",
+              resultHash, resultText, spcPlayerRunId: draft.id },
+          ],
+        });
+      }
       const [artifact] = await tx
         .insert(harnessArtifactsTable)
         .values({
@@ -994,6 +1031,8 @@ router.post(
             advancesStage: false,
             planOnly: true,
             spcPlayerRunId: draft.id,
+            boomerangCaseId: baseline ? draft.id : null,
+            reviewRequired: true,
             originSessionId: draft.originSessionId,
             originFeatureId: draft.originFeatureId,
             sourceArtifactId: draft.sourceArtifactId,

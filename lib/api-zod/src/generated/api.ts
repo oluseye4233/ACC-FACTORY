@@ -8,6 +8,158 @@
 import * as zod from 'zod';
 
 
+export const GetBoomerangOriginsResponse = zod.object({
+  "origins": zod.array(zod.object({
+  "kind": zod.enum(['SESSION', 'F0']),
+  "id": zod.string().uuid(),
+  "label": zod.string()
+})),
+  "stages": zod.array(zod.string())
+})
+
+
+export const listBoomerangCasesQueryOffsetDefault = 0;
+export const listBoomerangCasesQueryOffsetMin = 0;
+
+
+
+export const ListBoomerangCasesQueryParams = zod.object({
+  "originKind": zod.enum(['SESSION', 'F0']).optional(),
+  "originId": zod.coerce.string().uuid().optional(),
+  "stage": zod.coerce.string().optional(),
+  "offset": zod.coerce.number().int().min(listBoomerangCasesQueryOffsetMin).default(listBoomerangCasesQueryOffsetDefault)
+})
+
+export const ListBoomerangCasesResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "originKind": zod.enum(['SESSION', 'F0']),
+  "originId": zod.string().uuid(),
+  "stage": zod.string(),
+  "title": zod.string(),
+  "brief": zod.string(),
+  "sourceHash": zod.string(),
+  "state": zod.enum(['REQUESTED', 'RETURNED', 'ACCEPTED', 'REVISION_REQUESTED', 'REJECTED', 'CANCELLED']),
+  "version": zod.number().int(),
+  "resultText": zod.string().nullable(),
+  "resultHash": zod.string().nullable(),
+  "spcPlayerRunId": zod.string().uuid().nullable(),
+  "history": zod.array(zod.object({
+  "action": zod.string(),
+  "at": zod.coerce.date(),
+  "note": zod.string(),
+  "resultHash": zod.string().nullable(),
+  "resultText": zod.string().nullable(),
+  "spcPlayerRunId": zod.string().uuid().nullable()
+})),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "sourceChanged": zod.boolean(),
+  "originAvailable": zod.boolean(),
+  "originHref": zod.string(),
+  "advisoryOnly": zod.boolean(),
+  "releaseAllowed": zod.boolean()
+})
+export const ListBoomerangCasesResponse = zod.array(ListBoomerangCasesResponseItem)
+
+
+export const createBoomerangCaseBodyTitleMin = 3;
+export const createBoomerangCaseBodyTitleMax = 200;
+
+export const createBoomerangCaseBodyBriefMin = 10;
+export const createBoomerangCaseBodyBriefMax = 8000;
+
+
+
+export const CreateBoomerangCaseBody = zod.object({
+  "originKind": zod.enum(['SESSION', 'F0']),
+  "originId": zod.string().uuid(),
+  "stage": zod.enum(['F0', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F9.5', 'F10', 'F11', 'F12', 'F6-VDJ', 'MM']),
+  "title": zod.string().min(createBoomerangCaseBodyTitleMin).max(createBoomerangCaseBodyTitleMax),
+  "brief": zod.string().min(createBoomerangCaseBodyBriefMin).max(createBoomerangCaseBodyBriefMax)
+})
+
+export const CreateBoomerangCaseResponse = zod.object({
+  "id": zod.string().uuid(),
+  "originKind": zod.enum(['SESSION', 'F0']),
+  "originId": zod.string().uuid(),
+  "stage": zod.string(),
+  "title": zod.string(),
+  "brief": zod.string(),
+  "sourceHash": zod.string(),
+  "state": zod.enum(['REQUESTED', 'RETURNED', 'ACCEPTED', 'REVISION_REQUESTED', 'REJECTED', 'CANCELLED']),
+  "version": zod.number().int(),
+  "resultText": zod.string().nullable(),
+  "resultHash": zod.string().nullable(),
+  "spcPlayerRunId": zod.string().uuid().nullable(),
+  "history": zod.array(zod.object({
+  "action": zod.string(),
+  "at": zod.coerce.date(),
+  "note": zod.string(),
+  "resultHash": zod.string().nullable(),
+  "resultText": zod.string().nullable(),
+  "spcPlayerRunId": zod.string().uuid().nullable()
+})),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "sourceChanged": zod.boolean(),
+  "originAvailable": zod.boolean(),
+  "originHref": zod.string(),
+  "advisoryOnly": zod.boolean(),
+  "releaseAllowed": zod.boolean()
+})
+
+
+export const TransitionBoomerangCaseParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+
+export const transitionBoomerangCaseBodyResultTextMin = 10;
+export const transitionBoomerangCaseBodyResultTextMax = 40000;
+
+export const transitionBoomerangCaseBodyNoteMax = 4000;
+
+
+
+export const TransitionBoomerangCaseBody = zod.object({
+  "action": zod.enum(['RETURN', 'ACCEPT', 'REQUEST_REVISION', 'REJECT', 'CANCEL']),
+  "expectedVersion": zod.number().int().min(1),
+  "resultText": zod.string().min(transitionBoomerangCaseBodyResultTextMin).max(transitionBoomerangCaseBodyResultTextMax).optional(),
+  "spcPlayerRunId": zod.string().uuid().optional(),
+  "note": zod.string().max(transitionBoomerangCaseBodyNoteMax).optional()
+})
+
+export const TransitionBoomerangCaseResponse = zod.object({
+  "id": zod.string().uuid(),
+  "originKind": zod.enum(['SESSION', 'F0']),
+  "originId": zod.string().uuid(),
+  "stage": zod.string(),
+  "title": zod.string(),
+  "brief": zod.string(),
+  "sourceHash": zod.string(),
+  "state": zod.enum(['REQUESTED', 'RETURNED', 'ACCEPTED', 'REVISION_REQUESTED', 'REJECTED', 'CANCELLED']),
+  "version": zod.number().int(),
+  "resultText": zod.string().nullable(),
+  "resultHash": zod.string().nullable(),
+  "spcPlayerRunId": zod.string().uuid().nullable(),
+  "history": zod.array(zod.object({
+  "action": zod.string(),
+  "at": zod.coerce.date(),
+  "note": zod.string(),
+  "resultHash": zod.string().nullable(),
+  "resultText": zod.string().nullable(),
+  "spcPlayerRunId": zod.string().uuid().nullable()
+})),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "sourceChanged": zod.boolean(),
+  "originAvailable": zod.boolean(),
+  "originHref": zod.string(),
+  "advisoryOnly": zod.boolean(),
+  "releaseAllowed": zod.boolean()
+})
+
+
 /**
  * Resolves bounded source observations on the server. Does not persist decisions, change routes or authorize release. Caller-supplied certification facts are rejected.
  * @summary Owner-only read-only SHORT SPRINTS eligibility preflight

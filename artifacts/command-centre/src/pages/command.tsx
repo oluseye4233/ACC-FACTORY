@@ -474,6 +474,7 @@ export default function Command() {
                 <UtilityAction href="/quests" icon={Trophy} label="View Quests" description="Track operator progress" />
                 <UtilityAction href="/f0" icon={Briefcase} label="F0 Advisory" description="Open business intelligence" />
                 <UtilityAction href="/spc-player" icon={PlaySquare} label="SPC Player" description="Build and run a Kit Deck" />
+                <UtilityAction href="/boomerang" icon={RefreshCw} label="Boomerang" description="Request, return and review F-stage support" />
               </div>
             </div>
           </section>

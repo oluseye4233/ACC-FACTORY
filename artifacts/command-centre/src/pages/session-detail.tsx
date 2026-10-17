@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useParams, Link } from "wouter";
+import { BoomerangPanel } from "@/components/boomerang";
 import { TopNav } from "@/components/layout/TopNav";
 import { 
   useGetSession, 
@@ -356,6 +357,29 @@ export default function SessionDetail() {
 
         {/* STAGE 3 WORKSPACES */}
         <div className="flex-1 min-h-0 overflow-y-auto">
+          {id && (
+            <details className="mx-4 mt-4 rounded-lg border bg-card p-3">
+              <summary className="cursor-pointer font-mono text-xs font-bold text-primary">
+                BOOMERANG · Request, return and review supporting work
+              </summary>
+              <div className="mt-3">
+                <BoomerangPanel
+                  key={`${id}:${activeEngineId}`}
+                  originKind="SESSION"
+                  originId={id}
+                  stage={ENGINES.find((engine) => engine.id === activeEngineId)?.name ?? "F1"}
+                  readOnly={!isSessionOwner}
+                />
+                {isSessionOwner && (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    F9.5 custody and F12 support are also available in the{" "}
+                    <Link href={`/boomerang?originKind=SESSION&originId=${encodeURIComponent(id)}&stage=F9.5`} className="text-primary underline">process-wide workspace</Link>.
+                    Supporting work does not activate or clear those operations.
+                  </p>
+                )}
+              </div>
+            </details>
+          )}
           {(artifacts ?? [])
             .filter(
               (artifact) =>
@@ -369,11 +393,14 @@ export default function SessionDetail() {
                 data-testid={`boomerang-return-${artifact.id}`}
               >
                 <div className="font-mono text-xs font-bold uppercase tracking-wider text-primary">
-                  Returned SPC Player support · F{activeEngineId}
+                  Returned SPC Player support · {ENGINES.find((engine) => engine.id === activeEngineId)?.name}
                 </div>
                 <p className="mt-1 font-mono text-[11px] text-muted-foreground">
                   {artifact.name || "Plan-only package"} — supporting input only; this does not certify or advance the stage.
                 </p>
+                <Link href={`/boomerang?originKind=SESSION&originId=${encodeURIComponent(id!)}&stage=${encodeURIComponent(ENGINES.find((engine) => engine.id === activeEngineId)?.name ?? "F1")}`} className="mt-2 inline-block text-xs text-primary underline">
+                  Review Boomerang requests for this stage
+                </Link>
                 <details className="mt-2">
                   <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-wider">
                     View returned package
