@@ -490,3 +490,31 @@ mtime_ms = 1792174681497
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/9533a99f-7f4f-4e20-804b-637943f763c1/785aec15-1d66-4494-aba6-d1f903ca5cd8"
 storage_version_token = "1792175127488118"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "i9OyN38FEIsv4rgdNaWsT"
+uri = "file://generated-artifacts/atlas-360-scan/ATLAS_360_SCAN_Living_PDD_2026-10-17.pdf"
+type = "pdf"
+title = "ATLAS 360 SCAN — Living PDD & Current Site Map"
+description = "25-page current-codebase report dated 17 October 2026. Includes eight SCAN stages, the four-part ATLAS document, 45 atomic instructions, and live/pending status across all 31 routes."
+logical_id = "fa318da4-6cd1-4ff6-83c3-d87611bda15a"
+content_hash = "sha256:a6bcf205e813612976f8ce09601a4858086d3708e60549dc71bd3fbc3d8a21dc"
+size = 59193
+mtime_ms = 1792249040145
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/fa318da4-6cd1-4ff6-83c3-d87611bda15a/17905f75-d5fc-4273-b5fb-c25a319dcec8"
+storage_version_token = "1792249061659653"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "kvhB4O6-N_nKwXjTGkJng"
+uri = "file://generated-artifacts/atlas-360-scan/ATLAS_360_SCAN_Living_PDD_Source_and_Evidence.zip"
+type = "unspecified"
+title = "Living PDD — Editable Source & Evidence Bundle"
+description = "PDF, editable Markdown source, eight-stage SCAN JSON and SHA-256 evidence manifest for future evidence-driven updates."
+logical_id = "18f8ce4d-be11-4a4d-b932-bcae01cc17d3"
+content_hash = "sha256:c9a2686f52f9a74af118ed9d1544d74915ebe7afeedd50b2a128c46e66c55c7d"
+size = 75110
+mtime_ms = 1792249040401
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/18f8ce4d-be11-4a4d-b932-bcae01cc17d3/e8694497-d6a9-4b66-ae10-e6ad5d762cda"
+storage_version_token = "1792249062639487"
+content_type = "application/octet-stream"

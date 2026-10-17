@@ -8,3 +8,6 @@
 # Keep node_modules, built artifacts, and attached_assets in the deployment.
 /.cache
 /.git
+
+# Downloadable report builds are not application runtime assets.
+/generated-artifacts/

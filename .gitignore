@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Generated reports and visual verification output; editable sources stay in docs/.
+/generated-artifacts/
