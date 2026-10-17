@@ -518,3 +518,31 @@ mtime_ms = 1792249040401
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/18f8ce4d-be11-4a4d-b932-bcae01cc17d3/e8694497-d6a9-4b66-ae10-e6ad5d762cda"
 storage_version_token = "1792249062639487"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "2uOCQ5E3w1D9GQhLXxlkJ"
+uri = "file://generated-artifacts/cohort-pdd/FORGE_FIELD_ENGINEER_ATLAS_PDD.pdf"
+type = "pdf"
+title = "FORGE FIELD ENGINEER — ATLAS PDD"
+description = "29-page four-part PDD for free, invite-only Architect and Engineer training. Includes worked gate examples, Guide/Ascension curriculum, 45 atomic implementation work units and explicit conformance to existing Quest rules."
+logical_id = "78be8d8f-609d-49ef-b984-29019eb7b8fc"
+content_hash = "sha256:b8b28f9be4302f7234893acfdaa15ece0a9c2d80ef505bdb88e80b5931541f97"
+size = 77975
+mtime_ms = 1792268951112
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/78be8d8f-609d-49ef-b984-29019eb7b8fc/932aa0d8-fcfc-4013-a9b6-4b0ffa77b806"
+storage_version_token = "1792268988353150"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "wba4A2lxFC-F3_h1EdyY3"
+uri = "file://docs/FORGE_FIELD_ENGINEER_ATLAS_PDD.md"
+type = "text"
+title = "FORGE FIELD ENGINEER — Editable PDD Source"
+description = "Editable Markdown source, including exact badge predicates, claim routes, Context Craft thresholds and cohort-versus-Quest assessment boundaries."
+logical_id = "96d080bf-2e55-40bf-ba32-302c2489da3a"
+content_hash = "sha256:e8f57ca34d92efb470c360662c714fa36f573cd71f92fed480fd3f32e43e61af"
+size = 65209
+mtime_ms = 1792268938760
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/96d080bf-2e55-40bf-ba32-302c2489da3a/6684ec9f-d390-4142-99a8-c5711a181272"
+storage_version_token = "1792268989467262"
+content_type = "text/markdown"
