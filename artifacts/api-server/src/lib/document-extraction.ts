@@ -130,13 +130,16 @@ async function extractDocumentText(
   }
 
   if (claimedFormat === "pdf") {
-    const pdfParseMod = (await import("pdf-parse")) as unknown as
-      | ((data: Buffer) => Promise<{ text: string }>)
-      | { default: (data: Buffer) => Promise<{ text: string }> };
-    const pdfParse =
-      typeof pdfParseMod === "function" ? pdfParseMod : pdfParseMod.default;
-    const parsed = await pdfParse(buffer);
-    return { text: parsed.text, mimeType: "application/pdf" };
+    const { PDFParse } = await import("pdf-parse");
+    const parser = new PDFParse({ data: buffer });
+    try {
+      // Disable page-number decorations: they must not count as document text
+      // when deciding whether a scanned/blank PDF needs OCR.
+      const parsed = await parser.getText({ pageJoiner: "" });
+      return { text: parsed.text, mimeType: "application/pdf" };
+    } finally {
+      await parser.destroy();
+    }
   }
 
   if (claimedFormat === "docx") {
