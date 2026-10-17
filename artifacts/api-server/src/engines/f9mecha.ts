@@ -122,7 +122,17 @@ export async function handleF9Mecha(req: Request, res: Response): Promise<void> 
   const guard = await ownedSessionOr404(req, input.sessionId);
   if (!guard.ok) { res.status(guard.status).json({ error: guard.error }); return; }
   const [source] = await db.select().from(harnessArtifactsTable).where(and(eq(harnessArtifactsTable.id, input.sourceArtifactId), eq(harnessArtifactsTable.userId, guard.userId))).limit(1);
-  if (!source || source.sessionId !== input.sessionId || source.artifactType !== "CODEBASE_BUNDLE") { res.status(404).json({ error: "F8 CODEBASE_BUNDLE source artifact not found in this session" }); return; }
+   if (
+     !source ||
+     source.sessionId !== input.sessionId ||
+     source.artifactType !== "VERIFIED_CODEBASE_BUNDLE" ||
+     source.verificationStatus !== "VERIFIED" ||
+     !source.contentHash ||
+     !source.verificationEvidenceHash
+   ) {
+     res.status(404).json({ error: "Verified F8 code bundle source artifact not found in this session", code: "CODE_BUNDLE_UNVERIFIED" });
+     return;
+   }
   const sourceContent = source.artifactContent;
   const sourceHardwareConfigId =
     typeof sourceContent === "object" &&

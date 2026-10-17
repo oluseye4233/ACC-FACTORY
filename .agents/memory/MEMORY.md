@@ -1,14 +1,15 @@
 - [Cost cap covers all LLM callsites](cost-cap-all-llm-callsites.md) — every callLlmJson caller must be requireCostBudget-gated AND record a run row; pre-session (ingest/cartridge) uses null sessionId + sentinel engineId so spend still counts.
+- [Generator/schema peer isolation](generator-schema-peer-isolation.md) — catalog autodetection and undeclared Zod peers can select the wrong major after tooling updates.
 - [Doctrine-application docs](doctrine-application-docs.md) — SPARTAN/CODE DJ quality gates are SPC doctrine, NOT enforced in engine code; label them analyst overlays in self-audit docs.
 - [F8 IDE export bundle](f8-ide-export-bundle.md) — F8 "send to IDE" = scaffold ZIP + AGENTS.md + per-IDE adapter files; reuse the codeDjExport generator for any future GitHub/Replit handoff.
 - [pnpm add prunes siblings](pnpm-workspace-add-prunes-siblings.md) — scoped `pnpm add` can dangle another package's dep symlink; run root `pnpm install` + full `pnpm run test` after.
-- [F8 GitHub push channel](github-push-channel.md) — F8 "push to GitHub/Open in Replit" reuses buildExportFiles client-side → Octokit; repl-level connection, Architect-gated, no delete_repo scope.
+- [F8 GitHub push channel](github-push-channel.md) — route verified code through F10; keep delivery records separate from immutable verified artifacts.
 - [HOST DJ → F8-HDJ engine doctrine](host-dj-engine-doctrine.md) — SHIPPED advisory side-step (no daily counter); never an SPC; server-recomputes HSE ranking; env template names-only (key+desc sanitised).
 - [LLM prompt determinism](llm-prompt-determinism.md) — HARNESS engine prompts built from DB rows need a stable order; inArray() has none, which breaks the replay-fixture cache key.
 - [SUBSCRIPTIONS_ENABLED flag](subscriptions-enabled-flag.md) — dormant billing behind reversible env flag read at call-time; tests exercising billing must set it "true" at module scope before app import.
 - [Investor-PDD PDF theme](investor-pdd-pdf-theme.md) — all investor-grade PDDs share one pdfkit design via scripts/src/lib/atlas-pdf-theme.mjs createTheme(doc); new docs must use it to stay uniform.
 - [Verify cert identity names](verify-cert-identity-names.md) — /verify product (SPC) name lives in the MVP PDD's card_identity_metadata section; label varies (Product: vs Product Name:, bulleted), keep distinct from session name.
-- [Sphinx Marketplace model](sphinx-marketplace-model.md) — Sphinx is the EXTERNAL single point of sale (live API pending); buy/suggest are routing seams that 503 gracefully; lineage is internal, anchored to the SPC's timestamp.
+- [Sphinx Marketplace model](sphinx-marketplace-model.md) — commerce stays external; Exemplar supplies the shared metadata catalog, not a second checkout.
 - [Proxy 120s timeout → stream](proxy-request-timeout-streaming.md) — heavy single-shot engine finalize (F5 SPC synth, F6/F7/F8) must use SSE or it 502s past the 120s proxy ceiling.
 - [Stripe dev/prod account split](stripe-dev-prod-account-split.md) — prod = LIVE Stripe (different account) vs dev = TEST; can't comp prod tier via test checkout, use admin tier-grant + ADMIN_EMAILS.
 - [UpgradeCTA gating (402 vs 403)](upgrade-cta-gating.md) — every engine workspace must open UpgradeCTA on 402||403 (402=cost cap on-ramp, 403=tier gate); drive copy from cause, button from f1000 membership.
@@ -25,7 +26,7 @@
 - [Exactly-once alert stamps](exactly-once-alert-stamps.md) — threshold emails: UNIQUE(period,threshold) insert-before-send, never stamp with empty recipients; toISOString month keys break past year 9999.
 - [EmailResult ok contract](email-result-ok-contract.md) — send() never throws provider errors; every caller must check .ok before stamping sent-markers; email mocks must return {ok:true}; esc() all template HTML.
 - [GitHub repo mirror](github-repo-mirror.md) — auto-sync to GitHub uses the Data API (connector token lacks workflow scope, so git push with .github/workflows changes is rejected); trailer on remote head = resume point.
-- [Exemplar open marketplace](exemplar-open-marketplace.md) — staff library copies SPC/MA/MPDD/PDD content independently; keep it separate from paid Sphinx publishing.
+- [Exemplar/Sphinx supply catalog](exemplar-open-marketplace.md) — qualified owner library copies supply Sphinx through opt-in; public launch stays closed by default.
 - [ATOMIC UI stage cockpit](atomic-ui-stage-cockpit.md) — each implemented F-stage shows previous/current/next plus top progress; keep engine complexity under the hood.
 - [ATLAS 360 PDD views](atlas-360-pdd-views.md) — PLAN/SCAN are Practitioner-gated F6/F7 side-steps; origin selects the default and F10 stays retired.
 - [SPC Player](spc-player-contract-deferral.md) — REVERB runtime: sequential, advisory, plan-only; open JSON download + consented DNS-pinned public HTTPS webhook; no entitlement/credit/billing.
@@ -38,8 +39,15 @@
 - [ATLAS PDF pagination](atlas-pdf-pagination.md) — with the shared PDFKit theme, buffer pages and add footers after content; pageAdded footer mutations can recurse.
 - [LLM output bounds](llm-output-bounds.md) — non-critical generated metadata should be bounded at the schema boundary so valid artifacts do not fail on provider verbosity.
 - [F8 artifact class routing](f8-artifact-class-routing.md) — persist Software/Firmware in the bundle; Software skips F9 while Firmware and legacy bundles retain the machine-floor path.
+- [F8 verification evidence](f8-verification-evidence.md) — current CI/IDE PASS records are operator-submitted, not provider-validated; keep that limitation explicit.
 - [F9 hardware configuration selection](f9-hardware-config-selection.md) — carry one controlled firmware hardware profile from F8 Code DJ into F9 MECHA evidence and the signed artifact.
 - [Platform artifact download filenames](artifact-download-filenames.md) — generated project artifacts share a safe type/title/ID/local-time/extension convention; routine account and report exports stay separate.
 - [Company spend reservations](company-spend-reservations.md) — keep completed charges distinct from temporary reservations; availability and enforcement percentages include both.
 - [Provider pricing source monitoring](provider-pricing-source-monitoring.md) — fingerprints are review-only; a separate monitor must detect when the weekly pricing workflow stops succeeding.
 - [OpenAPI non-JSON request bodies](openapi-non-json-bodies.md) — raw text bodies need a custom fetch helper; generated string clients JSON-stringify even for text/csv.
+- [Vite JSX type arguments](vite-jsx-type-arguments.md) — Replit dev metadata injection can break generic JSX tags even when TypeScript and Vitest pass; prefer inferred prop types.
+- [ARK upgrade governance](ark-upgrade-governance.md) — integrate in dependency order; track live activity separately from specified/local status; pause only for fundamental blockers.
+- [Managed Publish database guards](managed-publish-database-guards.md) — inspect role, RLS predicate and trigger transfer; FORCE RLS cannot constrain a superuser connection.
+- [Preparation vs protected workflows](preparation-vs-protected-workflows.md) — a limited private draft/package lane is not fallback approval, certification or deployment; keep SQL-protected operations closed.
+- [PDFKit runtime packaging](pdfkit-runtime-packaging.md) — externalize PDFKit in the bundled API so sibling font assets remain resolvable.
+- [Artifact byte integrity](artifact-byte-integrity.md) — JSONB key reordering can change serialized file hashes; archive exact bytes and never silently rewrite a bound manifest.

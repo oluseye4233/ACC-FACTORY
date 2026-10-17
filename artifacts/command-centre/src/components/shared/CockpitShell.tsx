@@ -33,7 +33,7 @@ export function CockpitShell({
   // A software bundle deliberately skips F9. Filtering locked stages keeps
   // the cockpit's previous/next cards aligned with that selected route.
   const visibleProductionEngineIds = PRODUCTION_ENGINE_IDS.filter(
-    (id) => getFeatureStatus(id) !== FeatureStatus.LOCKED,
+    (id) => getFeatureStatus(id) !== FeatureStatus.LOCKED && getFeatureStatus(id) !== FeatureStatus.SKIPPED_BY_SC,
   );
   const productionIndex = visibleProductionEngineIds.findIndex((id) => id === activeEngineId);
   const prevEngineId = productionIndex > 0
@@ -83,7 +83,8 @@ export function CockpitShell({
         {ENGINES.map((engine, idx) => {
           const status = getFeatureStatus(engine.id);
           const isActive = engine.id === activeEngineId;
-          const isLocked = status === FeatureStatus.LOCKED;
+          const isSkipped = status === FeatureStatus.SKIPPED_BY_SC;
+          const isLocked = status === FeatureStatus.LOCKED || isSkipped;
           
           return (
             <div key={engine.id} className="flex items-center">
@@ -107,6 +108,7 @@ export function CockpitShell({
                   >
                     <span className="font-bold mr-1">{engine.name}</span>
                     <span className="hidden lg:inline opacity-80 truncate max-w-[120px]">{engine.title}</span>
+                    {isSkipped && <span className="ml-1 text-[9px] uppercase tracking-wider" data-testid={`status-skipped-${engine.id}`}>skipped</span>}
                   </button>
                 </HoverCardTrigger>
                 <HoverCardContent side="bottom" align="start" className="w-64 p-3 bg-card/95 backdrop-blur-md border-border/50 shadow-xl">

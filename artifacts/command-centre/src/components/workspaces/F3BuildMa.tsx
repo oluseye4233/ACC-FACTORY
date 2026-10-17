@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
+import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import {
@@ -334,7 +335,10 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
                     />
                   )}
                   {latestArtifact?.id && (
+                    <>
                     <SaveToExemplarLibraryButton artifactId={latestArtifact.id} />
+                    <PublishDocumentLink sourceId={latestArtifact.id} sourceKind="F3_MA" sessionId={sessionId} />
+                    </>
                   )}
                 </div>
                 <Tabs defaultValue="overview">

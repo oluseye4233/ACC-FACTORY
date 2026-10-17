@@ -54,6 +54,16 @@ export default function SpcPlayerNew() {
   const [, setLocation] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
   const sourceSessionId = searchParams.get("sourceSessionId");
+  const requestedOriginFeatureId = Number(searchParams.get("originFeatureId"));
+  const originFeatureId =
+    sourceSessionId &&
+    Number.isInteger(requestedOriginFeatureId) &&
+    requestedOriginFeatureId >= 1 &&
+    requestedOriginFeatureId <= 13
+      ? requestedOriginFeatureId
+      : sourceSessionId
+        ? 5
+        : undefined;
 
   const { toast } = useToast();
 
@@ -161,6 +171,9 @@ export default function SpcPlayerNew() {
           selectedCardIds: selectedCards,
           profile,
           sourceArtifactId,
+          ...(sourceSessionId && originFeatureId
+            ? { originSessionId: sourceSessionId, originFeatureId }
+            : {}),
         },
       },
       {
@@ -243,6 +256,20 @@ export default function SpcPlayerNew() {
           <ArrowLeft className="mr-2 h-3 w-3" />
           {sourceSessionId ? "Back to Session" : "Back to Dashboard"}
         </Button>
+
+        {sourceSessionId && originFeatureId && (
+          <div
+            className="mb-6 rounded-lg border border-primary/30 bg-primary/5 p-4 font-mono text-[11px]"
+            data-testid="spc-player-return-origin"
+          >
+            <div className="font-bold uppercase tracking-wider text-primary">
+              Return target: F{originFeatureId}
+            </div>
+            <p className="mt-1 text-muted-foreground">
+              A completed plan-only package can be returned as supporting documentation or process input. It will not certify or advance this stage; return requires a separate confirmation after execution.
+            </p>
+          </div>
+        )}
 
         <div className="mb-8 border-b border-border/40 pb-6 flex items-start justify-between gap-4">
           <div>

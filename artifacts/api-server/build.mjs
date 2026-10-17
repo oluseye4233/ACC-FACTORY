@@ -100,6 +100,9 @@ async function buildAll() {
       "puppeteer-core",
       "electron",
       "pdf-parse",
+      // PDFKit loads sibling font/AFM data at runtime. Bundling relocates
+      // __dirname to dist and makes otherwise-valid publications fail.
+      "pdfkit",
       "mammoth",
     ],
     sourcemap: "linked",

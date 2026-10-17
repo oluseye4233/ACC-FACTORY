@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
+import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetF0Dashboard,
@@ -109,7 +110,9 @@ export default function F0Dashboard() {
   const qc = useQueryClient();
   const { data: dash, isLoading } = useGetF0Dashboard();
 
-  const [engagementId, setEngagementId] = useState<string | null>(null);
+  const [engagementId, setEngagementId] = useState<string | null>(
+    () => new URLSearchParams(window.location.search).get("engagementId"),
+  );
   const [retainerId, setRetainerId] = useState<string | null>(null);
 
   const createEngagement = useCreateF0Engagement();
@@ -216,6 +219,7 @@ export default function F0Dashboard() {
             <h1 className="font-display text-3xl md:text-4xl tracking-wider text-foreground">
               F0 · Business Intelligence
             </h1>
+            <div className="ml-auto"><PublishDocumentLink sourceKind="F0_SERVICE" label="Publish F0 output" /></div>
           </div>
           <p className="font-mono text-xs md:text-sm text-muted-foreground max-w-3xl">
             A boutique advisory layer alongside — never inside — the F1–F9 production floor. SOCRATES
@@ -817,7 +821,29 @@ function EngagementPanel({
             {error && (
               <p className="font-mono text-[11px] text-destructive mb-2">{error}</p>
             )}
-            {report && <ReportView report={report} />}
+            {report && (
+              <>
+                <ReportView report={report} />
+                <div className="mt-2"><PublishDocumentLink sourceId={report.id} sourceKind="F0_SERVICE" sessionId={engagement.sessionId ?? undefined} label="Publish F0 report" /></div>
+                <p className="mt-3 font-mono text-[10px] text-muted-foreground">
+                  Saved to the Exemplar Library as advisory material. This report does not certify or advance a production stage.
+                </p>
+                {engagement.sessionId && (
+                  <Button
+                    className="mt-2 font-mono text-xs"
+                    variant="outline"
+                    data-testid={`button-return-report-to-f1-${report.id}`}
+                    onClick={() => {
+                      window.location.assign(
+                        `/session/${encodeURIComponent(engagement.sessionId!)}?f0ReportId=${encodeURIComponent(report.id)}`,
+                      );
+                    }}
+                  >
+                    RETURN REPORT TO F1 AS SUPPORTING INPUT <ArrowRight className="ml-2 h-3 w-3" />
+                  </Button>
+                )}
+              </>
+            )}
           </section>
 
           {/* Existing reports */}
@@ -838,6 +864,21 @@ function EngagementPanel({
                     </summary>
                     <div className="mt-2">
                       <ReportView report={r} />
+                      <div className="mt-2"><PublishDocumentLink sourceId={r.id} sourceKind="F0_SERVICE" sessionId={engagement.sessionId ?? undefined} label="Publish F0 report" /></div>
+                      {engagement.sessionId && (
+                        <Button
+                          className="mt-2 font-mono text-xs"
+                          variant="outline"
+                          data-testid={`button-return-report-to-f1-${r.id}`}
+                          onClick={() => {
+                            window.location.assign(
+                              `/session/${encodeURIComponent(engagement.sessionId!)}?f0ReportId=${encodeURIComponent(r.id)}`,
+                            );
+                          }}
+                        >
+                          RETURN THIS REPORT TO F1 <ArrowRight className="ml-2 h-3 w-3" />
+                        </Button>
+                      )}
                     </div>
                   </details>
                 ))}

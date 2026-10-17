@@ -48,6 +48,9 @@ describe("F9 MECHA deterministic gate orchestration", () => {
 
   it("refuses a non-ordered run with a cited invariant", () => {
     const input = phases.map((p) => ({ ...p, evidence: { ...p.evidence } }));
+    input[0].evidence = { target_profile: "FIRMWARE_MCU", cardinality: "SINGLE", interlock_present: true, regulatory_regimes_named: [], platform_allocation: [] };
+    input[1].evidence = { candidates: [] };
+    input[2].evidence = { hazard_class: "SAFETY_RELATED", lane: "SYSTEM" };
     [input[0], input[1]] = [input[1]!, input[0]!];
     const result = evaluate("MECHA-F9-test", input);
     expect(result.verdict).toBe("REFUSED");
@@ -139,10 +142,27 @@ describe("F9 authenticated operator flow", () => {
       sessionId,
       userId,
       featureId: 8,
-      artifactType: "CODEBASE_BUNDLE",
+      artifactType: "VERIFIED_CODEBASE_BUNDLE",
+      verificationStatus: "VERIFIED",
+      contentHash: "sha256:f9-test-content",
+      verificationEvidenceHash: "sha256:f9-test-evidence",
       artifactContent: { sourceMvpPddArtifactId: mvp!.id },
     }).returning();
-    sourceArtifactId = bundle!.id;
+
+    const [verifiedBundle] = await db.insert(harnessArtifactsTable).values({
+      sessionId,
+      userId,
+      featureId: 8,
+      artifactType: "VERIFIED_CODEBASE_BUNDLE",
+      parentArtifactId: bundle!.id,
+      contentHash: "f9-test-content-hash",
+      verificationStatus: "VERIFIED",
+      verificationEvidenceHash: "f9-test-evidence-hash",
+      artifactContent: {
+        sourceMvpPddArtifactId: mvp!.id,
+        verification: { status: "VERIFIED", stage: "F8", sourceArtifactId: bundle!.id },
+      },
+    }).returning();
     const [otherUser] = await db.insert(usersTable).values({
       clerkUserId: `f9-other-${randomUUID()}`,
       email: `f9-other-${randomUUID()}@example.test`,
@@ -171,11 +191,30 @@ describe("F9 authenticated operator flow", () => {
       sessionId: otherSessionId,
       userId: otherUserId,
       featureId: 8,
-      artifactType: "CODEBASE_BUNDLE",
+      artifactType: "VERIFIED_CODEBASE_BUNDLE",
+      verificationStatus: "VERIFIED",
+      contentHash: "sha256:f9-other-content",
+      verificationEvidenceHash: "sha256:f9-other-evidence",
       artifactContent: { sourceMvpPddArtifactId: otherMvp!.id },
     }).returning();
-    otherSourceArtifactId = otherBundle!.id;
-    requireAuthMock.mockImplementation(async (req: Request, res: Response, next: NextFunction) => {
+
+    const [verifiedOtherBundle] = await db.insert(harnessArtifactsTable).values({
+      sessionId: otherSessionId,
+      userId: otherUserId,
+      featureId: 8,
+      artifactType: "VERIFIED_CODEBASE_BUNDLE",
+      parentArtifactId: otherBundle!.id,
+      contentHash: "f9-other-test-content-hash",
+      verificationStatus: "VERIFIED",
+      verificationEvidenceHash: "f9-other-test-evidence-hash",
+      artifactContent: {
+        sourceMvpPddArtifactId: otherMvp!.id,
+        verification: { status: "VERIFIED", stage: "F8", sourceArtifactId: otherBundle!.id },
+      },
+    }).returning();
+    sourceArtifactId = verifiedBundle!.id;
+    otherSourceArtifactId = verifiedOtherBundle!.id;
+    requireAuthMock.mockImplementation((req: Request, res: Response, next: NextFunction) => {
       const identity = req.headers.authorization === "Bearer f9-integration"
         ? { user, subscriber }
         : req.headers.authorization === "Bearer f9-other"
@@ -221,6 +260,7 @@ describe("F9 authenticated operator flow", () => {
     return fetch(`${server.url}${path}`, { ...init, headers });
   };
 
+    let fixtureVersion = 0;
     const create = (
       requestedSessionId: string,
       requestedSourceArtifactId: string,
@@ -233,7 +273,7 @@ describe("F9 authenticated operator flow", () => {
         sourceArtifactId: requestedSourceArtifactId,
         deviceClass: `ownership-boundary-${randomUUID()}`,
         hardwareConfigId: "INDUSTRIAL_MCU",
-        artifactVersion: "9.9.9",
+        artifactVersion: `9.9.${++fixtureVersion}`,
         phases: passingPhases,
       }),
     }, token);
@@ -401,16 +441,40 @@ describe("F9 authenticated operator flow", () => {
       sessionId,
       userId,
       featureId: 8,
-      artifactType: "CODEBASE_BUNDLE",
+      artifactType: "VERIFIED_CODEBASE_BUNDLE",
+      verificationStatus: "VERIFIED",
+      contentHash: "sha256:f9-cross-owner-content",
+      verificationEvidenceHash: "sha256:f9-cross-owner-evidence",
       artifactContent: { sourceMvpPddArtifactId: otherMvpArtifactId },
     }).returning();
 
+    const [verifiedCrossOwnerBundle] = await db.insert(harnessArtifactsTable).values({
+      sessionId,
+      userId,
+      featureId: 8,
+      artifactType: "VERIFIED_CODEBASE_BUNDLE",
+      parentArtifactId: crossOwnerBundle!.id,
+      contentHash: "f9-cross-owner-test-content-hash",
+      verificationStatus: "VERIFIED",
+      verificationEvidenceHash: "f9-cross-owner-test-evidence-hash",
+      artifactContent: {
+        sourceMvpPddArtifactId: otherMvpArtifactId,
+        verification: {
+          status: "VERIFIED",
+          stage: "F8",
+          sourceArtifactId: crossOwnerBundle!.id,
+        },
+      },
+    }).returning();
     const rowsBeforeRejectedRequest = await db
       .select()
       .from(f9MechaRunsTable)
       .where(inArray(f9MechaRunsTable.userId, [userId, otherUserId]));
 
-    const crossOwnerLineageResponse = await create(sessionId, crossOwnerBundle!.id);
+    const crossOwnerLineageResponse = await create(
+      sessionId,
+      verifiedCrossOwnerBundle!.id,
+    );
     expect(crossOwnerLineageResponse.status).toBe(409);
     await expect(crossOwnerLineageResponse.json()).resolves.toEqual({
       error: "Upstream MVP PDD is not SPARTAN-certified",

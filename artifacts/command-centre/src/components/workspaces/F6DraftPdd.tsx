@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
+import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 import { WorkspaceShell, ErrorBanner } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
@@ -345,9 +346,11 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
               {pdd && (
                 <div className="flex flex-wrap gap-2">
                   {(pddArtifactId || latestPddArtifact?.id) && (
-                    <SaveToExemplarLibraryButton
+                    <><SaveToExemplarLibraryButton
                       artifactId={(pddArtifactId || latestPddArtifact?.id)!}
                     />
+<PublishDocumentLink sourceId={(pddArtifactId || latestPddArtifact?.id)!} sourceKind="F6_PDD" sessionId={sessionId} />
+</>
                   )}
                   <Button
                     onClick={exportZip}

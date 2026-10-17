@@ -16,7 +16,7 @@ import {
   spcPlayerRunsTable,
   usersTable,
 } from "@workspace/db";
-import { currentMonthCostGlobal } from "../src/lib/cost-budget";
+import { currentMonthCostGlobalWithReservations } from "../src/lib/cost-budget";
 import { ensureStaffSubscriber, ensureStaffUser } from "../src/lib/staff-auth";
 
 const { callLlmJsonMock, resolveProviderMock } = vi.hoisted(() => ({
@@ -594,7 +594,7 @@ describe("SPC Player supported backend foundation", () => {
     expect(owner).toBeDefined();
 
     const previousCap = process.env.STAFF_MONTHLY_COST_CAP_USD;
-    const usedBefore = await currentMonthCostGlobal();
+    const usedBefore = await currentMonthCostGlobalWithReservations();
     process.env.STAFF_MONTHLY_COST_CAP_USD = String(usedBefore + 0.5);
     const original = callLlmJsonMock.getMockImplementation()!;
     callLlmJsonMock.mockImplementation(async (...args: unknown[]) => {

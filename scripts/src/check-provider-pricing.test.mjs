@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import test from "node:test";
 
@@ -12,6 +13,26 @@ const {
 const {
   monitorProviderPricingFreshness,
 } = require("./provider-pricing-freshness-monitor.cjs");
+
+const freshnessMonitorWorkflow = readFileSync(
+  new URL(
+    "../../.github/workflows/provider-pricing-monitor.yml",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
+test("freshness workflow invokes the monitor module with GitHub Actions context", () => {
+  assert.match(freshnessMonitorWorkflow, /uses: actions\/github-script@v7/);
+  assert.match(
+    freshnessMonitorWorkflow,
+    /const \{ monitorProviderPricingFreshness \} = require\(\s*`\$\{process\.env\.GITHUB_WORKSPACE\}\/scripts\/src\/provider-pricing-freshness-monitor\.cjs`,\s*\);/,
+  );
+  assert.match(
+    freshnessMonitorWorkflow,
+    /await monitorProviderPricingFreshness\(\{\s*github,\s*context,\s*core,\s*staleAfterMs: Number\(process\.env\.STALE_AFTER_MS\),\s*staleAfterDays: Number\(process\.env\.STALE_AFTER_DAYS\),\s*\}\);/,
+  );
+});
 
 function source(id, overrides = {}) {
   return {

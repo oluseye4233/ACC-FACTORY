@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-export const SOURCE_TYPES = ["SPC", "MA_BIRTH_PACKAGE", "MICRO_PDD", "ATLAS_PDD", "ATLAS_PDD_JSON", "MVP_PDD", "CODEBASE_BUNDLE"] as const;
+export const SOURCE_TYPES = ["SPC", "MA_BIRTH_PACKAGE", "MICRO_PDD", "ATLAS_PDD", "ATLAS_PDD_JSON", "MVP_PDD", "CODEBASE_BUNDLE", "VERIFIED_CODEBASE_BUNDLE"] as const;
 export type SourceType = (typeof SOURCE_TYPES)[number];
 export const FAMILIES = ["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS", "IDE", "VIBE_APP", "F0", "SPC_PLAYER", "LANGCHAIN", "GITHUB", "PROGRAMMING_ENVIRONMENT"] as const;
 export type Family = (typeof FAMILIES)[number];
@@ -20,7 +20,7 @@ export const OUTPUT_KINDS = ["SPC", "MA", "MPDD", "PDD", "CODE_DJ"] as const;
 export type OutputKind = (typeof OUTPUT_KINDS)[number];
 const ALLOWED: Record<OutputKind, readonly SourceType[]> = {
   SPC: ["SPC"], MA: ["MA_BIRTH_PACKAGE"], MPDD: ["MICRO_PDD"],
-  PDD: ["ATLAS_PDD", "ATLAS_PDD_JSON", "MVP_PDD"], CODE_DJ: ["CODEBASE_BUNDLE"],
+  PDD: ["ATLAS_PDD", "ATLAS_PDD_JSON", "MVP_PDD"], CODE_DJ: ["VERIFIED_CODEBASE_BUNDLE"],
 };
 const sha = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
 const json = (v: unknown) => Buffer.from(JSON.stringify(v, null, 2) + "\n");

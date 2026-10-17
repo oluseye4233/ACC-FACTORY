@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
+import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
 import {
@@ -203,7 +204,10 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
               </div>
               <div className="flex flex-wrap gap-2">
                 {latestArtifact?.id && (
+                  <>
                   <SaveToExemplarLibraryButton artifactId={latestArtifact.id} />
+                  <PublishDocumentLink sourceId={latestArtifact.id} sourceKind="F4_MICRO_PDD" sessionId={sessionId} />
+                  </>
                 )}
                 <Button
                   onClick={exportZip}

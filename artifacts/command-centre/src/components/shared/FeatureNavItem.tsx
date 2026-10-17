@@ -5,7 +5,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Lock, Circle, CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import { Lock, Circle, CheckCircle2, Loader2, Sparkles, SkipForward } from "lucide-react";
 
 interface FeatureNavItemProps {
   id: number;
@@ -30,8 +30,9 @@ export function FeatureNavItem({
   isNext = false,
   onClick,
 }: FeatureNavItemProps) {
+  const isSkipped = status === FeatureStatus.SKIPPED_BY_SC;
   const isLocked = status === FeatureStatus.LOCKED;
-  const showAttention = isNext && !isActive && !isLocked;
+  const showAttention = isNext && !isActive && !isLocked && !isSkipped;
 
   return (
     <HoverCard openDelay={120} closeDelay={80}>
@@ -77,6 +78,7 @@ export function FeatureNavItem({
           </div>
           <div className="relative z-10">
             {status === FeatureStatus.LOCKED && <Lock className="h-4 w-4" />}
+            {isSkipped && <SkipForward className="h-4 w-4 text-muted-foreground" aria-label="Skipped by short circuit" />}
             {status === FeatureStatus.AVAILABLE && (
               <Circle
                 className={cn(
@@ -124,6 +126,12 @@ export function FeatureNavItem({
             <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase tracking-wider text-primary">
               <CheckCircle2 className="h-2.5 w-2.5" />
               DONE
+            </span>
+          )}
+          {isSkipped && (
+            <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground" data-testid="status-skipped-by-sc">
+              <SkipForward className="h-2.5 w-2.5" />
+              SKIPPED BY SC
             </span>
           )}
           {status === FeatureStatus.LOCKED && (

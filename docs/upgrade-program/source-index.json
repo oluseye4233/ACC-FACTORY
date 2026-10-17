@@ -1,0 +1,5263 @@
+{
+  "effectiveGovernance": {
+    "path": "docs/upgrade-program/governance-gap-resolution.json",
+    "sha256": "083b4c7d7fd0a03cf778b4e73eb60e83ba6222ee29ca0ce1801db73c4644fc20",
+    "policyVersion": "ARK-GAP-2026-10-16",
+    "successorInvariantIds": [
+      "SP-17",
+      "SP-18",
+      "SP-19",
+      "SP-20"
+    ],
+    "historicalSourceStatus": "Original missing-source rows below are preserved, not reconstructed."
+  },
+  "schemaVersion": 1,
+  "notice": "Source inventory and dependency order only. No implementation, live activation, approval or independent enforcement is asserted. Depth is a lower bound; external prerequisites and policy approvals are additional gates.",
+  "sources": [
+    {
+      "path": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sha256": "2988f2ef81ff188570e710acc9e75443525bd827ba4de91c14e1ab3a4c7b269c",
+      "atomicPrompts": 40
+    },
+    {
+      "path": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sha256": "dd33cffb65035bead2c0517ea2469efe0effab523cfbbec79cdcfd8c8c8a76d5",
+      "atomicPrompts": 49
+    },
+    {
+      "path": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sha256": "c923d8eb7c8eaf955846e5b7a02284770fc408fc42074e5feba4e060f4c2d916",
+      "atomicPrompts": 39
+    },
+    {
+      "path": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sha256": "b059780de7cc920e09d38a845f89dc42f854a608f019c8ec588231fe8071a7b2",
+      "atomicPrompts": 41
+    },
+    {
+      "path": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sha256": "e1c36864ef2f179ad37b5e3220be05db68712c10ffe2e6d321700073ebe7efdb",
+      "atomicPrompts": 74
+    }
+  ],
+  "register": {
+    "path": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+    "sha256": "4047f5fd719ee6199f2836dd0f299fd09689dc8ad5b4c87b2ac83098946b356e"
+  },
+  "historicalOnly": [
+    "SHORT_SPRINTS_PDD_v1_0_1792081065809.md",
+    "XVL_PDD_v1_0_1792081065811.md"
+  ],
+  "invariants": [
+    {
+      "id": "SP-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 32,
+      "sourceCells": [
+        "1",
+        "GRO SAFE\\_LIFE",
+        "assertGRO() runs before every LLM call and on all LLM output. Non-compressible",
+        "All",
+        "≤ v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 33,
+      "sourceCells": [
+        "2",
+        "Score-Sync Single Writer",
+        "applyScoreSync() is the only writer to users.arkScore; direct database writes are prohibited",
+        "School (D1–D3)",
+        "≤ v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 34,
+      "sourceCells": [
+        "3",
+        "Atomic Prompt Standard",
+        "Every prompt performs exactly one logical operation; no \"and also\" clauses",
+        "F2 onward",
+        "≤ v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 35,
+      "sourceCells": [
+        "4",
+        "SPHINX 70/30 Split",
+        "The creator always receives 70% of atomic credit; the rate cannot change without FORGE re-certification",
+        "SPHINX marketplace",
+        "≤ v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 36,
+      "sourceCells": [
+        "5",
+        "JCSE 45+ for Certification",
+        "PDDs scoring below 45/50 are returned for remediation",
+        "F7",
+        "≤ v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 37,
+      "sourceCells": [
+        "6",
+        "ZPOS Semantic Floor",
+        "Compression keeps at least 97.5% semantic preservation; over-compression triggers the PRISM fallback",
+        "F7",
+        "≤ v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-07",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 38,
+      "sourceCells": [
+        "7",
+        "Entitlement Enforcement",
+        "Tier gates are enforced server-side on req.localUser; client-side state is advisory only",
+        "All",
+        "≤ v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-08",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 39,
+      "sourceCells": [
+        "8",
+        "Telemetry Integrity",
+        "All platform events are emitted to the telemetry streams (written as A–D); no domain may suppress telemetry",
+        "All",
+        "≤ v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-09",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 40,
+      "sourceCells": [
+        "9",
+        "GRO Never Compresses",
+        "groConstraints are hard-coded as GRO SAFE\\_LIFE; SAVANT never compresses GRO",
+        "F5-Savant, F7",
+        "≤ v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-10",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 41,
+      "sourceCells": [
+        "10",
+        "EMBEDDED\\_DISCLAIMER",
+        "A non-suppressible disclaimer on all F9 outputs, MAP economic projections and MDL Score outputs",
+        "F0.5, F9",
+        "≤ v9.0, extended v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-11",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 42,
+      "sourceCells": [
+        "11",
+        "Full Spectrum Guarantee",
+        "The FORGE pipeline (written as F0–F9) is always available to the ARCHITECT tier without feature removal",
+        "All",
+        "≤ v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-12",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 43,
+      "sourceCells": [
+        "12",
+        "FTZ Covenant",
+        "The SPHINX obligation is complete at USDC credit; Single Value Parity is enforced globally",
+        "SPHINX Trade Zone",
+        "≤ v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-13",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 44,
+      "sourceCells": [
+        "13",
+        "FORGE VERIFIED MAX Integrity",
+        "msdQuality is always sourced from F0.5 Native Engine session data",
+        "F0.5, F7",
+        "v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-14",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 45,
+      "sourceCells": [
+        "14",
+        "MDL Disclosure",
+        "Every MDL Score output carries \"Approximate Kolmogorov complexity — not exact.\" Non-suppressible",
+        "F0.5 onward",
+        "v9.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-15",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 46,
+      "sourceCells": [
+        "15",
+        "Spec-First",
+        "An interface contract (OpenAPI, DDL, Protobuf or TypeSpec) is produced before implementation code for any software artifact; code-first requests return to F1. Non-suppressible",
+        "F1, F8",
+        "v9.1"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-16",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 47,
+      "sourceCells": [
+        "16",
+        "Outcome-Grounding",
+        "No F0 source classification may be marketed as predictive without an attached empirical precision, recall or lead-time citation; outputs carry a confidence flag (EMPIRICALLY\\_CALIBRATED, PROVISIONAL or THEORY\\_ONLY). Non-suppressible",
+        "F0",
+        "v9.2 †"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-17",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 48,
+      "sourceCells": [
+        "17",
+        "*Not located*",
+        "—",
+        "—",
+        "≤ OMNIBUS ALPHA v1.0"
+      ],
+      "sourceStatus": "MISSING_SOURCE"
+    },
+    {
+      "id": "SP-18",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 49,
+      "sourceCells": [
+        "18",
+        "*Not located*",
+        "—",
+        "—",
+        "≤ OMNIBUS ALPHA v1.0"
+      ],
+      "sourceStatus": "MISSING_SOURCE"
+    },
+    {
+      "id": "SP-19",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 50,
+      "sourceCells": [
+        "19",
+        "*Not located*",
+        "—",
+        "—",
+        "≤ OMNIBUS ALPHA v1.0"
+      ],
+      "sourceStatus": "MISSING_SOURCE"
+    },
+    {
+      "id": "SP-20",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 51,
+      "sourceCells": [
+        "20",
+        "*Not located*",
+        "—",
+        "—",
+        "≤ OMNIBUS ALPHA v1.0"
+      ],
+      "sourceStatus": "MISSING_SOURCE"
+    },
+    {
+      "id": "SP-21",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 52,
+      "sourceCells": [
+        "21",
+        "Synthesis Non-Manipulation",
+        "F5-Synth ranks marketplace SPCs by unbiased capability match only; sponsorship may reorder display, never the match itself",
+        "F5-Synth",
+        "OMNIBUS ALPHA v2.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-22",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 53,
+      "sourceCells": [
+        "22",
+        "Portability Fidelity Floor",
+        "SAVANT verdicts are binary and evidence-based: FIT (≥ 88% fidelity) or CLUSTER (a governed Agentic Cluster); no partial-fit or degraded state may be reported",
+        "F5-Savant",
+        "OMNIBUS ALPHA v2.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SP-23",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 54,
+      "sourceCells": [
+        "23",
+        "Field-Provenance Discipline",
+        "Every field in a platform-generated user artifact traces to explicit user entry or a verified platform record, with the source shown; no field is auto-filled with an unverified claim",
+        "All user-facing exports (first: Living Resume, D17)",
+        "OMNIBUS ALPHA v2.0"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CELL-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 70,
+      "sourceCells": [
+        "Law I",
+        "A CELL produces exactly one MA per session: one task, one tool, one output",
+        "—"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CELL-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 71,
+      "sourceCells": [
+        "Law II",
+        "A CELL never produces an SPC; work that needs SPC architecture is handed to the FORGE pipeline",
+        "Reclassify"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CELL-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 72,
+      "sourceCells": [
+        "Law III",
+        "A CELL delivers a complete package: Classification Report, 3-document Micro PDD and Interface Contract",
+        "—"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CELL-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 73,
+      "sourceCells": [
+        "C-001",
+        "Never more than 3 Atomic Prompts per MA",
+        "Escalate; halt delivery"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CELL-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 74,
+      "sourceCells": [
+        "C-002",
+        "Never a \\[ROLE\\] pillar in any MA Atomic Prompt",
+        "Revision required"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CELL-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 75,
+      "sourceCells": [
+        "C-003",
+        "Never a DISC profile, Camelot Seat or personality on an MA",
+        "Revision required"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CELL-07",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 76,
+      "sourceCells": [
+        "C-004",
+        "Never more than 1 primary tool interaction per MA",
+        "Escalate: a multi-tool agent is a task"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CELL-08",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 77,
+      "sourceCells": [
+        "C-005",
+        "Never production-ready if the ARES stress test fails",
+        "Hold until all 3 attack vectors pass"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CELL-09",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 78,
+      "sourceCells": [
+        "C-006",
+        "Never a partial BIRTH PACKAGE",
+        "Incomplete; session continues"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CELL-10",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 79,
+      "sourceCells": [
+        "C-007",
+        "Never an MA for any function that violates GRO LOVE/HARM",
+        "KILLZONE: refuse, log, alert"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 87,
+      "sourceCells": [
+        "Law I",
+        "Never guesses: every constraint finding comes from the MVE registry or a live scan",
+        "—"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 88,
+      "sourceCells": [
+        "Law II",
+        "Never deploys a partial SPC: FIT (≥ 88%) or CLUSTER, nothing between",
+        "—"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 89,
+      "sourceCells": [
+        "Law III",
+        "Never builds an ungoverned cluster: every MA inherits the source SPC's GRO constraints",
+        "—"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 90,
+      "sourceCells": [
+        "C-001",
+        "No FIT verdict below 88% fidelity",
+        "Revision required"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 91,
+      "sourceCells": [
+        "C-002",
+        "No cluster with fewer than 3 MAs",
+        "Escalate"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 92,
+      "sourceCells": [
+        "C-003",
+        "No cluster with more than 12 MAs",
+        "Escalate to the FORGE SPC pipeline"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-07",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 93,
+      "sourceCells": [
+        "C-004",
+        "No MA in a cluster carries a \\[ROLE\\] pillar",
+        "KILLZONE"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-08",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 94,
+      "sourceCells": [
+        "C-005",
+        "Every cluster has exactly one GRO Propagation Authority MA",
+        "Revision"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-09",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 95,
+      "sourceCells": [
+        "C-006",
+        "A GRO Distribution Map is in every portability kit",
+        "Incomplete"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-10",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 96,
+      "sourceCells": [
+        "C-007",
+        "HIVE fidelity below 88% blocks delivery",
+        "Hold"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-11",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 97,
+      "sourceCells": [
+        "C-008",
+        "Never alters the SPC's GRO Protocol during portability",
+        "KILLZONE"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-12",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 98,
+      "sourceCells": [
+        "C-009",
+        "Never a partial SAVANT Report",
+        "Incomplete"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MVE-13",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 99,
+      "sourceCells": [
+        "C-010",
+        "Interface contracts use structured JSON schemas, never raw text",
+        "Revision required"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 107,
+      "sourceCells": [
+        "§6.1",
+        "All user-facing features survive compression"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 108,
+      "sourceCells": [
+        "§6.1",
+        "The IQS scoring algorithm is never compressed"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 109,
+      "sourceCells": [
+        "§6.1",
+        "The GRO ethics audit is never compressed"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 110,
+      "sourceCells": [
+        "§6.1",
+        "ZPOS+5 compression is kept"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 111,
+      "sourceCells": [
+        "§6.1",
+        "The FORGE certification structure is kept"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 112,
+      "sourceCells": [
+        "§6.1",
+        "Subscriber tier enforcement is kept"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-07",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 113,
+      "sourceCells": [
+        "§6.1",
+        "Authentication and session security are kept"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-08",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 114,
+      "sourceCells": [
+        "§6.1",
+        "The upgrade path documentation is kept"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-09",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 115,
+      "sourceCells": [
+        "§6.1",
+        "The FORGE production ID format is kept"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-10",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 116,
+      "sourceCells": [
+        "Hard Rule 1",
+        "No user-facing feature may be CLASS C; if no CLASS B equivalent exists, change the platform, not the class"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-11",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 117,
+      "sourceCells": [
+        "Hard Rule 2",
+        "Infrastructure that serves only scale that does not yet exist is CLASS C"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-12",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 118,
+      "sourceCells": [
+        "Hard Rule 3",
+        "Every CLASS C deferral has a specific, measurable trigger"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-13",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 119,
+      "sourceCells": [
+        "Hard Rule 4",
+        "The MVP schema is forward-compatible: add fields, never rename or remove them"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "ACM-14",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 120,
+      "sourceCells": [
+        "Hard Rule 5",
+        "An MVP PDD that needs more than one person, or DevOps skills beyond a senior developer, is not compressed enough"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SPC7-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 121,
+      "sourceCells": [
+        "§7.2",
+        "User authentication flows are always CLASS A"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SPC7-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 122,
+      "sourceCells": [
+        "§7.2",
+        "The primary data store is always CLASS A"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SPC7-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 123,
+      "sourceCells": [
+        "§7.2",
+        "All user-visible UI components are always CLASS A"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SPC7-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 124,
+      "sourceCells": [
+        "§7.2",
+        "Error handling for user-facing operations is always CLASS A"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SPC7-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 125,
+      "sourceCells": [
+        "§7.2",
+        "Core business logic is always CLASS A"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SPC7-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 126,
+      "sourceCells": [
+        "§7.2",
+        "JCSE quality scoring in PDD outputs is always CLASS A"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SPC7-07",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 127,
+      "sourceCells": [
+        "§7.2",
+        "GRO state machine references are always CLASS A"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SPC7-08",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 128,
+      "sourceCells": [
+        "§7.2",
+        "ZPOS+5 optimisation of output content is always CLASS A"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SPC7-09",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 129,
+      "sourceCells": [
+        "§7.2",
+        "The FORGE Certification Block is always CLASS A"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SPC7-10",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 130,
+      "sourceCells": [
+        "§7.2",
+        "The Upgrade Path Document is always CLASS A"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "MECHA-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 138,
+      "sourceCells": [
+        "F9 is fail-closed: a build without the required evidence does not pass, and physical or firmware work needs external evidence before it moves on",
+        "ATLAS 360 SCAN of the ARK Harness (23 Sep 2026), as carried into the XVL PDD stage map"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 152,
+      "sourceCells": [
+        "1",
+        "No stage handler waits for telemetry, and no telemetry failure reaches a user"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 153,
+      "sourceCells": [
+        "2",
+        "A trace event never carries a prompt body, email or name; only identifiers and hashes"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 154,
+      "sourceCells": [
+        "3",
+        "Consent is OFF until a scope says otherwise; a confidential artifact is never captured"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 155,
+      "sourceCells": [
+        "4",
+        "No record is written without passing the consent check and the ethics gate in the same transaction"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 156,
+      "sourceCells": [
+        "5",
+        "Every record states where its rejected output came from (observed, template or none)"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 157,
+      "sourceCells": [
+        "6",
+        "Nothing estimated is presented as measured; unmeasured values are NULL or UNMEASURED"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-07",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 158,
+      "sourceCells": [
+        "7",
+        "Governance events with no verified FM mapping stay UNMAPPED; no code is forced"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-08",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 159,
+      "sourceCells": [
+        "8",
+        "FM-23 is assigned by the gate only"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-09",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 160,
+      "sourceCells": [
+        "9",
+        "No dataset version is published without a dry run and a named human approval"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-10",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 161,
+      "sourceCells": [
+        "10",
+        "Withdrawal produces a new version and discloses that earlier public versions cannot be recalled"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-11",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 162,
+      "sourceCells": [
+        "11",
+        "No price, SKU, cash or tier logic in the Deck; virality never appears as value"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-12",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 163,
+      "sourceCells": [
+        "12",
+        "Every GP(t) figure is labelled a design target pending Study C1"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "CD-13",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 164,
+      "sourceCells": [
+        "13",
+        "The Deck's self-claims of certification, scores and tiers are never repeated as facts"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "XVL-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 172,
+      "sourceCells": [
+        "INV-01",
+        "No stage grades its own work; self-attested results are recorded but never count as external evidence"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "XVL-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 173,
+      "sourceCells": [
+        "INV-02",
+        "Inconclusive is not a pass: errors, timeouts and missing evidence never produce PASS"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "XVL-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 174,
+      "sourceCells": [
+        "INV-03",
+        "Floors only go up: users add tracks above the F0 floor; only the named Principal lowers it, with a logged reason"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "XVL-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 175,
+      "sourceCells": [
+        "INV-04",
+        "No evidence, no verdict: a verdict without an evidence hash is rejected"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "XVL-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 176,
+      "sourceCells": [
+        "INV-05",
+        "Scores stay separate: track verdicts are never folded into one composite, and JCSE stays labelled self-assigned"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "XVL-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 177,
+      "sourceCells": [
+        "INV-06",
+        "No content leaves custody to an external track beyond the consent level its owner set"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "XVL-07",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 178,
+      "sourceCells": [
+        "INV-07",
+        "Labels are earned: Evidence-Backed needs a pass at I1 or higher; Independently Audited needs I3 by an outside auditor"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "XVL-08",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 179,
+      "sourceCells": [
+        "INV-08",
+        "Verify the premise first: no stage builds on a scientific or clinical claim whose integrity check is missing or Refuted (F0.5 onward)"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "XVL-09",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 180,
+      "sourceCells": [
+        "INV-09",
+        "AI judges do not certify science: Track J may comment on scientific validity but never passes it; that takes Track H"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "VTE-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 188,
+      "sourceCells": [
+        "INV-01",
+        "A Stream E triplet needs a FAIL and a later PASS on the same case, both at I1 or higher; self-attested results never make a triplet"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "VTE-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 189,
+      "sourceCells": [
+        "INV-02",
+        "Stream E rejected outputs are always OBSERVED; TEMPLATE is not allowed"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "VTE-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 190,
+      "sourceCells": [
+        "INV-03",
+        "Held-out cases are used only to measure; they never enter training data or exports"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "VTE-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 191,
+      "sourceCells": [
+        "INV-04",
+        "No self-modification: VTE proposes, a named person approves, nothing in the Harness changes automatically"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "VTE-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 192,
+      "sourceCells": [
+        "INV-05",
+        "Carries CD-03, CD-04, CD-08 and CD-09 into Stream E (consent OFF, one-transaction gate, FM-23 by the gate, no export without dry run and approval)"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "VTE-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 193,
+      "sourceCells": [
+        "INV-06",
+        "No improvement claims unless held-out results show it, labelled with the sample size"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "UPG-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 201,
+      "sourceCells": [
+        "INV-01",
+        "Required approvals are reported as governance touches, never as failed autonomy",
+        "All"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "UPG-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 202,
+      "sourceCells": [
+        "INV-02",
+        "Readiness levels are earned per pillar; one strong pillar never offsets a weak one",
+        "Track A"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "UPG-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 203,
+      "sourceCells": [
+        "INV-03",
+        "Readiness is a leading indicator only, always shown beside outcome metrics, never alone",
+        "Track A, Command Deck"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "UPG-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 204,
+      "sourceCells": [
+        "INV-04",
+        "An F12 incident is recorded as an I2 failure; no stage marks its own incident resolved",
+        "F12"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "UPG-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 205,
+      "sourceCells": [
+        "INV-05",
+        "On a failed release check, roll back first; fix through the F-process",
+        "F10, F12"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "UPG-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 206,
+      "sourceCells": [
+        "INV-06",
+        "No self-hosted or air-gapped offering ships with an open SEC REP ONE critical finding",
+        "F10, F11"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "UPG-07",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 207,
+      "sourceCells": [
+        "INV-07",
+        "Carries XVL-01, CD-03, CD-09 and VTE-04",
+        "All"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SS-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 215,
+      "sourceCells": [
+        "SS-INV-01",
+        "No product reaches F10 without a passing verification pack for its circuit",
+        "SC gates → F10"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SS-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 216,
+      "sourceCells": [
+        "SS-INV-02",
+        "Only a named human answers the SC question; the Harness never answers Yes for the owner",
+        "After F4, after F5"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SS-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 217,
+      "sourceCells": [
+        "SS-INV-03",
+        "Any product that runs on a physical device passes F9 MECHA, with external evidence, before F9.5 and F10",
+        "F9"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SS-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 218,
+      "sourceCells": [
+        "SS-INV-04",
+        "F9.5 and F10–F12 are never skipped; every route ends with custody, staged release, handoff and Operate",
+        "F9.5–F12"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SS-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 219,
+      "sourceCells": [
+        "SS-INV-05",
+        "Every skipped stage is in the trace as SKIPPED\\_BY\\_SC; certificates name the circuit",
+        "All"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SS-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 220,
+      "sourceCells": [
+        "SS-INV-06",
+        "A short-route product is never shown as having passed stages it skipped",
+        "Certificates"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "SS-07",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 221,
+      "sourceCells": [
+        "SS-INV-07",
+        "The XVL profile floor set at F0 still applies; a circuit can add checks but never drop below it",
+        "SC packs"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "IMP-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 233,
+      "sourceCells": [
+        "INV-01",
+        "Five tokens in fixed order (Title · Date-Time · Project · Author · Format) in every filename and in the document's metadata"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "IMP-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 234,
+      "sourceCells": [
+        "INV-02",
+        "A human is the author; no SPC, agent or model is named as author, and the AI team is disclosed inside"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "IMP-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 235,
+      "sourceCells": [
+        "INV-03",
+        "Clarity never changes meaning; protected spans are never edited"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "IMP-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 236,
+      "sourceCells": [
+        "INV-04",
+        "No document says built, certified, compliant or audited without evidence"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "IMP-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 237,
+      "sourceCells": [
+        "INV-05",
+        "SOCRATES flags but never edits; KLARITY edits but never approves; SKRIBE scores layout, not truth"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "IMP-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 238,
+      "sourceCells": [
+        "INV-06",
+        "KLARITY's three figures and SKRIBE's design score are never merged"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "IMP-07",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 239,
+      "sourceCells": [
+        "INV-07",
+        "Published means immutable; a re-publish is a new version"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "IMP-08",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 240,
+      "sourceCells": [
+        "INV-08",
+        "No Final document is released without a named approval"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "KMB-01",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 248,
+      "sourceCells": [
+        "INV-01",
+        "The curator is never listed as an author of cited research"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "KMB-02",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 249,
+      "sourceCells": [
+        "INV-02",
+        "No factual sentence ships without a Cited Works Ledger row"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "KMB-03",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 250,
+      "sourceCells": [
+        "INV-03",
+        "Unpublished, confidential and patent-pending work is described at outcome level only"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "KMB-04",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 251,
+      "sourceCells": [
+        "INV-04",
+        "Predictions, hypotheses, rankings and prize forecasts are labelled as opinion or inference"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "KMB-05",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 252,
+      "sourceCells": [
+        "INV-05",
+        "Humour never rests on a false premise and never targets authors, patients or groups"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "KMB-06",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 253,
+      "sourceCells": [
+        "INV-06",
+        "No creator is introduced to another without both accepting"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "KMB-07",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 254,
+      "sourceCells": [
+        "INV-07",
+        "No issue is released without a named human editor's approval"
+      ],
+      "sourceStatus": "SPECIFIED"
+    },
+    {
+      "id": "KMB-08",
+      "source": "attached_assets/ARK_Harness_Invariant_Register_v1_0_1792081065806.md",
+      "sourceLine": 255,
+      "sourceCells": [
+        "INV-08",
+        "Clarity, Truthfulness and Detectability are never collapsed into one number"
+      ],
+      "sourceStatus": "SPECIFIED"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "UPG-SEC-001",
+      "instruction": "Enable PostgreSQL row-level security on every tenant table and prove it with cross-tenant read tests.",
+      "owner": "ARES",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "SEC REP ONE",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 306,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-SEC-002",
+      "instruction": "Move all secrets to Azure Key Vault with rotation; fail the build if a secret appears in code or env files.",
+      "owner": "HOST DJ",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "SEC REP ONE",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 307,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-SEC-003",
+      "instruction": "Sign data processing agreements with each model provider and sub-processor, with counsel's approval.",
+      "owner": "ARES",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "Counsel seat \\#9",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 308,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-TRK-001",
+      "instruction": "Define the track schema (id, name, independence level, adapters, cost estimate) and seed tracks S, E, J, R, H, C, P, B.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 386,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-TRK-002",
+      "instruction": "Define the adapter interface: artifact ref, evalset ref and config in; verdict, evidence hash, metrics and model versions out.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-TRK-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 387,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-TRK-005",
+      "instruction": "Build the Track R adapter: run SPEC BUILDER adversarial scenarios through the BUGMXT runner.",
+      "owner": "BUGMXT",
+      "priority": "P0↑",
+      "dependencies": [
+        "XVL-TRK-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 390,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-SEC-005",
+      "instruction": "Add input screening and tool allowlists, and run Track R injection probes on every release.",
+      "owner": "BUGMXT",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-TRK-005"
+      ],
+      "externalPrerequisite": "XVL-TRK-005",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 309,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-SEC-004",
+      "instruction": "Encrypt AI artifacts at rest, with a client-managed key option.",
+      "owner": "HOST DJ",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-SEC-002"
+      ],
+      "externalPrerequisite": "SEC REP ONE",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 310,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-SEC-006",
+      "instruction": "Re-run the security assessment and record the five findings as closed or open, with evidence.",
+      "owner": "ARES",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-SEC-001",
+        "UPG-SEC-002",
+        "UPG-SEC-003",
+        "UPG-SEC-004",
+        "UPG-SEC-005"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 311,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-STG-001",
+      "instruction": "Add F12 to the stage enum and capture map, with its event types.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [
+        "CD-TRC-004",
+        "CD-TRC-006"
+      ],
+      "externalPrerequisite": "CD-TRC-004, CD-TRC-006",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 317,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": [
+        "CD-TRC-004",
+        "CD-TRC-006"
+      ]
+    },
+    {
+      "id": "UPG-RDY-001",
+      "instruction": "Define the 32 Track A signals with a binary check for each, and the per-pillar level rule.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 323,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-RDY-002",
+      "instruction": "Build the Track A scanner: run every signal check on a repository in under five minutes and store present or absent with evidence.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-RDY-001",
+        "XVL-TRK-002"
+      ],
+      "externalPrerequisite": "XVL-TRK-002",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 324,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-RDY-003",
+      "instruction": "Compute the project readiness level as the highest level all pillars clear.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-RDY-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 325,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-RDY-004",
+      "instruction": "Bind the L3 security signal to the closed SEC REP ONE controls.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-RDY-002",
+        "UPG-SEC-006"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 326,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-RDY-005",
+      "instruction": "Render a per-pillar readiness profile against the target level, with missing signals as a remediation backlog.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "UPG-RDY-003"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 327,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-SEL-001",
+      "instruction": "Seed the Prototype Light, Standard and Regulated profiles as stage × track × mode matrices from Part 4.3.",
+      "owner": "KLARITY",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-TRK-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 400,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-RDY-006",
+      "instruction": "Add Readiness L3 to the XVL Standard floor and L4 on security and observability to Regulated.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-RDY-003",
+        "XVL-SEL-001"
+      ],
+      "externalPrerequisite": "XVL-SEL-001",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 328,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-RDY-008",
+      "instruction": "Define and check the Level 5 project-wide signals.",
+      "owner": "MATHMON",
+      "priority": "P1",
+      "dependencies": [
+        "UPG-RDY-003"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 329,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-RDY-007",
+      "instruction": "Ship repository templates that meet every L3 signal, so new projects start at L3.",
+      "owner": "CODE DJ",
+      "priority": "P1",
+      "dependencies": [
+        "UPG-RDY-005"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 330,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-EVD-001",
+      "instruction": "Define the verdict record and reject any verdict without an evidence hash.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 412,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-TRC-001",
+      "instruction": "Subscribe to Command Deck trace events for F0–F11 under one trace\\_id; reject unknown stage labels.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 370,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-TRC-003",
+      "instruction": "Record, for each stage event, the artifact reference and the producing seat and model, for separation checks.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-TRC-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 372,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-EVD-004",
+      "instruction": "Mark a verifier as I0 when it is the producing model in the same session, and exclude it from external evidence.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-EVD-001",
+        "XVL-TRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 415,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-SEL-002",
+      "instruction": "Read the F0 route and set the project's floor profile.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-SEL-001",
+        "XVL-TRC-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 401,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-SEL-003",
+      "instruction": "Build the selector grid: stages as rows, tracks as switches, floor switches locked, Advisory/Blocking toggle.",
+      "owner": "KLARITY",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-SEL-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 403,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-SEL-007",
+      "instruction": "Save each selection with user and time, show it on stage cards, and never delete recorded verdicts on change.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-SEL-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 406,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-GATE-001",
+      "instruction": "Evaluate gate modes (Advisory, Blocking, Release-required) and hold stage promotion on FAIL or INCONCLUSIVE.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-EVD-001",
+        "XVL-SEL-007"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 431,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-EVD-005",
+      "instruction": "Compute each stage's conformity state from its verdicts, using the rules in Part 4.5.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-EVD-004",
+        "XVL-GATE-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 416,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-ORG-001",
+      "instruction": "Define active project, ground readiness rate, evidence rate and the Harness Readiness Index.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-RDY-003",
+        "XVL-EVD-005"
+      ],
+      "externalPrerequisite": "XVL-EVD-005",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 336,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-ORG-002",
+      "instruction": "Compute the index and its two parts weekly for each organisation.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-ORG-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 337,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 9,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-ORG-003",
+      "instruction": "Show the index beside its two parts and the outcome metrics, never alone.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "UPG-ORG-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 338,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 10,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-OUT-001",
+      "instruction": "Write the definition, unit and source for each of the eight outcome metrics.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 344,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-OUT-002",
+      "instruction": "Mark each trace event with whether a human edited the artifact and whether an approval was given.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-OUT-001",
+        "CD-TRC-001"
+      ],
+      "externalPrerequisite": "CD-TRC-001",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 345,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": [
+        "CD-TRC-001"
+      ]
+    },
+    {
+      "id": "UPG-OUT-004",
+      "instruction": "Roll up cost per certified artifact from the LLM cost ledger.",
+      "owner": "ATHENA",
+      "priority": "P1",
+      "dependencies": [
+        "UPG-OUT-001"
+      ],
+      "externalPrerequisite": "ACC cost ledger",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 346,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-OUT-003",
+      "instruction": "Roll up cycle time, first-pass gate rate, autonomy ratio and governance touches by project, stage, SPC and week.",
+      "owner": "ATHENA",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-OUT-002",
+        "CD-ANL-008"
+      ],
+      "externalPrerequisite": "CD-ANL-008",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 347,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": [
+        "CD-ANL-008"
+      ]
+    },
+    {
+      "id": "UPG-OUT-006",
+      "instruction": "Add an outcomes panel to the Command Deck dashboard with sample sizes on every figure.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "UPG-OUT-003",
+        "CD-DSH-005"
+      ],
+      "externalPrerequisite": "CD-DSH-005",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 348,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": [
+        "CD-DSH-005"
+      ]
+    },
+    {
+      "id": "UPG-REL-001",
+      "instruction": "Require a release plan with cohorts, steps and health checks before any F10 release starts.",
+      "owner": "HOST DJ",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-STG-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 355,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-REL-002",
+      "instruction": "Route traffic or users through staged steps (default 5%, 25%, 100%); pin SPC and prompt cohorts to a version.",
+      "owner": "HOST DJ",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-REL-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 356,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-EVD-002",
+      "instruction": "Register and hash each evalset with its stage and owner before the stage artifact is submitted.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-EVD-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 413,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-TRK-003",
+      "instruction": "Build the Track E reference adapter on Google ADK evaluation: test files, evalsets and configurable criteria thresholds.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-TRK-002",
+        "XVL-EVD-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 388,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-REL-003",
+      "instruction": "Run health checks each step against the previous version: errors, refusals, latency, cost and a Track E smoke evalset.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-REL-001",
+        "XVL-TRK-003"
+      ],
+      "externalPrerequisite": "XVL-TRK-003",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 357,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-REL-004",
+      "instruction": "Roll back automatically on any failed check and open an F12 incident and a VTE failure case.",
+      "owner": "HOST DJ",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-REL-002",
+        "UPG-REL-003"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 358,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-REL-005",
+      "instruction": "Sign a release record with version hashes, checks, decisions and approver.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-REL-004"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 359,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-OPS-001",
+      "instruction": "Define F12 signal sources: errors, alerts, user reports, refusal spikes, cost anomalies and Track P notices.",
+      "owner": "ATHENA",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-STG-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 365,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-OPS-002",
+      "instruction": "Triage signals: deduplicate, classify, propose severity and route; a named on-call confirms.",
+      "owner": "ATHENA",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-OPS-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 366,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-OPS-003",
+      "instruction": "Contain incidents by rollback or fail-closed and record the containment step.",
+      "owner": "HOST DJ",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-OPS-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 367,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-OPS-004",
+      "instruction": "Record each incident with timeline, correlated release and trace, and the restore time.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-OPS-003"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 368,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-OUT-005",
+      "instruction": "Roll up change failure rate and time to restore from release and incident records.",
+      "owner": "ATHENA",
+      "priority": "P1",
+      "dependencies": [
+        "UPG-OUT-001",
+        "UPG-REL-005",
+        "UPG-OPS-004"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 349,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-FMX-001",
+      "instruction": "Seed FM-XV-01 to FM-XV-12 in fm\\_taxonomy with source\\_status PROPOSED and empty patterns.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [
+        "CD-INF-011"
+      ],
+      "externalPrerequisite": "CD-INF-011",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 316,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": [
+        "CD-INF-011"
+      ]
+    },
+    {
+      "id": "VTE-BRG-001",
+      "instruction": "Define the signed xvl\\_verdict event: trace\\_id, stage, track, adapter, independence level, verdict, evidence hash, evalset case hash, split, artifact and version hash, model versions; no body.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-EVD-001"
+      ],
+      "externalPrerequisite": "XVL-EVD-001; CD §4.5",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 306,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-BRG-002",
+      "instruction": "Add stream E and the four VTE event types to the Command Deck trace contract and capture map; reject unknown values.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-BRG-001",
+        "CD-TRC-001",
+        "CD-TRC-006"
+      ],
+      "externalPrerequisite": "CD-TRC-001, CD-TRC-006",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 307,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": [
+        "CD-TRC-001",
+        "CD-TRC-006"
+      ]
+    },
+    {
+      "id": "XVL-TRC-002",
+      "instruction": "Write each verdict back to the trace spine as an event carrying stage, track, verdict and evidence hash only.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-TRC-001",
+        "XVL-EVD-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 371,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-BRG-003",
+      "instruction": "Emit one signed verdict event from XVL for every track run, through an outbox, without delaying the run.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-BRG-001",
+        "XVL-TRC-002"
+      ],
+      "externalPrerequisite": "XVL-TRC-002",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 308,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-BRG-004",
+      "instruction": "Verify signature and idempotency key on intake; store unknown types as UNKNOWN; never read XVL tables.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-BRG-002",
+        "VTE-BRG-003",
+        "CD-SEC-004"
+      ],
+      "externalPrerequisite": "CD-SEC-004",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 309,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": [
+        "CD-SEC-004"
+      ]
+    },
+    {
+      "id": "VTE-FMX-002",
+      "instruction": "Assign a failure-mode code to each FAIL or INCONCLUSIVE verdict from its track and criterion; store UNMAPPED when no rule matches.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-FMX-001",
+        "VTE-BRG-004"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 318,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-FCL-001",
+      "instruction": "Open one failure case per (artifact, evalset case, failure mode) on an external FAIL at I1 or higher.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-FMX-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 334,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-OPS-005",
+      "instruction": "Open a linked F0 intake (parent_trace_id) and a VTE failure case at I2 for every incident.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-OPS-004",
+        "VTE-FCL-001"
+      ],
+      "externalPrerequisite": "VTE-FCL-001",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 369,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-OPS-006",
+      "instruction": "Generate a plain-language incident summary for the project record.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "UPG-OPS-004"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 370,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-SOV-001",
+      "instruction": "Define the four deployment profiles and what each allows for providers, tracks and exports.",
+      "owner": "VIBE DJ",
+      "priority": "P0↑",
+      "dependencies": [],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 376,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-GOV-001",
+      "instruction": "Keep a registry of named approvers: Principal, organisation admins and reviewers.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 378,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-GOV-002",
+      "instruction": "Store each data owner's consent level for external tracks; default to hashes or redacted payloads.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-GOV-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 380,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-RUN-001",
+      "instruction": "Dispatch selected tracks in parallel on each stage event, within the project's verification cost cap.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-TRC-001",
+        "XVL-SEL-007",
+        "XVL-TRK-002",
+        "XVL-GOV-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 423,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-SOV-002",
+      "instruction": "Enforce profile limits on external tracks and adapters at dispatch time.",
+      "owner": "VIBE DJ",
+      "priority": "P1",
+      "dependencies": [
+        "UPG-SOV-001",
+        "XVL-RUN-001"
+      ],
+      "externalPrerequisite": "XVL-RUN-001",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 377,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-SOV-003",
+      "instruction": "Turn Command Deck export off by default for self-hosted and air-gapped profiles; allow only a signed manual bundle when air-gapped.",
+      "owner": "HOST DJ",
+      "priority": "P1",
+      "dependencies": [
+        "UPG-SOV-001",
+        "CD-KGL-005"
+      ],
+      "externalPrerequisite": "CD-KGL-005",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 378,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": [
+        "CD-KGL-005"
+      ]
+    },
+    {
+      "id": "UPG-SOV-005",
+      "instruction": "Support a locally hosted judge model from a different family for Track J in air-gapped deployments.",
+      "owner": "VIBE DJ",
+      "priority": "P2",
+      "dependencies": [
+        "UPG-SOV-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 379,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "UPG-SOV-004",
+      "instruction": "Block self-hosted and air-gapped offerings until every SEC REP ONE critical control is closed.",
+      "owner": "HOST DJ",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-SOV-001",
+        "UPG-SEC-006"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/ARK_Harness_Upgrade_PDD_v1_0_1792081065810.md",
+      "sourceLine": 380,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-GOV-003",
+      "instruction": "Write an audit event for every selection, waiver and verdict.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 379,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-TRK-004",
+      "instruction": "Build the Track J adapter: choose a judge from a different model family than the producer and score the stage rubric.",
+      "owner": "VIBE DJ",
+      "priority": "P1",
+      "dependencies": [
+        "XVL-TRK-002",
+        "XVL-TRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 389,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-TRK-006",
+      "instruction": "Build Track H: a sampled review queue with a named reviewer and a conflict-of-interest check.",
+      "owner": "HIVE",
+      "priority": "P0↑",
+      "dependencies": [
+        "XVL-TRK-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 391,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-TRK-007",
+      "instruction": "Build Track C: retention, access and consent checks, and control mapping per framework.",
+      "owner": "OSIRIS",
+      "priority": "P1",
+      "dependencies": [
+        "XVL-TRK-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 392,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-TRK-008",
+      "instruction": "Build Track P: a provider lifecycle register (preview, deprecation), a key-handling check and baseline regression.",
+      "owner": "VIBE DJ",
+      "priority": "P1",
+      "dependencies": [
+        "XVL-TRK-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 393,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-GATE-003",
+      "instruction": "Record waivers with named approver, reason and expiry; expired waivers re-open the gate.",
+      "owner": "HIVE",
+      "priority": "P0↑",
+      "dependencies": [
+        "XVL-GATE-001",
+        "XVL-GOV-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 433,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-RPT-001",
+      "instruction": "Export an Evidence Pack per project: tracks, verdicts, waivers and conformity state per stage.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-EVD-005",
+        "XVL-GATE-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 441,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-TRK-009",
+      "instruction": "Write the Track B study protocol for gated vs ungated trials and its data export.",
+      "owner": "ATHENA",
+      "priority": "P2",
+      "dependencies": [
+        "XVL-TRK-002",
+        "XVL-RPT-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 394,
+      "sourceWave": "W9",
+      "dependencyDepthLowerBound": 9,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-SEL-005",
+      "instruction": "Let organisation admins set a floor above the preset for all their projects.",
+      "owner": "HIVE",
+      "priority": "P1",
+      "dependencies": [
+        "XVL-SEL-001",
+        "XVL-GOV-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 402,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-SEL-004",
+      "instruction": "Show a one-line plain-language explanation and an estimated cost for each switch.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "XVL-SEL-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 404,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-SEL-006",
+      "instruction": "Allow a change below the floor only with the named Principal's approval and a logged reason.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-SEL-003",
+        "XVL-GOV-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 405,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-EVD-003",
+      "instruction": "Build evalsets from recorded human decisions (approvals, rejections, moderator outcomes) as ground truth.",
+      "owner": "MATHMON",
+      "priority": "P1",
+      "dependencies": [
+        "XVL-EVD-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 414,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-RUN-004",
+      "instruction": "Run trajectory checks at F3 and F9 by comparing traced tool calls with expected steps.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-TRK-003",
+        "XVL-TRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 422,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-RUN-002",
+      "instruction": "Return INCONCLUSIVE on any track error or timeout; never PASS.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-RUN-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 424,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-RUN-003",
+      "instruction": "Record model versions, evalset hash, cost and duration for every run.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-RUN-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 425,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-GATE-002",
+      "instruction": "Enforce verification-first: with Blocking Track E, no F8 build starts until the F4 evalset is registered.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-GATE-001",
+        "XVL-EVD-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 432,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-GATE-004",
+      "instruction": "Block Prototype Light projects from F11 release to live users until re-routed to Standard or higher.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-GATE-001",
+        "XVL-SEL-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 434,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-RPT-004",
+      "instruction": "Export an F5 SPC as AGENTS.md plus mirror files, and check the round trip.",
+      "owner": "CODE DJ",
+      "priority": "P2",
+      "dependencies": [
+        "XVL-TRK-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 440,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-RPT-002",
+      "instruction": "Report disagreement between self-attested and external verdicts per stage.",
+      "owner": "ATHENA",
+      "priority": "P1",
+      "dependencies": [
+        "XVL-EVD-005"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 442,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-RPT-003",
+      "instruction": "Report verification cost per stage and track, for information only.",
+      "owner": "HIVE",
+      "priority": "P1",
+      "dependencies": [
+        "XVL-RUN-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 443,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-PRM-001",
+      "instruction": "Define the premise-integrity invariant at F0.5: no stage builds on a scientific or clinical claim until its integrity check is recorded.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-EVD-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 449,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-PRM-002",
+      "instruction": "For every cited work, look up retraction, correction and expression-of-concern status and PubPeer flags; record each flag with its source.",
+      "owner": "KONSA",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-PRM-001",
+        "XVL-TRK-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 450,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-PRM-003",
+      "instruction": "Search for contradicting and superseding evidence (later trials, systematic reviews, consensus statements) and label each claim Supported, Contested, Refuted or Unknown.",
+      "owner": "ATHENA",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-PRM-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 451,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-PRM-004",
+      "instruction": "Import the public TRACES corpus as a versioned poisoned-premise evalset; pass means a refusal or flag before any help is given.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-EVD-002",
+        "XVL-TRK-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 452,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-PRM-005",
+      "instruction": "Add notoriety-matched controls: for each famous flawed paper, a structurally similar obscure one, so passing cannot rest on recognising famous names.",
+      "owner": "ATHENA",
+      "priority": "P1",
+      "dependencies": [
+        "XVL-PRM-004"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 453,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-PRM-006",
+      "instruction": "Run poisoned-premise probes in Track R at F1 and F3 for every SPC that handles scientific or health content.",
+      "owner": "BUGMXT",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-PRM-004",
+        "XVL-TRK-005"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 454,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-PRM-007",
+      "instruction": "Bar Track J from signing off scientific validity; route Refuted, Contested or Unknown premises to Track H with a domain expert.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-PRM-003",
+        "XVL-TRK-006"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 455,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-PRM-008",
+      "instruction": "Fail closed at F9: when a premise is Refuted or flagged, the agent declines to build on it and explains why, with sources.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-PRM-003",
+        "XVL-RUN-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 456,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-PRM-010",
+      "instruction": "Re-run the TRACES evalset on every model or SPC version change; report strict and lenient pass rates separately.",
+      "owner": "HIVE",
+      "priority": "P1",
+      "dependencies": [
+        "XVL-PRM-004",
+        "XVL-RUN-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 457,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "XVL-PRM-009",
+      "instruction": "Add premise-integrity results to the Evidence Pack and, for KAMBRIA issues, to the Classification Card.",
+      "owner": "OSIRIS",
+      "priority": "P1",
+      "dependencies": [
+        "XVL-PRM-003",
+        "XVL-RPT-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/XVL_PDD_v1_1_1792081065811.md",
+      "sourceLine": 458,
+      "sourceWave": "W9",
+      "dependencyDepthLowerBound": 9,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-GOV-001",
+      "instruction": "Register named approvers for WONT\\_FIX, proposals and patterns; reuse the XVL approver registry.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-GOV-001"
+      ],
+      "externalPrerequisite": "XVL-GOV-001",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 299,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-GOV-002",
+      "instruction": "Write an audit event for every case transition, proposal decision and pattern change.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "CD audit log (§4.8)",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 300,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-BRG-005",
+      "instruction": "Link each verdict event to its EXEMPLER exemplar\\_id and version lineage.",
+      "owner": "HIVE",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-BRG-004",
+        "CD-XMP-003"
+      ],
+      "externalPrerequisite": "CD-XMP-003",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 310,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": [
+        "CD-XMP-003"
+      ]
+    },
+    {
+      "id": "VTE-FMX-005",
+      "instruction": "Write a plain-language description for each FM-XV code for the dashboard and proposals.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-FMX-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 317,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-FMX-003",
+      "instruction": "Record a matching Deck code alongside FM-XV only where a confirmed rule exists; never extend unverified Deck mappings.",
+      "owner": "MATHMON",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-FMX-002"
+      ],
+      "externalPrerequisite": "CD §4.6",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 319,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-FMX-004",
+      "instruction": "Assign FM-XV-12 when a self-attested PASS and an external FAIL exist for the same artifact version and stage.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-FMX-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 320,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-SPL-001",
+      "instruction": "Assign every evalset case once, by hash, to TRAIN or HELD-OUT using the configured ratio (default 70/30); never reassign.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 326,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-SPL-002",
+      "instruction": "Provide a fresh held-out sample for repair checks that excludes the case being repaired.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-SPL-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 327,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-SPL-003",
+      "instruction": "Refuse any triplet, proposal example or export row whose case hash is HELD-OUT.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-SPL-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 328,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-FCL-002",
+      "instruction": "Log every later run of the same case on a new version as a repair attempt; INCONCLUSIVE changes nothing.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-FCL-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 335,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-FCL-004",
+      "instruction": "Allow WONT\\_FIX only with a named approver, a reason and a date; keep the case in the regression set.",
+      "owner": "OSIRIS",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-FCL-001",
+        "VTE-GOV-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 336,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-FCL-005",
+      "instruction": "Add each confirmed failure to the regression evalset on the split its hash assigns.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-FCL-001",
+        "VTE-SPL-001",
+        "XVL-EVD-002"
+      ],
+      "externalPrerequisite": "XVL-EVD-002",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 337,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-FCL-003",
+      "instruction": "Close a case as REPAIRED only on a PASS at I1 or higher plus no new failure on a sample of fresh held-out cases.",
+      "owner": "BUGMXT",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-FCL-002",
+        "VTE-SPL-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 338,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-STE-001",
+      "instruction": "Assemble the Stream E triplet from a repaired case: input = evalset case, rejected = failing output (OBSERVED), preferred = passing output.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-FCL-003",
+        "VTE-SPL-003"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 344,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 9,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-STE-002",
+      "instruction": "Fetch bodies only for scopes with consent ON and never for confidential artifacts.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-STE-001",
+        "CD-CNS-011",
+        "CD-XMP-006"
+      ],
+      "externalPrerequisite": "CD-CNS-011, CD-XMP-006",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 345,
+      "sourceWave": "W9",
+      "dependencyDepthLowerBound": 10,
+      "unavailablePromptReferences": [
+        "CD-CNS-011",
+        "CD-XMP-006"
+      ]
+    },
+    {
+      "id": "VTE-STE-003",
+      "instruction": "Insert the Stream E corpus record through the Command Deck consent check and GRO gate in one transaction; store verdict, track and independence level, and a null JCSE.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-STE-002",
+        "CD-GOV-006"
+      ],
+      "externalPrerequisite": "CD-GOV-006",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 346,
+      "sourceWave": "W10",
+      "dependencyDepthLowerBound": 11,
+      "unavailablePromptReferences": [
+        "CD-GOV-006"
+      ]
+    },
+    {
+      "id": "VTE-STE-004",
+      "instruction": "Compress Stream E triplets with ZPOS SYNTHESIS, keeping the original and the measured ratio.",
+      "owner": "SPARTAN",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-STE-003",
+        "CD-ZPS-003"
+      ],
+      "externalPrerequisite": "CD-ZPS-003",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 347,
+      "sourceWave": "W11",
+      "dependencyDepthLowerBound": 12,
+      "unavailablePromptReferences": [
+        "CD-ZPS-003"
+      ]
+    },
+    {
+      "id": "VTE-STE-005",
+      "instruction": "Mark Stream E records WITHDRAWN when consent is withdrawn or the artifact is superseded.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-STE-003",
+        "CD-CNS-007"
+      ],
+      "externalPrerequisite": "CD-CNS-007",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 348,
+      "sourceWave": "W11",
+      "dependencyDepthLowerBound": 12,
+      "unavailablePromptReferences": [
+        "CD-CNS-007"
+      ]
+    },
+    {
+      "id": "VTE-LRN-001",
+      "instruction": "Roll up failure cases by code, stage, SPC, track, model and week.",
+      "owner": "ATHENA",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-FCL-001",
+        "CD-ANL-008"
+      ],
+      "externalPrerequisite": "CD-ANL-008",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 354,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": [
+        "CD-ANL-008"
+      ]
+    },
+    {
+      "id": "VTE-LRN-002",
+      "instruction": "Rank hotspots by count, trend and spread across distinct projects.",
+      "owner": "ATHENA",
+      "priority": "P0↑",
+      "dependencies": [
+        "VTE-LRN-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 355,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-LRN-008",
+      "instruction": "Compute calibration rollups (self vs external pass rate, n) per SPC and stage; report only.",
+      "owner": "ATHENA",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-FMX-004",
+        "VTE-LRN-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 356,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-LRN-003",
+      "instruction": "Draft a learning proposal for a hotspot above the project-spread threshold: change type, target, rationale and TRAIN-only evidence.",
+      "owner": "ATHENA",
+      "priority": "P0↑",
+      "dependencies": [
+        "VTE-LRN-002",
+        "VTE-SPL-003"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 357,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 9,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-LRN-004",
+      "instruction": "Route each proposal to a named approver; record ACCEPTED, REJECTED or DEFERRED with a reason.",
+      "owner": "SPHINX",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-LRN-003",
+        "VTE-GOV-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 358,
+      "sourceWave": "W9",
+      "dependencyDepthLowerBound": 10,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-LRN-005",
+      "instruction": "Hand an accepted proposal to the owner of the target for change through the normal F-process; VTE makes no change itself.",
+      "owner": "SPHINX",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-LRN-004"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 359,
+      "sourceWave": "W10",
+      "dependencyDepthLowerBound": 11,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-LRN-007",
+      "instruction": "Propose a verified preferred\\_pattern for a Deck FM code from approved repairs; on approval, release matching Stream D HELD\\_NO\\_PATTERN records.",
+      "owner": "MATHMON",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-FCL-003",
+        "VTE-LRN-004",
+        "CD-STR-020"
+      ],
+      "externalPrerequisite": "CD-STR-020",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 360,
+      "sourceWave": "W10",
+      "dependencyDepthLowerBound": 11,
+      "unavailablePromptReferences": [
+        "CD-STR-020"
+      ]
+    },
+    {
+      "id": "VTE-LRN-006",
+      "instruction": "Measure recurrence of the target failure mode on held-out cases before and after adoption; store the effect with its sample size.",
+      "owner": "ATHENA",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-LRN-005",
+        "VTE-SPL-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 361,
+      "sourceWave": "W11",
+      "dependencyDepthLowerBound": 12,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-ANX-002",
+      "instruction": "Add a failure case view: lineage of failing and repair versions with verdicts and evidence hashes.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-FCL-002",
+        "CD-DSH-014"
+      ],
+      "externalPrerequisite": "CD-DSH-014",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 367,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": [
+        "CD-DSH-014"
+      ]
+    },
+    {
+      "id": "VTE-ANX-001",
+      "instruction": "Add a failure-mode heatmap (code × stage) and hotspot list to the Command Deck dashboard, reading rollups only.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-LRN-002",
+        "CD-DSH-008"
+      ],
+      "externalPrerequisite": "CD-DSH-008",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 368,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 9,
+      "unavailablePromptReferences": [
+        "CD-DSH-008"
+      ]
+    },
+    {
+      "id": "VTE-ANX-003",
+      "instruction": "Add a calibration panel per SPC with sample sizes and no combined score.",
+      "owner": "KLARITY",
+      "priority": "P2",
+      "dependencies": [
+        "VTE-LRN-008"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 369,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 9,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-ANX-004",
+      "instruction": "Add a proposal queue for approvers with evidence links and decision history.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-LRN-004"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 370,
+      "sourceWave": "W10",
+      "dependencyDepthLowerBound": 11,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "VTE-EXE-001",
+      "instruction": "Add Stream E to export selection with the Deck's rules; run the held-out check on every dry run and refuse on any hit.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "VTE-STE-003",
+        "VTE-SPL-003",
+        "CD-KGL-005"
+      ],
+      "externalPrerequisite": "CD-KGL-005",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 376,
+      "sourceWave": "W11",
+      "dependencyDepthLowerBound": 12,
+      "unavailablePromptReferences": [
+        "CD-KGL-005"
+      ]
+    },
+    {
+      "id": "VTE-EXE-002",
+      "instruction": "Document Stream E columns, the split rule and the no-improvement-claim notice in the dataset card.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "VTE-EXE-001",
+        "CD-KGL-008"
+      ],
+      "externalPrerequisite": "CD-KGL-008",
+      "source": "attached_assets/VTE_PDD_v1_0_1792081065810.md",
+      "sourceLine": 377,
+      "sourceWave": "W12",
+      "dependencyDepthLowerBound": 13,
+      "unavailablePromptReferences": [
+        "CD-KGL-008"
+      ]
+    },
+    {
+      "id": "SS-GOV-001",
+      "instruction": "Register who may answer each SC gate for a project (owner and delegates); reuse the XVL approver registry.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-GOV-001"
+      ],
+      "externalPrerequisite": "XVL-GOV-001",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 327,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-GOV-002",
+      "instruction": "Write an audit event for every gate answer, withdrawal, pack result and promotion.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "CD audit log",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 328,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-TRC-001",
+      "instruction": "Add SKIPPED\\_BY\\_SC to the stage status enum, with circuit and reason fields.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [
+        "CD-TRC-001"
+      ],
+      "externalPrerequisite": "CD-TRC-001",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 334,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": [
+        "CD-TRC-001"
+      ]
+    },
+    {
+      "id": "SS-TRC-002",
+      "instruction": "Add sc\\_gate\\_decision, sc\\_pack\\_result and sc\\_promotion to the trace contract and capture map; reject unknown values.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "SS-TRC-001",
+        "CD-TRC-006"
+      ],
+      "externalPrerequisite": "CD-TRC-006",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 335,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": [
+        "CD-TRC-006"
+      ]
+    },
+    {
+      "id": "SS-TRC-004",
+      "instruction": "Route SC ONE captures to Stream B and SC TWO captures to Stream A through the existing consent check and GRO gate.",
+      "owner": "HIVE",
+      "priority": "P1",
+      "dependencies": [
+        "SS-TRC-002",
+        "CD-GOV-006"
+      ],
+      "externalPrerequisite": "CD-GOV-006",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 336,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": [
+        "CD-GOV-006"
+      ]
+    },
+    {
+      "id": "SS-RTE-001",
+      "instruction": "Define the three routes (SC ONE, SC TWO, full) and the firmware branch as a stage graph with no path that skips F9.5 or F10–F12.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [
+        "UPG-STG-001"
+      ],
+      "externalPrerequisite": "UPG-STG-001",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 363,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-ELG-001",
+      "instruction": "Write the SC ONE eligibility rules: at most 3 prompts, 1 tool, 90 minutes, Interface Contract present, no codebase, no open CRITICAL.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "CELL MA-001, MA-002",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 343,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-ELG-002",
+      "instruction": "Write the SC TWO eligibility rules: F2-certified prompts, valid JSON I/O contracts, host-deployable by configuration, single agent, no open CRITICAL.",
+      "owner": "MATHMON",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "SPEC BUILDER v9.1",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 344,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-ELG-003",
+      "instruction": "Evaluate eligibility from certified stage outputs and store each rule result with its hash.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "SS-ELG-001",
+        "SS-ELG-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 345,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-GATE-001",
+      "instruction": "Open the SC ONE gate when F4 is certified and ask the exact SC ONE question.",
+      "owner": "ARK HARNESS",
+      "priority": "P0",
+      "dependencies": [
+        "SS-ELG-003",
+        "SS-GOV-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 353,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-GATE-002",
+      "instruction": "Open the SC TWO gate when F5 is certified and ask the exact SC TWO question.",
+      "owner": "ARK HARNESS",
+      "priority": "P0",
+      "dependencies": [
+        "SS-ELG-003",
+        "SS-GOV-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 354,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-ELG-005",
+      "instruction": "Write a plain-language reason and a fix for every failed eligibility rule.",
+      "owner": "KLARITY",
+      "priority": "P0↑",
+      "dependencies": [
+        "SS-ELG-003"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 347,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-GATE-003",
+      "instruction": "Show the gate screen: eligibility by rule, what ships, stages skipped, tracks to run, target.",
+      "owner": "KLARITY",
+      "priority": "P0",
+      "dependencies": [
+        "SS-GATE-001",
+        "SS-GATE-002",
+        "SS-ELG-005"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 355,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-GATE-004",
+      "instruction": "Record YES, NO or DEFERRED with owner, time, reason and eligibility hash; disable YES when ineligible.",
+      "owner": "ARK HARNESS",
+      "priority": "P0",
+      "dependencies": [
+        "SS-GATE-003",
+        "SS-TRC-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 356,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-RTE-002",
+      "instruction": "Set the route from the gate answer and the target type.",
+      "owner": "ARK HARNESS",
+      "priority": "P0",
+      "dependencies": [
+        "SS-RTE-001",
+        "SS-GATE-004"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 364,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-TRC-003",
+      "instruction": "Write SKIPPED\\_BY\\_SC for every stage a circuit bypasses at the moment the route is set.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "SS-TRC-002",
+        "SS-RTE-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 337,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-ELG-004",
+      "instruction": "Allow the Regulated profile on a short circuit only when Tracks H and C are added.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "SS-ELG-003",
+        "XVL-SEL-001"
+      ],
+      "externalPrerequisite": "XVL-SEL-001",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 346,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-GATE-005",
+      "instruction": "Let the owner withdraw YES before F10 starts and resume the full path at the next stage.",
+      "owner": "ARK HARNESS",
+      "priority": "P1",
+      "dependencies": [
+        "SS-GATE-004"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 357,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SCV-001",
+      "instruction": "Define the SC ONE and SC TWO pack contents, tracks and minimum independence (I1 for E and R).",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "XVL-TRK-002"
+      ],
+      "externalPrerequisite": "XVL-TRK-002",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 382,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SCV-002",
+      "instruction": "Run unit, trajectory and contract-conformance tests on the evalset through Track E.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "SS-SCV-001",
+        "XVL-TRK-003"
+      ],
+      "externalPrerequisite": "XVL-TRK-003",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 383,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SCV-003",
+      "instruction": "Run LYSOSOME stress on invalid input, missing credential and boundary overflow.",
+      "owner": "CELL",
+      "priority": "P0",
+      "dependencies": [
+        "SS-SCV-001"
+      ],
+      "externalPrerequisite": "CELL LYSOSOME",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 384,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SCV-004",
+      "instruction": "Run Track R injection and poisoned-premise probes.",
+      "owner": "BUGMXT",
+      "priority": "P0",
+      "dependencies": [
+        "SS-SCV-001",
+        "XVL-TRK-005"
+      ],
+      "externalPrerequisite": "XVL-TRK-005; XVL v1.1",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 385,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SCV-005",
+      "instruction": "Run fail-closed probes: tool failure, timeout and credential loss must end safely.",
+      "owner": "BUGMXT",
+      "priority": "P0",
+      "dependencies": [
+        "SS-SCV-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 386,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SCV-006",
+      "instruction": "Run Track J cross-model judging for SC TWO open-ended outputs.",
+      "owner": "HIVE",
+      "priority": "P0↑",
+      "dependencies": [
+        "SS-SCV-001"
+      ],
+      "externalPrerequisite": "XVL Track J",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 387,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SCV-007",
+      "instruction": "Write a minimal custody record: hashes of shipped files, versions, approver.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "SS-SCV-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 388,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SASS-001",
+      "instruction": "Define the 15-field Standalone Agent Spec Sheet schema and its mapping from SPC sections.",
+      "owner": "CORDON",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 373,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SASS-002",
+      "instruction": "Generate the SASS from a certified SPC, filling owner fields from the gate screen.",
+      "owner": "CORDON",
+      "priority": "P0",
+      "dependencies": [
+        "SS-SASS-001"
+      ],
+      "externalPrerequisite": "SPEC BUILDER v9.1",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 374,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SASS-003",
+      "instruction": "Check that every SASS field matches its SPC source; any mismatch fails the pack.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "SS-SASS-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 375,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SCV-008",
+      "instruction": "Combine checks into PASS, FAIL or INCONCLUSIVE; refuse PASS on I0-only evidence; write sc\\_pack\\_result.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "SS-SCV-002",
+        "SS-SCV-003",
+        "SS-SCV-004",
+        "SS-SCV-005",
+        "SS-SCV-006",
+        "SS-SCV-007",
+        "SS-SASS-003",
+        "SS-ELG-004"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 389,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-RTE-003",
+      "instruction": "Send a passed pack to F9 MECHA for a firmware target, otherwise to F9.5 OSIRIS.",
+      "owner": "ARK HARNESS",
+      "priority": "P0",
+      "dependencies": [
+        "SS-RTE-002",
+        "SS-SCV-008"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 365,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-RTE-004",
+      "instruction": "Refuse a short-route firmware job when required evidence is missing and return it to the full path.",
+      "owner": "MECHA",
+      "priority": "P0",
+      "dependencies": [
+        "SS-RTE-003"
+      ],
+      "externalPrerequisite": "MECHA phase 1",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 366,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-RTE-005",
+      "instruction": "Run F9.5 custody on every short-route product: verify the pack custody record, seal shipped files and versions, sign the chain before F10.",
+      "owner": "OSIRIS",
+      "priority": "P0",
+      "dependencies": [
+        "SS-RTE-003",
+        "SS-SCV-007"
+      ],
+      "externalPrerequisite": "F9.5 OSIRIS",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 367,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SASS-004",
+      "instruction": "Write the promotion notes field: what a full PDD would add for this agent.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "SS-SASS-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 376,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SCV-009",
+      "instruction": "On FAIL, return the project to the owning stage and open a VTE failure case.",
+      "owner": "HIVE",
+      "priority": "P0",
+      "dependencies": [
+        "SS-SCV-008",
+        "VTE-FCL-001"
+      ],
+      "externalPrerequisite": "VTE-FCL-001",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 390,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-SCV-010",
+      "instruction": "Issue the certificate with the circuit and XVL conformity state; never list skipped stages as passed.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "SS-SCV-008"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 391,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-PRM-001",
+      "instruction": "Approve promotion of a short-route product into the full path.",
+      "owner": "SPHINX",
+      "priority": "P1",
+      "dependencies": [
+        "SS-RTE-001",
+        "SS-TRC-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 397,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-PRM-002",
+      "instruction": "Re-enter at F5 from SC ONE or F6 from SC TWO with parent\\_trace\\_id and the earlier outputs as inputs.",
+      "owner": "ARK HARNESS",
+      "priority": "P1",
+      "dependencies": [
+        "SS-PRM-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 398,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-PRM-003",
+      "instruction": "Keep the short-route version live in F12 until the promoted version is released.",
+      "owner": "HOST DJ",
+      "priority": "P1",
+      "dependencies": [
+        "SS-PRM-002"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 399,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-OUT-001",
+      "instruction": "Split cycle time, first-pass pack rate, change failure rate and incidents by circuit.",
+      "owner": "ATHENA",
+      "priority": "P1",
+      "dependencies": [
+        "SS-TRC-002",
+        "UPG-OUT-003"
+      ],
+      "externalPrerequisite": "UPG-OUT-003",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 405,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-OUT-002",
+      "instruction": "Add a circuit filter to the Command Deck outcomes panel, with sample sizes on every figure.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "SS-OUT-001",
+        "UPG-OUT-006"
+      ],
+      "externalPrerequisite": "UPG-OUT-006",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 406,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "SS-OUT-003",
+      "instruction": "Produce the review report after the first 30 short-circuit releases.",
+      "owner": "ATHENA",
+      "priority": "P2",
+      "dependencies": [
+        "SS-OUT-001"
+      ],
+      "externalPrerequisite": "—",
+      "source": "attached_assets/SHORT_SPRINTS_PDD_v1_1_1792081065809.md",
+      "sourceLine": 407,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SRC-001",
+      "instruction": "Define the publishable\\_source contract: source\\_id, artifact\\_type (MA, MICRO\\_PDD, SPC, PDD, MVP\\_PDD, LIVING\\_PDD, F0\\_SERVICE\\_OUTPUT, SPC\\_PLAYER\\_OUTPUT), origin\\_stage, version\\_hash, project\\_id, author\\_ref, title, body\\_ref, saved\\_at. Reject any field outside the enums.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 480,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SRC-002",
+      "instruction": "Define the Canonical Document Model (CDM) JSON schema: ordered blocks of heading, paragraph, list, table, callout, code, figure, worksheet\\_row and metadata; each block carries a protected flag.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 481,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SRC-003",
+      "instruction": "Accept a publish request only for a saved artifact with a version\\_hash; snapshot that exact version so later edits never change a document in flight.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SRC-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 482,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SRC-004",
+      "instruction": "Build the F3 CELL Micro Agent adapter: map the five-section Birth Package and its Interface Contract into CDM blocks.",
+      "owner": "ADA",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-SRC-002",
+        "IMP-SRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 483,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SRC-005",
+      "instruction": "Build the F4 Micro PDD adapter: map the Cheat Sheet, Worksheet and Contract into CDM blocks.",
+      "owner": "ADA",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-SRC-002",
+        "IMP-SRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 484,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SRC-006",
+      "instruction": "Build the F5 SPC adapter: map the 15-section Super Prompt Card into CDM blocks, keeping the 7-pillar fields as tables.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SRC-002",
+        "IMP-SRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 485,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SRC-007",
+      "instruction": "Build the F6 ATLAS PDD adapter for both the 4-Part and the 12-Part (Parts 0–11) layouts; map worksheet rows to worksheet\\_row blocks with their priority.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SRC-002",
+        "IMP-SRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 486,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SRC-008",
+      "instruction": "Build the F7 MVP PDD adapter: map the SPARTAN MVP-PDD and carry its public verification URL and certification ID as metadata, never as body text that KLARITY may edit.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SRC-002",
+        "IMP-SRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 487,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SRC-009",
+      "instruction": "Build the Living PDD adapter: publish a dated snapshot of the Living PDD at its current version hash and label the document 'Snapshot as of &lt;date-time&gt;'.",
+      "owner": "ADA",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-SRC-002",
+        "IMP-SRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 488,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SRC-010",
+      "instruction": "Build the F0 business-service adapter: map advisory, intake and diagnostic outputs into CDM blocks, tagging them as service output rather than certified artifacts.",
+      "owner": "ADA",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-SRC-002",
+        "IMP-SRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 489,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SRC-011",
+      "instruction": "Build the SPC Player adapter: map a saved SPC Player session output into CDM blocks with the playing SPC's name and version as metadata.",
+      "owner": "ADA",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-SRC-002",
+        "IMP-SRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 490,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-NAM-001",
+      "instruction": "Define the naming rule: &lt;Title&gt;\\_\\_&lt;Date-Time&gt;\\_\\_&lt;Project&gt;\\_\\_&lt;Author&gt;\\_\\_&lt;FORMAT&gt;.&lt;ext&gt;, five tokens in this fixed order, joined by a double underscore.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 498,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-NAM-002",
+      "instruction": "Build the Title token from the artifact title: transliterate to ASCII, replace spaces and punctuation with hyphens, collapse repeats, cap at 60 characters. An empty title blocks publishing.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-NAM-001",
+        "IMP-SRC-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 499,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-NAM-003",
+      "instruction": "Build the Date-Time token at the moment rendering completes: YYYYMMDD-HHMM plus the time-zone abbreviation of the publisher's profile (default America/Chicago, e.g. 20261012-1434CDT).",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-NAM-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 500,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-NAM-004",
+      "instruction": "Build the Project token from the ACC project record. A publish request with no project is blocked until the user picks one.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-NAM-001",
+        "IMP-SRC-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 501,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-NAM-005",
+      "instruction": "Build the Author token from the accountable human author (the signed-in publisher or the artifact's named Principal). Never use an SPC, an agent or a model name as the author.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-NAM-001",
+        "IMP-SRC-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 502,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-NAM-006",
+      "instruction": "Build the Format token (DOCX, PDF or HTML) and the matching lower-case extension; one filename per format.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-NAM-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 503,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-NAM-007",
+      "instruction": "Assemble the filename, enforce a 180-character limit by shortening only the Title token, and append -02, -03 on a same-minute collision.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-NAM-002",
+        "IMP-NAM-003",
+        "IMP-NAM-004",
+        "IMP-NAM-005",
+        "IMP-NAM-006"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 504,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SKR-001",
+      "instruction": "Define the house design tokens: Navy #1B2A4A, Deep Navy #0D1B40, Gold #C9A227, Teal #1F6F6B; Cambria headings, Calibri body; margins, header and footer.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 540,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SKR-003",
+      "instruction": "Build the title block: the five naming fields, production ID, status, Tier, JCSE line and confidentiality marking.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SKR-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 542,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-NAM-008",
+      "instruction": "Write the same five fields into the document: the title block, DOCX core properties, PDF document info and HTML meta tags.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-NAM-007",
+        "IMP-SKR-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 505,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-KLR-001",
+      "instruction": "Offer four audience profiles (Executive, Technical, Client, Public), each with a target reading level, and store the choice on the publish job.",
+      "owner": "KLARITY",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 513,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-KLR-002",
+      "instruction": "Mark protected spans before any edit: IDs, production IDs, numbers, scores, code, worksheet prompt text, quotes, legal text and verification URLs.",
+      "owner": "KLARITY",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SRC-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 514,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-KLR-003",
+      "instruction": "Run the plain-language pass on unprotected prose only, to the chosen reading level.",
+      "owner": "KLARITY",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-KLR-001",
+        "IMP-KLR-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 515,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-KLR-004",
+      "instruction": "Build or extend the Definition of Terms from terms actually used in the document; keep an existing glossary's wording and add only missing terms.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-KLR-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 516,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-KLR-005",
+      "instruction": "Add a one-page summary only when the artifact has none, and label it 'Summary added by KLARITY'.",
+      "owner": "KLARITY",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-KLR-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 517,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SOC-001",
+      "instruction": "Extract every status claim (built, tested, certified, compliant, audited, production-ready) and every figure from the CDM.",
+      "owner": "SOCRATES",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SRC-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 527,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SOC-002",
+      "instruction": "Apply the Honesty Gate (G3): flag any status claim without an evidence tag, and any JCSE score not marked self-assigned.",
+      "owner": "SOCRATES",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SOC-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 528,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SOC-003",
+      "instruction": "Check internal consistency: counts against tables, scales against each other (for example a JST scale stated two ways), IDs and dates.",
+      "owner": "SOCRATES",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SOC-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 529,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SOC-006",
+      "instruction": "Never edit content. SOCRATES only flags and asks; edits come from the author or KLARITY.",
+      "owner": "SOCRATES",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 532,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SOC-005",
+      "instruction": "Issue a verdict: CLEAR, CLEAR\\_WITH\\_NOTES or HOLD. HOLD blocks a Final publish until a named human resolves or overrides it with a written reason.",
+      "owner": "SOCRATES",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SOC-002",
+        "IMP-SOC-003",
+        "IMP-SOC-006"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 531,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-KLR-006",
+      "instruction": "Report Clarity, Truthfulness and Detectability as three separate figures (KLARITY-003). A check that was not run shows 'not run', never zero and never an estimate.",
+      "owner": "KLARITY",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-KLR-003",
+        "IMP-SOC-005"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 518,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-KLR-007",
+      "instruction": "Produce a change report: every edited sentence shown before and after, for the human reviewer.",
+      "owner": "KLARITY",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-KLR-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 519,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SOC-004",
+      "instruction": "Ask the author up to five dialectic questions on the weakest assumptions and attach them to the Publication Review Note.",
+      "owner": "SOCRATES",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-SOC-002",
+        "IMP-SOC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 530,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SKR-002",
+      "instruction": "Define one layout template per artifact type (eight templates), mapping CDM blocks to page styles.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SKR-001",
+        "IMP-SRC-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 541,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SKR-004",
+      "instruction": "Colour-code worksheet priorities in the MAX palette: P0 red, P1 amber, P2 blue, P3 grey.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SKR-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 543,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SKR-005",
+      "instruction": "Generate the table of contents and running header (title and production ID) and footer (page X of Y).",
+      "owner": "SKRIBE",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-SKR-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 544,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SKR-006",
+      "instruction": "Switch wide worksheet tables to landscape sections (15840 × 12240 twips, 14400 DXA content width).",
+      "owner": "SKRIBE",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-SKR-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 545,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SKR-007",
+      "instruction": "Print the disclosure footer on the last page: AI editorial team, human approver, Tier and 'AI-drafted; requires human review' when applicable.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SKR-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 546,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-RND-001",
+      "instruction": "Render DOCX from the CDM and the template with the Node.js docx library, following house rules: ShadingType.CLEAR fills, column widths summing to the content width, PageBreak inside a Paragraph.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SKR-002",
+        "IMP-SKR-004",
+        "IMP-KLR-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 555,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-RND-002",
+      "instruction": "Render PDF from the DOCX through LibreOffice headless so both formats share one layout; export tagged PDF.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-RND-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 556,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-RND-003",
+      "instruction": "Render HTML as one self-contained file with inline CSS, light and dark themes, phone-width layout and a print stylesheet.",
+      "owner": "ADA",
+      "priority": "P0↑",
+      "dependencies": [
+        "IMP-SKR-002",
+        "IMP-KLR-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 557,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-RND-004",
+      "instruction": "Compute a content hash from the CDM text and record it on every format, so DOCX, PDF and HTML can be proven to carry the same content.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-RND-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 558,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-RND-005",
+      "instruction": "Validate each file: DOCX through validate.py, PDF pages rasterised with pdftoppm for a thumbnail check, HTML through a validator and link check.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-RND-002",
+        "IMP-RND-003",
+        "IMP-RND-004"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 559,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-SKR-008",
+      "instruction": "Score the rendered layout on SKRIBE's five dimensions (/50). Below 38 blocks; 38–42 triggers one revision cycle; 43 or above may proceed. Shown separately from KLARITY's three figures.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-RND-005"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 547,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-RND-006",
+      "instruction": "Run the accessibility pass: heading order, alt text, text contrast of at least 4.5:1 and document language, targeting WCAG 2.2 AA.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-RND-005"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 560,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-UIX-001",
+      "instruction": "Configure which stages show PUBLISH DOCUMENT: F0, F3, F4, F5, F6, F7, Living PDD view (F9.5), F10 and the SPC Player. Hidden at F1, F2, F8, F9 and F11 by default.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SRC-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 568,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-UIX-002",
+      "instruction": "Enable the button only when the artifact is saved; otherwise show it disabled with the reason 'Save the artifact to publish it'.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-UIX-001",
+        "IMP-SRC-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 569,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-UIX-003",
+      "instruction": "Build the publish dialog: format checkboxes (DOCX, PDF, HTML), audience profile, Draft or Final, and a live preview of each filename.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-UIX-002",
+        "IMP-NAM-007",
+        "IMP-KLR-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 570,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-UIX-004",
+      "instruction": "Show job progress: QUEUED, NORMALISING, CLARIFYING, INTERROGATING, RENDERING, VALIDATING, AWAITING\\_APPROVAL, then PUBLISHED, HELD or FAILED.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-UIX-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 571,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-UIX-005",
+      "instruction": "Build the review panel: page thumbnails, KLARITY change report, SOCRATES notes and verdict, SKRIBE design score and the three KLARITY figures.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-UIX-004",
+        "IMP-KLR-007",
+        "IMP-SOC-005",
+        "IMP-SKR-008",
+        "IMP-KLR-006"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 572,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-GOV-001",
+      "instruction": "Require a named human approval for a Final publish. Draft publishes skip approval but carry a DRAFT watermark on every page.",
+      "owner": "SOCRATES",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SOC-005"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 596,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-UIX-006",
+      "instruction": "Add 'Approve and publish' for Final jobs, recording the approver's name and time.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-UIX-005",
+        "IMP-GOV-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 573,
+      "sourceWave": "W9",
+      "dependencyDepthLowerBound": 9,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-PUB-001",
+      "instruction": "Create the document\\_library record: doc\\_id, production ID, the five naming fields, source\\_id and version\\_hash, formats, content hash, scores, verdict and approver.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-NAM-008",
+        "IMP-RND-004"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 582,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-UIX-007",
+      "instruction": "List publish history on each artifact: version, formats, date-time, approver and download links.",
+      "owner": "ADA",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-PUB-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 574,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-PUB-002",
+      "instruction": "Inherit the source artifact's production ID when it has one; otherwise assign JNGL-DOC-&lt;TYPE&gt;-&lt;YEAR&gt;-&lt;NNN&gt;.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-PUB-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 583,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-PUB-003",
+      "instruction": "Store files encrypted at rest and private by default; sharing is an explicit action.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-PUB-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 584,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-PUB-004",
+      "instruction": "Serve downloads through signed links that expire.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-PUB-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 585,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-PUB-005",
+      "instruction": "Make every re-publish a new version linked to the one it supersedes; never overwrite a published file.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-PUB-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 586,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-PUB-006",
+      "instruction": "Hand published files to F10 export and F11 Host Connector destinations (for example Google Drive or SharePoint) when the connector is configured.",
+      "owner": "ADA",
+      "priority": "P2",
+      "dependencies": [
+        "IMP-PUB-004",
+        "IMP-GOV-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 587,
+      "sourceWave": "W9",
+      "dependencyDepthLowerBound": 9,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-PUB-007",
+      "instruction": "Emit a document\\_published trace event to Command Deck MAX with the origin stage, identifiers and hashes only, never the body.",
+      "owner": "ADA",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-PUB-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 588,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-GOV-002",
+      "instruction": "Write an audit event for each job state change: actor, action, time, source version hash and content hash.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 597,
+      "sourceWave": "W1",
+      "dependencyDepthLowerBound": 1,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-GOV-003",
+      "instruction": "Bind GRO states: LIFE by default; SAFE\\_LIFE for legal, financial and health content (adds a not-advice notice and requires approval even for Draft); CONTAINMENT when a scan finds secrets.",
+      "owner": "SOCRATES",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-GOV-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 598,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-GOV-004",
+      "instruction": "Scan the CDM for secrets (API keys, tokens, connection strings) and personal data before rendering; secrets hold the job, personal data is flagged for the reviewer.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SRC-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 599,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-GOV-005",
+      "instruction": "Default every document to 'Confidential — Internal'; changing the marking is an explicit, logged choice.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SKR-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 600,
+      "sourceWave": "W3",
+      "dependencyDepthLowerBound": 3,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-GOV-006",
+      "instruction": "Enforce row-level security on document\\_library by organisation and project.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-PUB-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 601,
+      "sourceWave": "W7",
+      "dependencyDepthLowerBound": 7,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-GOV-007",
+      "instruction": "Pass artifact text to the KLARITY and SOCRATES model calls as delimited data with no tool access, so instructions inside an artifact are never followed.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SRC-002"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 602,
+      "sourceWave": "W2",
+      "dependencyDepthLowerBound": 2,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-QAL-001",
+      "instruction": "Golden set, Release 1: publish one saved SPC, ATLAS PDD and MVP PDD in DOCX, PDF and HTML and compare against reviewed reference files.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-RND-006",
+        "IMP-PUB-001",
+        "IMP-SRC-006",
+        "IMP-SRC-007",
+        "IMP-SRC-008"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 610,
+      "sourceWave": "W8",
+      "dependencyDepthLowerBound": 8,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-QAL-007",
+      "instruction": "Golden set, Release 2: publish one saved MA, Micro PDD, Living PDD, F0 service output and SPC Player output in all three formats and compare against reviewed reference files.",
+      "owner": "ADA",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-QAL-001",
+        "IMP-RND-003",
+        "IMP-SRC-004",
+        "IMP-SRC-005",
+        "IMP-SRC-009",
+        "IMP-SRC-010",
+        "IMP-SRC-011"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 611,
+      "sourceWave": "W9",
+      "dependencyDepthLowerBound": 9,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-QAL-002",
+      "instruction": "Naming test: every produced filename matches the five-token pattern and its metadata matches its filename.",
+      "owner": "SKRIBE",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-NAM-008"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 612,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-QAL-003",
+      "instruction": "Parity test: DOCX, PDF and HTML of one job carry the same content hash.",
+      "owner": "ADA",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-RND-004",
+        "IMP-RND-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 613,
+      "sourceWave": "W6",
+      "dependencyDepthLowerBound": 6,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-QAL-004",
+      "instruction": "Protected-span test: after the clarity pass, every ID, number, score, quote and code block is byte-identical to the source.",
+      "owner": "KLARITY",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-KLR-003"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 614,
+      "sourceWave": "W4",
+      "dependencyDepthLowerBound": 4,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-QAL-005",
+      "instruction": "Seeded-claim test: an artifact containing 'FORGE Certified' with no evidence tag must receive HOLD.",
+      "owner": "SOCRATES",
+      "priority": "P0",
+      "dependencies": [
+        "IMP-SOC-005"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 615,
+      "sourceWave": "W5",
+      "dependencyDepthLowerBound": 5,
+      "unavailablePromptReferences": []
+    },
+    {
+      "id": "IMP-QAL-006",
+      "instruction": "Run a BUGMXT scan of the engine before each release; no open critical defect may ship.",
+      "owner": "ADA",
+      "priority": "P1",
+      "dependencies": [
+        "IMP-QAL-001"
+      ],
+      "externalPrerequisite": "",
+      "source": "attached_assets/IMPRIMA_Upgrade_PDD_v1_1_1792081065811.md",
+      "sourceLine": 616,
+      "sourceWave": "W9",
+      "dependencyDepthLowerBound": 9,
+      "unavailablePromptReferences": []
+    }
+  ],
+  "unresolvedPromptReferences": [
+    "CD-ANL-008",
+    "CD-CNS-007",
+    "CD-CNS-011",
+    "CD-DSH-005",
+    "CD-DSH-008",
+    "CD-DSH-014",
+    "CD-GOV-006",
+    "CD-INF-011",
+    "CD-KGL-005",
+    "CD-KGL-008",
+    "CD-SEC-004",
+    "CD-STR-020",
+    "CD-TRC-001",
+    "CD-TRC-004",
+    "CD-TRC-006",
+    "CD-XMP-003",
+    "CD-XMP-006",
+    "CD-ZPS-003"
+  ]
+}

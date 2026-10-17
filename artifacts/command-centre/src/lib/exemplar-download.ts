@@ -2,7 +2,7 @@ import { buildArtifactFilename } from "@workspace/artifact-naming";
 
 export type ExemplarDownloadInput = {
   id: string;
-  kind: "SPC" | "PDD" | "MA" | "MPDD";
+  kind: "SPC" | "PDD" | "MA" | "MPDD" | "F0_REPORT";
   title: string;
 };
 

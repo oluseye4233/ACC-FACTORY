@@ -47,7 +47,7 @@ export function SpcPlayerAdvisoryPrompt({ dismissKey, sessionId }: Props) {
           Want to test capability combinations before committing them to the forge? Assemble a Kit Deck of up to 12 SPCs and execute a dry run. This side-step does not advance F-stages or consume your primary artifact.
         </p>
         <Link
-          href={`/spc-player/new?sourceSessionId=${sessionId}`}
+          href={`/spc-player/new?sourceSessionId=${encodeURIComponent(sessionId)}&originFeatureId=5`}
           className="mt-2 inline-block font-mono text-[11px] font-bold text-primary underline hover:opacity-80"
           data-testid="spc-player-advisory-link"
         >

@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import {
   db,
+  exemplarLibraryItemsTable,
   f0EngagementsTable,
   f0MonitoringRunsTable,
   f0ReportsTable,
@@ -463,18 +464,41 @@ export async function handleF0GenerateReportStream(req: Request, res: Response):
 
   // Persist to the F0 reports table (never a harness artifact). Persist even if
   // the client disconnected — the ensemble work is done and cost was recorded.
-  const reportRows = await db
-    .insert(f0ReportsTable)
-    .values({
-      engagementId: engagement.id,
-      userId: engagement.userId,
-      service,
-      reportCode: reportCodeRow.reportCode,
-      sku,
-      content: out,
-    })
-    .returning();
-  const report = reportRows[0]!;
+  const report = await db.transaction(async (tx) => {
+    const [inserted] = await tx
+      .insert(f0ReportsTable)
+      .values({
+        engagementId: engagement.id,
+        userId: engagement.userId,
+        service,
+        reportCode: reportCodeRow.reportCode,
+        sku,
+        content: out,
+      })
+      .returning();
+    if (!inserted) throw new Error("F0 report insert returned no row");
+
+    // Reports remain outside the HARNESS artifact/certification pipeline. The
+    // Exemplar Library stores an advisory snapshot with its original report ID.
+    await tx.insert(exemplarLibraryItemsTable).values({
+      ownerUserId: engagement.userId,
+      sourceF0ReportId: inserted.id,
+      kind: "F0_REPORT",
+      title: `${service.replaceAll("_", " ")} Advisory Report`.slice(0, 255),
+      tagline: "F0 advisory input · not a production-floor certification",
+      body: JSON.stringify(inserted.content, null, 2),
+      artifactSnapshot: {
+        reportId: inserted.id,
+        reportCode: inserted.reportCode,
+        service: inserted.service,
+        sku: inserted.sku,
+        engagementId: engagement.id,
+        advisoryOnly: true,
+        certification: false,
+      },
+    });
+    return inserted;
+  });
 
   // Advance the engagement out of DISCOVERY once real analysis exists.
   if (engagement.status === "DISCOVERY") {

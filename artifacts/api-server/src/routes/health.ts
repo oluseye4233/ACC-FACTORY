@@ -1,25 +1,28 @@
 import { Router, type IRouter } from "express";
-import { sql } from "drizzle-orm";
-import { db } from "@workspace/db";
+import { getLaunchReadiness, probeDatabase, hasConfiguredAi } from "../lib/launch-readiness";
 
 const router: IRouter = Router();
+
+router.get("/launch-readiness", async (_req, res): Promise<void> => {
+  res.setHeader("Cache-Control", "no-store");
+  res.json(await getLaunchReadiness());
+});
+
+router.get("/readyz", async (_req, res): Promise<void> => {
+  const readiness = await getLaunchReadiness();
+  res.setHeader("Cache-Control", "no-store");
+  res.status(readiness.buildReady ? 200 : 503).json(readiness);
+});
 
 router.get("/healthz", (_req, res): void => {
   res.json({ status: "ok" });
 });
 
 router.get("/health", async (_req, res): Promise<void> => {
-  let dbStatus: "ok" | "error" = "ok";
-  try {
-    await db.execute(sql`select 1`);
-  } catch {
-    dbStatus = "error";
-  }
+  const dbStatus = (await probeDatabase()).database === "available" ? "ok" : "error";
   // Engines can reach Claude via either (a) a direct Anthropic key, or
   // (b) the Replit AI Integrations proxy (preferred in production).
-  const hasLlm =
-    !!process.env.ANTHROPIC_API_KEY ||
-    (!!process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY && !!process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL);
+  const hasLlm = hasConfiguredAi();
   const engines: "ok" | "degraded" = hasLlm ? "ok" : "degraded";
   res.json({
     status: dbStatus === "ok" ? "ok" : "degraded",

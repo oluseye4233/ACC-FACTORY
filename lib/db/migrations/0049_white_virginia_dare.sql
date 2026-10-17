@@ -1,0 +1,6 @@
+ALTER TABLE "vte_verification_failures" ALTER COLUMN "run_id" DROP NOT NULL;--> statement-breakpoint
+ALTER TABLE "vte_verification_failures" ADD COLUMN "sprint_run_id" uuid;--> statement-breakpoint
+ALTER TABLE "vte_verification_failures" ADD COLUMN "source_evidence_hash" text;--> statement-breakpoint
+ALTER TABLE "vte_verification_failures" ADD CONSTRAINT "vte_verification_failures_sprint_run_id_short_sprint_runs_id_fk" FOREIGN KEY ("sprint_run_id") REFERENCES "public"."short_sprint_runs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "vte_sprint_pack_unique" ON "vte_verification_failures" USING btree ("sprint_run_id","source_evidence_hash");--> statement-breakpoint
+ALTER TABLE "vte_verification_failures" ADD CONSTRAINT "vte_failure_one_source" CHECK (("vte_verification_failures"."run_id" IS NOT NULL AND "vte_verification_failures"."sprint_run_id" IS NULL) OR ("vte_verification_failures"."run_id" IS NULL AND "vte_verification_failures"."sprint_run_id" IS NOT NULL AND "vte_verification_failures"."source_evidence_hash" IS NOT NULL));

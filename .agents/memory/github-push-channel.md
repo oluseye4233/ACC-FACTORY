@@ -3,10 +3,28 @@ name: F8 CODE DJ → GitHub push channel
 description: Durable decisions behind the F8 "push codebase to GitHub / Open in Replit" live handoff.
 ---
 
-The F8 CODE DJ live handoff pushes a generated codebase to a new GitHub repo
-(and surfaces an "Open in Replit" import URL `https://replit.com/github/<owner>/<repo>`).
+The legacy F8 CODE DJ push API remains available, but the current Command Deck
+routes finalized verified code through F10 for GitHub and other delivery. The
+F8 UI does not expose a push action for unverified scaffolds.
 
-- **Reuse the client-side export generator, don't rebuild on the server.** The
+## Verified artifact immutability
+
+Never write a GitHub repository pointer or delivery metadata back into a
+`VERIFIED_CODEBASE_BUNDLE`'s `artifactContent`. F8 finalization creates a
+separate child whose content and evidence hashes identify the verified input;
+delivery history must be stored independently. The legacy direct push route may
+return the repository URL for the active request, but must leave the child
+unchanged. F10's export/push records are the canonical persistent delivery
+history.
+
+**Why:** Mutating the child after verification makes its stored content diverge
+from the content covered by the recorded hash and breaks its audit meaning.
+
+**How to apply:** Future F8 direct-push UI or API work must use a separate
+delivery relation/table (or F10's existing flow); never append GitHub metadata
+to the verified artifact JSON.
+
+- **If restoring the legacy F8 direct-push UI, reuse the client-side export generator.** The
   frontend calls `buildExportFiles(bundle, source, pfp)` (same fn the ZIP uses)
   and POSTs the resulting `Record<path,content>` map to
   `POST /api/integrations/github/push-codebase`. The server pushes those bytes

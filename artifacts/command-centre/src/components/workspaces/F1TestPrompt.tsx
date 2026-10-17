@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
+import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessF1,
+  useCreateF0Engagement,
   getListSessionArtifactsQueryKey,
   getListFeatureStateQueryKey,
   PromptDiagnostic,
@@ -39,11 +41,16 @@ export function F1TestPrompt({ sessionId, latest, artifacts }: Props) {
     [artifacts],
   );
   const qc = useQueryClient();
+  const [, setLocation] = useLocation();
   const [prompt, setPrompt] = useState("");
+  const [f0ReportId, setF0ReportId] = useState(
+    () => new URLSearchParams(window.location.search).get("f0ReportId") ?? "",
+  );
   const [result, setResult] = useState<PromptDiagnostic | undefined>(latest);
   const [error, setError] = useState<string | null>(null);
   const [providerOverride, setProviderOverride] =
     useState<OverrideValue>("session");
+  const f0Engagement = useCreateF0Engagement();
 
   const m = useHarnessF1({
     mutation: {
@@ -64,8 +71,36 @@ export function F1TestPrompt({ sessionId, latest, artifacts }: Props) {
     }
     setError(null);
     m.mutate({
-      data: { sessionId, prompt, ...overrideToBody(providerOverride) },
+      data: {
+        sessionId,
+        prompt,
+        ...(f0ReportId ? { f0ReportId } : {}),
+        ...overrideToBody(providerOverride),
+      },
     });
+  };
+
+  const onLaunchF0 = async () => {
+    if (
+      !window.confirm(
+        "Start an F0 advisory engagement for this session? F0 is advisory only: it cannot certify, promote, or change production-stage state.",
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    try {
+      const engagement = await f0Engagement.mutateAsync({
+        data: {
+          title: `F0 advisory · ${sessionId.slice(0, 8)}`,
+          sessionId,
+          ...(latestArtifact?.id ? { artifactId: latestArtifact.id } : {}),
+        },
+      });
+      setLocation(`/f0?engagementId=${encodeURIComponent(engagement.id)}`);
+    } catch (e) {
+      setError(extractApiError(e).message);
+    }
   };
 
   return (
@@ -85,6 +120,31 @@ export function F1TestPrompt({ sessionId, latest, artifacts }: Props) {
             placeholder="Paste your raw prompt here for ATLAS diagnostic..."
             className="flex-1 font-mono text-sm resize-none min-h-[280px] bg-background/50"
           />
+          {f0ReportId && (
+            <div
+              className="rounded border border-secondary/40 bg-secondary/5 p-3 font-mono text-[10px]"
+              data-testid="f1-f0-advisory-input"
+            >
+              <div className="font-bold text-secondary">F0 REPORT ATTACHED AS SUPPORTING INPUT</div>
+              <p className="mt-1 text-muted-foreground">
+                Report {f0ReportId.slice(0, 8)}… informs this analysis only; it is not a test result or certification.
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="mt-1 h-7 px-2 font-mono text-[10px]"
+                onClick={() => {
+                  setF0ReportId("");
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete("f0ReportId");
+                  window.history.replaceState({}, "", url);
+                }}
+              >
+                REMOVE REPORT INPUT
+              </Button>
+            </div>
+          )}
           {error && <ErrorBanner message={error} />}
           <div className="flex items-center gap-2">
             <ProviderOverride
@@ -102,6 +162,16 @@ export function F1TestPrompt({ sessionId, latest, artifacts }: Props) {
               {m.isPending ? "ANALYSING..." : "ANALYSE"}
             </Button>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="font-mono text-xs"
+            data-testid="f1-launch-f0"
+            disabled={f0Engagement.isPending}
+            onClick={onLaunchF0}
+          >
+            {f0Engagement.isPending ? "OPENING F0…" : "OPEN F0 ADVISORY"}
+          </Button>
         </Card>
 
         <div className="flex flex-col gap-4 min-h-0">

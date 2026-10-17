@@ -7,6 +7,8 @@ const apiHooks = vi.hoisted(() => ({
   useListSessions: vi.fn(),
   useHealthDeep: vi.fn(),
   useGetMyUsage: vi.fn(),
+  useGetLaunchReadiness: vi.fn(() => ({ data: undefined, isLoading: false, isError: false, isFetching: false, refetch: vi.fn() })),
+  getGetLaunchReadinessQueryKey: () => ["/api/launch-readiness"],
 }));
 
 vi.mock("@workspace/api-client-react", () => apiHooks);
@@ -141,6 +143,8 @@ describe("Command Deck", () => {
       ["Import Existing", "/ingest"],
       ["Open Library", "/exemplars"],
       ["View Quests", "/quests"],
+      ["F0 Advisory", "/f0"],
+      ["SPC Player", "/spc-player"],
     ] as const;
     for (const [label, href] of expectedRoutes) {
       expect(screen.getByRole("link", { name: new RegExp(label) }).getAttribute("href")).toBe(
@@ -230,7 +234,8 @@ describe("Command Deck", () => {
     expect(screen.getByTestId("automatic-refresh-status").textContent).toContain(
       "Refreshing metrics after returning to this tab…",
     );
-    expect(screen.getByRole("status").getAttribute("aria-live")).toBe("polite");
+    expect(screen.getByTestId("automatic-refresh-status").getAttribute("role")).toBe("status");
+    expect(screen.getByTestId("automatic-refresh-status").getAttribute("aria-live")).toBe("polite");
 
     await act(async () => {
       resolveSessions();
@@ -754,7 +759,8 @@ describe("Command Deck", () => {
 
     expect(screen.getByText("No sessions yet. Press BUILD SOMETHING to begin.")).toBeTruthy();
     expect(screen.getByText("SYSTEM")).toBeTruthy();
-    expect(screen.getAllByText("UNKNOWN")).toHaveLength(4);
+    // Four existing metric placeholders plus database and AI readiness.
+    expect(screen.getAllByText("UNKNOWN")).toHaveLength(6);
     expect(screen.getAllByText("—")).toHaveLength(2);
     expect(screen.queryByText("0 tok")).toBeNull();
   });

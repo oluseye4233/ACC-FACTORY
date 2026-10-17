@@ -8,12 +8,13 @@ import { z } from "zod/v4";
 import {
   db,
   exemplarLibraryItemsTable,
+  harnessSessionsTable,
   spcDevKitsTable,
   spcLibraryCardsTable,
   spcPlayerDraftRunsTable,
   spcPlayerRunsTable,
   spcPlayerWebhookAuthorizationsTable,
-    harnessArtifactsTable,
+  harnessArtifactsTable,
   type LlmProvider,
 } from "@workspace/db";
 import {
@@ -26,9 +27,11 @@ import {
   ExecuteSpcPlayerRunParams,
   GetSpcPlayerRunManifestParams,
   GetSpcPlayerRunParams,
+  ReturnSpcPlayerRunToStageBody,
 } from "@workspace/api-zod";
 import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { requireAuth } from "../lib/auth";
+import { captureArtifactPersisted } from "../lib/command-deck-capture";
 import {
   CostBudgetExceededError,
   getCostBudgetDenial,
@@ -338,6 +341,9 @@ function runResponse(row: DraftRow, execution?: ExecutionRow) {
     id: row.id,
     ownerUserId: row.ownerUserId,
     sourceArtifactId: row.sourceArtifactId,
+    originSessionId: row.originSessionId,
+    originFeatureId: row.originFeatureId,
+    returnedArtifactId: row.returnedArtifactId,
     title: row.title,
     brief: row.brief,
     selectedCardIds: row.selectedCardIds,
@@ -792,6 +798,30 @@ router.post(
     }
 
     let sourceArtifact: typeof harnessArtifactsTable.$inferSelect | undefined;
+    const originSessionId = parsed.data.originSessionId;
+    const originFeatureId = parsed.data.originFeatureId;
+    if (Boolean(originSessionId) !== (originFeatureId !== undefined)) {
+      res.status(400).json({
+        error: "originSessionId and originFeatureId must be provided together",
+      });
+      return;
+    }
+    if (originSessionId) {
+      const [originSession] = await db
+        .select({ id: harnessSessionsTable.id })
+        .from(harnessSessionsTable)
+        .where(
+          and(
+            eq(harnessSessionsTable.id, originSessionId),
+            eq(harnessSessionsTable.userId, req.localUser!.id),
+          ),
+        )
+        .limit(1);
+      if (!originSession) {
+        res.status(404).json({ error: "Origin session not found" });
+        return;
+      }
+    }
     if (parsed.data.sourceArtifactId) {
       [sourceArtifact] = await db
         .select()
@@ -807,6 +837,16 @@ router.post(
         res.status(404).json({ error: "Source artifact not found" });
         return;
       }
+      if (
+        originSessionId &&
+        (sourceArtifact.sessionId !== originSessionId ||
+          sourceArtifact.featureId !== originFeatureId)
+      ) {
+        res.status(409).json({
+          error: "The selected source artifact does not belong to the confirmed origin stage",
+        });
+        return;
+      }
     }
 
     const [run] = await db
@@ -814,6 +854,8 @@ router.post(
       .values({
         ownerUserId: req.localUser!.id,
         sourceArtifactId: parsed.data.sourceArtifactId ?? null,
+        originSessionId: originSessionId ?? null,
+        originFeatureId: originFeatureId ?? null,
         title: parsed.data.title,
         brief: parsed.data.brief,
         selectedCardIds,
@@ -842,6 +884,146 @@ router.get(
       return;
     }
     res.json(runResponse(owned.draft, owned.execution));
+  },
+);
+
+router.post(
+  "/spc-player/runs/:id/return",
+  requireAuth,
+  async (req, res): Promise<void> => {
+    const params = GetSpcPlayerRunParams.safeParse({ id: req.params.id });
+    if (!params.success) {
+      res.status(400).json({ error: "Invalid SPC Player run id" });
+      return;
+    }
+    const input = ReturnSpcPlayerRunToStageBody.safeParse(req.body ?? {});
+    if (!input.success || input.data.confirmReturn !== true) {
+      res.status(400).json({
+        error: "Explicit confirmation of the exact originating session and stage is required",
+      });
+      return;
+    }
+    const userId = req.localUser!.id;
+    const outcome = await db.transaction(async (tx) => {
+      const [draft] = await tx
+        .select()
+        .from(spcPlayerDraftRunsTable)
+        .where(
+          and(
+            eq(spcPlayerDraftRunsTable.id, params.data.id),
+            eq(spcPlayerDraftRunsTable.ownerUserId, userId),
+          ),
+        )
+        .for("update")
+        .limit(1);
+      if (!draft) return { errorStatus: 404 as const, error: "SPC Player run not found" };
+      if (
+        !draft.originSessionId ||
+        draft.originFeatureId === null ||
+        draft.originSessionId !== input.data.originSessionId ||
+        draft.originFeatureId !== input.data.originFeatureId
+      ) {
+        return {
+          errorStatus: 409 as const,
+          error: "The confirmed origin does not match this run",
+        };
+      }
+      const [session] = await tx
+        .select({ id: harnessSessionsTable.id })
+        .from(harnessSessionsTable)
+        .where(
+          and(
+            eq(harnessSessionsTable.id, draft.originSessionId),
+            eq(harnessSessionsTable.userId, userId),
+          ),
+        )
+        .limit(1);
+      if (!session) {
+        return { errorStatus: 404 as const, error: "Origin session not found" };
+      }
+      const [execution] = await tx
+        .select()
+        .from(spcPlayerRunsTable)
+        .where(
+          and(
+            eq(spcPlayerRunsTable.id, draft.id),
+            eq(spcPlayerRunsTable.userId, userId),
+          ),
+        )
+        .for("update")
+        .limit(1);
+      if (execution?.status !== "completed" || !execution.outputPackage) {
+        return {
+          errorStatus: 409 as const,
+          error: "Only a completed SPC Player package can be returned",
+        };
+      }
+
+      if (draft.returnedArtifactId) {
+        const [existingArtifact] = await tx
+          .select()
+          .from(harnessArtifactsTable)
+          .where(
+            and(
+              eq(harnessArtifactsTable.id, draft.returnedArtifactId),
+              eq(harnessArtifactsTable.userId, userId),
+            ),
+          )
+          .limit(1);
+        if (!existingArtifact) {
+          return {
+            errorStatus: 409 as const,
+            error: "The previously returned supporting artifact is no longer available",
+          };
+        }
+        return { draft, execution, artifact: existingArtifact };
+      }
+
+      const [artifact] = await tx
+        .insert(harnessArtifactsTable)
+        .values({
+          sessionId: draft.originSessionId,
+          userId,
+          featureId: draft.originFeatureId,
+          artifactType: "SPC_PLAYER_SUPPORT",
+          name: `${draft.title} · SPC Player support`,
+          artifactContent: {
+            role: "SUPPORTING_DOCUMENTATION_OR_PROCESS_INPUT",
+            advisoryOnly: true,
+            certifies: false,
+            advancesStage: false,
+            planOnly: true,
+            spcPlayerRunId: draft.id,
+            originSessionId: draft.originSessionId,
+            originFeatureId: draft.originFeatureId,
+            sourceArtifactId: draft.sourceArtifactId,
+            completedAt: execution.completedAt?.toISOString() ?? null,
+            outputPackage: execution.outputPackage,
+          },
+          scorecards: [],
+        })
+        .returning();
+      if (!artifact) throw new Error("SPC Player return artifact insert returned no row");
+      await captureArtifactPersisted(tx, artifact);
+      const [updatedDraft] = await tx
+        .update(spcPlayerDraftRunsTable)
+        .set({ returnedArtifactId: artifact.id })
+        .where(eq(spcPlayerDraftRunsTable.id, draft.id))
+        .returning();
+      if (!updatedDraft) throw new Error("SPC Player return receipt update returned no row");
+      return { draft: updatedDraft, execution, artifact };
+    });
+
+    if ("errorStatus" in outcome && typeof outcome.errorStatus === "number") {
+      res.status(outcome.errorStatus).json({ error: outcome.error });
+      return;
+    }
+    res.json({
+      attached: true,
+      planOnly: true,
+      run: runResponse(outcome.draft, outcome.execution),
+      artifact: outcome.artifact,
+    });
   },
 );
 

@@ -30,8 +30,14 @@ import osirisRouter from "./osiris";
 import f10Router from "./f10";
 import f11Router from "./f11";
 import providerBillingRouter from "./provider-billing";
+import xvlVerificationRouter from "./xvl-verification";
+import shortSprintsRouter from "./short-sprints";
+import artifactOperationsRouter from "./artifact-operations";
+import { guardSkippedEngine } from "../lib/artifact-operations/engine-guard";
 
 const router: IRouter = Router();
+router.use(guardSkippedEngine);
+router.use(artifactOperationsRouter);
 
 router.use(healthRouter);
 router.use(staffAuthRouter);
@@ -53,6 +59,8 @@ router.use(osirisRouter);
 router.use(f10Router);
 router.use(f11Router);
 router.use(providerBillingRouter);
+router.use(xvlVerificationRouter);
+router.use(shortSprintsRouter);
 router.use(harnessRouter);
 router.use(ingestRouter);
 router.use(cartridgeRouter);

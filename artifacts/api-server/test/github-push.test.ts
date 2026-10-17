@@ -482,7 +482,10 @@ beforeAll(async () => {
       sessionId,
       userId: architectId,
       featureId: 8,
-      artifactType: "CODEBASE_BUNDLE",
+      artifactType: "VERIFIED_CODEBASE_BUNDLE",
+      verificationStatus: "VERIFIED",
+      contentHash: "sha256:github-test-content",
+      verificationEvidenceHash: "sha256:github-test-evidence",
       artifactContent: { note: "scaffold" },
     })
     .returning();
@@ -512,7 +515,10 @@ beforeAll(async () => {
       sessionId: noGhSession!.id,
       userId: architectNoGhId,
       featureId: 8,
-      artifactType: "CODEBASE_BUNDLE",
+      artifactType: "VERIFIED_CODEBASE_BUNDLE",
+      verificationStatus: "VERIFIED",
+      contentHash: "sha256:github-no-gh-content",
+      verificationEvidenceHash: "sha256:github-no-gh-evidence",
       artifactContent: { note: "scaffold" },
     })
     .returning();
@@ -768,7 +774,7 @@ describe("POST /f10/exports/github", () => {
 
 // ---------- Tests ----------
 describe("POST /integrations/github/push-codebase", () => {
-  test("happy path: pushes, returns repoFullName + replitImportUrl, persists githubRepo pointer", async () => {
+  test("happy path: pushes without mutating the immutable verified bundle", async () => {
     const repoName = `scaffold-${stamp}`;
     const res = await push(architectId, {
       artifactId: bundleArtifactId,
@@ -802,23 +808,16 @@ describe("POST /integrations/github/push-codebase", () => {
     ]);
     expect(mockGh.refCalls).toBe(1);
 
-    // The pointer is persisted onto the bundle artifact for lineage / "already pushed" UI.
+    // A GitHub handoff must not alter the verified artifact or invalidate its
+    // content/evidence hashes.
     const [row] = await db
       .select()
       .from(harnessArtifactsTable)
       .where(eq(harnessArtifactsTable.id, bundleArtifactId))
       .limit(1);
-    const githubRepo = (
-      row!.artifactContent as { githubRepo?: Record<string, unknown> }
-    ).githubRepo;
-    expect(githubRepo).toBeDefined();
-    expect(githubRepo!.fullName).toBe(`octo-tester/${repoName}`);
-    expect(githubRepo!.replitImportUrl).toBe(
-      `https://replit.com/github/octo-tester/${repoName}`,
-    );
-    expect(githubRepo!.defaultBranch).toBe("main");
-    expect(githubRepo!.private).toBe(true);
-    expect(typeof githubRepo!.pushedAt).toBe("string");
+    expect(row!.artifactContent).toEqual({ note: "scaffold" });
+    expect(row!.contentHash).toBe("sha256:github-test-content");
+    expect(row!.verificationEvidenceHash).toBe("sha256:github-test-evidence");
   });
 
   test("respects an explicit private:false", async () => {
@@ -1032,17 +1031,15 @@ describe("POST /integrations/github/push-codebase", () => {
       expect(mockGh.commitParents).toEqual([[]]);
       expect(mockGh.createdRefs).toEqual(["refs/heads/main"]);
       expect(mockGh.updateRefCalls).toBe(0);
-      // The bundle pointer captures the now-populated repo.
+      // The verified bundle remains unchanged after the GitHub handoff.
       const [row] = await db
         .select()
         .from(harnessArtifactsTable)
         .where(eq(harnessArtifactsTable.id, bundleArtifactId))
         .limit(1);
-      const githubRepo = (
-        row!.artifactContent as { githubRepo?: Record<string, unknown> }
-      ).githubRepo;
-      expect(githubRepo!.fullName).toBe("octo-tester/fresh-empty-repo");
-      expect(githubRepo!.defaultBranch).toBe("main");
+      expect(row!.artifactContent).toEqual({ note: "scaffold" });
+      expect(row!.contentHash).toBe("sha256:github-test-content");
+      expect(row!.verificationEvidenceHash).toBe("sha256:github-test-evidence");
     });
 
     test("seeds an empty repo on its real default branch even when a PR was requested", async () => {

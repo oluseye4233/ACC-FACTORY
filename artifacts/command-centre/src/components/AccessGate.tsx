@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";
 import { useLogin } from "@/lib/staff-session";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -30,7 +32,11 @@ export function AccessGate() {
 
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
-      <div className="w-[440px] max-w-full rounded-2xl border border-[#262626] bg-[#121212] p-8">
+      <div className="w-[440px] max-w-full rounded-2xl border border-border bg-card p-8 text-card-foreground shadow-lg">
+        <div className="mb-6 flex items-center justify-between">
+          <span aria-hidden="true" />
+          <ThemeToggle />
+        </div>
         <div className="mb-6 flex justify-center">
           <img
             src={`${import.meta.env.BASE_URL}atanda-logo.png`}
@@ -38,10 +44,10 @@ export function AccessGate() {
             className="h-16 w-auto"
           />
         </div>
-        <h1 className="text-center font-display text-2xl tracking-wider text-[#f2f2f2]">
+        <h1 className="text-center font-display text-2xl tracking-wider text-foreground">
           STAFF ACCESS
         </h1>
-        <p className="mt-1 text-center font-mono text-sm text-[#999999]">
+        <p className="mt-1 text-center font-mono text-sm text-muted-foreground">
           Enter the team access code to open the HARNESS
         </p>
 
@@ -49,7 +55,7 @@ export function AccessGate() {
           <div className="space-y-2">
             <label
               htmlFor="staff-name"
-              className="block text-xs font-mono font-bold uppercase text-[#f2f2f2]"
+              className="block text-xs font-mono font-bold uppercase text-foreground"
             >
               Your name or initials
             </label>
@@ -60,14 +66,14 @@ export function AccessGate() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. A. Tanda"
-              className="w-full rounded border border-[#262626] bg-[#0D0D0D] px-3 py-2 font-mono text-[#f2f2f2] outline-none focus:border-[#1A6B3A]"
+              className="w-full rounded border border-input bg-background px-3 py-2 font-mono text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
               data-testid="input-staff-name"
             />
           </div>
           <div className="space-y-2">
             <label
               htmlFor="staff-code"
-              className="block text-xs font-mono font-bold uppercase text-[#f2f2f2]"
+              className="block text-xs font-mono font-bold uppercase text-foreground"
             >
               Access code
             </label>
@@ -78,14 +84,14 @@ export function AccessGate() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="••••••••"
-              className="w-full rounded border border-[#262626] bg-[#0D0D0D] px-3 py-2 font-mono text-[#f2f2f2] outline-none focus:border-[#1A6B3A]"
+              className="w-full rounded border border-input bg-background px-3 py-2 font-mono text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
               data-testid="input-staff-code"
             />
           </div>
 
           {errorMessage ? (
             <p
-              className="rounded border border-[#DF1A12]/20 bg-[#DF1A12]/10 px-3 py-2 text-sm text-[#DF1A12]"
+              className="rounded border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
               data-testid="text-login-error"
             >
               {errorMessage}
@@ -102,7 +108,13 @@ export function AccessGate() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-[#666666]">
+        <p className="mt-6 text-center">
+            <Link href="/status" className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground underline-offset-4 hover:text-foreground hover:underline" data-testid="link-service-status">
+            Service status
+          </Link>
+        </p>
+
+        <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
           Internal tool · {basePath || "/"}
         </p>
       </div>

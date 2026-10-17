@@ -1,10 +1,15 @@
 import { useMemo, useState } from "react";
+import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessF8,
   useHarnessF8Hdj,
   useHarnessPfp,
   getListSessionArtifactsQueryKey,
+  getListF8VerificationEvidenceQueryKey,
+  useListF8VerificationEvidence,
+  useRecordF8VerificationEvidence,
+  useFinalizeF8Verification,
   ArtifactType,
   CodeDjPlatform,
   type HarnessArtifact,
@@ -22,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { WorkspaceShell, ErrorBanner, EmptyState } from "./_shared";
@@ -34,7 +40,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
 import { exportCodeDjBundle, SUPPORTED_IDES } from "@/lib/codeDjExport";
-import { PushToGitHubButton } from "@/components/shared/PushToGitHubButton";
 import { HARDWARE_CONFIGS, getHardwareConfig, type HardwareConfigId } from "@/lib/hardware-configs";
 import { AlertTriangle, Cpu, Download, FileCode, Radar, Rocket, ShieldCheck } from "lucide-react";
 
@@ -81,6 +86,17 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
         .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0],
     [artifacts],
   );
+  const verifiedChild = useMemo(
+    () =>
+      latestArtifact
+        ? artifacts.find(
+            (artifact) =>
+              artifact.artifactType === ArtifactType.VERIFIED_CODEBASE_BUNDLE &&
+              artifact.parentArtifactId === latestArtifact.id,
+          )
+        : undefined,
+    [artifacts, latestArtifact],
+  );
 
   const certifiedMvpSources = useMemo(
     () =>
@@ -121,8 +137,22 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
     fci: number;
     verdict: string;
   } | null>(null);
+  const [evidenceKind, setEvidenceKind] = useState<"CI" | "IDE_TEST">("CI");
+  const [runReference, setRunReference] = useState("");
+  const [testCommand, setTestCommand] = useState("");
+  const [testSummary, setTestSummary] = useState("");
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verifiedArtifactId, setVerifiedArtifactId] = useState<string | null>(null);
 
   const mutation = useHarnessF8();
+  const bundleArtifactId = result?.artifactId ?? latestArtifact?.id;
+  const evidenceQuery = useListF8VerificationEvidence(
+    bundleArtifactId ?? "",
+    { query: { enabled: Boolean(bundleArtifactId) } as never } as never,
+  );
+  const evidence = evidenceQuery.data ?? [];
+  const recordEvidence = useRecordF8VerificationEvidence();
+  const finalizeVerification = useFinalizeF8Verification();
   const hostM = useHarnessF8Hdj({
     mutation: {
       onSuccess: (data) => {
@@ -153,13 +183,88 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
     },
   });
 
+  const submitVerificationEvidence = async () => {
+    if (!bundleArtifactId) return;
+    if (!runReference.trim() || !testCommand.trim() || !testSummary.trim()) {
+      setVerificationError("Enter the run or IDE reference, test command, and passing result summary.");
+      return;
+    }
+    if (
+      !window.confirm(
+        "Record this operator-submitted CI or IDE test result as PASS? The app does not run or independently validate the external tests.",
+      )
+    ) {
+      return;
+    }
+    setVerificationError(null);
+    try {
+      await recordEvidence.mutateAsync({
+        artifactId: bundleArtifactId,
+        data: {
+          evidenceKind,
+          passed: true,
+          runReference: runReference.trim(),
+          command: testCommand.trim(),
+          summary: testSummary.trim(),
+        },
+      });
+      await qc.invalidateQueries({
+        queryKey: getListF8VerificationEvidenceQueryKey(bundleArtifactId),
+      });
+      setRunReference("");
+      setTestCommand("");
+      setTestSummary("");
+      toast({
+        title: "TEST EVIDENCE RECORDED",
+        description: "The passing CI/IDE evidence is stored as an immutable record.",
+      });
+    } catch (err) {
+      setVerificationError(extractApiError(err).message);
+    }
+  };
+
+  const createVerifiedChild = async () => {
+    if (!bundleArtifactId || evidence.length === 0) return;
+    if (
+      !window.confirm(
+        "Create a separate VERIFIED_CODEBASE_BUNDLE child from this original bundle and its recorded evidence? The original bundle will remain unverified.",
+      )
+    ) {
+      return;
+    }
+    setVerificationError(null);
+    try {
+      const verificationResult = await finalizeVerification.mutateAsync({
+        artifactId: bundleArtifactId,
+        data: {},
+      });
+      setVerifiedArtifactId(verificationResult.verifiedArtifactId);
+      await qc.invalidateQueries({
+        queryKey: getListSessionArtifactsQueryKey(sessionId),
+      });
+      const sourceClass: unknown =
+        result?.artifactClass ??
+        (latestArtifact?.artifactContent as { artifactClass?: unknown } | null)
+          ?.artifactClass;
+      if (sourceClass === "SOFTWARE" || sourceClass === "FIRMWARE") {
+        onComplete?.(sourceClass);
+      }
+      toast({
+        title: "VERIFIED CHILD CREATED",
+        description: "The original F8 scaffold remains unverified; downstream use is linked to the immutable child.",
+      });
+    } catch (err) {
+      setVerificationError(extractApiError(err).message);
+    }
+  };
+
   if (!certifiedMvpSources.length) {
     return (
       <WorkspaceShell>
         <EmptyState
           icon={<ShieldCheck className="h-12 w-12" />}
           title="CERTIFIED MVP PDD REQUIRED"
-          body="Code ORACLE scaffolds a deploy-ready codebase from a SPARTAN-certified MVP PDD / PWDD. Run F7 first to certify a source."
+          body="Code ORACLE creates an unverified starter codebase from a SPARTAN-certified MVP PDD / PWDD. Record passing CI or IDE test evidence before downstream use."
           hint="F8 is Architect tier only — upgrade if your run is gated."
         />
       </WorkspaceShell>
@@ -197,7 +302,6 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
       })) as CodebaseBundle;
       setResult(out);
       setActiveFile(out.files[0]?.path ?? "");
-      onComplete?.(artifactClass);
       qc.invalidateQueries({
         queryKey: getListSessionArtifactsQueryKey(sessionId),
       });
@@ -253,7 +357,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
       return;
     }
     setHostError(null);
-    const bundleId = result?.artifactId ?? latestArtifact?.id;
+    const bundleId = verifiedChild?.id ?? verifiedArtifactId;
     hostM.mutate({
       data: {
         sessionId,
@@ -279,7 +383,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
 
   const downloadBundle = async () => {
     if (!result) return;
-    // Ready-to-open project ZIP: the scaffold files at their real paths plus a
+    // Starter project ZIP: scaffold files at their real paths plus a
     // CODE ORACLE operating brief (AGENTS.md) and per-IDE adapter files, so the
     // bundle drops straight into Cursor / Replit / Codex / Claude Code / etc.
     // and the IDE's agent keeps building in fidelity to the certified spec.
@@ -287,8 +391,8 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
     try {
       await exportCodeDjBundle(result, source, pfp);
       toast({
-        title: "BUNDLE EXPORTED",
-        description: `Ready-to-open ZIP with AGENTS.md + ${SUPPORTED_IDES.length} IDE adapters`,
+        title: "SCAFFOLD EXPORTED",
+        description: `Starter ZIP with AGENTS.md + ${SUPPORTED_IDES.length} IDE adapters; test results are not included.`,
       });
     } catch {
       toast({
@@ -300,29 +404,6 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
   };
 
   const activeFileContent = result?.files.find((f) => f.path === activeFile);
-
-  // Surface an existing GitHub push (persisted on the bundle artifact) so the
-  // button reflects an "already on GitHub" state across reloads.
-  const existingGithubRepo = useMemo(() => {
-    const bundleId = result?.artifactId ?? latestArtifact?.id;
-    const art = artifacts.find((a) => a.id === bundleId);
-    const repo = (art?.artifactContent as { githubRepo?: unknown } | null)
-      ?.githubRepo as
-      | {
-          fullName?: string;
-          htmlUrl?: string;
-          replitImportUrl?: string;
-          pushedAt?: string;
-        }
-      | undefined;
-    if (!repo?.fullName || !repo.htmlUrl || !repo.replitImportUrl) return null;
-    return {
-      fullName: repo.fullName,
-      htmlUrl: repo.htmlUrl,
-      replitImportUrl: repo.replitImportUrl,
-      pushedAt: repo.pushedAt,
-    };
-  }, [artifacts, result?.artifactId, latestArtifact?.id]);
 
   return (
     <WorkspaceShell>
@@ -747,14 +828,19 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
                     className="gap-2 font-mono text-xs"
                   >
                     <Download className="h-3.5 w-3.5" />
-                    SEND TO IDE
+                    DOWNLOAD UNVERIFIED SCAFFOLD
                   </Button>
-                  <PushToGitHubButton
-                    bundle={result}
-                    source={certifiedMvpSources.find((s) => s.id === sourceId)}
-                    pfp={pfp}
-                    existing={existingGithubRepo}
-                  />
+                  {verifiedChild || verifiedArtifactId ? (
+                    <Button size="sm" variant="outline" asChild className="font-mono text-xs">
+                      <Link href="/f10">
+                        OPEN VERIFIED EXPORTS
+                      </Link>
+                    </Button>
+                  ) : (
+                    <span className="max-w-48 text-right font-mono text-[9px] text-muted-foreground">
+                      GitHub and production exports unlock after CI/IDE verification.
+                    </span>
+                  )}
                 </div>
                 <span
                   className="font-mono text-[9px] text-muted-foreground text-right max-w-[240px] leading-tight"
@@ -840,6 +926,117 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
                 spin.
               </p>
             </div>
+          </Card>
+        )}
+
+        {bundleArtifactId && (
+          <Card className="p-5 border-amber-500/30 bg-amber-500/5" data-testid="f8-verification-panel">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-mono text-xs font-bold uppercase tracking-wider text-amber-500">
+                  {verifiedChild || verifiedArtifactId
+                    ? "VERIFIED CHILD AVAILABLE"
+                    : "UNVERIFIED — CI/IDE TEST PASS REQUIRED"}
+                </p>
+                <p className="mt-1 max-w-3xl font-mono text-[10px] text-muted-foreground">
+                  Code ORACLE creates a scaffold, not a tested product. Add operator-submitted passing CI or IDE evidence, then create a separate immutable verified child. This UI does not run or independently validate external tests; the source bundle remains unverified.
+                </p>
+                {(verifiedChild?.id || verifiedArtifactId) && (
+                  <p className="mt-2 font-mono text-[10px]" data-testid="f8-verified-child-id">
+                    VERIFIED CHILD: {verifiedChild?.id ?? verifiedArtifactId}
+                  </p>
+                )}
+              </div>
+              <ShieldCheck className="h-5 w-5 shrink-0 text-amber-500" />
+            </div>
+
+            {evidenceQuery.isError && (
+              <p className="mt-3 font-mono text-[10px] text-destructive">
+                Could not load saved verification evidence.
+              </p>
+            )}
+            {evidence.length > 0 && (
+              <div className="mt-4 space-y-2" data-testid="f8-verification-evidence-list">
+                {evidence.map((item) => (
+                  <div key={item.id} className="rounded border border-border/60 bg-background/50 p-3">
+                    <div className="font-mono text-[10px] font-bold uppercase">
+                      {item.evidenceKind} · PASS · {item.runReference}
+                    </div>
+                    <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                      {item.command} — {item.summary}
+                    </p>
+                    <p className="mt-1 break-all font-mono text-[9px] text-muted-foreground/70">
+                      Evidence hash: {item.evidenceHash}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!verifiedChild && !verifiedArtifactId && (
+              <div className="mt-4 grid gap-2 md:grid-cols-2" data-testid="f8-verification-form">
+                <Select
+                  value={evidenceKind}
+                  onValueChange={(value) => setEvidenceKind(value as "CI" | "IDE_TEST")}
+                >
+                  <SelectTrigger aria-label="Test evidence source" className="font-mono text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CI">CI RESULT</SelectItem>
+                    <SelectItem value="IDE_TEST">IDE TEST RESULT</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={runReference}
+                  onChange={(event) => setRunReference(event.target.value)}
+                  placeholder="CI run URL/ID or IDE workspace reference"
+                  aria-label="Test run reference"
+                  maxLength={500}
+                />
+                <Input
+                  value={testCommand}
+                  onChange={(event) => setTestCommand(event.target.value)}
+                  placeholder="Test command (for example, pnpm test)"
+                  aria-label="Test command"
+                  maxLength={1000}
+                />
+                <Textarea
+                  value={testSummary}
+                  onChange={(event) => setTestSummary(event.target.value)}
+                  placeholder="Passing result summary"
+                  aria-label="Passing result summary"
+                  maxLength={4000}
+                  className="min-h-20 font-mono text-xs"
+                />
+                {verificationError && (
+                  <p className="md:col-span-2 font-mono text-[10px] text-destructive" role="alert">
+                    {verificationError}
+                  </p>
+                )}
+                <div className="md:col-span-2 flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="font-mono text-[10px] uppercase"
+                    onClick={submitVerificationEvidence}
+                    disabled={recordEvidence.isPending}
+                    data-testid="f8-record-test-evidence"
+                  >
+                    {recordEvidence.isPending ? "RECORDING…" : "RECORD PASSING TEST EVIDENCE"}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="font-mono text-[10px] uppercase"
+                    onClick={createVerifiedChild}
+                    disabled={evidence.length === 0 || finalizeVerification.isPending}
+                    data-testid="f8-finalize-verification"
+                  >
+                    {finalizeVerification.isPending ? "CREATING CHILD…" : "CREATE VERIFIED CHILD"}
+                  </Button>
+                </div>
+              </div>
+            )}
           </Card>
         )}
       </div>

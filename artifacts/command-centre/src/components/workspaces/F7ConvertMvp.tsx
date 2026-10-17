@@ -33,6 +33,7 @@ import { streamSse, extractApiError } from "@/lib/sse";
 import { downloadZip } from "@/lib/zipExport";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Sparkles, ShieldCheck, Download } from "lucide-react";
+import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 
 import { Atlas360ViewPanel } from "./Atlas360ViewPanel";
@@ -330,8 +331,9 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
                 </div>
               )}
               {latestArtifact?.id && (
-                <div className="mt-3">
+                <div className="mt-3 flex flex-wrap gap-2">
                   <SaveToExemplarLibraryButton artifactId={latestArtifact.id} />
+                  <PublishDocumentLink sourceId={latestArtifact.id} sourceKind="F7_MVP_PDD" sessionId={sessionId} />
                 </div>
               )}
               {donutData.length > 0 && (

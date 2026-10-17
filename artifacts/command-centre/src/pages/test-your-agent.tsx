@@ -12,17 +12,17 @@ const BAND_COPY: Record<
   "LITE-PASS": {
     label: "LITE-PASS",
     blurb: "Solid foundation — your instruction is clear and well-structured.",
-    className: "border-[#1A6B3A]/50 bg-[#1A6B3A]/10 text-[#7ED9A0]",
+    className: "border-primary/40 bg-primary/10 text-primary",
   },
   "LITE-REVIEW": {
     label: "LITE-REVIEW",
     blurb: "Workable, but there are real gaps worth tightening before you ship.",
-    className: "border-[#C8A200]/50 bg-[#C8A200]/10 text-[#E9CE5A]",
+    className: "border-amber-600/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
   },
   "LITE-FAIL": {
     label: "LITE-FAIL",
     blurb: "Needs work — key pieces are missing that will hurt reliability.",
-    className: "border-[#DF1A12]/50 bg-[#DF1A12]/10 text-[#F08A85]",
+    className: "border-destructive/40 bg-destructive/10 text-destructive",
   },
 };
 
@@ -74,10 +74,10 @@ export default function TestYourAgent() {
       title="Test Your Agent"
       subtitle="Paste any AI prompt or agent instruction and get an instant quality read. A free lite preview of the ATANDA Prompt Diagnostic — no numbers, just a clear verdict and the highest-leverage fixes."
     >
-      <div className="rounded-xl border border-[#262626] bg-[#121212] p-6">
+      <div className="rounded-xl border border-border bg-card p-6">
         <label
           htmlFor="magnet-prompt"
-          className="block text-xs font-mono font-bold uppercase text-[#f2f2f2]"
+          className="block text-xs font-mono font-bold uppercase text-foreground"
         >
           Your prompt or agent instruction
         </label>
@@ -88,14 +88,14 @@ export default function TestYourAgent() {
           rows={8}
           maxLength={20000}
           placeholder="Paste the full prompt you want to test…"
-          className="mt-2 w-full resize-y rounded border border-[#262626] bg-[#0D0D0D] px-3 py-2 font-mono text-sm text-[#f2f2f2] outline-none focus:border-[#1A6B3A]"
+          className="mt-2 w-full resize-y rounded border border-input bg-background px-3 py-2 font-mono text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
           data-testid="input-magnet-prompt"
         />
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex-1">
             <label
               htmlFor="magnet-email"
-              className="block text-xs font-mono uppercase text-[#999999]"
+              className="block text-xs font-mono uppercase text-muted-foreground"
             >
               Email (optional)
             </label>
@@ -105,7 +105,7 @@ export default function TestYourAgent() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
-              className="mt-1 w-full rounded border border-[#262626] bg-[#0D0D0D] px-3 py-2 font-mono text-sm text-[#f2f2f2] outline-none focus:border-[#1A6B3A]"
+              className="mt-1 w-full rounded border border-input bg-background px-3 py-2 font-mono text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
               data-testid="input-magnet-email"
             />
           </div>
@@ -113,20 +113,20 @@ export default function TestYourAgent() {
             type="button"
             onClick={run}
             disabled={testKit.isPending || prompt.trim().length < 10}
-            className="inline-flex h-11 items-center justify-center rounded bg-[#1A6B3A] px-6 font-display tracking-wider text-white transition-colors hover:bg-[#1A6B3A]/90 disabled:opacity-60"
+            className="inline-flex h-11 items-center justify-center rounded bg-primary px-6 font-display tracking-wider text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
             data-testid="button-magnet-run"
           >
             {testKit.isPending ? "TESTING…" : "TEST MY AGENT"}
           </button>
         </div>
-        <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-[#666666]">
+        <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
           5 free checks per hour · your text is analysed, never stored
         </p>
       </div>
 
       {error ? (
         <p
-          className="mt-6 rounded border border-[#DF1A12]/30 bg-[#DF1A12]/10 px-4 py-3 font-mono text-sm text-[#F08A85]"
+          className="mt-6 rounded border border-destructive/30 bg-destructive/10 px-4 py-3 font-mono text-sm text-destructive"
           data-testid="text-magnet-error"
         >
           {error}
@@ -141,25 +141,25 @@ export default function TestYourAgent() {
               {band.label}
             </p>
             <p className="mt-2 font-mono text-sm">{band.blurb}</p>
-            <p className="mt-4 font-mono text-sm text-[#f2f2f2]">{result.headline}</p>
+            <p className="mt-4 font-mono text-sm text-foreground">{result.headline}</p>
           </div>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             {result.dimensions.map((d) => (
-              <div key={d.name} className="rounded-lg border border-[#262626] bg-[#121212] p-4">
-                <p className="font-mono text-xs uppercase tracking-wider text-[#1A6B3A]">{d.name}</p>
-                <p className="mt-2 font-mono text-xs text-[#cccccc]">{d.note}</p>
+              <div key={d.name} className="rounded-lg border border-border bg-card p-4">
+                <p className="font-mono text-xs uppercase tracking-wider text-primary">{d.name}</p>
+                <p className="mt-2 font-mono text-xs text-muted-foreground">{d.note}</p>
               </div>
             ))}
           </div>
 
           {result.strengths.length > 0 ? (
             <div className="mt-6">
-              <p className="font-mono text-xs uppercase tracking-wider text-[#999999]">Strengths</p>
+              <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Strengths</p>
               <ul className="mt-2 space-y-1">
                 {result.strengths.map((s, i) => (
-                  <li key={i} className="font-mono text-sm text-[#cccccc]">
-                    <span className="text-[#1A6B3A]">+ </span>
+                  <li key={i} className="font-mono text-sm text-foreground">
+                    <span className="text-primary">+ </span>
                     {s}
                   </li>
                 ))}
@@ -169,13 +169,13 @@ export default function TestYourAgent() {
 
           {result.fixes.length > 0 ? (
             <div className="mt-6">
-              <p className="font-mono text-xs uppercase tracking-wider text-[#999999]">
+              <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
                 Highest-leverage fixes
               </p>
               <ul className="mt-2 space-y-1">
                 {result.fixes.map((f, i) => (
-                  <li key={i} className="font-mono text-sm text-[#cccccc]">
-                    <span className="text-[#C8A200]">→ </span>
+                  <li key={i} className="font-mono text-sm text-foreground">
+                    <span className="text-amber-700 dark:text-amber-300">→ </span>
                     {f}
                   </li>
                 ))}

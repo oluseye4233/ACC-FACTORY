@@ -1,13 +1,17 @@
 ---
 name: Sphinx Marketplace model
-description: How SPC marketplace features (download/buy/suggest/lineage) must be architected given Sphinx is the external single point of sale.
+description: Sphinx commerce remains external while Exemplar supplies a shared local metadata catalog.
 ---
 
-# Sphinx Marketplace = external single point of sale
+# Sphinx commerce and the shared supply catalog
 
-The user decided every market-related SPC routes through the **external** Sphinx
-Marketplace as the single point of sale — NOT an in-app marketplace. Institution
-subs grant access to enterprise-created SPCs; SPC value is expressed in "points".
+Sphinx remains the external single point of sale. Exemplar now supplies the
+shared internal/public discovery catalog for MA, SPC, MPDD and PDD artifacts
+(see exemplar-open-marketplace.md). This supersedes the earlier rule that
+Exemplar and Sphinx must have separate upload/publication sources; it does NOT
+authorize building a second checkout or pretending commerce is active.
+Institution subscriptions grant access to enterprise-created SPCs; SPC value
+is expressed in points.
 
 **The live Sphinx API is not available yet** ("when it is live, API will be
 provided"). So marketplace-dependent surfaces (search, buy, download + receipt,
@@ -15,7 +19,8 @@ sales funnel, suggest) must be built as a routing **seam**, not a working flow:
 
 **Why:** building a working buy/download/search against a non-existent API is
 throwaway. The seam lights up automatically when `SPHINX_BASE_URL` + the live API
-are wired.
+are wired. Opening local public metadata discovery is not the same as
+activating external commercial sale, licensing or delivery.
 
 **How to apply:**
 - Mirror the existing publish route pattern in `routes/integrations.ts`: per-user
@@ -32,4 +37,6 @@ are wired.
   called from the frontend via `api.post` (`@/lib/api`, `ApiError`). Add new
   Sphinx routes the same way to avoid OpenAPI codegen churn.
 - Still deferred until the live API: buy/download + timestamped receipt audit
-  trail, sales funnel, and folding a purchased candidate back into a session.
+  trail, pricing/licensing, commercial listing lifecycle/withdrawal, sales
+  funnel, and folding a purchased candidate back into a session. Do not
+  mislabel local metadata selection as a completed external publication.

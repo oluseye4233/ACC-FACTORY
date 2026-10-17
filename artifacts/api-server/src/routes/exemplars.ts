@@ -6,6 +6,7 @@ import {
   type Response,
 } from "express";
 import multer from "multer";
+import { z } from "zod/v4";
 import { and, desc, eq } from "drizzle-orm";
 import {
   db,
@@ -22,10 +23,12 @@ import {
 } from "../lib/document-extraction";
 import {
   buildPublishedSpcMetadata,
-  readSpcPlayerPublication,
 } from "../lib/spc-player";
+import { exemplarSummary } from "../lib/exemplar-marketplace";
+import marketplaceRoutes from "./exemplar-marketplace";
 
 const router: IRouter = Router();
+router.use(marketplaceRoutes);
 const MAX_FILES = 50;
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 const upload = multer({
@@ -57,41 +60,27 @@ function uploadLibraryFiles(
   });
 }
 
-function itemSummary(row: typeof exemplarLibraryItemsTable.$inferSelect) {
-  return {
-    id: row.id,
-    title: row.title,
-    tagline: row.tagline,
-    jcse: null,
-    certClass: null,
-    source: "generated" as const,
-    kind: row.kind,
-    sku: `OPEN-${row.kind}-${row.id.slice(0, 8).toUpperCase()}`,
-    disc: null,
-    marketplace: "open" as const,
-    createdAt: row.createdAt.toISOString(),
-    spcPlayer:
-      row.kind === "SPC"
-        ? readSpcPlayerPublication(row.artifactSnapshot)
-        : null,
-  };
-}
-
-router.get("/exemplars", async (_req, res): Promise<void> => {
+router.get("/exemplars", requireAuth, async (req, res): Promise<void> => {
+  res.setHeader("Cache-Control", "no-store");
   const contributed = await db
     .select()
     .from(exemplarLibraryItemsTable)
     .orderBy(desc(exemplarLibraryItemsTable.createdAt));
   res.json([
-    ...listExemplars().map((item) => ({ ...item, marketplace: "curated" })),
-    ...contributed.map(itemSummary),
+    ...listExemplars().map((item) => ({ ...item, marketplace: "curated", spcPlayer: null, active: true,
+      artifactMode: "LIBRARY_ARTIFACT", isOwner: false, canReview: false, qualification: null,
+      eligibility: { eligible: false, reasons: ["Platform references are library-only; only an owner's contributed artifact can be selected for Sphinx."] } })),
+    ...contributed.map((row) => exemplarSummary(row, req.localUser!.id, req.localUser!.role === "ADMIN")),
   ]);
 });
 
-router.get("/exemplars/:id", async (req, res): Promise<void> => {
-  const exemplar = getExemplar(req.params.id);
+router.get("/exemplars/:id", requireAuth, async (req, res): Promise<void> => {
+  res.setHeader("Cache-Control", "no-store");
+  const exemplar = getExemplar(String(req.params.id));
   if (exemplar) {
-    res.json({ ...exemplar, marketplace: "curated" });
+    res.json({ ...exemplar, marketplace: "curated", spcPlayer: null, active: true,
+      artifactMode: "LIBRARY_ARTIFACT", isOwner: false, canReview: false, qualification: null,
+      eligibility: { eligible: false, reasons: ["Platform reference: library-only."] } });
     return;
   }
   const [row] = await db
@@ -103,7 +92,7 @@ router.get("/exemplars/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Exemplar not found" });
     return;
   }
-  res.json({ ...itemSummary(row), body: row.body });
+  res.json({ ...exemplarSummary(row, req.localUser!.id, req.localUser!.role === "ADMIN"), body: row.body });
 });
 
 router.post(
@@ -144,7 +133,7 @@ router.post(
       const rows = await db.transaction((tx) =>
         tx.insert(exemplarLibraryItemsTable).values(prepared).returning(),
       );
-      res.status(201).json({ items: rows.map(itemSummary), count: rows.length });
+      res.status(201).json({ items: rows.map((row) => exemplarSummary(row, req.localUser!.id, req.localUser!.role === "ADMIN")), count: rows.length });
     } catch (error) {
       if (error instanceof DocumentExtractionError) {
         res.status(400).json(documentExtractionErrorResponse(error));
@@ -161,6 +150,10 @@ router.post(
   async (req, res): Promise<void> => {
     const artifactId =
       typeof req.body?.artifactId === "string" ? req.body.artifactId : "";
+    if (!z.string().uuid().safeParse(artifactId).success) {
+      res.status(400).json({ error: "A valid artifact ID is required." });
+      return;
+    }
     const [artifact] = await db
       .select()
       .from(harnessArtifactsTable)
@@ -188,7 +181,7 @@ router.post(
               ? "PDD"
               : null;
     if (!kind) {
-      res.status(400).json({ error: "Only completed SPC and MA artifacts can be added." });
+      res.status(400).json({ error: "Only completed SPC, MA, MPDD and PDD artifacts can be added." });
       return;
     }
     const artifactSnapshot = artifact.artifactContent as Record<string, unknown>;
@@ -223,7 +216,7 @@ router.post(
       res.status(409).json({ error: "This artifact is already in the Exemplar Library." });
       return;
     }
-    res.status(201).json(itemSummary(row));
+    res.status(201).json(exemplarSummary(row, req.localUser!.id, req.localUser!.role === "ADMIN"));
   },
 );
 

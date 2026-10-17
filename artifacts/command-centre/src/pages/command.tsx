@@ -6,6 +6,7 @@ import {
   useGetMyUsage,
 } from "@workspace/api-client-react";
 import { TierBadge } from "@/components/shared/TierBadge";
+import { LaunchReadinessPanel } from "@/components/status/LaunchReadinessPanel";
 import { TopNav } from "@/components/layout/TopNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,12 +16,14 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
+  Briefcase,
   CheckCircle2,
   CirclePlus,
   Database,
   FileUp,
   Library,
   Play,
+  PlaySquare,
   RefreshCw,
   Trophy,
 } from "lucide-react";
@@ -440,6 +443,8 @@ export default function Command() {
                 <UtilityAction href="/ingest" icon={FileUp} label="Import Existing" description="Bring in a document" />
                 <UtilityAction href="/exemplars" icon={Library} label="Open Library" description="Browse proven examples" />
                 <UtilityAction href="/quests" icon={Trophy} label="View Quests" description="Track operator progress" />
+                <UtilityAction href="/f0" icon={Briefcase} label="F0 Advisory" description="Open business intelligence" />
+                <UtilityAction href="/spc-player" icon={PlaySquare} label="SPC Player" description="Build and run a Kit Deck" />
               </div>
             </div>
           </section>
@@ -510,6 +515,11 @@ export default function Command() {
                 </p>
               </div>
             </div>
+          </section>
+
+          <section className="mb-4 rounded-xl border border-border/60 bg-card/60 px-4 py-3" aria-label="Production dependencies">
+            <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Production dependencies</p>
+            <LaunchReadinessPanel compact />
           </section>
 
           <section className="grid gap-4 lg:grid-cols-[1fr_260px]">

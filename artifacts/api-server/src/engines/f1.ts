@@ -1,6 +1,8 @@
 import { z } from "zod/v4";
 import type { Request, Response } from "express";
 import { HarnessF1Body } from "@workspace/api-zod";
+import { and, eq } from "drizzle-orm";
+import { db, f0EngagementsTable, f0ReportsTable } from "@workspace/db";
 import { F1_SYSTEM } from "./prompts";
 import { buildJcseScorecard, type JcsePillar, type ScorecardFeedback } from "../lib/scorecards";
 import {
@@ -55,11 +57,40 @@ export async function handleF1(req: Request, res: Response): Promise<void> {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { sessionId, prompt, provider: bodyProvider } = parsed.data;
+  const { sessionId, prompt, provider: bodyProvider, f0ReportId } = parsed.data;
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
     return;
+  }
+  let advisoryContext = "";
+  if (f0ReportId) {
+    const [source] = await db
+      .select({
+        report: f0ReportsTable,
+        sessionId: f0EngagementsTable.sessionId,
+      })
+      .from(f0ReportsTable)
+      .innerJoin(
+        f0EngagementsTable,
+        eq(f0ReportsTable.engagementId, f0EngagementsTable.id),
+      )
+      .where(
+        and(
+          eq(f0ReportsTable.id, f0ReportId),
+          eq(f0ReportsTable.userId, guard.userId),
+        ),
+      )
+      .limit(1);
+    if (!source || source.sessionId !== sessionId) {
+      res.status(404).json({ error: "F0 advisory report not found for this session" });
+      return;
+    }
+    const serialized = JSON.stringify(source.report.content);
+    advisoryContext = [
+      "ADVISORY F0 REPORT — supporting context only; this is not certification or a test result.",
+      serialized.length > 12_000 ? `${serialized.slice(0, 12_000)} [truncated]` : serialized,
+    ].join("\n");
   }
   let provider;
   try {
@@ -68,7 +99,13 @@ export async function handleF1(req: Request, res: Response): Promise<void> {
     if (sendProviderTierError(res, err)) return;
     throw err;
   }
-  const userPrompt = `Diagnose this user prompt against the 7 Context Craft pillars.\n\n<<<USER_PROMPT>>>\n${prompt}\n<<<END_USER_PROMPT>>>`;
+  const userPrompt = [
+    "Diagnose this user prompt against the 7 Context Craft pillars.",
+    `<<<USER_PROMPT>>>\n${prompt}\n<<<END_USER_PROMPT>>>`,
+    advisoryContext,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
   let out: z.infer<typeof F1OutputSchema>;
   try {
     out = await callLlmJson(provider, F1_SYSTEM, userPrompt, F1OutputSchema, {

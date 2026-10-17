@@ -26,6 +26,74 @@ tags:
   - name: magnet
 
 paths:
+  /harness/sessions/{sessionId}/short-sprints/preflight:
+    get:
+      operationId: getShortSprintPreflight
+      tags: [harness]
+      summary: Owner-only read-only SHORT SPRINTS eligibility preflight
+      description: Resolves bounded source observations on the server. Does not persist decisions, change routes or authorize release. Caller-supplied certification facts are rejected.
+      parameters:
+        - { name: sessionId, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: circuit, in: query, schema: { type: string, enum: [SC_ONE, SC_TWO], default: SC_ONE } }
+        - { name: target, in: query, schema: { type: string, enum: [SOFTWARE, FIRMWARE], default: SOFTWARE } }
+        - { name: profile, in: query, schema: { type: string, enum: [PROTOTYPE_LIGHT, STANDARD, REGULATED], default: STANDARD } }
+      responses:
+        "200":
+          description: Fresh diagnostic, never release clearance
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ShortSprintPreflight" }
+        "400": { description: "Invalid ID, options or extra caller-supplied facts" }
+        "401": { description: Authentication required }
+        "404": { description: Session not found or not owned }
+  /harness/sessions/{sessionId}/verification:
+    get:
+      operationId: getXvlWorkspace
+      tags: [harness]
+      summary: Owner-only advisory verification workspace
+      parameters:
+        - { name: sessionId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Contract verification and failure-intake history, not release clearance
+          content: { application/json: { schema: { $ref: "#/components/schemas/XvlWorkspace" } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { description: Owned session not found }
+  /harness/sessions/{sessionId}/verification/evalsets:
+    post:
+      operationId: registerXvlEvalset
+      tags: [harness]
+      summary: Register an immutable acceptance contract before generating an artifact
+      parameters:
+        - { name: sessionId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/XvlEvalsetInput" } } }
+      responses:
+        "201":
+          description: Contract registered; existing older artifacts cannot earn a verdict
+          content: { application/json: { schema: { $ref: "#/components/schemas/XvlEvalset" } } }
+        "400": { description: Invalid contract }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { description: Owned session not found }
+  /harness/sessions/{sessionId}/verification/runs:
+    post:
+      operationId: runXvlVerification
+      tags: [harness]
+      summary: Run server-selected deterministic JSON checks without changing stage or release gates
+      parameters:
+        - { name: sessionId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/XvlVerificationInput" } } }
+      responses:
+        "200":
+          description: Immutable hash-bound result; retries reuse the same snapshot
+          content: { application/json: { schema: { $ref: "#/components/schemas/XvlRun" } } }
+        "400": { description: Invalid request }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { description: "Owned session, artifact or contract not found" }
+        "409": { description: "Verification-first, stage or snapshot mismatch" }
   /f10/catalog:
     get:
       operationId: getF10Catalog
@@ -311,6 +379,35 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/DeepHealth" }
+
+  /launch-readiness:
+    get:
+      operationId: getLaunchReadiness
+      tags: [health]
+      summary: Public dependency checks, not independent certification or feature verification
+      responses:
+        "200":
+          description: Readiness assessment, including blocked states
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LaunchReadiness" }
+
+  /readyz:
+    get:
+      operationId: checkBuildDependencies
+      tags: [health]
+      summary: Database reachability and AI configuration check, not full release certification
+      responses:
+        "200":
+          description: Build dependencies present
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LaunchReadiness" }
+        "503":
+          description: One or more build dependencies unavailable
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LaunchReadiness" }
 
   /me:
     get:
@@ -1047,7 +1144,8 @@ paths:
       tags: [harness]
       summary: Run the deterministic F9 MECHA Machine Floor
       description: >
-        Accepts an F8 CODEBASE_BUNDLE whose MVP PDD lineage is SPARTAN-certified.
+        Accepts only an immutable VERIFIED_CODEBASE_BUNDLE child whose F8 source
+        has passing CI or IDE evidence and whose MVP PDD lineage is SPARTAN-certified.
         All seven phases and immutable external gate evidence must be supplied in
         order. Missing, non-passing, or unverifiable evidence produces a cited
         refusal; MECHA never invents or overrides a gate verdict.
@@ -1116,7 +1214,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          description: Source MVP PDD is not SPARTAN-certified
+          description: Source MVP PDD is not SPARTAN-certified or the code bundle is unverified
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
@@ -1252,6 +1350,65 @@ paths:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
         "429":
           $ref: "#/components/responses/RateLimited"
+  /harness/f8/{artifactId}/verification-evidence:
+    parameters:
+      - name: artifactId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: listF8VerificationEvidence
+      tags: [harness]
+      summary: List append-only CI or IDE test evidence for an F8 code bundle
+      responses:
+        "200":
+          description: Verification evidence
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/F8VerificationEvidence" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      operationId: recordF8VerificationEvidence
+      tags: [harness]
+      summary: Record a passing CI or IDE test result for an F8 code bundle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/F8VerificationEvidenceInput" }
+      responses:
+        "201":
+          description: Evidence recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F8VerificationEvidence" }
+        "400": { description: Evidence must be a passing CI or IDE result }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /harness/f8/{artifactId}/verify:
+    post:
+      operationId: finalizeF8Verification
+      tags: [harness]
+      summary: Create an immutable verified child code bundle from passing evidence
+      parameters:
+        - name: artifactId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/F8VerificationFinalizeInput" }
+      responses:
+        "200":
+          description: Existing or newly created verified child
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F8VerificationResult" }
+        "409": { description: Source is unverified or has no passing evidence }
+        "404": { $ref: "#/components/responses/NotFound" }
 
   /f1000/redeem:
     post:
@@ -1575,6 +1732,105 @@ paths:
                 additionalProperties: true
         "401":
           $ref: "#/components/responses/Unauthorized"
+
+  /sphinx/catalog:
+    get:
+      operationId: getSphinxCatalog
+      tags: [exemplars]
+      summary: Public metadata-only catalog of active, qualified, opted-in artifacts; empty until opened
+      responses:
+        "200":
+          description: No artifact content or internal review evidence is exposed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [publicOpen, items]
+                properties:
+                  publicOpen: { type: boolean }
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/ExemplarSummary" }
+
+  /exemplars/marketplace:
+    get:
+      operationId: getSphinxMarketplaceStatus
+      tags: [exemplars]
+      responses:
+        "200":
+          description: Public catalog activation and current viewer permissions
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SphinxMarketplaceStatus" }
+    patch:
+      operationId: updateSphinxMarketplaceStatus
+      tags: [exemplars]
+      summary: Admin-only activation; never enables checkout or publishes to an external provider
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SphinxMarketplaceActivationRequest"
+      responses:
+        "200":
+          description: Updated activation status
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SphinxMarketplaceStatus" }
+        "403":
+          description: Admin role required
+
+  /exemplars/{id}/visibility:
+    patch:
+      operationId: updateExemplarVisibility
+      tags: [exemplars]
+      summary: Owner-only active status and commercial opt-in; qualifications are enforced server-side
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExemplarVisibilityRequest"
+      responses:
+        "200":
+          description: Updated library item
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExemplarSummary" }
+        "409":
+          description: Qualification or commercial consent is required
+
+  /exemplars/{id}/qualification:
+    post:
+      operationId: reviewExemplarQualification
+      tags: [exemplars]
+      summary: Admin-only internal review bound to this exact library content
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReviewExemplarRequest" }
+      responses:
+        "200":
+          description: Updated qualification
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExemplarSummary" }
+        "400":
+          description: Review does not meet the baseline
+        "403":
+          description: Admin role required
 
   /exemplars:
     get:
@@ -2426,6 +2682,40 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /spc-player/runs/{id}/return:
+    post:
+      operationId: returnSpcPlayerRunToStage
+      tags: [spc-player]
+      summary: Return a completed plan-only SPC Player package to its confirmed originating stage
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SpcPlayerReturnInput" }
+      responses:
+        "200":
+          description: Existing return receipt or newly attached supporting artifact
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SpcPlayerReturnResponse" }
+        "400":
+          description: Invalid return confirmation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "409":
+          description: Run is incomplete or the confirmed origin no longer matches
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /spc-player/runs/{id}/execute:
     post:
       operationId: executeSpcPlayerRun
@@ -2600,6 +2890,117 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /artifact-operations/{kind}:
+    get:
+      operationId: getArtifactOperations
+      tags: [artifactOperations]
+      summary: Owner-scoped SHORT SPRINTS or IMPRIMA workspace
+      parameters:
+        - { name: kind, in: path, required: true, schema: { $ref: '#/components/schemas/ArtifactOperationKind' } }
+        - { name: sessionId, in: query, schema: { type: string, format: uuid } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        '200':
+          description: Saved workflows and available sources
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ArtifactOperationsWorkspace' }
+        '401': { description: Sign-in required }
+        '404': { description: Session unavailable }
+    post:
+      operationId: runArtifactOperation
+      tags: [artifactOperations]
+      summary: Perform an authorized version-bound workflow action
+      parameters:
+        - { name: kind, in: path, required: true, schema: { $ref: '#/components/schemas/ArtifactOperationKind' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ArtifactOperationRequest' }
+      responses:
+        '200':
+          description: Updated workspace
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ArtifactOperationsWorkspace' }
+        '400': { description: Invalid action input }
+        '401': { description: Sign-in required }
+        '403': { description: Approval permission required }
+        '404': { description: Workflow unavailable }
+        '409': { description: Version conflict or unmet mandatory gate }
+        '402': { description: Cost budget exhausted }
+  /artifact-operations/{kind}/preparations:
+    get:
+      operationId: getArtifactPreparations
+      tags: [artifactOperations]
+      summary: SPARTAN private preparation workspace, independent of guarded release workflows
+      parameters:
+        - { name: kind, in: path, required: true, schema: { $ref: '#/components/schemas/ArtifactOperationKind' } }
+        - { name: sessionId, in: query, schema: { type: string, format: uuid } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        '200':
+          description: Private preparations and actual database-protection readiness
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ArtifactPreparationWorkspace' }
+        '401': { description: Sign-in required }
+        '404': { description: Session unavailable }
+    post:
+      operationId: createArtifactPreparation
+      tags: [artifactOperations]
+      summary: Save a source-preserving draft or non-releasable proposal; no LLM or deployment is run
+      parameters:
+        - { name: kind, in: path, required: true, schema: { $ref: '#/components/schemas/ArtifactOperationKind' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ArtifactPreparationInput' }
+      responses:
+        '201':
+          description: New private preparation version
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ArtifactPreparation' }
+        '400': { description: Invalid preparation input }
+        '401': { description: Sign-in required }
+        '404': { description: Source unavailable }
+        '409': { description: Safety hold or unsupported Final/release operation }
+        '413': { description: Source or output too large }
+        '429': { description: Preparation limit reached }
+  /artifact-operations/{kind}/preparations/{preparationId}/files/{fileId}:
+    get:
+      operationId: downloadArtifactPreparationFile
+      tags: [artifactOperations]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { $ref: '#/components/schemas/ArtifactOperationKind' } }
+        - { name: preparationId, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: fileId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Exact hash-verified private file or ZIP
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        '401': { description: Sign-in required }
+        '404': { description: Preparation or file unavailable }
+        '409': { description: File integrity failed }
+  /artifact-operations/imprima/files/{fileId}:
+    get:
+      operationId: downloadImprimaFile
+      tags: [artifactOperations]
+      parameters:
+        - { name: fileId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Private validated document
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        '401': { description: Sign-in required }
+        '404': { description: File unavailable }
 components:
   parameters:
     SessionId:
@@ -2642,6 +3043,320 @@ components:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   schemas:
+    ArtifactPreparationInput:
+      type: object
+      additionalProperties: false
+      required: [sourceId, sourceKind, options]
+      properties:
+        sourceId: { type: string, format: uuid }
+        sourceKind: { type: string }
+        options: { type: object, additionalProperties: true }
+    ArtifactPreparation:
+      type: object
+      required: [id, kind, title, sessionId, sourceId, sourceKind, sourceHash, manifestHash, state, releaseAllowed, createdAt, files, notices]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { $ref: '#/components/schemas/ArtifactOperationKind' }
+        title: { type: string }
+        sessionId: { type: string, format: uuid }
+        sourceId: { type: string, format: uuid }
+        sourceKind: { type: string }
+        sourceHash: { type: string }
+        manifestHash: { type: string }
+        state: { type: string, enum: [PREPARED_DRAFT, PREPARED_PROPOSAL] }
+        releaseAllowed: { type: boolean, enum: [false] }
+        createdAt: { type: string, format: date-time }
+        files: { type: array, items: { $ref: '#/components/schemas/ArtifactOperationFile' } }
+        notices: { type: array, items: { type: string } }
+    ArtifactPreparationWorkspace:
+      type: object
+      required: [kind, items, sources, hasMore, authorName, databaseProtection, notices]
+      properties:
+        kind: { $ref: '#/components/schemas/ArtifactOperationKind' }
+        items: { type: array, items: { $ref: '#/components/schemas/ArtifactPreparation' } }
+        sources: { type: array, items: { $ref: '#/components/schemas/ArtifactOperationSource' } }
+        hasMore: { type: boolean }
+        authorName: { type: [string, 'null'] }
+        databaseProtection:
+          type: object
+          required: [ready, checks]
+          properties:
+            ready: { type: boolean }
+            checks:
+              type: array
+              items:
+                type: object
+                required: [id, ready]
+                properties:
+                  id: { type: string }
+                  ready: { type: boolean }
+        notices: { type: array, items: { type: string } }
+    ArtifactOperationKind:
+      type: string
+      enum: [imprima, short-sprints]
+    ArtifactOperationRequest:
+      type: object
+      required: [action, options]
+      properties:
+        action: { type: string }
+        workflowId: { type: string, format: uuid }
+        revision: { type: integer, minimum: 0 }
+        sessionId: { type: string, format: uuid }
+        sourceId: { type: string, format: uuid }
+        sourceKind: { type: string }
+        options: { type: object, additionalProperties: true }
+    ArtifactOperationSource:
+      type: object
+      required: [id, kind, label, sessionId]
+      properties:
+        id: { type: string }
+        kind: { type: string }
+        label: { type: string }
+        sessionId: { type: string, nullable: true }
+    ArtifactOperationFile:
+      type: object
+      required: [id, format, filename, size, contentHash, fileHash, variant, downloadPath]
+      properties:
+        id: { type: string }
+        format: { type: string }
+        filename: { type: string }
+        size: { type: integer }
+        contentHash: { type: string }
+        fileHash: { type: string }
+        variant: { type: string }
+        downloadPath: { type: string }
+    ArtifactOperationWorkflow:
+      type: object
+      required: [id, kind, state, revision, title, sourceHash, config, result, files, events, allowedActions, createdAt, updatedAt, sessionId]
+      properties:
+        id: { type: string }
+        kind: { $ref: '#/components/schemas/ArtifactOperationKind' }
+        sessionId: { type: string, nullable: true }
+        state: { type: string }
+        revision: { type: integer }
+        title: { type: string }
+        sourceHash: { type: string }
+        config: { type: object, additionalProperties: true }
+        result: { type: object, additionalProperties: true }
+        files: { type: array, items: { $ref: '#/components/schemas/ArtifactOperationFile' } }
+        events:
+          type: array
+          items:
+            type: object
+            required: [action, actorId, revision, createdAt, data]
+            properties:
+              action: { type: string }
+              actorId: { type: string }
+              revision: { type: integer }
+              createdAt: { type: string }
+              data: { type: object, additionalProperties: true }
+        allowedActions: { type: array, items: { type: string } }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    ArtifactOperationsWorkspace:
+      type: object
+      required: [kind, items, sources, verifiers, mayRegisterVerifier, hasMore, notices]
+      properties:
+        kind: { $ref: '#/components/schemas/ArtifactOperationKind' }
+        items: { type: array, items: { $ref: '#/components/schemas/ArtifactOperationWorkflow' } }
+        sources: { type: array, items: { $ref: '#/components/schemas/ArtifactOperationSource' } }
+        selectedId: { type: string, nullable: true }
+        hasMore: { type: boolean }
+        mayRegisterVerifier: { type: boolean }
+        verifiers:
+          type: array
+          items: { type: object, additionalProperties: true }
+        notices: { type: array, items: { type: string } }
+    ShortSprintRuleResult:
+      type: object
+      additionalProperties: false
+      required: [id, status, reason, remedy, evidenceHash]
+      properties:
+        id: { type: string }
+        status: { type: string, enum: [PASS, FAIL, UNKNOWN] }
+        reason: { type: string }
+        remedy: { type: [string, "null"] }
+        evidenceHash: { type: [string, "null"] }
+    ShortSprintAssessment:
+      type: object
+      additionalProperties: false
+      required: [policyVersion, circuit, state, results, eligibilityHash, verificationPackRequired, additionalRegulatedTracks, requiredPostStages, releaseAllowed, limitation]
+      properties:
+        policyVersion: { type: string }
+        circuit: { type: string, enum: [SC_ONE, SC_TWO] }
+        state: { type: string, enum: [ELIGIBLE, INELIGIBLE, INCONCLUSIVE] }
+        results: { type: array, items: { $ref: "#/components/schemas/ShortSprintRuleResult" } }
+        eligibilityHash: { type: string }
+        verificationPackRequired: { type: boolean }
+        additionalRegulatedTracks: { type: array, items: { type: string } }
+        requiredPostStages: { type: array, items: { type: string } }
+        releaseAllowed: { type: boolean, enum: [false] }
+        limitation: { type: string }
+    ShortSprintPreflightSource:
+      type: object
+      additionalProperties: false
+      required: [id, name, artifactType, createdAt, hash, certification]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: [string, "null"] }
+        artifactType: { type: string, enum: [MICRO_PDD, SPC] }
+        createdAt: { type: string, format: date-time }
+        hash: { type: [string, "null"] }
+        certification: { type: string, enum: [NOT_ESTABLISHED] }
+    ShortSprintPreflight:
+      type: object
+      additionalProperties: false
+      required: [sessionId, circuit, target, profile, source, assessment, evidenceNotes, evidenceHash, checkedAt]
+      properties:
+        sessionId: { type: string, format: uuid }
+        circuit: { type: string, enum: [SC_ONE, SC_TWO] }
+        target: { type: string, enum: [SOFTWARE, FIRMWARE] }
+        profile: { type: string, enum: [PROTOTYPE_LIGHT, STANDARD, REGULATED] }
+        source:
+          anyOf:
+            - { $ref: "#/components/schemas/ShortSprintPreflightSource" }
+            - { type: "null" }
+        assessment: { $ref: "#/components/schemas/ShortSprintAssessment" }
+        evidenceNotes: { type: array, items: { type: string } }
+        evidenceHash: { type: string }
+        checkedAt: { type: string, format: date-time }
+    XvlRule:
+      type: object
+      additionalProperties: false
+      required: [path, operator]
+      properties:
+        path: { type: string, maxLength: 256, description: "JSON Pointer, e.g. /title or /items/0; empty string addresses the root" }
+        operator: { type: string, enum: [exists, type, equals, minLength, maxLength] }
+        expected: { type: [string, number, boolean, "null"], description: "Required except for exists. type takes a JSON type name; length takes a nonnegative integer." }
+    XvlEvalsetInput:
+      type: object
+      additionalProperties: false
+      required: [stage, title, rules]
+      properties:
+        stage: { type: string, enum: [F0, F0.5, F1, F2, F3, F4, F5, F6, F7, F8, F9, F9.5, F10, F11, F12] }
+        title: { type: string, minLength: 1, maxLength: 120 }
+        rules: { type: array, minItems: 1, maxItems: 100, items: { $ref: "#/components/schemas/XvlRule" } }
+    XvlEvalset:
+      type: object
+      required: [id, stage, title, rules, contentHash, registeredAt]
+      properties:
+        id: { type: string, format: uuid }
+        stage: { type: string }
+        title: { type: string }
+        rules: { type: array, items: { $ref: "#/components/schemas/XvlRule" } }
+        contentHash: { type: string }
+        registeredAt: { type: string, format: date-time }
+    XvlVerificationInput:
+      type: object
+      additionalProperties: false
+      required: [artifactId, evalsetId]
+      properties:
+        artifactId: { type: string, format: uuid }
+        evalsetId: { type: string, format: uuid }
+    XvlRuleResult:
+      type: object
+      required: [index, passed]
+      properties:
+        index: { type: integer }
+        passed: { type: boolean }
+    XvlEvidence:
+      type: object
+      required: [schemaVersion, scope, track, adapterId, adapterVersion, independence, artifactId, artifactHash, evalsetId, evalsetHash, stage, outcome, results, reason, modelCalls, tokenUsage, monetaryCost, producingModel]
+      properties:
+        schemaVersion: { type: integer }
+        scope: { type: string }
+        track: { type: string, enum: [E] }
+        adapterId: { type: string }
+        adapterVersion: { type: string }
+        independence: { type: string, enum: [I2] }
+        artifactId: { type: string, format: uuid }
+        artifactHash: { type: string }
+        evalsetId: { type: string, format: uuid }
+        evalsetHash: { type: string }
+        stage: { type: string }
+        outcome: { type: string, enum: [PASS, FAIL, INCONCLUSIVE] }
+        results: { type: array, items: { $ref: "#/components/schemas/XvlRuleResult" } }
+        reason: { type: string }
+        modelCalls: { type: integer }
+        tokenUsage: { type: ["integer", "null"] }
+        monetaryCost: { type: ["number", "null"] }
+        producingModel: { type: ["string", "null"] }
+    XvlRun:
+      type: object
+      required: [id, artifactId, evalsetId, stage, track, adapterId, adapterVersion, independence, outcome, artifactHash, evalsetHash, evidenceHash, evidence, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        artifactId: { type: string, format: uuid }
+        evalsetId: { type: string, format: uuid }
+        stage: { type: string }
+        track: { type: string, enum: [E] }
+        adapterId: { type: string }
+        adapterVersion: { type: string }
+        independence: { type: string, enum: [I2] }
+        outcome: { type: string, enum: [PASS, FAIL, INCONCLUSIVE] }
+        artifactHash: { type: string }
+        evalsetHash: { type: string }
+        evidenceHash: { type: string }
+        evidence: { $ref: "#/components/schemas/XvlEvidence" }
+        createdAt: { type: string, format: date-time }
+    XvlTrack:
+      type: object
+      required: [id, name, independence, available, reason]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        independence: { type: string }
+        available: { type: boolean }
+        reason: { type: string }
+    XvlSession:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+    XvlArtifact:
+      type: object
+      required: [id, name, stage, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: ["string", "null"] }
+        stage: { type: string }
+        createdAt: { type: string, format: date-time }
+    XvlFailureCase:
+      type: object
+      required: [id, runId, stage, state, rejectedOutputOrigin, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        runId: { type: string, format: uuid }
+        stage: { type: string }
+        state: { type: string, enum: [OPEN, CLOSED] }
+        sourceKind: { type: string, enum: [XVL, SHORT_SPRINTS] }
+        rejectedOutputOrigin: { type: string, enum: [none] }
+        createdAt: { type: string, format: date-time }
+    XvlWorkspace:
+      type: object
+      required: [session, scope, historyLimit, tracks, artifacts, evalsets, runs, failureCases]
+      properties:
+        session: { $ref: "#/components/schemas/XvlSession" }
+        scope: { type: string }
+        historyLimit: { type: integer }
+        tracks: { type: array, items: { $ref: "#/components/schemas/XvlTrack" } }
+        artifacts: { type: array, items: { $ref: "#/components/schemas/XvlArtifact" } }
+        evalsets: { type: array, items: { $ref: "#/components/schemas/XvlEvalset" } }
+        runs: { type: array, items: { $ref: "#/components/schemas/XvlRun" } }
+        failureCases: { type: array, items: { $ref: "#/components/schemas/XvlFailureCase" } }
+    LaunchReadiness:
+      type: object
+      required: [checkedAt, database, ai, buildReady, message, deferred]
+      properties:
+        checkedAt: { type: string, format: date-time }
+        database: { type: string, enum: [available, unavailable] }
+        ai: { type: string, enum: [configured, not_configured] }
+        buildReady: { type: boolean }
+        message: { type: string }
+        deferred:
+          type: array
+          items: { type: string }
     F10ExportInput:
       type: object
       required: [sourceArtifactId, outputKind, family, target]
@@ -2683,8 +3398,8 @@ components:
       required: [id, type, artifactType, outputKind, createdAt]
       properties:
         id: { type: string, format: uuid }
-        type: { type: string, enum: [SPC, MA_BIRTH_PACKAGE, MICRO_PDD, ATLAS_PDD, ATLAS_PDD_JSON, MVP_PDD, CODEBASE_BUNDLE] }
-        artifactType: { type: string, enum: [SPC, MA_BIRTH_PACKAGE, MICRO_PDD, ATLAS_PDD, ATLAS_PDD_JSON, MVP_PDD, CODEBASE_BUNDLE] }
+        type: { type: string, enum: [SPC, MA_BIRTH_PACKAGE, MICRO_PDD, ATLAS_PDD, ATLAS_PDD_JSON, MVP_PDD, VERIFIED_CODEBASE_BUNDLE] }
+        artifactType: { type: string, enum: [SPC, MA_BIRTH_PACKAGE, MICRO_PDD, ATLAS_PDD, ATLAS_PDD_JSON, MVP_PDD, VERIFIED_CODEBASE_BUNDLE] }
         outputKind: { type: string, enum: [SPC, MA, MPDD, PDD, CODE_DJ] }
         name: { type: ["string", "null"] }
         createdAt: { type: string, format: date-time }
@@ -3438,7 +4153,7 @@ components:
 
     FeatureStatus:
       type: string
-      enum: [LOCKED, AVAILABLE, IN_PROGRESS, COMPLETE]
+      enum: [LOCKED, AVAILABLE, IN_PROGRESS, COMPLETE, SKIPPED_BY_SC]
 
     ArtifactType:
       type: string
@@ -3452,10 +4167,13 @@ components:
         - ATLAS_PDD_JSON
         - MVP_PDD
         - CODEBASE_BUNDLE
+        - VERIFIED_CODEBASE_BUNDLE
+        - SPC_PLAYER_SUPPORT
         - PFP_REPORT
         - HOSTING_PLAN
         - ATLAS_360_PLAN_VIEW
         - ATLAS_360_SCAN_VIEW
+        - SPC_PLAYER_SUPPORT
 
     CodeDjPlatform:
       type: string
@@ -3525,6 +4243,52 @@ components:
           type: boolean
           description: Override the PFP drift gate. Required when the most recent PFP report for the same MVP PDD has any critical findings.
         provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    F8VerificationEvidenceInput:
+      type: object
+      additionalProperties: false
+      required: [evidenceKind, passed, runReference, command, summary]
+      properties:
+        evidenceKind: { type: string, enum: [CI, IDE_TEST] }
+        passed: { type: boolean, enum: [true] }
+        runReference: { type: string, minLength: 1, maxLength: 500 }
+        command: { type: string, minLength: 1, maxLength: 1000 }
+        summary: { type: string, minLength: 1, maxLength: 4000 }
+        evidencePayload: { type: object, additionalProperties: true }
+
+    F8VerificationFinalizeInput:
+      type: object
+      additionalProperties: false
+      properties: {}
+
+    F8VerificationEvidence:
+      type: object
+      required: [id, sourceArtifactId, sessionId, evidenceKind, passed, runReference, command, summary, evidenceHash, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        sourceArtifactId: { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
+        evidenceKind: { type: string, enum: [CI, IDE_TEST] }
+        passed: { type: boolean, enum: [true] }
+        runReference: { type: string }
+        command: { type: string }
+        summary: { type: string }
+        evidencePayload: { type: ["object", "null"], additionalProperties: true }
+        evidenceHash: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    F8VerificationResult:
+      type: object
+      required: [sourceArtifactId, verifiedArtifactId, status, contentHash, evidenceHash, evidence]
+      properties:
+        sourceArtifactId: { type: string, format: uuid }
+        verifiedArtifactId: { type: string, format: uuid }
+        status: { type: string, enum: [VERIFIED] }
+        contentHash: { type: string }
+        evidenceHash: { type: string }
+        evidence:
+          type: array
+          items: { $ref: "#/components/schemas/F8VerificationEvidence" }
 
     F9Phase:
       type: object
@@ -4535,6 +5299,10 @@ components:
         sessionId: { type: string, format: uuid }
         featureId: { type: integer }
         artifactType: { $ref: "#/components/schemas/ArtifactType" }
+        parentArtifactId: { type: ["string", "null"], format: uuid }
+        contentHash: { type: ["string", "null"] }
+        verificationStatus: { type: string, enum: [UNVERIFIED, VERIFIED] }
+        verificationEvidenceHash: { type: ["string", "null"] }
         name: { type: ["string", "null"] }
         artifactContent: { type: object, additionalProperties: true }
         scorecards:
@@ -4693,6 +5461,10 @@ components:
       properties:
         sessionId: { type: string, format: uuid }
         prompt: { type: string, minLength: 10 }
+        f0ReportId:
+          type: string
+          format: uuid
+          description: Optional owned F0 advisory report linked to this session; it is supporting context, never certification.
         provider: { $ref: "#/components/schemas/LlmProvider" }
 
     HarnessF2Input:
@@ -5296,7 +6068,7 @@ components:
           enum: [canonical, hand_authored, generated]
         kind:
           type: string
-          enum: [SPC, MA, MPDD, PDD]
+          enum: [SPC, MA, MPDD, PDD, F0_REPORT]
         marketplace:
           type: string
           enum: [curated, open]
@@ -5308,6 +6080,74 @@ components:
           oneOf:
             - $ref: "#/components/schemas/SpcPlayerPublication"
             - type: "null"
+        active: { type: boolean }
+        artifactMode: { type: string, enum: [LIBRARY_ARTIFACT, SPHINX_ARTIFACT] }
+        isOwner: { type: boolean }
+        canReview: { type: boolean }
+        eligibility:
+          type: object
+          required: [eligible, reasons]
+          properties:
+            eligible: { type: boolean }
+            reasons:
+              type: array
+              items: { type: string }
+        qualification:
+          oneOf:
+            - $ref: "#/components/schemas/ExemplarQualificationSummary"
+            - type: "null"
+
+    SphinxMarketplaceStatus:
+      type: object
+      required: [publicOpen, canManage, policyVersion]
+      properties:
+        publicOpen: { type: boolean }
+        canManage: { type: boolean }
+        policyVersion: { type: string }
+
+    SphinxMarketplaceActivationRequest:
+      type: object
+      required: [publicOpen]
+      additionalProperties: false
+      properties:
+        publicOpen: { type: boolean }
+
+    ExemplarVisibilityRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        active: { type: boolean }
+        artifactMode: { type: string, enum: [LIBRARY_ARTIFACT, SPHINX_ARTIFACT] }
+        commercialConsent: { type: boolean }
+
+    ReviewExemplarRequest:
+      type: object
+      additionalProperties: false
+      required: [decision, notes, jcse, tokenCount, version, documentation, tests, rightsCleared, safetyReviewed]
+      properties:
+        decision: { type: string, enum: [APPROVED, REJECTED] }
+        notes: { type: string, minLength: 10, maxLength: 2000 }
+        jcse: { type: integer, minimum: 0, maximum: 50 }
+        tokenCount: { type: integer, minimum: 1, maximum: 1000000 }
+        version: { type: string }
+        documentation: { type: string, minLength: 5, maxLength: 2000 }
+        tests: { type: string, minLength: 5, maxLength: 2000 }
+        rightsCleared: { type: boolean }
+        safetyReviewed: { type: boolean }
+
+    ExemplarQualificationSummary:
+      type: object
+      required: [decision, reviewedAt, policyVersion, jcse, tokenCount, version]
+      properties:
+        decision: { type: string, enum: [APPROVED, REJECTED] }
+        reviewedAt: { type: string, format: date-time }
+        policyVersion: { type: string }
+        jcse: { type: integer }
+        tokenCount: { type: integer }
+        version: { type: string }
+        notes: { type: string }
+        documentation: { type: string }
+        tests: { type: string }
 
     Exemplar:
       allOf:
@@ -5965,6 +6805,15 @@ components:
           type: string
           format: uuid
           description: Optional owned project artifact used as the run's primary context.
+        originSessionId:
+          type: string
+          format: uuid
+          description: Session to which the operator may explicitly return the finished package.
+        originFeatureId:
+          type: integer
+          minimum: 1
+          maximum: 13
+          description: Exact originating production-floor stage; must be paired with originSessionId.
         profile:
           type: string
           enum: [full, rapid]
@@ -6086,11 +6935,14 @@ components:
       type: object
       additionalProperties: false
       required:
-        [id, ownerUserId, title, brief, selectedCardIds, profile, status, executionState, canExecute, retryAvailableAt, governance, stageResults, governanceEvaluation, executionAdvisory, distributionPlan, error, transitions, completedAt, outputPackage, createdAt, updatedAt]
+        [id, ownerUserId, title, brief, selectedCardIds, profile, status, executionState, canExecute, retryAvailableAt, governance, stageResults, governanceEvaluation, executionAdvisory, distributionPlan, error, transitions, completedAt, outputPackage, createdAt, updatedAt, originSessionId, originFeatureId, returnedArtifactId]
       properties:
         id: { type: string, format: uuid }
         ownerUserId: { type: string, format: uuid }
         sourceArtifactId: { type: ["string", "null"], format: uuid }
+        originSessionId: { type: ["string", "null"], format: uuid }
+        originFeatureId: { type: ["integer", "null"], minimum: 1, maximum: 13 }
+        returnedArtifactId: { type: ["string", "null"], format: uuid }
         title: { type: string }
         brief: { type: string }
         selectedCardIds:
@@ -6143,6 +6995,25 @@ components:
           nullable: true
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
+
+    SpcPlayerReturnInput:
+      type: object
+      additionalProperties: false
+      required: [confirmReturn, originSessionId, originFeatureId]
+      properties:
+        confirmReturn: { type: boolean, enum: [true] }
+        originSessionId: { type: string, format: uuid }
+        originFeatureId: { type: integer, minimum: 1, maximum: 13 }
+
+    SpcPlayerReturnResponse:
+      type: object
+      additionalProperties: false
+      required: [attached, planOnly, run, artifact]
+      properties:
+        attached: { type: boolean, enum: [true] }
+        planOnly: { type: boolean, enum: [true] }
+        run: { $ref: "#/components/schemas/SpcPlayerRun" }
+        artifact: { $ref: "#/components/schemas/HarnessArtifact" }
 
     SpcPlayerManifest:
       type: object

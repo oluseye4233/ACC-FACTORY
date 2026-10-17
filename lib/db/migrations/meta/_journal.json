@@ -281,6 +281,90 @@
       "when": 1790437860086,
       "tag": "0039_regular_chronomancer",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1790443596966,
+      "tag": "0040_rich_scorpion",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1790443887991,
+      "tag": "0041_luxuriant_rhodey",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1790443990969,
+      "tag": "0042_striped_proemial_gods",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1790445798475,
+      "tag": "0043_typical_iron_patriot",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1792074812454,
+      "tag": "0044_youthful_daimon_hellstrom",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1792084939052,
+      "tag": "0045_cynical_queen_noir",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1792163145154,
+      "tag": "0046_fancy_bullseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1792163558440,
+      "tag": "0047_good_professor_monster",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1792177080505,
+      "tag": "0048_awesome_marvel_zombies",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1792178514739,
+      "tag": "0049_white_virginia_dare",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1792180287069,
+      "tag": "0050_artifact_operations_integrity",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1792223548019,
+      "tag": "0051_artifact_operations_least_privilege",
+      "breakpoints": true
     }
   ]
 }

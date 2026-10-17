@@ -21,7 +21,9 @@ import Command from "@/pages/command";
 import Sessions from "@/pages/sessions";
 import SessionNew from "@/pages/session-new";
 import SessionDetail from "@/pages/session-detail";
+import SessionVerification from "@/pages/session-verification";
 import Exemplars from "@/pages/exemplars";
+import Sphinx from "@/pages/sphinx";
 import Prompts from "@/pages/prompts";
 import Quests from "@/pages/quests";
 import Account from "@/pages/account";
@@ -33,10 +35,12 @@ import AdminOps from "@/pages/admin-ops";
 import AdminProviderBilling from "@/pages/admin-provider-billing";
 import Ascension from "@/pages/ascension";
 import F10Console from "@/pages/f10";
+import Operations from "@/pages/operations";
 import Activity from "@/pages/activity";
 import MeCosts from "@/pages/me-costs";
 import TestYourAgent from "@/pages/test-your-agent";
 import Guide from "@/pages/guide";
+import Status from "@/pages/status";
 import CalculateYourSavings from "@/pages/calculate-your-savings";
 import { AccessGate } from "@/components/AccessGate";
 import {
@@ -44,6 +48,7 @@ import {
   useStaffSessionQuery,
 } from "@/lib/staff-session";
 import { Redirect } from "wouter";
+import { ThemeProvider } from "next-themes";
 import SpcPlayerDashboard from "@/pages/spc-player/dashboard";
 import SpcPlayerNew from "@/pages/spc-player/new";
 import SpcPlayerDetail from "@/pages/spc-player/detail";
@@ -71,6 +76,8 @@ function PublicRoutes() {
       <Route path="/verify" component={Verify} />
       <Route path="/test-your-agent" component={TestYourAgent} />
       <Route path="/calculate-your-savings" component={CalculateYourSavings} />
+      <Route path="/sphinx" component={Sphinx} />
+      <Route path="/status" component={Status} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -83,6 +90,8 @@ function AuthenticatedRoutes() {
       <Route path="/verify" component={Verify} />
       <Route path="/test-your-agent" component={TestYourAgent} />
       <Route path="/calculate-your-savings" component={CalculateYourSavings} />
+      <Route path="/sphinx" component={Sphinx} />
+      <Route path="/status" component={Status} />
       <Route path="/command" component={Command} />
       <Route path="/guide" component={Guide} />
       <Route path="/sessions" component={Sessions} />
@@ -90,6 +99,7 @@ function AuthenticatedRoutes() {
       <Route path="/ingest" component={Ingest} />
       <Route path="/cartridge" component={Cartridge} />
       <Route path="/f0" component={F0Dashboard} />
+      <Route path="/session/:sessionId/verification" component={SessionVerification} />
       <Route path="/session/:id" component={SessionDetail} />
       <Route path="/prompts" component={Prompts} />
       <Route path="/quests" component={Quests} />
@@ -105,6 +115,7 @@ function AuthenticatedRoutes() {
       <Route path="/spc-player" component={SpcPlayerDashboard} />
       <Route path="/spc-player/new" component={SpcPlayerNew} />
       <Route path="/spc-player/:id" component={SpcPlayerDetail} />
+      <Route path="/operations" component={Operations} />
       <Route path="/f10" component={() => <F10Console />} />
       <Route component={NotFound} />
     </Switch>
@@ -113,6 +124,10 @@ function AuthenticatedRoutes() {
 
 function Gate() {
   const { data, isLoading, isError } = useStaffSessionQuery();
+
+  // Recovery/status must not wait on a session lookup backed by a failing DB.
+  const requestedPath = window.location.pathname.replace(basePath, "");
+  if (requestedPath === "/status" || requestedPath === "/status/") return <PublicRoutes />;
 
   if (isLoading) return <LoadingScreen />;
 
@@ -126,7 +141,11 @@ function Gate() {
     if (
       publicPath.startsWith("/verify") ||
       publicPath.startsWith("/test-your-agent") ||
-      publicPath.startsWith("/calculate-your-savings")
+      publicPath.startsWith("/calculate-your-savings") ||
+      publicPath === "/sphinx" ||
+      publicPath === "/sphinx/" ||
+      publicPath === "/status" ||
+      publicPath === "/status/"
     ) {
       return <PublicRoutes />;
     }
@@ -145,14 +164,16 @@ function Gate() {
 function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <WouterRouter base={basePath}>
-            <Gate />
-          </WouterRouter>
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="atanda-theme">
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <WouterRouter base={basePath}>
+              <Gate />
+            </WouterRouter>
+            <Toaster />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

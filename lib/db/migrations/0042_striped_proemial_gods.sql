@@ -1,0 +1,1 @@
+ALTER TABLE "code_bundle_verification_evidence" ADD COLUMN "passed" boolean DEFAULT true NOT NULL;

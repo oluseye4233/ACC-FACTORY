@@ -41,6 +41,7 @@ import {
   reserveCostBudget,
 } from "../lib/cost-budget";
 import { PROVIDER_MODELS } from "./provider-models";
+import { captureArtifactPersisted } from "../lib/command-deck-capture";
 
 export { PROVIDER_MODELS } from "./provider-models";
 // Legacy export — Anthropic-only callers still reference MODEL.
@@ -145,7 +146,8 @@ export async function persistArtifact(
   // Non-eligible intermediate artifacts get null. Best-effort so a transient
   // catalog error can never lose completed, paid-for engine work.
   const sku = await tryIssueSku(input.userId, input.artifactType);
-  const [row] = await db
+  const row = await db.transaction(async (tx) => {
+    const [saved] = await tx
     .insert(harnessArtifactsTable)
     .values({
       sessionId: input.sessionId,
@@ -166,6 +168,9 @@ export async function persistArtifact(
       modelId,
     })
     .returning();
+    await captureArtifactPersisted(tx, saved!);
+    return saved!;
+  });
   maybeAwardContextCraftBadges(input.userId, row!.id, input.artifactContent).catch(
     () => {},
   );

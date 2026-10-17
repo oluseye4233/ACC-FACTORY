@@ -176,10 +176,19 @@ router.post("/f11/host-runs", requireAuth, async (req, res): Promise<void> => {
       eq(harnessArtifactsTable.id, input.sourceArtifactId),
       eq(harnessArtifactsTable.userId, req.localUser!.id),
       eq(harnessArtifactsTable.sessionId, input.sessionId),
-      eq(harnessArtifactsTable.artifactType, "CODEBASE_BUNDLE"),
+       eq(harnessArtifactsTable.artifactType, "VERIFIED_CODEBASE_BUNDLE"),
     )).limit(1),
   ]);
-  if (!plan[0] || !source[0]) { res.status(404).json({ error: "F11 plan or F8 code bundle not found in this session" }); return; }
+  if (
+    !plan[0] ||
+    !source[0] ||
+    source[0].verificationStatus !== "VERIFIED" ||
+    !source[0].contentHash ||
+    !source[0].verificationEvidenceHash
+  ) {
+    res.status(404).json({ error: "F11 plan or verified F8 code bundle not found in this session", code: "CODE_BUNDLE_UNVERIFIED" });
+    return;
+  }
   const planContent = isRecord(plan[0].artifactContent) ? plan[0].artifactContent : {};
   if (planContent.sourceCodebaseBundleArtifactId !== input.sourceArtifactId) {
     res.status(409).json({ error: "F8 code bundle is not the bundle used to create this hosting plan", code: "SOURCE_LINEAGE_MISMATCH" });

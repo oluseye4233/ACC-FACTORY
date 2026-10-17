@@ -434,3 +434,59 @@ mtime_ms = 1790181605263
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/602455ca-605b-42a9-b86c-52a645011258/e02cfce0-5146-42bc-a723-82c6baa9e0cf"
 storage_version_token = "1790181649338345"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "91PSt3oZhVco0g_xILWrD"
+uri = "file://docs/upgrade-program/README.md"
+type = "text"
+title = "ARK Upgrade Build Order and Integration Gates"
+description = "Dependency sequence, live-status tracking rules, missing SPCs, and prerequisites for the 243-prompt upgrade program."
+logical_id = "cf98662d-0e26-44ea-8b5c-5372b1e53d20"
+content_hash = "sha256:9ec9f80fdbf156dcc931e3fd199a546f1eeddafa031ef3bc65b33b27babc8a8a"
+size = 7398
+mtime_ms = 1792081593658
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/cf98662d-0e26-44ea-8b5c-5372b1e53d20/772efff6-5f44-45e0-a8af-ed9d2a3d538f"
+storage_version_token = "1792081603193035"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "80zjqgKpq071zdYR7wZOg"
+uri = "file://docs/upgrade-program/SPARTAN-MVP-launch-profile.md"
+type = "text"
+title = "SPARTAN MVP Launch Profile"
+description = "Retained capabilities, deferred upgrades, activation requirements and the production launch blocker. Analyst application of SPARTAN, not independent certification."
+logical_id = "0345c488-1c7b-4c83-aa4e-1ffeea5ff342"
+content_hash = "sha256:adf795db475ef13ed740e62149d418c60b450aace82410d5a31c76ae96769652"
+size = 3706
+mtime_ms = 1792085655117
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/0345c488-1c7b-4c83-aa4e-1ffeea5ff342/0887e26c-366b-4fff-ba06-4b1078a312bb"
+storage_version_token = "1792085928396058"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "MN11m5DZ4E9_3YTX7meFg"
+uri = "file://docs/upgrade-program/SEC-REP-ONE-reassessment.md"
+type = "text"
+title = "SEC REP ONE — current replacement assessment"
+description = "Measured security findings, critical dependency patches, remaining controls and explicit assessment limits."
+logical_id = "90bad347-7f8e-4d5d-b8de-56de7776540f"
+content_hash = "sha256:52193f6ec6e1a45049da1bae5b1d8ccfe15a0637293515c0d735483f78d1bd29"
+size = 5457
+mtime_ms = 1792172661041
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/90bad347-7f8e-4d5d-b8de-56de7776540f/453f8adb-8b4b-4489-841c-ac023ec2d60d"
+storage_version_token = "1792173373178606"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "wvTMTMsBHNI9_lM2sC75H"
+uri = "file://docs/upgrade-program/bugmxt-debugging-checkpoint.md"
+type = "text"
+title = "BUGMXT-guided debugging checkpoint"
+description = "SHORT SPRINTS spec-drift fixes, implemented preflight behavior, validation scope and remaining activation limits."
+logical_id = "9533a99f-7f4f-4e20-804b-637943f763c1"
+content_hash = "sha256:4bf21b4262f571c6b864ce36b4882b7cd3ab93a19e6e695e8e7e3d963ddcca31"
+size = 5061
+mtime_ms = 1792174681497
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/9533a99f-7f4f-4e20-804b-637943f763c1/785aec15-1d66-4494-aba6-d1f903ca5cd8"
+storage_version_token = "1792175127488118"
+content_type = "text/markdown"

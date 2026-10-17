@@ -1,0 +1,2470 @@
+{
+  "schemaVersion": 1,
+  "artifactOperations": {
+    "localBuild": "IMPLEMENTED_AND_PREVIEW_VERIFIED",
+    "liveActivity": "INACTIVE",
+    "releaseStatus": "BLOCKED_DATABASE_GUARD_TRANSFER",
+    "spartanPreparation": {
+      "localBuild": "IMPLEMENTED_AND_PREVIEW_VERIFIED",
+      "liveActivity": "INACTIVE",
+      "releaseStatus": "READY_TO_PUBLISH_PREPARATION_ONLY",
+      "profile": "docs/upgrade-program/SPARTAN-artifact-preparation-release.md",
+      "features": [
+        "Saved source-preserving IMPRIMA DRAFT HTML/DOCX/Unicode PDF with private individual and ZIP downloads",
+        "Saved SC ONE birth/Micro PDD and SC TWO SPC/configuration/SASS preparation packages with exact-byte manifests",
+        "Existing owner-scoped artifact persistence; no fallback connection into SQL-protected tables and no LLM charges"
+      ],
+      "notActivated": [
+        "Final approval/publication and SQL-protected workflow activation",
+        "Independent source/pack certification, marketplace eligibility, route skipping, provider deployment and live traffic control"
+      ],
+      "verification": "Full workspace typecheck, production frontend build and regression suite passed: 806 passed, 40 skipped, followed by focused template/quota checks. Signed-in IMPRIMA and SC TWO save/reload/download, exact ZIP/file hashes, 390px layouts, anonymous 401 and cross-account 404 passed. Browser guard-status simulation used GET responses only; creation/download responses were real. The empty preparation sample model was corrected in a separate no-runtime template and checked directly against the server schema. SC ONE was covered by persisted service tests, not this browser pass. No model calls, Final, YES, independent receipts or deployments were used."
+    },
+    "shortSprints": "Persisted SC ONE/SC TWO proposals, signed source qualification, YES/NO/DEFER, stage skip/restore, real E/R/J/S/C/H receipt gates, immutable package exports, VTE cases, F95 custody, F10/F11 handoff and F12 5/25/100 provider-reported rollout, incident/rollback and promotion controls.",
+    "imprima": "Persisted private source snapshots, bounded KLARITY editorial batches across all editable prose, SOCRATES review, protected text fidelity, real HTML/DOCX/tagged embedded-font PDF, named Final approval, immutable versions, private integrity-checked downloads and consented public-HTTPS handoff.",
+    "verification": "Full workspace typecheck and regression suite passed: 800 tests passed, 40 skipped. Frontend production build passed. Three additional persisted lifecycle checks cover synthetic staged provider reports, failed-health hold, confirmed rollback, role non-bypass, cross-owner isolation and SQL-enforced Final/file immutability. Signed-in IMPRIMA retry/approval/reload and all three real format downloads passed; extracted protected text and byte/content hashes match. Anonymous file reads return 401 and a second owner receives 404. QA approval is a synthetic test, not a customer certification. Synthetic receipts do not prove real independent execution.",
+    "productionObservation": "2026-10-16 read-only check: successful public deployment exists; imprima_jobs and short_sprint_runs are absent, and the restricted operations role is absent. Proposed Publish diff reports no structural data loss but omits required role/guard definitions. Not republished or declared live.",
+    "blockers": [
+      "Managed Publish plan must preserve required database role, RLS predicates, FORCE RLS and immutability guards; no production DDL or migration-hook workaround.",
+      "Real independent verifier and provider deployment/health/rollback connections are not supplied or exercised. Public-key registration alone is not proof of execution."
+    ],
+    "protocol": "docs/upgrade-program/short-sprints-verifier-protocol.md",
+    "shortSprintsBrowser": "Protected SC TWO proposal creation, missing-certification YES rejection, persisted DEFER after reload, package export and direct file download verified. New proposals preserve exact archived UTF-8 strings; UI, exported metadata, actual byte lengths and SHA-256 hashes agree for source/configuration/SASS. Historical pre-archive proposals are not silently rewritten; an unrecoverable byte mismatch rejects export and requires a new proposal.",
+    "liveBenchmark": "INACTIVE applies to these new operational workspaces, whose production tables and guards are absent. Other invariants retain their own unverified/live observations; no blanket claim that the existing platform is inactive."
+  },
+  "launchMvp": {
+    "profile": "docs/upgrade-program/SPARTAN-MVP-launch-profile.md",
+    "localBuild": "PARTIAL",
+    "liveActivity": "UNVERIFIED",
+    "releaseStatus": "PUBLISHED",
+    "evidence": [
+      "2026-10-16 live recheck: deployment service reports a successful public build. /api/healthz and /api/health respond successfully; /api/readyz and /api/launch-readiness report database available, AI configuration present, and buildReady true. The latter is configuration/reachability only, not a provider call or feature certification.",
+      "2026-10-16 read-only production check: harness_sessions=26, harness_artifacts=123, exemplar_library_items=189, command_deck_traces=6. These prove production records exist, not that authenticated create/save/reopen or ownership paths were end-to-end tested.",
+      "2026-10-16 public /api/sphinx/catalog reports publicOpen=false and items=[]. Sphinx public marketplace is confirmed closed; Exemplar records are not thereby qualified or publicly listed.",
+      "2026-10-16 the currently served client bundle does not contain the new light/dark theme control. Theme work is present in the workspace but not active on the published client; republish is required.",
+      "Authenticated workflows and invariant-specific positive/negative checks remain unverified. All 129 invariant rows therefore remain UNVERIFIED; this is not a claim that they are inactive.",
+      "2026-10-15 final pre-publish check: production SELECT 1 passed; published homepage, healthz, deep health and signed-out session endpoint returned HTTP 200; deep health reports db ok. New readiness endpoint and trace table await Publish. Authenticated workflows and post-publish schema remain to be verified.",
+      "2026-10-15 release check: full workspace typecheck/build passed with required build-only PORT/BASE_PATH settings. Full workspace tests: 724 passed, 40 skipped. Broken F9 test fixtures repaired without changing runtime gates.",
+      "2026-10-15: Added public status and command dependency panel; retained existing feature and security gates.",
+      "Development database probe passed; 6 backend readiness tests and 29 frontend readiness/command tests passed; API/frontend/shared typechecks passed.",
+      "Production SELECT 1 remains blocked by frozen database. No publication, all-feature live validation or independent certification performed."
+    ],
+    "blockers": []
+  },
+  "productionObservations": [
+    {
+      "observedDate": "2026-10-16",
+      "deploymentBuild": "SUCCESS",
+      "visibility": "PUBLIC",
+      "databaseAvailability": "AVAILABLE",
+      "evidence": "Read-only live check of https://command-center.atanda.ai: /api/healthz returned {status:ok}; /api/health returned db:ok and engines:ok; /api/readyz and /api/launch-readiness reported database available, AI configured, buildReady true. /api/sphinx/catalog returned publicOpen:false and no items. Production counts: 26 sessions, 123 artifacts, 189 Exemplar records, 6 command-deck trace rows. The served JavaScript bundle did not contain the new theme control.",
+      "scope": "Read-only endpoint, served-bundle and database checks. No authenticated workflow, ownership negative case, provider model call, independent XVL test, or full invariant enforcement was verified. All 129 invariant activities remain UNVERIFIED."
+    },
+    {
+      "observedDate": "2026-10-15",
+      "databaseAvailability": "AVAILABLE",
+      "evidence": "Historical pre-publish observation: production SELECT 1 passed and live /api/health reported db ok. At that time core sessions/artifacts/Exemplar tables existed and command_deck_traces was pending the managed Publish schema update; the 2026-10-16 observation supersedes this schema status.",
+      "scope": "Non-mutating pre-publish checks only. No authenticated end-to-end verification or independent invariant enforcement claimed."
+    },
+    {
+      "observedDate": "2026-10-15",
+      "deploymentBuild": "SUCCESS",
+      "databaseAvailability": "UNAVAILABLE_FROZEN",
+      "evidence": "Production read-only SELECT 1 failed with PRODUCTION_DATABASE_ERROR: database is frozen; deployment worker logs report disabled database endpoint.",
+      "scope": "Availability observation, not proof of any invariant's enforcement or absence."
+    }
+  ],
+  "activityValues": [
+    "ACTIVE",
+    "INACTIVE",
+    "UNVERIFIED"
+  ],
+  "rule": "ACTIVE requires evidence from the published version. INACTIVE requires confirmed absence or disablement. Unchecked, inaccessible or development-only capabilities remain UNVERIFIED. Enforced requires an I1+ passing test recorded in XVL.",
+  "invariants": [
+    {
+      "id": "SP-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-07",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-08",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-09",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-10",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-11",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-12",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-13",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-14",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-15",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-16",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-17",
+      "effectivePolicy": { "source": "governance-gap-resolution.json", "version": "ARK-GAP-2026-10-16", "provenance": "DERIVED_SUCCESSOR", "definition": "SPECIFIED", "liveActivity": "UNVERIFIED" },
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "NOT_ASSESSABLE",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-18",
+      "effectivePolicy": { "source": "governance-gap-resolution.json", "version": "ARK-GAP-2026-10-16", "provenance": "DERIVED_SUCCESSOR", "definition": "SPECIFIED", "liveActivity": "UNVERIFIED" },
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "NOT_ASSESSABLE",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-19",
+      "effectivePolicy": { "source": "governance-gap-resolution.json", "version": "ARK-GAP-2026-10-16", "provenance": "DERIVED_SUCCESSOR", "definition": "SPECIFIED", "liveActivity": "UNVERIFIED" },
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "NOT_ASSESSABLE",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-20",
+      "effectivePolicy": { "source": "governance-gap-resolution.json", "version": "ARK-GAP-2026-10-16", "provenance": "DERIVED_SUCCESSOR", "definition": "SPECIFIED", "liveActivity": "UNVERIFIED" },
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "NOT_ASSESSABLE",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-21",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-22",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SP-23",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CELL-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CELL-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CELL-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CELL-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CELL-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CELL-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CELL-07",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CELL-08",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CELL-09",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CELL-10",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-07",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-08",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-09",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-10",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-11",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-12",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MVE-13",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-07",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-08",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-09",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-10",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-11",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-12",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-13",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "ACM-14",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SPC7-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SPC7-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SPC7-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SPC7-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SPC7-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SPC7-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SPC7-07",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SPC7-08",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SPC7-09",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SPC7-10",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "MECHA-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-07",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-08",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-09",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-10",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-11",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-12",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "CD-13",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "XVL-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "XVL-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "XVL-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "XVL-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "XVL-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "XVL-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "XVL-07",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "XVL-08",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "XVL-09",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "VTE-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "VTE-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "VTE-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "VTE-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "VTE-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "VTE-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "UPG-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "UPG-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "UPG-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "UPG-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "UPG-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "UPG-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "UPG-07",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SS-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SS-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SS-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SS-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SS-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SS-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "SS-07",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "IMP-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "IMP-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "IMP-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "IMP-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "IMP-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "IMP-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "IMP-07",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "IMP-08",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "KMB-01",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "KMB-02",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "KMB-03",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "KMB-04",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "KMB-05",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "KMB-06",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "KMB-07",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    },
+    {
+      "id": "KMB-08",
+      "liveActivity": "UNVERIFIED",
+      "enforcement": "SPECIFIED",
+      "deployedVersion": null,
+      "evidence": []
+    }
+  ],
+  "prompts": [
+    {
+      "id": "UPG-SEC-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-SEC-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "releaseClass": "B",
+      "mvpGate": false,
+      "evidence": [
+        "2026-10-15: User explicitly authorized bypassing Azure requirements for the current MVP as a Class B follow-on build. Existing secret controls retained. No vault-backed operation or certification is enabled by this scope decision."
+      ]
+    },
+    {
+      "id": "UPG-SEC-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-TRK-001",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": ["2026-10-16: Owner workbench exposes all eight named tracks with explicit availability. Only the bounded deterministic JSON contract adapter for E is usable; full adapter registry/configuration and other tracks remain unfinished. See verification-checkpoint.md."]
+    },
+    {
+      "id": "XVL-TRK-002",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": ["2026-10-16: Real local deterministic JSON-contract adapter emits server-derived outcomes and hash-bound metadata. This is not the Google ADK reference adapter, model judge or external audit. See verification-checkpoint.md."]
+    },
+    {
+      "id": "XVL-TRK-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-SEC-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-SEC-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-SEC-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-STG-001",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": [
+        "2026-10-15: F12 included in tested Command Deck metadata contract only; stage execution, capture hooks and production deployment not implemented."
+      ]
+    },
+    {
+      "id": "UPG-RDY-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-RDY-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-RDY-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-RDY-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-RDY-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-SEL-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-RDY-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-RDY-008",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-RDY-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-EVD-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-TRC-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-TRC-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-EVD-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-SEL-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-SEL-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-SEL-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-GATE-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-EVD-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-ORG-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-ORG-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-ORG-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-OUT-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-OUT-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-OUT-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-OUT-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-OUT-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-REL-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-REL-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-EVD-002",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": ["2026-10-16: Immutable owner/session/stage-bound acceptance contracts are registered and hashed before target artifact creation. Server rejects older artifacts and changed snapshots. Profile-wide F4 registration and blocking-stage enforcement remain unfinished."]
+    },
+    {
+      "id": "XVL-TRK-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-REL-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-REL-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-REL-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-OPS-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-OPS-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-OPS-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-OPS-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-OUT-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-FMX-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-BRG-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-BRG-002",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": [
+        "2026-10-15: Stream E and four VTE event names validated by local contract tests; durable bridge and capture map not activated."
+      ]
+    },
+    {
+      "id": "XVL-TRC-002",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": ["2026-10-16: Deterministic Track E verdicts and failure intake write idempotent metadata-only Stream E events transactionally with evidence. Other adapters and full stage capture coverage remain unfinished; no corpus consent inferred."]
+    },
+    {
+      "id": "VTE-BRG-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-BRG-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-FMX-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-FCL-001",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": ["2026-10-16: FAIL/INCONCLUSIVE opens an owner-scoped metadata-only OPEN failure case linked to immutable evidence. No automatic repair closure, approved repair pair, held-out split, regression certification or training export is claimed."]
+    },
+    {
+      "id": "UPG-OPS-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-OPS-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-SOV-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-GOV-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-GOV-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-RUN-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-SOV-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-SOV-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-SOV-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "UPG-SOV-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-GOV-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-TRK-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-TRK-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-TRK-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-TRK-008",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-GATE-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-RPT-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-TRK-009",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-SEL-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-SEL-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-SEL-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-EVD-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-RUN-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-RUN-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-RUN-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-GATE-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-GATE-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-RPT-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-RPT-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-RPT-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-PRM-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-PRM-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-PRM-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-PRM-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-PRM-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-PRM-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-PRM-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-PRM-008",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-PRM-010",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "XVL-PRM-009",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-GOV-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-GOV-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-BRG-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-FMX-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-FMX-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-FMX-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-SPL-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-SPL-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-SPL-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-FCL-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-FCL-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-FCL-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-FCL-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-STE-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-STE-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-STE-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-STE-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-STE-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-LRN-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-LRN-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-LRN-008",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-LRN-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-LRN-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-LRN-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-LRN-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-LRN-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-ANX-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-ANX-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-ANX-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-ANX-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-EXE-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "VTE-EXE-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-GOV-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-GOV-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-TRC-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-TRC-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-TRC-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-RTE-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-ELG-001",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": ["2026-10-16: Authorized derived SC ONE policy and internal deterministic evaluator implement prompt/tool/contract/codebase/critical limits and a conservative 90-minute ceiling. Trusted stage-record resolution, gate UI and release integration remain unfinished."]
+    },
+    {
+      "id": "SS-ELG-002",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": ["2026-10-16: Internal SC TWO policy evaluates certification, JSON I/O, host configuration, single-agent and critical/codebase facts. No public assertion endpoint or live gate has been activated."]
+    },
+    {
+      "id": "SS-ELG-003",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": ["2026-10-16: Owner-only read-only preflight resolves bounded latest F4/F5 source observations, recomputes source/rule hashes and exposes per-rule reasons plus JSON snapshots in the verification workbench. Unestablished certification, lineage, build-clock and critical-review facts stay UNKNOWN. Dedicated trusted adapters and durable gate decisions remain pending."]
+    },
+    {
+      "id": "SS-GATE-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-GATE-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-ELG-005",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": ["2026-10-16: Preflight UI displays a plain-language reason and remedy for failed and unknown rules. This is a read-only diagnostic, not the full SC gate/route workflow."]
+    },
+    {
+      "id": "SS-GATE-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-GATE-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-RTE-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-TRC-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-ELG-004",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": ["2026-10-16: Regulated structural eligibility now requires evidenced H/C inclusion, not merely a list of required track names. The preflight does not establish that governed inclusion; full profile-selection adapters remain pending."]
+    },
+    {
+      "id": "SS-GATE-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SCV-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SCV-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SCV-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SCV-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SCV-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SCV-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SCV-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SASS-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SASS-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SASS-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SCV-008",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-RTE-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-RTE-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-RTE-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SASS-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SCV-009",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-SCV-010",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-PRM-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-PRM-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-PRM-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-OUT-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-OUT-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "SS-OUT-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SRC-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SRC-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SRC-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SRC-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SRC-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SRC-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SRC-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SRC-008",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SRC-009",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SRC-010",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SRC-011",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-NAM-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-NAM-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-NAM-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-NAM-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-NAM-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-NAM-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-NAM-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SKR-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SKR-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-NAM-008",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-KLR-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-KLR-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-KLR-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-KLR-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-KLR-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SOC-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SOC-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SOC-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SOC-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SOC-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-KLR-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-KLR-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SOC-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SKR-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SKR-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SKR-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SKR-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SKR-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-RND-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-RND-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-RND-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-RND-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-RND-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-SKR-008",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-RND-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-UIX-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-UIX-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-UIX-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-UIX-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-UIX-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-GOV-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-UIX-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-PUB-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-UIX-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-PUB-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-PUB-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-PUB-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-PUB-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-PUB-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-PUB-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-GOV-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-GOV-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-GOV-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-GOV-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-GOV-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-GOV-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-QAL-001",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-QAL-007",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-QAL-002",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-QAL-003",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-QAL-004",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-QAL-005",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    },
+    {
+      "id": "IMP-QAL-006",
+      "localBuild": "NOT_STARTED",
+      "liveActivity": "UNVERIFIED",
+      "evidence": []
+    }
+  ],
+  "supplementalPrompts": [
+    {
+      "id": "CD-TRC-001",
+      "localBuild": "PARTIAL",
+      "liveActivity": "UNVERIFIED",
+      "evidence": [
+        "2026-10-15: Metadata contract and durable development trace storage implemented. Shared engine artifact persistence, F8 verification children and SPC Player returns capture metadata in their existing artifact transaction. Owner-scoped reads; cross-owner write rejection; deterministic hashes and idempotency; corpus capture remains disabled. Local tests are not independent enforcement evidence. Full F0-F12 hooks, RLS, signed intake, corpus consent and operator UI remain incomplete."
+      ]
+    }
+  ]
+}

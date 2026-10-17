@@ -3,7 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { harnessSessionsTable } from "./harness-sessions";
 
-export const FEATURE_STATUSES = ["LOCKED", "AVAILABLE", "IN_PROGRESS", "COMPLETE"] as const;
+export const FEATURE_STATUSES = ["LOCKED", "AVAILABLE", "IN_PROGRESS", "COMPLETE", "SKIPPED_BY_SC"] as const;
 export type FeatureStatus = (typeof FEATURE_STATUSES)[number];
 
 export const harnessFeatureStateTable = pgTable(

@@ -1,4 +1,4 @@
-import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, text, timestamp, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { harnessSessionsTable } from "./harness-sessions";
@@ -14,10 +14,14 @@ export const ARTIFACT_TYPES = [
   "ATLAS_PDD_JSON",
   "MVP_PDD",
   "CODEBASE_BUNDLE",
+  "VERIFIED_CODEBASE_BUNDLE",
+  "SPC_PLAYER_SUPPORT",
   "PFP_REPORT",
   "HOSTING_PLAN",
   "ATLAS_360_PLAN_VIEW",
   "ATLAS_360_SCAN_VIEW",
+  "IMPRIMA_PREPARATION",
+  "SHORT_SPRINT_PREPARATION",
 ] as const;
 export type ArtifactType = (typeof ARTIFACT_TYPES)[number];
 
@@ -31,6 +35,13 @@ export const harnessArtifactsTable = pgTable("harness_artifacts", {
     .references(() => usersTable.id, { onDelete: "cascade" }),
   featureId: integer("feature_id").notNull(),
   artifactType: text("artifact_type").notNull().$type<ArtifactType>(),
+  parentArtifactId: uuid("parent_artifact_id").references(
+    (): AnyPgColumn => harnessArtifactsTable.id,
+    { onDelete: "restrict" },
+  ),
+  contentHash: text("content_hash"),
+  verificationStatus: text("verification_status").notNull().default("UNVERIFIED"),
+  verificationEvidenceHash: text("verification_evidence_hash"),
   name: text("name"),
   artifactContent: jsonb("artifact_content").notNull(),
   // Structured score explanations for any JCSE/MATHMON scores carried by this artifact.

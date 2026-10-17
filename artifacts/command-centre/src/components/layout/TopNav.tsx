@@ -14,6 +14,7 @@ import {
   CompanySpendBanner,
   CompanySpendMeter,
 } from "@/components/layout/CompanySpendMeter";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const STAFF_LINKS: Array<{ href: string; label: string }> = [
   { href: "/command", label: "Command" },
@@ -21,9 +22,12 @@ const STAFF_LINKS: Array<{ href: string; label: string }> = [
   { href: "/spc-player", label: "SPC Player" },
   { href: "/f10", label: "F10 Release" },
   { href: "/sessions", label: "Sessions" },
+  { href: "/exemplars", label: "Exemplar Library" },
   { href: "/ingest", label: "Ingest" },
   { href: "/cartridge", label: "Cartridge" },
   { href: "/f0", label: "F0 Advisory" },
+  { href: "/operations?kind=imprima", label: "IMPRIMA" },
+  { href: "/operations?kind=short-sprints", label: "Short Sprints" },
   { href: "/prompts", label: "Prompts" },
   { href: "/quests", label: "Quests" },
   { href: "/ascension", label: "Ascension" },
@@ -79,24 +83,15 @@ export function TopNav() {
               A Cognitive Engineering Project
             </span>
           </Link>
-          <nav className="hidden lg:flex items-center gap-4 text-sm font-medium text-muted-foreground">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="hover:text-foreground transition-colors"
-              >
-                {l.label}
-              </Link>
-            ))}
-          </nav>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
+          <ThemeToggle />
           <CompanySpendMeter />
           {session.name ? (
             <span
-              className="hidden sm:inline font-mono text-xs uppercase tracking-wider text-muted-foreground"
+              className="hidden sm:inline-block max-w-40 truncate font-mono text-xs uppercase tracking-wider text-muted-foreground"
+              title={session.name}
               data-testid="text-staff-name"
             >
               {session.name}
@@ -123,7 +118,7 @@ export function TopNav() {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72">
+            <SheetContent side="right" className="w-72 overflow-y-auto">
               <SheetHeader>
                 <SheetTitle className="font-display tracking-wider text-primary">
                   NAVIGATION
@@ -153,6 +148,20 @@ export function TopNav() {
           </Sheet>
         </div>
       </div>
+      <nav
+        className="container hidden flex-wrap items-center gap-x-4 gap-y-2 px-4 pb-3 pt-1 text-xs font-medium text-muted-foreground lg:flex"
+        aria-label="Main navigation"
+      >
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="whitespace-nowrap transition-colors hover:text-foreground"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </nav>
       <CompanySpendBanner />
     </header>
   );

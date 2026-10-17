@@ -1,0 +1,2 @@
+ALTER TABLE "xvl_evalsets" ADD CONSTRAINT "xvl_evalsets_sha256_required" CHECK ("xvl_evalsets"."content_hash" ~ '^[a-f0-9]{64}$');--> statement-breakpoint
+ALTER TABLE "xvl_verification_runs" ADD CONSTRAINT "xvl_runs_sha256_required" CHECK ("xvl_verification_runs"."evidence_hash" ~ '^[a-f0-9]{64}$' AND "xvl_verification_runs"."artifact_hash" ~ '^[a-f0-9]{64}$' AND "xvl_verification_runs"."evalset_hash" ~ '^[a-f0-9]{64}$');

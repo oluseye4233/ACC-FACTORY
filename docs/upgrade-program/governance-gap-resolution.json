@@ -1,0 +1,55 @@
+{
+  "policyVersion": "ARK-GAP-2026-10-16",
+  "date": "2026-10-16",
+  "authorization": "User authorized deriving replacement rules and a current security reassessment from available specifications. This is implementation authority, not independent evidence, legal approval or an authenticated release waiver.",
+  "historicalStatus": "Original SP-17–SP-20 wording and original SEC REP ONE remain unavailable. The following are explicit successor policies, not recovered historical text.",
+  "successorInvariants": [
+    {
+      "id": "SP-17",
+      "name": "Tenant boundary and least privilege",
+      "rule": "Every artifact, session, verification, consent and release operation must enforce its authenticated owner/tenant and scoped authority on the server. Unresolved ownership or authority denies the operation. Database-level tenant isolation is separately evidenced before claiming readiness that requires it.",
+      "derivedFrom": ["SP-07", "UPG security remediation §4.7", "XVL evidence ownership", "VTE failure ownership"],
+      "enforcement": "SPECIFIED_DERIVED",
+      "liveActivity": "UNVERIFIED"
+    },
+    {
+      "id": "SP-18",
+      "name": "Honesty and hash-bound evidence",
+      "rule": "A claim, verification verdict or certificate must identify its real source, artifact version, verifier mechanism and evidence. Self-assessment is never represented as independent verification; missing or invalid evidence cannot become PASS. Changes invalidate reuse of evidence bound to an earlier version.",
+      "derivedFrom": ["SP-23", "XVL §4.1 and §4.5", "CD-13", "IR-C2 Honesty Gate conflict"],
+      "enforcement": "SPECIFIED_DERIVED",
+      "liveActivity": "UNVERIFIED"
+    },
+    {
+      "id": "SP-19",
+      "name": "Purpose-bound consent and corpus separation",
+      "rule": "Metadata audit, artifact sharing, marketplace supply, external evaluation and training/export are distinct purposes. No purpose implies another. Confidential or unconsented contents remain outside the corpus; training export requires the source's consent, ethics, split and human-approval gates, including withdrawal handling.",
+      "derivedFrom": ["CD-02", "CD-03", "CD-04", "CD-09", "CD-10", "VTE Stream E governance"],
+      "enforcement": "SPECIFIED_DERIVED",
+      "liveActivity": "UNVERIFIED"
+    },
+    {
+      "id": "SP-20",
+      "name": "Governed release and operational recovery",
+      "rule": "Every release route retains its required verification, custody, staged release, handoff and operate gates. Firmware retains MECHA. Missing or failed gates never imply clearance; waivers require authenticated scoped authority, reason and expiry. Recovery claims require observed version/traffic restoration, not a delivery receipt. Deferred controls are disclosed and do not count as satisfied.",
+      "derivedFrom": ["UPG staged release and F12", "SS-INV-03", "SS-INV-04", "XVL waivers and profile floors"],
+      "enforcement": "SPECIFIED_DERIVED",
+      "liveActivity": "UNVERIFIED"
+    }
+  ],
+  "sprintEligibilityRuling": {
+    "implementationVersion": "ARK-GAP-2026-10-16-ELG-2",
+    "certificationGate": "Neither circuit is eligible without established certification of its source F4/F5 artifact version. Legacy flags, model scores and an advisory single-contract PASS are not substitutes.",
+    "regulatedGate": "Regulated eligibility requires governed inclusion of Tracks H and C, not merely displaying their names or selecting a Regulated diagnostic option.",
+    "scTwoToolGate": "Tools must be declared with their permissions in the SPC.",
+    "conflict": "IR-C6",
+    "status": "DERIVED_WORKING_POLICY",
+    "decision": "Use the explicit SHORT SPRINTS v1.1 90-minute requirement as a conservative SC ONE eligibility ceiling; do not reclassify it as an original CELL hard law.",
+    "measurement": "Elapsed MA build wall-clock time from the first F3 build start to completion of the F4 package, across retries and without clock resets. Exclude later verification-pack and release time. Resolve these boundaries from trusted server records, not an owner-entered estimate.",
+    "missingMeasurement": "INCONCLUSIVE; do not substitute zero or authorize YES.",
+    "overLimit": "SC ONE is ineligible; continue to F5/full route without losing prior work.",
+    "citationsCorrected": "At most three prompts is CELL C-001 / CELL-04; one-tool limit is CELL C-004 / CELL-07. The 90-minute ceiling is this derived SC ONE policy, not MA-002.",
+    "scTwo": "No build-time ceiling. The other SC TWO certification and configuration requirements remain.",
+    "releaseClearance": false
+  }
+}

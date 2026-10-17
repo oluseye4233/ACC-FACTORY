@@ -25,6 +25,7 @@ import {
 import { streamSse, extractApiError } from "@/lib/sse";
 import { Download, Send } from "lucide-react";
 import { PublishToSphinxButton } from "@/components/shared/PublishToSphinxButton";
+import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 import { SpcLineage } from "@/components/shared/SpcLineage";
 import { SuggestSpcPanel } from "@/components/shared/SuggestSpcPanel";
@@ -421,6 +422,7 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
                   {latestArtifact?.id && (
                     <>
                       <SaveToExemplarLibraryButton artifactId={latestArtifact.id} />
+                      <PublishDocumentLink sourceId={latestArtifact.id} sourceKind="F5_SPC" sessionId={sessionId} />
                       <PublishToSphinxButton
                         artifactId={latestArtifact.id}
                         artifactType="SPC"

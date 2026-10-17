@@ -21,8 +21,10 @@ import { handleAtlasCrystallise } from "../engines/atlas-crystallise";
 import { handlePfp } from "../engines/pfp";
 import { handlePddView } from "../engines/pdd-view";
 import { handleF9Mecha, handleF9Run } from "../engines/f9mecha";
+import f8VerificationRoutes from "./f8-verification";
 
 const router: IRouter = Router();
+router.use(f8VerificationRoutes);
 
 /**
  * Canonical gate stack for every HARNESS engine route.

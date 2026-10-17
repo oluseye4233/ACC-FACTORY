@@ -1,0 +1,1 @@
+ALTER TABLE "harness_artifacts" ADD CONSTRAINT "harness_artifacts_parent_artifact_id_harness_artifacts_id_fk" FOREIGN KEY ("parent_artifact_id") REFERENCES "public"."harness_artifacts"("id") ON DELETE restrict ON UPDATE no action;

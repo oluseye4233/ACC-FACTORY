@@ -8,6 +8,12 @@ Two durable lessons from de-flaking the company-wide cost cap in tests:
 **Rule 1: any live aggregate gate (SUM over a shared dev DB) must be neutralised in test setup.**
 Vitest files run concurrently against ONE dev DB, and killed runs leave rows behind, so a "global spend vs cap" check can flip mid-run from *other* suites' data. Fix: force the cap env to an unreachable value in the vitest `setupFiles` (runs in every worker). Over-threshold tests stay deterministic by setting an explicit tiny cap around their OWN seeded row, or by mocking the probe functions — never by relying on ambient DB state.
 
+**Rule 1a: cap tests must baseline completed spend and active reservations.** The live gate includes unexpired reservations, but `currentMonthCostGlobal()` only sums completed run rows. A test that derives its threshold from completed spend alone can be rejected before its expected model call when active reservations remain.
+
+**Why:** a test can correctly set its cap just above completed spend and still be over the real gate because reservations also consume available budget.
+
+**How to apply:** use `currentMonthCostGlobalWithReservations()` when setting a test threshold, or mock the gate probes when the test does not need the database-backed budget behavior.
+
 **Rule 2: a test that intentionally triggers a `logger.warn` through the pino singleton must mock the logger module.**
 Pino writes to the worker's shared stdout, and vitest interleaves it into whichever test file's output is streaming — so an intentional warning from suite A looks like a real production problem in unrelated suite B (this literally spawned a bug report attributing a mocked "cost cap reached" warning to the wrong suite). Mock the logger with a warn spy: silent output AND an assertable warning.
 

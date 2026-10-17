@@ -40,7 +40,7 @@ const phases = [
 
 describe("F9 to OSIRIS to F10 production path", () => {
   let server: ReturnType<typeof express.prototype.listen>;
-  let tenantId = "", sessionId = "", sourceArtifactId = "", artifactId = "", releaseId = "";
+  let tenantId = "", sessionId = "", sourceArtifactId = "", codeBundleId = "", artifactId = "", releaseId = "";
 
   beforeAll(async () => {
     const [user] = await db.insert(usersTable).values({ clerkUserId: `f9-f10-${randomUUID()}`, email: `f9-f10-${randomUUID()}@test.invalid` }).returning();
@@ -49,9 +49,26 @@ describe("F9 to OSIRIS to F10 production path", () => {
     const [session] = await db.insert(harnessSessionsTable).values({ userId: tenantId, sessionName: "F9/F10 production path" }).returning();
     sessionId = session!.id;
     const [mvp] = await db.insert(harnessArtifactsTable).values({ sessionId, userId: tenantId, featureId: 7, artifactType: "MVP_PDD", artifactContent: {}, spartanCert: { verdict: "PASS" } }).returning();
-    const [bundle] = await db.insert(harnessArtifactsTable).values({ sessionId, userId: tenantId, featureId: 8, name: "Production App", artifactType: "CODEBASE_BUNDLE", artifactContent: { sourceMvpPddArtifactId: mvp!.id } }).returning();
-    sourceArtifactId = bundle!.id;
-    requireAuthMock.mockImplementation(async (req: Request, res: Response, next: NextFunction) => {
+    const [bundle] = await db.insert(harnessArtifactsTable).values({ sessionId, userId: tenantId, featureId: 8, name: "Production App", artifactType: "VERIFIED_CODEBASE_BUNDLE", verificationStatus: "VERIFIED", contentHash: "sha256:f9-f10-content", verificationEvidenceHash: "sha256:f9-f10-evidence", artifactContent: { sourceMvpPddArtifactId: mvp!.id } }).returning();
+
+    const [verifiedBundle] = await db.insert(harnessArtifactsTable).values({
+      sessionId,
+      userId: tenantId,
+      featureId: 8,
+      name: "Production App · verified",
+      artifactType: "VERIFIED_CODEBASE_BUNDLE",
+      parentArtifactId: bundle!.id,
+      contentHash: "f9-f10-test-content-hash",
+      verificationStatus: "VERIFIED",
+      verificationEvidenceHash: "f9-f10-test-evidence-hash",
+      artifactContent: {
+        sourceMvpPddArtifactId: mvp!.id,
+        verification: { status: "VERIFIED", stage: "F8", sourceArtifactId: bundle!.id },
+      },
+    }).returning();
+    sourceArtifactId = verifiedBundle!.id;
+    codeBundleId = bundle!.id;
+    requireAuthMock.mockImplementation((req: Request, _res: Response, next: NextFunction) => {
       req.localUser = user!;
       req.subscriber = subscriber!;
       req.effectiveTier = "ARCHITECT";
@@ -151,7 +168,7 @@ describe("F9 to OSIRIS to F10 production path", () => {
     const response = await request("/api/f10/exports/download", {
       method: "POST",
       body: JSON.stringify({
-        sourceArtifactId,
+        sourceArtifactId: codeBundleId,
         outputKind: "CODE_DJ",
         family: "IDE",
         target: "VS Code",

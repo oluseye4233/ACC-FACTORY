@@ -1,6 +1,7 @@
 import {
   boolean,
   check,
+  integer,
   jsonb,
   pgTable,
   text,
@@ -13,6 +14,7 @@ import { sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
 import { harnessArtifactsTable } from "./harness-artifacts";
+import { harnessSessionsTable } from "./harness-sessions";
 
 export const spcLibraryCardsTable = pgTable(
   "spc_library_cards",
@@ -58,6 +60,15 @@ export const spcPlayerDraftRunsTable = pgTable(
     sourceArtifactId: uuid("source_artifact_id").references(() => harnessArtifactsTable.id, {
       onDelete: "set null",
     }),
+    originSessionId: uuid("origin_session_id").references(
+      () => harnessSessionsTable.id,
+      { onDelete: "set null" },
+    ),
+    originFeatureId: integer("origin_feature_id"),
+    returnedArtifactId: uuid("returned_artifact_id").references(
+      () => harnessArtifactsTable.id,
+      { onDelete: "set null" },
+    ),
     title: text("title").notNull(),
     brief: text("brief").notNull(),
     selectedCardIds: jsonb("selected_card_ids").notNull(),
@@ -72,6 +83,10 @@ export const spcPlayerDraftRunsTable = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
+    check(
+      "spc_player_origin_session_stage_pair",
+      sql`("origin_session_id" IS NULL) = ("origin_feature_id" IS NULL)`,
+    ),
     check(
       "spc_player_draft_runs_no_composite_score",
       sql`"output_package" IS NULL OR (

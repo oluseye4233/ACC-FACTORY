@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { ArrowLeft, AlertTriangle, ListOrdered } from "lucide-react";
+import { ArrowLeft, AlertTriangle, ListOrdered, FileCheck2 } from "lucide-react";
 import { F1TestPrompt } from "@/components/workspaces/F1TestPrompt";
 import { F2BuildAtomic } from "@/components/workspaces/F2BuildAtomic";
 import { F3BuildMa } from "@/components/workspaces/F3BuildMa";
@@ -53,7 +53,12 @@ export default function SessionDetail() {
     query: { enabled: Boolean(id) && isIngested } as never,
   } as never);
   
-  const [activeEngineId, setActiveEngineId] = useState<number>(1);
+  const [activeEngineId, setActiveEngineId] = useState<number>(() => {
+    const requested = Number(new URLSearchParams(window.location.search).get("featureId"));
+    return Number.isInteger(requested) && requested >= 1 && requested <= 13
+      ? requested
+      : 1;
+  });
   const [sequenceOpen, setSequenceOpen] = useState(false);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [hasEmittedF9, setHasEmittedF9] = useState(false);
@@ -299,6 +304,16 @@ export default function SessionDetail() {
             </SheetContent>
           </Sheet>
 
+          {id && (
+            <Link
+              href={`/session/${id}/verification`}
+              className="inline-flex items-center gap-1 h-8 px-2 rounded border font-mono text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+              data-testid="link-verification"
+            >
+              <FileCheck2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Verification</span>
+            </Link>
+          )}
           {id && <EscalationModal sessionId={id} />}
         </div>
       </header>
@@ -341,6 +356,34 @@ export default function SessionDetail() {
 
         {/* STAGE 3 WORKSPACES */}
         <div className="flex-1 min-h-0 overflow-y-auto">
+          {(artifacts ?? [])
+            .filter(
+              (artifact) =>
+                artifact.featureId === activeEngineId &&
+                artifact.artifactType === "SPC_PLAYER_SUPPORT",
+            )
+            .map((artifact) => (
+              <div
+                key={artifact.id}
+                className="mx-4 mt-4 rounded-lg border border-primary/35 bg-primary/5 p-4"
+                data-testid={`boomerang-return-${artifact.id}`}
+              >
+                <div className="font-mono text-xs font-bold uppercase tracking-wider text-primary">
+                  Returned SPC Player support · F{activeEngineId}
+                </div>
+                <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+                  {artifact.name || "Plan-only package"} — supporting input only; this does not certify or advance the stage.
+                </p>
+                <details className="mt-2">
+                  <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-wider">
+                    View returned package
+                  </summary>
+                  <pre className="mt-2 max-h-80 overflow-auto whitespace-pre-wrap break-words rounded bg-background/70 p-3 font-mono text-[10px]">
+                    {JSON.stringify(artifact.artifactContent, null, 2).slice(0, 24_000)}
+                  </pre>
+                </details>
+              </div>
+            ))}
           {id && (
             <>
               {activeEngineId === 1 && <F1TestPrompt sessionId={id} artifacts={artifacts || []} />}

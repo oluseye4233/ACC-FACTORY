@@ -276,15 +276,41 @@ router.get("/f10/catalog", requireAuth, (_req, res): void => {
 });
 
 router.get("/f10/sources", requireAuth, async (req, res): Promise<void> => {
-  const rows = await db.select({ id: harnessArtifactsTable.id, type: harnessArtifactsTable.artifactType, name: harnessArtifactsTable.name, createdAt: harnessArtifactsTable.createdAt })
+  const rows = await db.select({
+    id: harnessArtifactsTable.id,
+    type: harnessArtifactsTable.artifactType,
+    name: harnessArtifactsTable.name,
+    createdAt: harnessArtifactsTable.createdAt,
+    verificationStatus: harnessArtifactsTable.verificationStatus,
+    contentHash: harnessArtifactsTable.contentHash,
+    verificationEvidenceHash: harnessArtifactsTable.verificationEvidenceHash,
+  })
     .from(harnessArtifactsTable).where(eq(harnessArtifactsTable.userId, req.localUser!.id));
   const kind = (type: string) => type === "SPC" ? "SPC" : type === "MA_BIRTH_PACKAGE" ? "MA" : type === "MICRO_PDD" ? "MPDD" : ["ATLAS_PDD", "ATLAS_PDD_JSON", "MVP_PDD"].includes(type) ? "PDD" : "CODE_DJ";
-  res.json(rows.filter(row => (SOURCE_TYPES as readonly string[]).includes(row.type)).map(row => ({ ...row, artifactType: row.type, outputKind: kind(row.type) })));
+  res.json(rows
+    .filter(row =>
+      (SOURCE_TYPES as readonly string[]).includes(row.type) &&
+      (row.type !== "VERIFIED_CODEBASE_BUNDLE" ||
+        (row.verificationStatus === "VERIFIED" && !!row.contentHash && !!row.verificationEvidenceHash))
+    )
+    .map(({ id, type, name, createdAt }) => ({
+      id,
+      type,
+      artifactType: type,
+      name,
+      createdAt,
+      outputKind: kind(type),
+    })));
 });
 
 async function resolveExportSource(userId: string, id: string): Promise<OwnedSource | null> {
   const [row] = await db.select().from(harnessArtifactsTable).where(and(eq(harnessArtifactsTable.id, id), eq(harnessArtifactsTable.userId, userId))).limit(1);
-  if (!row || !(SOURCE_TYPES as readonly string[]).includes(row.artifactType)) return null;
+  if (
+    !row ||
+    !(SOURCE_TYPES as readonly string[]).includes(row.artifactType) ||
+    (row.artifactType === "VERIFIED_CODEBASE_BUNDLE" &&
+      (row.verificationStatus !== "VERIFIED" || !row.contentHash || !row.verificationEvidenceHash))
+  ) return null;
   return { id: row.id, type: row.artifactType as OwnedSource["type"], name: row.name, content: row.artifactContent, createdAt: row.createdAt };
 }
 async function makeExport(userId: string, body: unknown) {

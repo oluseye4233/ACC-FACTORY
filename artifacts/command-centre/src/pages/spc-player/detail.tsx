@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation } from "wouter";
+import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,16 +11,18 @@ import {
   useGetSpcPlayerCatalog,
   useGetSpcPlayerWebhookAuthorization,
   useExecuteSpcPlayerRun,
+  useReturnSpcPlayerRunToStage,
   useAuthorizeSpcPlayerWebhook,
   useDeliverSpcPlayerRun,
   getGetSpcPlayerRunQueryKey,
   getGetSpcPlayerWebhookAuthorizationQueryKey,
   getListSpcPlayerRunsQueryKey,
+  getListSessionArtifactsQueryKey,
   getDownloadSpcPlayerRunUrl,
   type SpcPlayerRun,
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
-import { ArrowLeft, Download, Play, Shield, Activity, Package, FileJson, Loader2, CheckCircle2, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download, Play, Shield, Activity, Package, FileJson, Loader2, CheckCircle2, Send } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +38,7 @@ export default function SpcPlayerDetail() {
   const { data: catalog, isLoading: isCatalogLoading } = useGetSpcPlayerCatalog();
   const { data: webhookAuthorization } = useGetSpcPlayerWebhookAuthorization(id || "");
   const executeRun = useExecuteSpcPlayerRun();
+  const returnRun = useReturnSpcPlayerRunToStage();
   const authorizeWebhook = useAuthorizeSpcPlayerWebhook();
   const deliverRun = useDeliverSpcPlayerRun();
   const [executionResult, setExecutionResult] = useState<SpcPlayerRun | null>(null);
@@ -165,6 +169,44 @@ export default function SpcPlayerDetail() {
     );
   };
 
+  const handleReturnToOrigin = () => {
+    if (!id || !run?.originSessionId || run.originFeatureId == null) return;
+    const confirmed = window.confirm(
+      `Return this completed plan-only package to session ${run.originSessionId.slice(0, 8)} at F${run.originFeatureId}? It will be supporting input only and will not certify or advance the stage.`,
+    );
+    if (!confirmed) return;
+    returnRun.mutate(
+      {
+        id,
+        data: {
+          confirmReturn: true,
+          originSessionId: run.originSessionId,
+          originFeatureId: run.originFeatureId,
+        },
+      },
+      {
+        onSuccess: (result) => {
+          setExecutionResult(result.run);
+          queryClient.setQueryData(getGetSpcPlayerRunQueryKey(id), result.run);
+          queryClient.invalidateQueries({
+            queryKey: getListSessionArtifactsQueryKey(run.originSessionId!),
+          });
+          toast({
+            title: "Supporting package returned",
+            description: `Attached to F${run.originFeatureId} without advancing the stage.`,
+          });
+        },
+        onError: (err: any) => {
+          toast({
+            title: "Return failed",
+            description: err?.data?.error || err?.message || "The package could not be returned.",
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  };
+
   const renderSkeleton = () => (
     <div className="space-y-6">
       <Skeleton className="h-24 w-full" />
@@ -191,6 +233,7 @@ export default function SpcPlayerDetail() {
           <ArrowLeft className="mr-2 h-3 w-3" />
           Back to Dashboard
         </Button>
+        <div className="mb-4 flex justify-end"><PublishDocumentLink sourceId={id} sourceKind="SPC_PLAYER" label="Publish SPC Player output" /></div>
 
         {isRunLoading || isDevKitLoading || isCatalogLoading ? (
           renderSkeleton()
@@ -409,6 +452,45 @@ export default function SpcPlayerDetail() {
                 </div>
               </div>
             </div>
+
+            {run.outputPackage && (
+              run.originSessionId && run.originFeatureId != null ? (
+                <div
+                  className="rounded-lg border border-primary/30 bg-primary/5 p-4"
+                  data-testid="spc-player-return-panel"
+                >
+                  <div className="font-mono text-xs font-bold uppercase tracking-wider text-primary">
+                    Return to F{run.originFeatureId}
+                  </div>
+                  <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                    The package remains plan-only. Returning attaches it as supporting documentation or process input and does not certify or advance the stage.
+                  </p>
+                  {run.returnedArtifactId ? (
+                    <Button
+                      className="mt-3 font-mono text-[10px] uppercase tracking-wider"
+                      variant="outline"
+                      onClick={() =>
+                        setLocation(
+                          `/session/${encodeURIComponent(run.originSessionId!)}?featureId=${run.originFeatureId}`,
+                        )
+                      }
+                      data-testid="button-open-returned-stage"
+                    >
+                      VIEW RETURNED INPUT <ArrowRight className="ml-2 h-3 w-3" />
+                    </Button>
+                  ) : (
+                    <Button
+                      className="mt-3 font-mono text-[10px] uppercase tracking-wider"
+                      onClick={handleReturnToOrigin}
+                      disabled={returnRun.isPending || run.status !== "COMPLETED"}
+                      data-testid="button-return-spc-player"
+                    >
+                      {returnRun.isPending ? "RETURNING…" : "CONFIRM RETURN TO ORIGIN"}
+                    </Button>
+                  )}
+                </div>
+              ) : null
+            )}
 
             {run.outputPackage && (
               <div className="bg-card border border-border/50 rounded-lg p-5" data-testid="final-json-output">

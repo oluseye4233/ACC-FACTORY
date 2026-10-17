@@ -4,9 +4,12 @@ import { z } from "zod/v4";
 import {
   db,
   harnessArtifactsTable,
+  exemplarLibraryItemsTable,
+  sphinxMarketplaceSettingsTable,
   integrationCredentialsTable,
   usersTable,
 } from "@workspace/db";
+import { commercialEligibility } from "../lib/exemplar-marketplace";
 import { requireAuth } from "../lib/auth";
 import { requireTier } from "../lib/tier";
 import {
@@ -132,6 +135,27 @@ router.post(
     }
     const { artifactId } = parsed.data;
 
+    // Compatibility endpoint: direct stage publishing cannot bypass the
+    // owner's library opt-in, exact-content qualification or global launch.
+    const [librarySource] = await db.select().from(exemplarLibraryItemsTable).where(and(
+      eq(exemplarLibraryItemsTable.sourceArtifactId, artifactId),
+      eq(exemplarLibraryItemsTable.ownerUserId, req.localUser!.id),
+    )).limit(1);
+    if (!librarySource || librarySource.artifactMode !== "SPHINX_ARTIFACT" ||
+        !commercialEligibility(librarySource).eligible) {
+      res.status(409).json({
+        error: "Add this artifact to Exemplar Library, pass internal review, and select SPHINX ARTIFACT before publishing.",
+        code: "SPHINX_LIBRARY_QUALIFICATION_REQUIRED",
+      });
+      return;
+    }
+    const [marketplaceSettings] = await db.select().from(sphinxMarketplaceSettingsTable)
+      .where(eq(sphinxMarketplaceSettingsTable.id, "global")).limit(1);
+    if (!marketplaceSettings?.publicOpen) {
+      res.status(503).json({ error: "Sphinx has not been opened to the public.", code: "SPHINX_NOT_OPEN" });
+      return;
+    }
+
     // 1) Load credential.
     const credRows = await db
       .select()
@@ -185,34 +209,22 @@ router.post(
     const me = meRows[0];
 
     // 4) Build the payload.
-    const content = artifact.artifactContent as Record<string, unknown>;
-    const title =
-      (typeof content?.title === "string" && content.title) ||
-      (typeof content?.name === "string" && content.name) ||
-      `SPC ${artifact.id.slice(0, 8)}`;
-    const spcMarkdown =
-      typeof content?.markdown === "string"
-        ? content.markdown
-        : JSON.stringify(content, null, 2);
-
-    const publicBase =
-      process.env.PUBLIC_BASE_URL?.replace(/\/$/, "") ?? "";
-    const verificationUrl =
-      artifact.spartanCert && publicBase
-        ? `${publicBase}/verify?artifactId=${artifact.id}`
-        : null;
+    // Publish the reviewed independent copy, not a potentially changed session artifact.
+    const content = librarySource.artifactSnapshot as Record<string, unknown>;
+    const title = librarySource.title;
+    const spcMarkdown = librarySource.body;
 
     const payload = {
       source: "atanda-command-centre",
-      externalId: artifact.id,
+      externalId: librarySource.id,
       title,
       spcKind: "F5_FULL_SPC",
       spcMarkdown,
       spcStructured: content,
-      jcseScore: artifact.jcseScore,
-      certTier: artifact.certTier,
-      spartanCert: artifact.spartanCert,
-      verificationUrl,
+      jcseScore: librarySource.qualification!.jcse,
+      certTier: null,
+      spartanCert: null,
+      verificationUrl: null,
       license: parsed.data.license ?? "all-rights-reserved",
       visibility: parsed.data.visibility ?? "public",
       author: {
@@ -284,21 +296,8 @@ router.post(
       listingUrl?: string;
     };
 
-    // 6) Persist marketplace listing pointer onto the artifact.
-    const newContent = {
-      ...content,
-      sphinxListing: {
-        listingId: listing.listingId ?? null,
-        listingUrl: listing.listingUrl ?? null,
-        publishedAt: new Date().toISOString(),
-        license: payload.license,
-        visibility: payload.visibility,
-      },
-    };
-    await db
-      .update(harnessArtifactsTable)
-      .set({ artifactContent: newContent })
-      .where(eq(harnessArtifactsTable.id, artifact.id));
+    // Delivery pointers must not rewrite either the reviewed library snapshot
+    // or the original artifact. External commerce remains a separate adapter.
 
     // 7) Touch lastUsedAt on the credential.
     await db
@@ -959,10 +958,15 @@ router.post(
       res.status(404).json({ error: "Codebase bundle artifact not found" });
       return;
     }
-    if (artifact.artifactType !== "CODEBASE_BUNDLE") {
+    if (
+      artifact.artifactType !== "VERIFIED_CODEBASE_BUNDLE" ||
+      artifact.verificationStatus !== "VERIFIED" ||
+      !artifact.contentHash ||
+      !artifact.verificationEvidenceHash
+    ) {
       res.status(400).json({
-        error: `Only CODE ORACLE codebase bundles can be pushed (got ${artifact.artifactType}).`,
-        code: "GITHUB_WRONG_TYPE",
+        error: `Only verified CODE ORACLE code bundles can be pushed (got ${artifact.artifactType}). Record CI or IDE evidence and finalize F8 verification first.`,
+        code: artifact.artifactType === "CODEBASE_BUNDLE" ? "CODE_BUNDLE_UNVERIFIED" : "GITHUB_WRONG_TYPE",
       });
       return;
     }
@@ -1014,7 +1018,8 @@ router.post(
       return;
     }
 
-    // A previously-linked repo pointer (if this bundle was pushed before).
+    // Read legacy pointers recorded by older versions, if present. New verified
+    // bundles keep push history outside the immutable artifact content.
     const content = (artifact.artifactContent ?? {}) as Record<string, unknown>;
     const existingRepo = content.githubRepo as
       | {
@@ -1040,10 +1045,6 @@ router.post(
     let branch: string;
     let created: boolean;
     let pullRequestUrl: string | undefined;
-    // Privacy persisted on the lineage pointer. For "create" it's the chosen
-    // visibility; for an existing repo it's the repo's actual visibility.
-    let pointerPrivate: boolean;
-
     if (mode === "update" || mode === "existing") {
       // ── Push a fresh commit onto a repo that already exists ───────────────
       // "update" pushes onto the repo already linked to this bundle; "existing"
@@ -1064,7 +1065,6 @@ router.post(
           branch = info.data.default_branch || "main";
           repoFullName = info.data.full_name;
           htmlUrl = info.data.html_url;
-          pointerPrivate = info.data.private;
         } catch (err) {
           const status = (err as { status?: number }).status;
           if (status === 404) {
@@ -1102,7 +1102,6 @@ router.post(
         branch = existingRepo.defaultBranch ?? "main";
         repoFullName = existingRepo.fullName;
         htmlUrl = existingRepo.htmlUrl ?? `https://github.com/${existingRepo.fullName}`;
-        pointerPrivate = existingRepo.private ?? isPrivate;
       }
 
       // Resolve HEAD of the default branch. A 404 here in "existing" mode means
@@ -1291,27 +1290,12 @@ router.post(
         return;
       }
       created = true;
-      pointerPrivate = isPrivate;
     }
 
-    // Persist a pointer on the bundle artifact for lineage + "already pushed" UI.
+    // The verified child is immutable. Keep the returned import URL in the
+    // response; persistent GitHub push history belongs to F10's separate push
+    // records rather than the verified artifact content.
     const replitImportUrl = `https://replit.com/github/${repoFullName}`;
-    await db
-      .update(harnessArtifactsTable)
-      .set({
-        artifactContent: {
-          ...content,
-          githubRepo: {
-            fullName: repoFullName,
-            htmlUrl,
-            defaultBranch: branch,
-            replitImportUrl,
-            private: pointerPrivate,
-            pushedAt: new Date().toISOString(),
-          },
-        },
-      })
-      .where(eq(harnessArtifactsTable.id, artifact.id));
 
     // Touch lastUsedAt on the GitHub credential.
     await db

@@ -31,8 +31,8 @@ describe("F10 deterministic exports", () => {
   });
   it("produces byte-identical ZIPs and a readable local header", () => {
     const profile = { outputKind: "CODE_DJ" as const, family: "IDE" as const, target: "VS Code" };
-    const a = buildExport(source("CODEBASE_BUNDLE", { files: { "src/main.ts": "export const ok = true;" } }), profile);
-    const b = buildExport(source("CODEBASE_BUNDLE", { files: { "src/main.ts": "export const ok = true;" } }), profile);
+    const a = buildExport(source("VERIFIED_CODEBASE_BUNDLE", { files: { "src/main.ts": "export const ok = true;" } }), profile);
+    const b = buildExport(source("VERIFIED_CODEBASE_BUNDLE", { files: { "src/main.ts": "export const ok = true;" } }), profile);
     expect(a.bundle.equals(b.bundle)).toBe(true);
     expect(a.bundle.readUInt32LE(0)).toBe(0x04034b50);
     expect(a.bundle.readUInt32LE(14)).not.toBe(0);
@@ -45,7 +45,7 @@ describe("F10 deterministic exports", () => {
     } finally { rmSync(dir, { recursive: true, force: true }); }
   });
   it("preserves the validated CODE DJ files array shape", () => {
-    const result = buildExport(source("CODEBASE_BUNDLE", {
+    const result = buildExport(source("VERIFIED_CODEBASE_BUNDLE", {
       platform: "node", framework: "express", language: "typescript",
       files: [{ path: "src/index.ts", language: "typescript", content: "export default 1;" }, { path: "package.json", language: "json", content: "{}" }],
     }), { outputKind: "CODE_DJ", family: "IDE", target: "VS Code" });
@@ -55,11 +55,11 @@ describe("F10 deterministic exports", () => {
   });
   it("rejects traversal in CODE DJ scaffolds", () => {
     for (const path of ["../escape.txt", "..\\escape.txt", "/tmp/escape", "C:\\escape.txt", "%2e%2e/escape.txt", "./same.txt", "a//b.txt"]) {
-      expect(() => buildExport(source("CODEBASE_BUNDLE", { files: { [path]: "no" } }), { outputKind: "CODE_DJ", family: "IDE", target: "Cursor" })).toThrow(/unsafe/);
+      expect(() => buildExport(source("VERIFIED_CODEBASE_BUNDLE", { files: { [path]: "no" } }), { outputKind: "CODE_DJ", family: "IDE", target: "Cursor" })).toThrow(/unsafe/);
     }
   });
   it("rejects duplicate paths after separator normalization", () => {
-    expect(() => buildExport(source("CODEBASE_BUNDLE", { files: [
+    expect(() => buildExport(source("VERIFIED_CODEBASE_BUNDLE", { files: [
       { path: "src/main.ts", content: "one" },
       { path: "src\\main.ts", content: "two" },
     ] }), { outputKind: "CODE_DJ", family: "GITHUB", target: "GITHUB" })).toThrow(/duplicate/);

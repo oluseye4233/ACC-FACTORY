@@ -185,11 +185,14 @@ export async function handleF8Hdj(req: Request, res: Response): Promise<void> {
     if (
       !bundle ||
       bundle.sessionId !== sessionId ||
-      bundle.artifactType !== "CODEBASE_BUNDLE"
+      bundle.artifactType !== "VERIFIED_CODEBASE_BUNDLE" ||
+      bundle.verificationStatus !== "VERIFIED" ||
+      !bundle.contentHash ||
+      !bundle.verificationEvidenceHash
     ) {
       res
         .status(404)
-        .json({ error: "Codebase bundle artifact not found in this session" });
+        .json({ error: "Verified code bundle artifact not found in this session", code: "CODE_BUNDLE_UNVERIFIED" });
       return;
     }
     bundleContent = bundle.artifactContent;
