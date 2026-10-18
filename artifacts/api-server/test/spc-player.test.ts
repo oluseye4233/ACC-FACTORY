@@ -417,6 +417,49 @@ describe("SPC Player supported backend foundation", () => {
     };
     expect(created.sourceArtifactId).toBe(ownerArtifact!.id);
 
+    // An F-process launch binds its owned source even for older links that
+    // supplied only the originating session and stage.
+    const originInput = {
+      title: `Origin source ${randomUUID()}`,
+      brief: "Retain the project artifact automatically without a picker.",
+      selectedCardIds: [catalog[0]!.id],
+      originSessionId: ownerSession!.id,
+      originFeatureId: 5,
+    };
+    const automatic = await api("/api/spc-player/runs", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify(originInput),
+    });
+    expect(automatic.status).toBe(201);
+    const automaticRun = await automatic.json() as { id: string; sourceArtifactId: string };
+    expect(automaticRun.sourceArtifactId).toBe(ownerArtifact!.id);
+    const reloaded = await api(`/api/spc-player/runs/${automaticRun.id}`);
+    expect(reloaded.status).toBe(200);
+    expect((await reloaded.json() as { sourceArtifactId: string }).sourceArtifactId).toBe(ownerArtifact!.id);
+    const foreignOriginSource = await api("/api/spc-player/runs", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...originInput, sourceArtifactId: foreignArtifact!.id }),
+    });
+    expect(foreignOriginSource.status).toBe(409);
+    const missingPinnedSource = await api("/api/spc-player/runs", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...originInput, sourceArtifactId: randomUUID() }),
+    });
+    expect(missingPinnedSource.status).toBe(409);
+    // F5 can launch before it has produced an SPC: the explicit upstream
+    // Micro PDD is legitimate context and must not be replaced by another SPC.
+    const [upstream] = await db.insert(harnessArtifactsTable).values({
+      userId: owner!.id, sessionId: ownerSession!.id, featureId: 4,
+      artifactType: "MICRO_PDD", name: "Upstream Micro PDD",
+      artifactContent: { project_name: "Artifact-grounded product" },
+    }).returning();
+    const retainedUpstream = await api("/api/spc-player/runs", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...originInput, sourceArtifactId: upstream!.id }),
+    });
+    expect(retainedUpstream.status).toBe(201);
+    expect((await retainedUpstream.json() as { sourceArtifactId: string }).sourceArtifactId).toBe(upstream!.id);
+
     const executeResponse = await api(`/api/spc-player/runs/${created.id}/execute`, {
       method: "POST",
     });

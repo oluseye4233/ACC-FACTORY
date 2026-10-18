@@ -1,3 +1,5 @@
+export { artifactDisplayName, resolveSpcPlayerSource } from "./source-artifact";
+
 export type ArtifactFilenameInput = {
   type: string;
   title: string;

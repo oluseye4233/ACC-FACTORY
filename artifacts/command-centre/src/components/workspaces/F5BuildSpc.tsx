@@ -283,7 +283,7 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
   return (
     <WorkspaceShell>
       <div className="flex flex-col gap-4 h-full">
-        <SpcPlayerAdvisoryPrompt dismissKey={sessionId} sessionId={sessionId} />
+        <SpcPlayerAdvisoryPrompt dismissKey={sessionId} sessionId={sessionId} sourceArtifactId={latestArtifact?.id} />
         <Card className="p-5 bg-card/50">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
             <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">

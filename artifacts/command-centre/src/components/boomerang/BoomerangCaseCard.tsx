@@ -80,7 +80,11 @@ export function BoomerangCaseCard({ c, defaultOpen = false }: { c: BoomerangCase
           {ctl.canReturn && (
             <div className="border rounded p-2 space-y-2" data-testid={`panel-return-${c.id}`}>
               <div className="flex items-center gap-2"><span className={lab}>Return supporting work (one source)</span>
-                <Link href="/spc-player/new" className="ml-auto inline-flex items-center gap-1 text-primary underline" data-testid={`link-spc-player-${c.id}`}><PlaySquare className="h-3 w-3" /> Run separately in SPC Player</Link>
+                {c.originKind === "SESSION" && STAGE_ENGINE_ID[c.stage] != null ? (
+                  <Link href={`/spc-player/new?sourceSessionId=${encodeURIComponent(c.originId)}&originFeatureId=${STAGE_ENGINE_ID[c.stage]}`} className="ml-auto inline-flex items-center gap-1 text-primary underline" data-testid={`link-spc-player-${c.id}`}><PlaySquare className="h-3 w-3" /> Open SPC Player with this project</Link>
+                ) : (
+                  <span className="text-muted-foreground">This origin has no mapped artifact-backed Player stage. Return supporting text here instead.</span>
+                )}
               </div>
               <p className="text-muted-foreground">Nothing is launched from here. Execute in SPC Player yourself, then paste the completed run id — or paste returned text manually.</p>
               <Input placeholder="Completed SPC Player run UUID" value={runId} onChange={(e) => setRunId(e.target.value)} disabled={!!text.trim()} className="font-mono text-xs" data-testid={`input-run-id-${c.id}`} />

@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { resolveSpcPlayerSource } from "@workspace/artifact-naming";
 import { BOOMERANG_FEATURES, boomerangHash, boomerangOrigin } from "../lib/boomerang";
 import { randomUUID } from "node:crypto";
 import dns from "node:dns/promises";
@@ -824,7 +825,20 @@ router.post(
         return;
       }
     }
-    if (parsed.data.sourceArtifactId) {
+    if (originSessionId && originFeatureId) {
+      const candidates = await db.select().from(harnessArtifactsTable).where(and(
+        eq(harnessArtifactsTable.sessionId, originSessionId),
+        eq(harnessArtifactsTable.userId, req.localUser!.id),
+      ));
+      sourceArtifact = resolveSpcPlayerSource(candidates, {
+        sessionId: originSessionId, featureId: originFeatureId,
+        sourceArtifactId: parsed.data.sourceArtifactId,
+      });
+      if (!sourceArtifact) {
+        res.status(409).json({ error: "No valid saved source artifact belongs to this originating session and stage. Return to the stage and save its artifact; a different project will not be substituted." });
+        return;
+      }
+    } else if (parsed.data.sourceArtifactId) {
       [sourceArtifact] = await db
         .select()
         .from(harnessArtifactsTable)
@@ -839,16 +853,6 @@ router.post(
         res.status(404).json({ error: "Source artifact not found" });
         return;
       }
-      if (
-        originSessionId &&
-        (sourceArtifact.sessionId !== originSessionId ||
-          sourceArtifact.featureId !== originFeatureId)
-      ) {
-        res.status(409).json({
-          error: "The selected source artifact does not belong to the confirmed origin stage",
-        });
-        return;
-      }
     }
 
     const originStage = originFeatureId === undefined ? undefined
@@ -860,7 +864,7 @@ router.post(
       .insert(spcPlayerDraftRunsTable)
       .values({
         ownerUserId: req.localUser!.id,
-        sourceArtifactId: parsed.data.sourceArtifactId ?? null,
+        sourceArtifactId: sourceArtifact?.id ?? null,
         originSessionId: originSessionId ?? null,
         originFeatureId: originFeatureId ?? null,
         title: parsed.data.title,

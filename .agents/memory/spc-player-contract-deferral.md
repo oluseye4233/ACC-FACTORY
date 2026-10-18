@@ -40,3 +40,21 @@ server-side connector, reject private-network destinations and pin a validated
 public destination for the request so DNS changes cannot redirect delivery to
 private systems. Preserve authorization across reloads and keep access open
 while certification remains PRE_BUILD.
+
+## Source selection in the F-process versus standalone use
+
+When SPC Player is launched within an existing F-process/Boomerang workflow,
+automatically retain the originating project artifact and show it read-only.
+The artifact dropdown is for standalone launches, not an opportunity to
+substitute a different project inside an origin-bound run.
+
+**Why:** the user explicitly required reliable source retention and reported
+that generic artifact-type labels made it difficult to identify the correct
+file. Choosing another project silently is not an acceptable fallback.
+
+**How to apply:** retain the exact departure when available, use only a valid
+same-project stage/upstream source when resolving an older context-only link,
+and stop if a pinned source disappears. Show the real artifact/product name
+with type and distinguishing date/ID metadata; do not invent a product name for
+an unnamed artifact. Keep standalone selection available and preserve the
+normal Boomerang review and protected-stage boundaries.

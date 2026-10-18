@@ -6,13 +6,14 @@ interface Props {
   /** Persist dismissal per-session + per-placement so it stays quiet once closed. */
   dismissKey: string;
   sessionId: string;
+  sourceArtifactId?: string;
 }
 
 /**
  * Proactive SPC Player advisory nudge. Links to the pre-build SPC Player
  * which is an optional side-step for testing capability combinations.
  */
-export function SpcPlayerAdvisoryPrompt({ dismissKey, sessionId }: Props) {
+export function SpcPlayerAdvisoryPrompt({ dismissKey, sessionId, sourceArtifactId }: Props) {
   const storageKey = `spc-player-advisory-dismissed:${dismissKey}`;
   const [dismissed, setDismissed] = useState<boolean>(() => {
     try {
@@ -47,7 +48,7 @@ export function SpcPlayerAdvisoryPrompt({ dismissKey, sessionId }: Props) {
           Want to test capability combinations before committing them to the forge? Assemble a Kit Deck of up to 12 SPCs and execute a dry run. This side-step does not advance F-stages or consume your primary artifact.
         </p>
         <Link
-          href={`/spc-player/new?sourceSessionId=${encodeURIComponent(sessionId)}&originFeatureId=5`}
+          href={`/spc-player/new?sourceSessionId=${encodeURIComponent(sessionId)}&originFeatureId=5${sourceArtifactId ? `&sourceArtifactId=${encodeURIComponent(sourceArtifactId)}` : ""}`}
           className="mt-2 inline-block font-mono text-[11px] font-bold text-primary underline hover:opacity-80"
           data-testid="spc-player-advisory-link"
         >

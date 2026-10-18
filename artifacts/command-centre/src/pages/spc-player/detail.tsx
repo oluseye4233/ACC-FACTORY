@@ -263,6 +263,7 @@ export default function SpcPlayerDetail() {
                         description="This saved artifact is automatically supplied to every SPC stage."
                         testId="select-saved-source-artifact"
                         disabled
+                        readOnly
                       />
                     </div>
                   )}

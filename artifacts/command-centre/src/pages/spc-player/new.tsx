@@ -1,5 +1,7 @@
-import { useState, useMemo } from "react";
-import { useLocation } from "wouter";
+import { useEffect, useState, useMemo } from "react";
+import { resolveSpcPlayerSource } from "@workspace/artifact-naming";
+import { ENGINES } from "@/lib/constants";
+import { useLocation, useSearch } from "wouter";
 import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +12,7 @@ import {
   useCreateSpcPlayerRun,
   useGetSpcDevKit,
   useGetSpcPlayerCatalog,
+  useListArtifacts,
   type SpcLibraryCard,
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
@@ -52,7 +55,8 @@ export function rankSpcCards(
 
 export default function SpcPlayerNew() {
   const [, setLocation] = useLocation();
-  const searchParams = new URLSearchParams(window.location.search);
+  const search = useSearch();
+  const searchParams = new URLSearchParams(search);
   const sourceSessionId = searchParams.get("sourceSessionId");
   const requestedOriginFeatureId = Number(searchParams.get("originFeatureId"));
   const originFeatureId =
@@ -74,7 +78,21 @@ export default function SpcPlayerNew() {
   const [title, setTitle] = useState("");
   const [brief, setBrief] = useState("");
   const [profile, setProfile] = useState<"full" | "rapid">("full");
-  const [sourceArtifactId, setSourceArtifactId] = useState<string | undefined>();
+  const sourceArtifactId = searchParams.get("sourceArtifactId") || undefined;
+  const { data: sourceArtifacts, isLoading: isSourceLoading, isError: isSourceError } = useListArtifacts();
+  const originSource = sourceSessionId && originFeatureId && sourceArtifacts
+    ? resolveSpcPlayerSource(sourceArtifacts, { sessionId: sourceSessionId, featureId: originFeatureId, sourceArtifactId })
+    : undefined;
+  const sourceBlocked = Boolean(sourceSessionId && (isSourceLoading || isSourceError || !originSource));
+  const retainSource = (id: string | undefined) => {
+    const url = new URL(window.location.href);
+    if (id) url.searchParams.set("sourceArtifactId", id);
+    else url.searchParams.delete("sourceArtifactId");
+    window.history.replaceState(window.history.state, "", url);
+  };
+  useEffect(() => {
+    if (sourceSessionId && originSource && !sourceArtifactId) retainSource(originSource.id);
+  }, [sourceSessionId, originSource?.id, sourceArtifactId]);
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [dropdownKey, setDropdownKey] = useState(0);
@@ -154,6 +172,10 @@ export default function SpcPlayerNew() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (sourceBlocked) {
+      toast({ title: "Source artifact unavailable", description: "Return to the originating stage and save its source artifact before continuing.", variant: "destructive" });
+      return;
+    }
     if (!title.trim() || !brief.trim() || selectedCards.length === 0) {
       toast({
         title: "Incomplete Brief",
@@ -170,7 +192,7 @@ export default function SpcPlayerNew() {
           brief,
           selectedCardIds: selectedCards,
           profile,
-          sourceArtifactId,
+          sourceArtifactId: originSource?.id ?? sourceArtifactId,
           ...(sourceSessionId && originFeatureId
             ? { originSessionId: sourceSessionId, originFeatureId }
             : {}),
@@ -263,7 +285,7 @@ export default function SpcPlayerNew() {
             data-testid="spc-player-return-origin"
           >
             <div className="font-bold uppercase tracking-wider text-primary">
-              Return target: F{originFeatureId}
+              Return target: {ENGINES.find(engine => engine.id === originFeatureId)?.name ?? "Origin stage"}
             </div>
             <p className="mt-1 text-muted-foreground">
               A completed plan-only package can be returned as supporting documentation or process input. It will not certify or advance this stage; return requires a separate confirmation after execution.
@@ -303,11 +325,17 @@ export default function SpcPlayerNew() {
                 </div>
 
                 <ArtifactPicker
-                  value={sourceArtifactId}
-                  onChange={setSourceArtifactId}
+                  value={originSource?.id ?? sourceArtifactId}
+                  onChange={retainSource}
                   label="Project file / artifact"
-                  description="The selected artifact is passed into every SPC stage as the primary project context."
+                  readOnly={Boolean(sourceSessionId)}
+                  description={sourceSessionId
+                    ? "Source retained from your F-process. It is locked to this run and supplied to every SPC stage; no other project can be substituted."
+                    : "Choose a named artifact for this standalone run. It is saved with the draft and supplied to every SPC stage."}
                 />
+                {sourceBlocked && !isSourceLoading && (
+                  <p role="alert" className="text-xs text-destructive">The originating source could not be confirmed. Return to the stage and save or reopen its artifact before continuing.</p>
+                )}
 
                 <div className="space-y-3">
                   <Label htmlFor="brief" className="font-mono text-[10px] uppercase tracking-wider text-primary font-bold">
@@ -481,7 +509,7 @@ export default function SpcPlayerNew() {
           <div className="pt-4 flex justify-end border-t border-border/40 mt-8 mb-16">
             <Button
               type="submit"
-              disabled={createRun.isPending || !title.trim() || !brief.trim() || selectedCards.length === 0}
+              disabled={createRun.isPending || sourceBlocked || !title.trim() || !brief.trim() || selectedCards.length === 0}
               size="lg"
               className="font-mono text-xs uppercase tracking-wider min-w-[200px]"
               data-testid="button-submit-run"

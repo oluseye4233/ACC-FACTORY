@@ -55,7 +55,7 @@ describe("BoomerangCaseCard", () => {
     fireEvent.change(screen.getByTestId("input-run-id-c1"), { target: { value: RUN } });
     fireEvent.click(screen.getByTestId("button-return-c1"));
     expect(mutate.mock.calls[0][0]).toEqual({ id: "c1", data: { action: "RETURN", spcPlayerRunId: RUN, expectedVersion: 3 } });
-    expect(screen.getByTestId("link-spc-player-c1").getAttribute("href")).toBe("/spc-player/new");
+    expect(screen.getByTestId("link-spc-player-c1").getAttribute("href")).toBe(`/spc-player/new?sourceSessionId=${mk().originId}&originFeatureId=5`);
   });
   it("source drift disables return and accept", () => {
     wrap(<BoomerangCaseCard c={mk({ sourceChanged: true, state: "RETURNED", resultText: "returned work here" })} defaultOpen />);
