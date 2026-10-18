@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "atlas-360-evidence-v2",
+  "evidenceDate": "2026-10-17",
+  "localEvidenceLabel": "17 October 2026, 22:14–22:17 CDT (America/Chicago)",
+  "evidenceWindowUtc": "2026-10-18 03:14–03:17 UTC",
+  "applicationFreeze": "fd0d76b044a1ab3362571074cbcebe6f3ade60aa",
+  "deployment": {
+    "success": true,
+    "isDeployed": true,
+    "hasSuccessfulBuild": true,
+    "primaryUrl": "https://command-center.atanda.ai",
+    "additionalUrls": ["https://command-centre-plan.replit.app"],
+    "deploymentType": "autoscale",
+    "visibility": "public",
+    "buildId": null,
+    "caveat": "Current metadata did not return a build ID or completion timestamp. The observed client SHA-256 identifies this public client snapshot; the old report's build ID is not reused."
+  },
+  "publicObservations": {
+    "observedAt": "2026-10-18T03:14:54.431Z",
+    "healthz": {"http": 200, "status": "ok"},
+    "health": {"http": 200, "status": "ok", "db": "ok", "engines": "ok", "version": "0.1.0"},
+    "readiness": {
+      "http": 200,
+      "checkedAt": "2026-10-18T03:14:54.232Z",
+      "database": "available",
+      "ai": "configured",
+      "buildReady": true,
+      "deferred": [
+        "Azure Key Vault migration and rotation: Class B follow-on",
+        "Full independent XVL/VTE verification and F12 operation",
+        "SHORT SPRINTS and IMPRIMA: required verification and governance gates incomplete"
+      ],
+      "caveat": "Configuration and reachability only; no provider or model execution."
+    },
+    "anonymousSession": {"http": 200, "authenticated": false},
+    "sphinx": {"http": 200, "publicOpen": false, "items": []},
+    "anonymousProtectedReads": {
+      "/api/learn": 401,
+      "/api/boomerang/cases": 401,
+      "/api/artifact-operations/imprima/preparations": 401,
+      "/api/artifact-operations/short-sprints/preparations": 401
+    },
+    "registration": {
+      "path": "/learn-register",
+      "http": 200,
+      "browserObserved": true,
+      "evidenceFile": "generated-artifacts/atlas-360-scan/live-registration.png",
+      "observed": "Visible FORGE FIELD ENGINEER registration form with email/password and Google option; explicit invitation requirement. No registration or sign-in was submitted."
+    },
+    "clientAsset": {
+      "path": "/assets/index-BuxqFEIP.js",
+      "sha256": "0a8f647b295d334ace54ac59731eac46bb1454617a08a5479fae8dd19a71052b",
+      "cohortMarkerPresent": true,
+      "boomerangMarkerPresent": true,
+      "authenticatedEntryRedirectMarkerPresent": false,
+      "caveat": "Asset matches the pre-routing-fix client observed earlier. Mark the signed-in registration fix as republish-required until a changed published asset and scoped signed-in check confirm it."
+    }
+  },
+  "databaseObservations": {
+    "observedAt": "2026-10-18T03:15:00.269161Z",
+    "mode": "Read-only production catalog query; no application records read or changed",
+    "workflowTables": ["imprima_jobs", "imprima_files", "short_sprint_runs", "artifact_operation_events", "sprint_verifier_authorities"],
+    "allWorkflowTablesExist": true,
+    "workflowRlsEnabled": true,
+    "workflowForceRlsEnabled": false,
+    "restrictedRolePresent": false,
+    "workflowPoliciesWithBothPredicatesPerTable": 0,
+    "workflowNonInternalTriggersPerTable": 0,
+    "fullWorkflowReady": false,
+    "learningTables": ["learning_cohorts", "learning_memberships", "learning_invitations", "learning_assignments", "learning_submissions", "learning_reviews", "learning_audit", "learning_charges"],
+    "allLearningTablesExist": true,
+    "learningRlsEnabled": false,
+    "caveat": "Cohort privacy relies on application authorization, not demonstrated database-level RLS. Catalog observations do not establish the privileges of the runtime application connection."
+  },
+  "recordedVerification": {
+    "scope": "Prior development/preview delivery evidence from 17 October 2026; not rerun by this report refresh",
+    "cohortDelivery": {
+      "apiPassed": 612,
+      "frontendPassed": 206,
+      "scriptsPassed": 32,
+      "totalPassed": 850,
+      "existingSkipped": 40,
+      "workspaceTypecheck": "PASS",
+      "productionBuilds": "PASS",
+      "previewJourney": "Verified identity, explicit free invitation acceptance, orientation submission, instructor review, persisted feedback, portfolio export and denial of protected student operations"
+    },
+    "laterRoutingFix": {
+      "regressionTestsPassed": 13,
+      "frontendTypecheck": "PASS",
+      "scope": "Signed-in entry redirect for staff/students, invitation preservation, callback paths and unrelated-route refusal",
+      "liveVerified": false
+    },
+    "caveat": "Do not add these separate checkpoint counts into a newly claimed full-suite run or infer production acceptance."
+  },
+  "previousEvidence": {
+    "localDate": "2026-10-17",
+    "evidenceWindowUtc": "14:52–14:57",
+    "applicationFreeze": "ad265fcea73835783dae6490cb90cd3da4168fae",
+    "clientPath": "/assets/index-B6U19k7J.js",
+    "clientSha256": "38093616de5498bad9364df88b4df3ca1df3ccb3252ec4d106821fc5c76140e9"
+  }
+}

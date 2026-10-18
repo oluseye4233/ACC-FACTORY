@@ -1,17 +1,17 @@
 # ATLAS 360 SCAN — Living PDD
 ## ATANDA Command Centre / ACC-FACTORY
 
-**Evidence date:** 17 October 2026. Public probes captured at approximately 14:52–14:57 UTC (09:52–09:57 America/Chicago).
+**Evidence date:** 17 October 2026, late update. Current public/catalog observations were collected on **18 October 2026 at 03:14–03:17 UTC**, equivalent to **17 October, 22:14–22:17 CDT (America/Chicago)**. The earlier 14:52–14:57 UTC scan remains a historical comparison, not fresh evidence.
 **Document class:** Repository-grounded current-state assurance PDD, with a living maintenance protocol.
-**Code freeze:** `ad265fcea73835783dae6490cb90cd3da4168fae`.
-**GitHub:** `oluseye4233/ACC-FACTORY`, main; application snapshot synchronized, followed by sync-recovery documentation.
+**Code freeze:** `fd0d76b044a1ab3362571074cbcebe6f3ade60aa`; the companion manifest also hashes current report and source files.
+**GitHub:** `oluseye4233/ACC-FACTORY`, main; this refresh identifies the local application baseline without claiming a fresh remote reconciliation.
 **Published target:** https://command-center.atanda.ai
 **Audience:** Product owner, operators, engineering, release governance.
 **Assurance boundary:** This report is not independent XVL verification, FORGE certification, a penetration test, a compliance attestation, or proof of every authenticated workflow.
 
 ## Reading guide and status legend
 
-The report preserves the eight ATLAS 360 SCAN stages used by the platform. The four ATLAS document parts follow those stages. Addendum A is the current site map; Addendum B is the activation register; Addendum C defines living-document maintenance.
+The report preserves the eight ATLAS 360 SCAN stages used by the platform. The four ATLAS document parts follow those stages. Addendum A is the current site map; Addendum B is the activation register; Addendum C defines living-document maintenance; Addendum D records the cohort pilot, Boomerang and immediate publication boundary.
 
 - **LIVE—OBSERVED:** The stated behavior was directly observed on the published platform during this scan. The claim is limited to that observation.
 - **DEPLOYED—UNVERIFIED:** Code or an endpoint is present in the published release, but its authenticated behavior or complete business outcome was not verified.
@@ -36,9 +36,13 @@ A frontend HTTP 200 may only mean the SPA shell was served. It does not prove th
 | Upgrade ledger | `docs/upgrade-program/progress.json` | Historic local/live observations; not automatically current |
 | Release boundary | `docs/upgrade-program/SPARTAN-artifact-preparation-release.md` | Preparation scope, explicit exclusions |
 | SCAN contract | `artifacts/api-server/src/engines/pdd-view.ts` | Eight-stage SCAN structure |
-| Production catalogs | Read-only `pg_class`, `pg_policy`, `pg_roles`, `pg_trigger` inspection | Presence of five workflow tables; absent required guards |
-| Production deployment | Build `f4343ca5-a545-4574-a34d-948d0926f789` | Success reported at 2026-10-17 14:31:07 UTC |
-| Live client asset | `/assets/index-B6U19k7J.js` | SHA-256 `38093616de5498bad9364df88b4df3ca1df3ccb3252ec4d106821fc5c76140e9` |
+| Production catalogs | Fresh read-only `pg_class`, `pg_policy`, `pg_roles`, `pg_trigger` inspection | Five protected workflow tables and eight learning tables present; controls assessed separately |
+| Production deployment | Deployment service: deployed, successful build, public, autoscale | Current build ID/completion timestamp not returned; no old build ID reused |
+| Live client asset | `/assets/index-BuxqFEIP.js` | SHA-256 `0a8f647b295d334ace54ac59731eac46bb1454617a08a5479fae8dd19a71052b` |
+| Cohort implementation | Learning API/curriculum/access/service, learning schema and pilot guide | Free invite-only programme, scoped roles, funding, assessment and portfolio |
+| Boomerang implementation | Boomerang API and origin/state-transition library | Exact F-stage review coverage, with freshness and ownership checks |
+| Registration fix | `learning-entry.ts` and regression tests | Authenticated entry redirects with invitation preservation |
+| Collected evidence | `docs/atlas-360-scan-evidence-2026-10-17.json` | Dated public/catalog facts and historical verification, with limitations |
 
 The companion evidence manifest records source hashes, the route inventory, the scan JSON, and frozen public/database observations. It is generated with this report, not signed by an independent verifier.
 
@@ -53,9 +57,12 @@ The companion evidence manifest records source hashes, the route inventory, the 
 | `GET /api/auth/session` | HTTP 200; authenticated false | Anonymous session lookup works |
 | `GET /api/sphinx/catalog` | HTTP 200; publicOpen false; items empty | Public commerce activation is closed |
 | Anonymous preparation reads, IMPRIMA and SHORT SPRINTS | HTTP 401 Unauthorized | Both deployed endpoints reject anonymous access; not proof of owner save/download |
-| `/`, `/status`, `/sphinx`, `/operations` | HTTP 200 HTML shell | Frontend asset serving; protected operations still require authentication |
+| `GET /api/learn` | HTTP 401 Unauthorized | Learning endpoint deployed; not evidence of an admitted student |
+| `GET /api/boomerang/cases` | HTTP 401 Unauthorized | Protected endpoint deployed; no case mutation tested |
+| `/learn-register` | HTTP 200 and visible browser-rendered registration form | LIVE—OBSERVED for signed-out entry only; account creation not submitted |
+| Live client markers | Cohort/Boomerang markers present; entry-redirect patch marker absent | Deployment inventory only, not authenticated feature acceptance |
 
-An exploratory `/api/staff/session` request returned 404; the correct current route is `/api/auth/session`. This is a probe-path correction, not a product defect.
+The earlier root/status/Sphinx/operations shell probes are historical, not fresh authenticated observations. The current session endpoint remains `/api/auth/session`.
 
 ## 1.3 SQL guard observations
 
@@ -63,11 +70,15 @@ All five expected tables now exist: `imprima_jobs`, `imprima_files`, `short_spri
 
 For each table, RLS is enabled but **FORCE RLS is false**. Each has **zero policies containing both USING and WITH CHECK predicates** in the observed catalog. The required `atanda_artifact_operations` role is absent. No non-internal IMPRIMA immutability triggers were returned for `imprima_jobs` or `imprima_files`.
 
-**Conclusion:** Table creation has advanced since the old ledger entry, but full workflow protection is not ready. RLS enabled alone is insufficient. No production data or schema was modified for this report.
+These guard findings were rechecked at 03:15 UTC on 18 October. All five tables also returned zero non-internal triggers in this catalog observation.
+
+All eight learning tables are present: `learning_cohorts`, `learning_memberships`, `learning_invitations`, `learning_assignments`, `learning_submissions`, `learning_reviews`, `learning_audit` and `learning_charges`. RLS is disabled on those tables. Cohort isolation therefore relies on application authorization; this is not a database-level multi-tenant isolation attestation. The catalog replica's connection identity must not be mistaken for the application's runtime role.
+
+**Conclusion:** The cohort schema is deployed, but protected full-workflow SQL controls remain incomplete. Table presence or RLS enabled alone is insufficient. No production application data or schema was modified for this report.
 
 ## 1.4 Evidence limits
 
-No new authenticated production create/save/reopen/download journey, model execution, checkout, independent verifier receipt, provider deployment, rollback, or destructive security test was performed. No customer records or secrets are reproduced. Previously recorded preview tests are historical evidence, not a test run performed during this scan.
+No new authenticated production enrollment, case adoption, create/save/reopen/download journey, model execution, checkout, independent verifier receipt, provider deployment, rollback, or destructive security test was performed. No customer records or secrets are reproduced. The public registration form was visually observed, not inferred from HTTP 200 alone. Previously recorded preview tests remain historical evidence, not tests rerun during this refresh.
 
 # SCAN STAGE 2 — Baseline and Scope
 
@@ -82,8 +93,9 @@ The platform is not a single all-features-enabled release. It combines establish
 ```text
 Visitor / subscriber / authorized operator
   -> React/Vite Command Centre
-     -> public acquisition, verification, status, Sphinx shell
-     -> authenticated command, sessions, library, operations, administration
+     -> public acquisition, verification, status, Sphinx shell, student identity entry
+     -> authenticated command, sessions, library, Boomerang, operations, administration
+     -> scoped student learning and assigned instructor cohort review
   -> Express API /api
      -> identity + owner checks + tier/feature gates + cost controls
      -> HARNESS engines and generated API contracts
@@ -93,11 +105,11 @@ Visitor / subscriber / authorized operator
      -> independent receipts / custody / authorized target / health evidence
 ```
 
-Clerk-related identity integration and the existing staff-session boundary are present in the project; this report does not alter authentication. Secrets remain in the existing environment/integration controls. Azure Key Vault adoption is deferred, not silently replaced with a claim of Azure compliance.
+Individual students now use verified Clerk identities alongside the unchanged shared staff-session entrance. Students must not receive the shared staff code: that entrance provides administrator privileges. Education access is a separate bounded capability, not paid-tier elevation. This report changes neither authentication nor secrets. Azure Key Vault adoption remains deferred, not silently replaced with a claim of Azure compliance.
 
 ## 2.3 In-scope capabilities
 
-Public entry and recovery, F0–F9 engine surfaces and side-steps, F10 release connectors, F11 hosting handoff, F12 staged-operation implementation, Exemplar/Sphinx catalog supply, SPC Player, IMPRIMA, SHORT SPRINTS, admin/cost/billing surfaces, and the upgrade invariant register.
+Public entry and recovery, F0–F9 engine surfaces and side-steps, F10 release connectors, F11 hosting handoff, F12 staged-operation implementation, Exemplar/Sphinx catalog supply, SPC Player, IMPRIMA, SHORT SPRINTS, Boomerang, FORGE FIELD ENGINEER, admin/cost/billing surfaces, and the upgrade invariant register.
 
 Out of scope: independent certification, customer acceptance, commercial marketplace launch, real infrastructure provisioning, or treating analyst SPC methods as software-enforced controls.
 
@@ -142,6 +154,30 @@ The shared catalog architecture avoids building a second marketplace inventory. 
 
 XVL contract/evalset, verification workbench and advisory Track E JSON checks exist. VTE failure intake and partial trace capture do not constitute a complete independent learning/verification system. SPC Player is sequential, advisory and plan-only; JSON download and consented public-HTTPS webhook behavior do not authorize deployment or a certification claim.
 
+## 3.6 Boomerang across the F-process
+
+The owner-scoped case workflow supports exact origin labels F0, F1–F9, F9.5, F10–F12, F6-VDJ and MM. F0 cases bind to owned advisory engagements; other supported stages bind to owned sessions. Return, review and acceptance use source snapshots and freshness checks. Acceptance is reviewed supporting input, not an execution, certification, deploy or release verdict.
+
+The `/boomerang` workspace and deployed API are present. Anonymous case reads return 401. No fresh production create/return/accept/adopt journey was performed, so full live behavior remains DEPLOYED—UNVERIFIED. A stage label does not activate the underlying protected gate.
+
+## 3.7 FORGE FIELD ENGINEER
+
+The free, invite-only programme supports Architect, Engineer and combined tracks with 31 worked lessons based on Guide and Ascension. It provides named expiring invitations, verified primary-email matching, explicit free terms, cohort/membership controls, source-bound submissions, assigned teaching review, feedback history, progress and portfolio JSON export.
+
+Funding is programme-provided: cohort and student allowances cover the cohort lifetime; company-level limits still apply. Completed charges and held reservations are distinct. Unfinalised training reservations remain held after timeout until settlement or confirmed release; uncertain calls need operator reconciliation.
+
+Existing Quest eligibility is unchanged. Course assessment does not award or withhold existing credentials. Actual qualifying owned platform artifacts retain normal eligibility. F9–F12 course exercises are simulations/tabletops, not real custody, verification or deployment evidence. Students have no administrator, company-spend or protected release permissions.
+
+The public registration form is LIVE—OBSERVED and the eight learning tables are deployed. Cohort joining, teaching and funded inference remain unverified in production. Recorded preview testing supports the student journey, not a live-pilot completion claim.
+
+## 3.8 Registration link and QR boundary
+
+The shared destination is https://command-center.atanda.ai/learn-register. PNG and print-ready SVG QR files encode that same URL; neither embeds a private invitation token nor admits anyone automatically.
+
+A routing defect allowed an existing staff session to fall through to 404 on that public identity-entry URL. The local fix sends authenticated staff and students to `/learn`, retaining the invitation token without accepting arbitrary external redirect parameters. Thirteen focused regressions and frontend typechecking passed at that delivery checkpoint.
+
+The observed published client still matches the pre-fix asset. The routing patch remains **REPUBLISH REQUIRED**, followed by a signed-in staff/student link check. Signed-out registration works now; a private browser is the temporary workaround for staff inspecting that public entry.
+
 # SCAN STAGE 4 — Assurance Assessment
 
 ## 4.1 Current decision by layer
@@ -156,12 +192,18 @@ XVL contract/evalset, verification workbench and advisory Track E JSON checks ex
 | Independent verification / F12 | No genuine production execution evidence established | PENDING / UNVERIFIED |
 | Theme control | Present in source; no interactive live verification in this scan | UNVERIFIED live behavior |
 | Invariant enforcement | No new invariant-specific live tests were recorded | All 129 retain UNVERIFIED benchmark |
+| FORGE FIELD ENGINEER entry | Visible public registration plus learning schema | LIVE—OBSERVED for entry; admitted student workflow DEPLOYED—UNVERIFIED |
+| Signed-in registration link | Local repair; published client still pre-fix | IMPLEMENTED—LOCAL VERIFIED / REPUBLISH REQUIRED |
+| Boomerang whole-F review | Stage-aware implementation and deployed protected API | DEPLOYED—UNVERIFIED for authenticated acceptance/adoption |
+| Learning data isolation | Application role/ownership checks; learning-table RLS disabled | Preview evidence recorded; no independent production isolation audit |
 
 ## 4.2 Recorded local validation
 
 The existing preparation release records full workspace typechecking, production builds, regression tests and one signed-in preview pass. That pass exercised IMPRIMA and SC TWO persistence/download, actual file formats, hashes, anonymous rejection, cross-owner rejection and a narrow mobile layout. SC ONE has recorded persisted-service tests rather than that same browser pass.
 
-Ledger test counts differ by checkpoint. This report intentionally does not present those varying historical counts as a single fresh certification or as tests rerun today.
+The later cohort delivery recorded 612 API tests, 206 frontend tests and 32 script tests passing: **850 passed, 40 existing skips**, with workspace typechecking and production builds passing. The preview journey exercised individual sign-in, explicit free invitation acceptance, orientation submission, instructor review, persisted feedback and portfolio download; student administrator/protected F9 attempts were refused.
+
+The subsequent registration-routing repair recorded **13 focused regressions** and frontend typechecking. These are separate dated checkpoints, not a freshly executed combined suite. This documentation refresh did not rerun application tests or perform authenticated production acceptance.
 
 ## 4.3 Quality and economics disclosures
 
@@ -178,6 +220,10 @@ No independent JCSE/HIVE/FORGE assessment was conducted. No 50/50 quality score,
 | Theme live state | Older ledger said theme not published | Current client changed; interaction not checked | Do not repeat old absence as a current confirmed fact |
 | Upgrade detail | 243 prompt rows mostly not started | Coarse operational summaries show later implementation | Reconcile row by row; do not infer 243 completions from one summary |
 | GitHub mirror | Old resume marker blocked synchronization | Snapshot repaired and incremental sync succeeded | Use current frozen commit, preserve GitHub history |
+| Source baseline | Earlier freeze `ad265f...`, 31 routes | Current freeze `fd0d76...`, 36 registered patterns | Update hashes/map; do not reuse the old deployment ID |
+| Cohort availability | Absent from earlier scan | Public form rendered; eight learning tables present | Record entry/schema evidence, not full enrollment acceptance |
+| Registration 404 | Signed-out worked, signed-in staff path failed | Local repair; published client still pre-fix | Republish and check both states; retain the same QR |
+| Boomerang scope | Absent from earlier site map | Whole-F review mapping implemented | Record review boundary, not automatic execution authority |
 
 The raw ledger is intentionally preserved by this report rather than bulk rewriting statuses without evidence. New report observations supersede only the exact historical statements they contradict.
 
@@ -195,6 +241,11 @@ The raw ledger is intentionally preserved by this report rather than bulk rewrit
 | P2 | Private file writes can outlive interrupted preparation | Orphaned storage growth | Conservative reference-aware recovery with reconciliation evidence |
 | P2 | Sessionless report/Player preparation sources deferred | Incomplete source coverage | Owner-scoped lineage and actual UI/backend flow for those sources |
 | P2 | Large remote sync tree assembly can time out | Delayed repository handoff | Small verified tree batches; no forced branch rewrite |
+| P1 | Signed-in registration repair not published | Owners inspecting the QR/link may see 404 | Changed published asset and signed-in navigation confirmation |
+| P1 | Cohort admission/review/funding untested live | Entry form mistaken for an accepted pilot | Controlled named invite, terms, submission/review/export and isolation evidence |
+| P1 | Learning tables lack database RLS | Privacy depends on API authorization and runtime controls | Production role/ownership review and scoped negative checks; no SQL isolation claim |
+| P1 | Course completion confused with Quest/release authority | False badge or deployment claims | Preserve Quest predicates and F9–F12 simulation labels |
+| P2 | Boomerang acceptance confused with execution | Reviewed input mistaken for stage approval | Fresh source-bound adoption plus normal downstream gates |
 
 Do not fix the SQL blocker by adding a superuser fallback, runtime production DDL, a startup migration runner, empty public policies, or a false “approved” marker. Keep the existing production data intact. Azure setup remains a separate deferred infrastructure upgrade.
 
@@ -202,7 +253,7 @@ Do not fix the SQL blocker by adding a superuser fallback, runtime production DD
 
 **Decision: CONDITIONAL LIMITED-RELEASE BASELINE.**
 
-The application is published and its publicly measurable launch dependencies are responding. The private preparation build is deployed, with authenticated outcomes still requiring production confirmation. Full governed IMPRIMA, full SHORT SPRINTS, independent XVL/VTE completion and F12 operation are not approved as active by this scan. Sphinx public commercial activation remains closed.
+The application is published and its publicly measurable launch dependencies respond. Private preparation, cohort schema and cohort/Boomerang API surfaces are deployed, but authenticated outcomes still need production confirmation. FORGE FIELD ENGINEER registration renders live. The signed-in registration repair needs republishing. Full governed IMPRIMA, full SHORT SPRINTS, independent XVL/VTE completion and F12 operation are not approved active. Sphinx public commerce remains closed.
 
 The codebase supports a working platform and a deliberately limited preparation release. It does not support the blanket statement “all original upgrade requirements are active.” No certification is granted by this document.
 
@@ -216,8 +267,11 @@ The codebase supports a working platform and a deliberately limited preparation 
 4. Connect and exercise genuine independent verifiers and deployment targets.
 5. Reconcile the affected invariants and prompt rows using actual observations.
 6. Open Sphinx only after explicit launch authorization and qualification/ownership checks.
+7. Republish the registration-entry fix; confirm the shared URL signed out, signed in as a student and signed in as staff.
+8. Run a controlled cohort pilot before broad invitation distribution; retain free terms, funding limits, role isolation and unchanged Quest rules.
+9. Confirm one fresh-source Boomerang review/adoption journey without unlocking its protected destination gate.
 
-The 17 October publish has already succeeded; another publish is not needed merely to make this report true. This report adds documentation only and does not change runtime behavior.
+This refresh changes documentation and its renderer only. It does not publish the app, send invitations, create learners, call models or modify production records. The earlier application publish succeeded, but the later registration-routing repair still needs publication and scoped live confirmation.
 
 ## 8.2 Rollback and monitoring boundaries
 
@@ -229,7 +283,7 @@ Public readiness can detect loss of DB reachability or missing provider configur
 
 **Solution:** A frozen source/evidence baseline, eight-stage assurance decision, complete navigation map and per-capability activation conditions.
 
-**Top five current capabilities:** Published command platform; database-backed saved artifacts; gated F-process generation; shared Exemplar/Sphinx catalog architecture; private IMPRIMA/SHORT SPRINTS preparation.
+**Current capability groups:** Published command platform and saved artifacts; gated F-process generation; shared Exemplar/Sphinx supply; private IMPRIMA/SHORT SPRINTS preparation; source-bound Boomerang review; free invite-only FORGE FIELD ENGINEER training.
 
 **Three business benefits:** Less ambiguity in release decisions; private preparation without false approvals; reuse of qualified library inventory for a future marketplace.
 
@@ -247,6 +301,10 @@ Public readiness can detect loss of DB reachability or missing provider configur
 | Reuse Exemplar as Sphinx supply | SHOULD | SPHINX | Qualified opt-in only; commerce not silently opened |
 | Maintain evidence-backed living statuses | MUST | ATLAS / OSIRIS | Dated, scoped live observations, no inferred enforcement |
 | Adopt Azure Key Vault | DEFERRED | Infrastructure | Authorized credentials, rotation and retrieval checks later |
+| Deliver free invite-only training | MUST | ATLAS / course owner | Verified identity, explicit admission, funded limits and scoped review |
+| Preserve existing Quest rules | MUST | Quest governance | No new badge prerequisites or automatic course awards |
+| Support enrollment links in every session state | MUST | BUGMXT / engineering | Signed-out entry and safe authenticated redirect, preserving invitation |
+| Extend Boomerang without bypassing gates | MUST | OSIRIS / engineering | Fresh owner-bound reviewed input, no automatic release authority |
 
 # PART 3 — ATOMIC PROMPT WORKSHEET
 
@@ -259,7 +317,7 @@ These are proposed maintenance/remediation instructions, not completed work or n
 | A01 | Freeze the application commit | Git HEAD → immutable commit identifier | None |
 | A02 | Enumerate frontend routes | Frozen App.tsx → unique path inventory | A01 |
 | A03 | Enumerate API mounts | Frozen router → mount inventory | A01 |
-| A04 | Record published build | Deployment metadata → build ID and timestamp | A01 |
+| A04 | Record published release | Deployment metadata/client → available build ID or dated client SHA-256, with unknown fields explicit | A01 |
 | A05 | Probe baseline readiness | Published readiness URL → timestamped response | A04 |
 | A06 | Inspect required SQL guards | Approved read-only catalogs → six-group result | A04 |
 | A07 | Classify feature evidence | Inventory and observations → status matrix | A02,A03,A05,A06 |
@@ -276,8 +334,8 @@ These are proposed maintenance/remediation instructions, not completed work or n
 | A13 | Specify verifier-policy transfer | Authority policy contract → policy requirements | A12 |
 | A14 | Specify immutability transfer | Expected trigger bindings → immutable-version requirements | A13 |
 | A15 | Validate transferred guards | Authorized supported transfer result → exact read-only pass/fail | A14 |
-| A16 | Verify anonymous preparation denial | Published preparation URLs → 401 evidence | A04 |
-| A17 | Verify preparation owner isolation | Two authorized test actors → cross-owner denial evidence | A16 |
+| A16 | Verify anonymous API denial | Preparation/learning/Boomerang URLs → 401 evidence | A04 |
+| A17 | Verify owner isolation | Two authorized actors and scoped IDs → cross-owner denial evidence | A16 |
 | A18 | Verify protected command refusal | Failed guard fixture → refusal before writes/spend | A06 |
 
 ## Phase 3 — Working feature evidence / P1
@@ -365,6 +423,8 @@ ATANDA Command Centre
 |   |-- /test-your-agent        Acquisition assessment
 |   |-- /calculate-your-savings Acquisition calculator
 |   |-- /status                 Recovery / dependency status
+|   |-- /learn-login            Individual student sign-in
+|   |-- /learn-register         Free registration / shared QR destination
 |   `-- /sphinx                 Marketplace shell (public catalog CLOSED)
 |-- Authenticated workspace
 |   |-- /command                Command Deck
@@ -386,6 +446,9 @@ ATANDA Command Centre
 |   |-- /quests                 Quests
 |   |-- /ascension              Progression
 |   |-- /guide                  Platform guide
+|   |-- /boomerang              Owner-scoped whole-F review cases
+|   |-- /learn                  Learning / authorized cohort management
+|   |-- /teach/cohorts/:id      Owner / assigned instructor review
 |   |-- /account                Account / available plan controls
 |   |-- /me/activity            Personal activity
 |   `-- /me/costs               Personal cost view
@@ -395,7 +458,9 @@ ATANDA Command Centre
     `-- /admin/provider-billing Provider reconciliation
 ```
 
-The map covers all 31 unique registered route paths, including root. Unknown paths use the not-found component. F-stages are embedded views, not invented standalone URLs. Public-route access does not grant authenticated capabilities. The root redirects to `/command` only for an authenticated session.
+The map covers all **36 unique registered route patterns**, including root. Identity entry uses `/learn-login/*?` and `/learn-register/*?` for nested callbacks; the tree shows their shorter entry URLs. Unknown paths use not-found. F-stages are embedded views, not invented standalone URLs. Public entry grants no cohort admission or platform capabilities. Staff root access redirects to `/command`; student root access redirects to `/learn`.
+
+This is the platform inventory, not an unrestricted student menu. Student capabilities are allowlisted and funded only under an owned active membership. Assigned instructors see cohort-submitted work, not unrelated private library content.
 
 ## A.2 Route-by-route status
 
@@ -409,6 +474,11 @@ The map covers all 31 unique registered route paths, including root. Unknown pat
 | `/sphinx` | Public | LIVE shell and closed catalog observed; public commercial listings INACTIVE |
 | `/command` | Authenticated | Implemented; owner session navigation unverified live |
 | `/guide` | Authenticated | Implemented guide; latest feature coverage requires editorial maintenance |
+| `/boomerang` | Authenticated owner | Whole-F reviewed input; anonymous API denied; live create/adopt unverified |
+| `/learn` | Verified individual / authorized staff | API/schema deployed; preview journey passed; live admission/review unverified |
+| `/teach/cohorts/:id` | Owner / assigned instructor | Scoped review; no unrelated private library access granted |
+| `/learn-login/*?` | Public identity entry | Sign-in/callbacks; authenticated-entry repair needs publishing |
+| `/learn-register/*?` | Public identity entry | LIVE signed-out registration and QR destination; authenticated-entry repair pending |
 | `/sessions` | Authenticated | Implemented; production list/create/reopen unverified |
 | `/session/new` | Authenticated | Implemented; generation constrained by tier, budget and provider |
 | `/ingest` | Authenticated | Implemented; uploaded-input journey unverified |
@@ -447,6 +517,11 @@ The map covers all 31 unique registered route paths, including root. Unknown pat
 | Full F12 | NOT APPROVED ACTIVE | Real provider rollout/health/rollback/promotion proof |
 | Public Sphinx supply | CLOSED | Qualification, opt-in, explicit authorized launch |
 | Azure Key Vault | DEFERRED | Provisioning, credentials, least privilege, rotation and retrieval tests |
+| FORGE FIELD ENGINEER | Free invite-only source implementation; public form live | Controlled live join/review/export and funded-call checks |
+| Guide / Ascension curriculum | 31 worked lessons; track-scoped assessment | Production progression; existing Quest rules remain authoritative |
+| F9–F12 training | SIMULATION / tabletop only | Never treat assessment as real custody/verifier/provider evidence |
+| Shared QR/link | Existing registration URL remains correct | Republish signed-in redirect; no QR regeneration needed |
+| Boomerang whole-F cases | Owner/source-bound reviewed input | Live freshness/adoption evidence without gate bypass |
 
 # ADDENDUM B — CURRENT ACTIVATION REGISTER
 
@@ -464,6 +539,10 @@ Current production probes justify ACTIVE only for the specific public readiness/
 | F12 operation | Implemented workflow scaffolding/controls | UNVERIFIED / NOT APPROVED ACTIVE | No real provider rollout/rollback exercised |
 | Sphinx public launch | Gated implementation | INACTIVE / CLOSED | Explicit publicOpen false |
 | Azure Key Vault | Deferred requirement | DEFERRED | No activation evidence; not MVP blocker |
+| FORGE FIELD ENGINEER entry | Recorded preview evidence | LIVE—OBSERVED for signed-out form only | Form rendered and learning tables present; no new live signup submitted |
+| Cohort admission/review/funding | Preview journey and access/funding checks | DEPLOYED—UNVERIFIED | Controlled production pilot needed |
+| Signed-in registration repair | 13 regressions and typecheck passed | REPUBLISH REQUIRED | Observed published client matches pre-fix snapshot |
+| Boomerang review/adoption | Whole-F ownership/freshness controls | DEPLOYED—UNVERIFIED | Anonymous refusal observed; no authenticated mutation performed |
 
 The activity ledger’s rule remains authoritative: ACTIVE requires published evidence, INACTIVE requires absence or explicit disablement, and unchecked capabilities stay UNVERIFIED. “Enforced” additionally requires the specified I1+ passing test recorded in XVL; no such enforcement upgrade is made here.
 
@@ -475,11 +554,11 @@ Refresh after a publish, schema/security transfer, verifier/provider connection 
 
 ## C.2 Update procedure
 
-1. Freeze a new application commit and deployment ID.
+1. Freeze a new application commit and published release identity; use the dated client SHA-256 if current build ID metadata is unavailable.
 2. Recollect public probes and approved read-only SQL guard observations.
 3. Obtain scoped authenticated evidence where required; never extrapolate from a SPA HTTP 200.
 4. Amend only statuses supported by the new evidence; keep dated previous observations.
-5. Update this Markdown source and the renderer’s frozen observations.
+5. Update this Markdown and the separate dated evidence-input JSON; rendering time must not imply new observations.
 6. Run `node scripts/src/build-living-scan-report.mjs`.
 7. Check the generated PDF, manifest, route inventory and content hashes.
 8. Distribute the new report with its source and evidence manifest.
@@ -488,6 +567,35 @@ The generator does not monitor continuously, sign an independent certificate, ca
 
 ## C.3 Integrity and delivery
 
-Editable source: this Markdown file. Build script: `scripts/src/build-living-scan-report.mjs`. Generated PDF and evidence manifest: `generated-artifacts/atlas-360-scan/`. Generated outputs are excluded from Git and application deployment; source and maintenance instructions remain in the repository.
+Editable source: this Markdown. Frozen observations: `docs/atlas-360-scan-evidence-2026-10-17.json`. Renderer: `scripts/src/build-living-scan-report.mjs`. Generated PDF/manifest: `generated-artifacts/atlas-360-scan/`. Generated files remain excluded from Git/deployment; source and maintenance instructions remain in the repository.
 
 **Final release statement:** The current platform is published and publicly healthy at the measured baseline. Full IMPRIMA, full SHORT SPRINTS, independent XVL/VTE enforcement, F12 operation and public Sphinx commerce retain their individual gates. No gate was bypassed to prepare this report.
+
+# ADDENDUM D — RELEASE DELTA AND PILOT ACCEPTANCE
+
+## D.1 Changes since the earlier scan
+
+| Change | Verified evidence | Not established |
+| --- | --- | --- |
+| FORGE FIELD ENGINEER | 31-lesson source; preview enrollment/review/export; live form and eight production learning tables | Authenticated live admission, funded generation or course completion |
+| Individual identities | Student identity implementation alongside unchanged staff access | No new production student account created during this scan |
+| Shared link / QR | Both target live `/learn-register`; signed-out form rendered | Signed-in routing repair still needs publishing |
+| Boomerang whole-F integration | Exact stage registry, ownership/freshness controls and deployed protected API | No production case created, accepted or adopted here |
+| Quest conformity | Course assessment remains separate from ordinary eligibility | No credential or badge awarded by this report |
+| Evidence maintenance | Separate collected-data input, source hashes and generated manifest | PDF rendering is not continuous monitoring or a new observation |
+
+## D.2 Invite-only cohort operating sequence
+
+1. Publish the existing entry repair; verify the changed release and every session-state route.
+2. Open Training as an authorized owner; create a cohort with explicit capacity, lifetime funding, student allowance and expiry.
+3. Activate the cohort and issue named invitations. Copy/send each private link manually; automatic invitation email is not claimed.
+4. Students register with their own verified identity and explicitly accept free terms. The public QR cannot redeem a named invitation.
+5. Confirm one student's orientation submission, instructor review, feedback after reload and private portfolio export on the published build.
+6. Check cross-owner denial, student refusal of protected/admin actions and funded-call limits using controlled authorized fixtures.
+7. Continue normal owned F-process work for real qualifying artifacts. Keep F9–F12 simulations labeled and preserve existing Quest predicates.
+
+## D.3 Acceptance boundaries
+
+Accept the pilot only against its scoped evidence. Enrollment, course review, Boomerang acceptance and public HTTP probes cannot make protected IMPRIMA, SHORT SPRINTS, XVL/VTE, F12 or Sphinx commerce active. Do not bulk promote 129 invariant rows from UNVERIFIED.
+
+The immediate publication item is the shared authenticated registration redirect. Broader rollout still needs controlled production cohort and Boomerang evidence. Production application records, paid plans, secrets and protected-gate settings were not changed by this refresh.

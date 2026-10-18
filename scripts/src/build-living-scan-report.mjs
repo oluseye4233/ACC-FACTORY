@@ -11,6 +11,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const requireExport = createRequire(path.join(root, "lib/export/package.json"));
 const PDFDocument = requireExport("pdfkit");
 const source = "docs/ATLAS_360_SCAN_Living_PDD_2026-10-17.md";
+const evidenceFile = "docs/atlas-360-scan-evidence-2026-10-17.json";
+const evidence = JSON.parse(fs.readFileSync(path.join(root, evidenceFile), "utf8"));
+if (evidence.schemaVersion !== "atlas-360-evidence-v2" || !evidence.publicObservations?.observedAt)
+  throw new Error("A dated, collected evidence snapshot is required; rendering does not recollect observations.");
+if (!/^[a-f0-9]{64}$/.test(evidence.publicObservations?.clientAsset?.sha256 ?? ""))
+  throw new Error("Expected a full observed client SHA-256.");
 const out = path.join(root, "generated-artifacts/atlas-360-scan");
 fs.mkdirSync(out, { recursive: true });
 const markdown = fs.readFileSync(path.join(root, source), "utf8");
@@ -20,7 +26,7 @@ const app = fs.readFileSync(path.join(root, "artifacts/command-centre/src/App.ts
 const routes = [...new Set([...app.matchAll(/<Route path="([^"]+)"/g)].map(m => m[1]))];
 const progress = JSON.parse(fs.readFileSync(path.join(root, "docs/upgrade-program/progress.json"), "utf8"));
 const frozenSources = [
-  source, "artifacts/command-centre/src/App.tsx",
+  source, evidenceFile, "artifacts/command-centre/src/App.tsx",
   "artifacts/api-server/src/routes/index.ts",
   "artifacts/api-server/src/routes/health.ts",
   "artifacts/api-server/src/lib/launch-readiness.ts",
@@ -29,6 +35,19 @@ const frozenSources = [
   "artifacts/api-server/src/engines/pdd-view.ts",
   "docs/upgrade-program/progress.json",
   "docs/upgrade-program/SPARTAN-artifact-preparation-release.md",
+  "artifacts/command-centre/src/lib/learning-entry.ts",
+  "artifacts/command-centre/src/lib/learning-entry.test.ts",
+  "artifacts/command-centre/src/components/learning-auth.tsx",
+  "artifacts/api-server/src/routes/learning.ts",
+  "artifacts/api-server/src/lib/learning-curriculum.ts",
+  "artifacts/api-server/src/lib/learning-access.ts",
+  "artifacts/api-server/src/lib/learning-service.ts",
+  "lib/db/src/schema/learning.ts",
+  "artifacts/api-server/src/routes/boomerang.ts",
+  "artifacts/api-server/src/lib/boomerang.ts",
+  "docs/FORGE_FIELD_ENGINEER_PILOT.md",
+  "scripts/src/build-living-scan-report.mjs",
+  "scripts/src/lib/atlas-pdf-theme.mjs",
 ];
 const stages = [...markdown.matchAll(/^# SCAN STAGE (\d) — (.+)$/gm)].map((m, i, all) => {
   const end = all[i + 1]?.index ?? markdown.indexOf("# PART 1");
@@ -38,7 +57,7 @@ const stages = [...markdown.matchAll(/^# SCAN STAGE (\d) — (.+)$/gm)].map((m, 
     2: "Existing product, stack and release gates retained.",
     3: "Implemented, preparation and governed lanes mapped separately.",
     4: "Public baseline observed; protected full operation blocked.",
-    5: "New successful publish supersedes older failure and table-absence observations.",
+    5: "Cohort and Boomerang deployment evidence advances the baseline; authenticated enrollment redirect remains republish-required.",
     6: "SQL guards and genuine verifier/provider execution remain activation gaps.",
     7: "Conditional limited-release baseline; not all-feature approval.",
     8: "Evidence-driven monitoring and maintenance; no runtime changes.",
@@ -66,13 +85,13 @@ doc.fillColor(ACCENT).fontSize(30).text("ATLAS 360 SCAN");
 doc.fillColor(NAVY).fontSize(25).text("Living PDD");
 doc.fontSize(16).text("Current codebase + live / pending site map");
 doc.moveDown(1.5);
-t.p("17 October 2026 | Evidence-grounded current-state report");
-t.p("Published baseline healthy. Governed full operations remain conditional.");
+t.p(`${evidence.localEvidenceLabel} | Evidence-grounded current-state report`);
+t.p("Live registration and training schema observed. Signed-in routing patch awaits publication; pilot acceptance and governed full operations remain conditional.");
 doc.moveDown(1);
-t.kv([["Source baseline", "ad265fcea73835783dae6490cb90cd3da4168fae"],
-  ["Published target", "https://command-center.atanda.ai"],
+t.kv([["Source baseline", evidence.applicationFreeze],
+  ["Published target", evidence.deployment.primaryUrl],
   ["Assurance class", "Analyst scan; not independent certification"],
-  ["Navigation", "Eight SCAN stages, four ATLAS parts, three addenda"]]);
+  ["Navigation", "Eight SCAN stages, four ATLAS parts, four addenda"]]);
 doc.moveDown(1);
 t.p("LIVE observations, deployed code, local verification and pending activation are deliberately distinguished throughout.");
 doc.addPage();
@@ -137,36 +156,28 @@ fs.copyFileSync(path.join(root, source), path.join(out, path.basename(source)));
 const manifest = {
   title: "ATLAS 360 SCAN Living PDD — ATANDA Command Centre",
   generatedAt: new Date().toISOString(),
-  evidenceDate: "2026-10-17",
-  evidenceWindowUtc: "14:52–14:57",
-  applicationFreeze: "ad265fcea73835783dae6490cb90cd3da4168fae",
+  evidenceDate: evidence.evidenceDate,
+  evidenceWindowUtc: evidence.evidenceWindowUtc,
+  applicationFreeze: evidence.applicationFreeze,
   workspaceHeadAtRender: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
-  deployment: { id: "f4343ca5-a545-4574-a34d-948d0926f789", status: "success", completedAt: "2026-10-17T14:31:07.032Z", url: "https://command-center.atanda.ai" },
-  publicObservations: {
-    healthz: { http: 200, status: "ok" },
-    health: { http: 200, db: "ok", engines: "ok", caveat: "Configuration/reachability only" },
-    readiness: { http: 200, database: "available", ai: "configured", buildReady: true },
-    anonymousSession: { http: 200, authenticated: false },
-    sphinx: { http: 200, publicOpen: false, items: [] },
-    anonymousPreparationReads: { imprima: 401, shortSprints: 401 },
-    clientAsset: { path: "/assets/index-B6U19k7J.js", sha256: "38093616de5498bad9364df88b4df3ca1df3ccb3252ec4d106821fc5c76140e9" },
-  },
-  databaseObservations: {
-    mode: "read-only production catalogs",
-    tables: ["imprima_jobs", "imprima_files", "short_sprint_runs", "artifact_operation_events", "sprint_verifier_authorities"],
-    allTablesExist: true, allRlsEnabled: true, allForceRlsDisabled: true,
-    requiredRestrictedRolePresent: false,
-    policiesWithBothPredicatesPerTable: 0,
-    imprimaNonInternalTriggers: [],
-    fullWorkflowReady: false,
-  },
+  deployment: evidence.deployment,
+  publicObservations: evidence.publicObservations,
+  databaseObservations: evidence.databaseObservations,
+  recordedVerification: evidence.recordedVerification,
+  previousEvidence: evidence.previousEvidence,
   ledger: { invariants: progress.invariants.length, prompts: progress.prompts.length,
     invariantLiveStates: [...new Set(progress.invariants.map(x => x.liveActivity))] },
   routes,
   sourceHashes: frozenSources.map(file => ({ file, sha256: hash(fs.readFileSync(path.join(root, file))) })),
+  evidenceArtifacts: [
+    evidence.publicObservations.registration.evidenceFile,
+    "generated-artifacts/forge-field-engineer-qr/FORGE_FIELD_ENGINEER_registration_QR.png",
+    "generated-artifacts/forge-field-engineer-qr/FORGE_FIELD_ENGINEER_registration_QR.svg",
+  ].map(file => ({ file, available: fs.existsSync(path.join(root, file)),
+    sha256: fs.existsSync(path.join(root, file)) ? hash(fs.readFileSync(path.join(root, file))) : null })),
   outputs: [{ file: path.basename(pdfPath), sha256: hash(fs.readFileSync(pdfPath)) },
     { file: path.basename(source), sha256: hash(Buffer.from(markdown)) }],
-  caveat: "Frozen observations are not automatically refreshed. Update report and frozen data after collecting new evidence.",
+   caveat: "GeneratedAt is rendering time, not collection time. Frozen observations are not automatically refreshed. Update the evidence input only after collecting new evidence.",
 };
 fs.writeFileSync(path.join(out, "evidence-manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
 fs.writeFileSync(path.join(out, "atlas-360-scan.json"), JSON.stringify({

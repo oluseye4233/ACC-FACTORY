@@ -495,28 +495,28 @@ content_type = "text/markdown"
 id = "i9OyN38FEIsv4rgdNaWsT"
 uri = "file://generated-artifacts/atlas-360-scan/ATLAS_360_SCAN_Living_PDD_2026-10-17.pdf"
 type = "pdf"
-title = "ATLAS 360 SCAN — Living PDD & Current Site Map"
-description = "25-page current-codebase report dated 17 October 2026. Includes eight SCAN stages, the four-part ATLAS document, 45 atomic instructions, and live/pending status across all 31 routes."
+title = "Updated ATLAS 360 SCAN — Living PDD"
+description = "32-page current-state report with eight SCAN stages, four ATLAS parts, 45 atomic prompts, a 36-route site map, cohort/Boomerang updates and explicit live-versus-pending evidence."
 logical_id = "fa318da4-6cd1-4ff6-83c3-d87611bda15a"
-content_hash = "sha256:a6bcf205e813612976f8ce09601a4858086d3708e60549dc71bd3fbc3d8a21dc"
-size = 59193
-mtime_ms = 1792249040145
-storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/fa318da4-6cd1-4ff6-83c3-d87611bda15a/17905f75-d5fc-4273-b5fb-c25a319dcec8"
-storage_version_token = "1792249061659653"
+content_hash = "sha256:d2f09dca62c5416c220378f483c3778ed3b6c4b11cfe61a3e207aa6580d83d99"
+size = 77478
+mtime_ms = 1792293888994
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/fa318da4-6cd1-4ff6-83c3-d87611bda15a/2d08b733-eec7-478f-80b7-a99aa89bf15f"
+storage_version_token = "1792293931614176"
 content_type = "application/pdf"
 
 [[outputs]]
 id = "kvhB4O6-N_nKwXjTGkJng"
 uri = "file://generated-artifacts/atlas-360-scan/ATLAS_360_SCAN_Living_PDD_Source_and_Evidence.zip"
 type = "unspecified"
-title = "Living PDD — Editable Source & Evidence Bundle"
-description = "PDF, editable Markdown source, eight-stage SCAN JSON and SHA-256 evidence manifest for future evidence-driven updates."
+title = "ATLAS 360 SCAN — Editable Source & Evidence"
+description = "Editable Markdown, collected-evidence JSON, hashed source references, structured SCAN, manifest, public registration screenshot and QR files."
 logical_id = "18f8ce4d-be11-4a4d-b932-bcae01cc17d3"
-content_hash = "sha256:c9a2686f52f9a74af118ed9d1544d74915ebe7afeedd50b2a128c46e66c55c7d"
-size = 75110
-mtime_ms = 1792249040401
-storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/18f8ce4d-be11-4a4d-b932-bcae01cc17d3/e8694497-d6a9-4b66-ae10-e6ad5d762cda"
-storage_version_token = "1792249062639487"
+content_hash = "sha256:998eb431ec5f3f6167fb6c4432f3fb74b2d4adb37f6f94595dd31525b40b09d5"
+size = 654737
+mtime_ms = 1792293889534
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/18f8ce4d-be11-4a4d-b932-bcae01cc17d3/803b3044-38cf-4fed-a1ef-c9f40c18e2a3"
+storage_version_token = "1792293936531285"
 content_type = "application/octet-stream"
 
 [[outputs]]
