@@ -107,3 +107,6 @@ STAFF_MONTHLY_COST_CAP_USD = "1000"
 
 [userenv.production]
 PUBLIC_BASE_URL = "https://command-centre-plan.replit.app"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-273c765e-c50e-4c0f-8380-231987a04bf4"
