@@ -1,0 +1,5 @@
+# Merge into the Repl's .replit file. The deployment migrates, verifies, then
+# starts the server. If verify fails, the process exits and the app never starts.
+[deployment]
+build = ["sh", "-c", "npm ci && npm run build"]
+run   = ["sh", "-c", "npm run db:migrate && npm run db:verify && node dist/index.js"]

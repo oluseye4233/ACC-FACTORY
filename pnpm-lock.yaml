@@ -161,6 +161,13 @@ packageExtensionsChecksum: sha256-GSMxs05jarvjllmHxOiyp+6qPEgIEN+i0iGJd08aVFQ=
 importers:
 
   .:
+    dependencies:
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
+      pg:
+        specifier: ^8.20.0
+        version: 8.20.0
     devDependencies:
       prettier:
         specifier: ^3.8.3
