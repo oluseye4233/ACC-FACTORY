@@ -17,7 +17,20 @@ that Replit cannot support those PostgreSQL features.
 **How to apply:** Inspect the actual diff and perform post-publish guard
 checks. Missing guards must leave private artifact operations unavailable,
 not downgrade them to a superuser connection. Do not add production DDL,
-deploy-time migrations or startup self-healing to bypass managed Publish.
+deploy-time migrations or startup self-healing merely to bypass managed Publish.
+
+The user explicitly authorized the ARK migration → security-verification →
+API startup chain using the workspace-compatible artifact deployment settings.
+This is a narrow exception for the supplied ledgered ARK SQL migrations, not
+permission to silently repair protections or mutate production during agent work.
+
+**Why:** the requested release policy must refuse API startup when migration or
+verification fails, rather than expose an unverified application.
+
+**How to apply:** retain the pnpm/artifact startup gate, keep failures fatal, and
+do not execute it against production as an agent-side validation step. A passing
+check on a separate restricted connection does not prove the application's
+actual queries use that connection or activate the protected workflows.
 
 FORCE RLS does not constrain a PostgreSQL superuser/BYPASSRLS connection.
 Feature-scoped operations use a restricted non-login, non-bypass role inside

@@ -1,5 +1,15 @@
 # ACC FACTORY — ATANDA Command Centre
 
+## Database Security Layer
+
+This project uses the ARK RLS security layer.
+See `replit/AGENT_RULES.md` for the permanent rules the Agent must follow.
+
+The security files and fail-closed production startup gate are configured.
+Production enforcement and protected-workflow activation still require successful
+database verification and restricted runtime integration; this notice does not
+assert that those checks have passed.
+
 An **internal staff back-end ops platform** in front of the FORGE.BONSAI HARNESS — a PDD-blueprint application whose engines are ordered atomic prompts (F1–F9 plus the F0 advisory layer, ATLAS J, and the PFP drift detector) driving a deterministic prompt → SPC → PDD → certified MVP-PDD pipeline for each session.
 
 ## What it does
