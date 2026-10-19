@@ -39,3 +39,19 @@ actor transactions; test cross-owner reads under that actual role.
 **Why:** The development application connection was observed to bypass RLS;
 policy definitions and FORCE RLS alone did not prove tenant enforcement.
 This does not resolve the separate project-wide RLS work.
+
+Keep development and production restricted database connection strings separate.
+The development database host `helium` is workspace-local; it is not the
+production PostgreSQL host. Secret-name presence and a passing workspace
+verification do not validate the production secret's value.
+
+**Why:** Publishing reached the security gate but failed DNS resolution when
+its restricted connection used a placeholder or the workspace-local host.
+A later workspace connection also failed because its target hostname had
+leading whitespace.
+
+**How to apply:** Check the latest build's own runtime logs, distinguish the
+environment actually tested, and have the user correct the appropriate secret
+using that environment's database connection details. Never read or print full
+credential values, copy development URLs into production, normalize credentials
+silently, or weaken the fail-closed security gate.
