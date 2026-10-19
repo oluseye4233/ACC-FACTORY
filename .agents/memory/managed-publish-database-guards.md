@@ -19,6 +19,20 @@ checks. Missing guards must leave private artifact operations unavailable,
 not downgrade them to a superuser connection. Do not add production DDL,
 deploy-time migrations or startup self-healing merely to bypass managed Publish.
 
+A no-change Publish schema diff is not evidence of security parity.
+
+**Why:** Read-only catalogue comparison found production policy names without
+their predicates, missing FORCE RLS, the missing restricted operations role
+and missing immutability triggers, while the Publish diff reported no changes.
+The separate ARK schemas and login were present, so their verification did not
+establish protection for the existing public-schema feature workflows.
+
+**How to apply:** Compare real roles, policy expressions, forced-RLS flags and
+triggers in both environments. Do not recommend repeated publishing as a repair
+when the diff cannot represent the missing objects. Identify a reviewed,
+platform-approved administration path before proposing production security
+changes; do not replay historical table-creation migrations against live data.
+
 The user explicitly authorized the ARK migration → security-verification →
 API startup chain using the workspace-compatible artifact deployment settings.
 This is a narrow exception for the supplied ledgered ARK SQL migrations, not
