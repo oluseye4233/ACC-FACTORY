@@ -379,6 +379,20 @@
       "when": 1792270471979,
       "tag": "0053_rapid_fabian_cortez",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1792441888435,
+      "tag": "0054_sudden_hiroim",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1792442130151,
+      "tag": "0055_bumpy_master_mold",
+      "breakpoints": true
     }
   ]
 }

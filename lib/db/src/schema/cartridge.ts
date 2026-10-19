@@ -58,6 +58,7 @@ export const cartridgeCreditsTable = pgTable("cartridge_credits", {
     .notNull()
     .defaultNow(),
   consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  reservationToken: uuid("reservation_token"),
 });
 
 export const cartridgeDocumentsTable = pgTable(

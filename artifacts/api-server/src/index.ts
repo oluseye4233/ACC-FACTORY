@@ -5,6 +5,8 @@ import { startTestFixtureSweeper } from "./lib/test-fixture-sweeper";
 import { startCostCapAlertSweeper } from "./lib/cost-cap-sweeper";
 import { startCronHeartbeatMonitor } from "./lib/cron-heartbeat";
 import { startIngestionCreditReconciler } from "./lib/ingestion-credits";
+import { startCartridgeCreditReconciler } from "./lib/cartridge-credits";
+import { startPreparationStorageRecovery } from "./lib/artifact-operations/preparation-recovery";
 import { startF10ReconciliationSweeper } from "./lib/f10-reconciliation";
 
 const rawPort = process.env["PORT"];
@@ -58,6 +60,8 @@ app.listen(port, (err) => {
   // request and its immediate release retries failed. A lease prevents active
   // ingestions from being reclaimed.
   startIngestionCreditReconciler();
+  startCartridgeCreditReconciler();
+  startPreparationStorageRecovery();
 
   // Keep accepted/running provider operations current while this service is
   // awake. The matching external cron target wakes autoscaled deployments.

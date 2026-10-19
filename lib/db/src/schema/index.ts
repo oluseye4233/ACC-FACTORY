@@ -1,4 +1,5 @@
 export * from "./users";
+export * from "./preparation-storage-leases";
 export * from "./subscribers";
 export * from "./ingestion-documents";
 export * from "./ingestion-credits";

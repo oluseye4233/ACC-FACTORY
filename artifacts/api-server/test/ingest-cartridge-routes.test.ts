@@ -5,6 +5,7 @@ import express, {
   type Response,
 } from "express";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
+import { randomUUID } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import {
   cartridgePackagesTable,
@@ -577,7 +578,7 @@ describe("authenticated Ingestion and Cartridge multipart routes", () => {
   });
 
   test("subscription-mode Cartridge rejection releases its reserved credit without persisting", async () => {
-    const creditId = "reserved-cartridge-credit";
+    const creditId = { id: "reserved-cartridge-credit", token: randomUUID() };
     const packagesBefore = await db
       .select()
       .from(cartridgePackagesTable)
@@ -626,7 +627,7 @@ describe("authenticated Ingestion and Cartridge multipart routes", () => {
   });
 
   test("subscription-mode provider tier rejection returns the reserved Cartridge credit", async () => {
-    const creditId = "reserved-provider-rejection-credit";
+    const creditId = { id: "reserved-provider-rejection-credit", token: randomUUID() };
     const packagesBefore = await db
       .select()
       .from(cartridgePackagesTable)
@@ -670,7 +671,7 @@ describe("authenticated Ingestion and Cartridge multipart routes", () => {
   });
 
   test("subscription-mode credit link failure rolls back the Cartridge and releases its reservation", async () => {
-    const creditId = "reserved-link-failure-credit";
+    const creditId = { id: "reserved-link-failure-credit", token: randomUUID() };
     const packagesBefore = await db
       .select()
       .from(cartridgePackagesTable)

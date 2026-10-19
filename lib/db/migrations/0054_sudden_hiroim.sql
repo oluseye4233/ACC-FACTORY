@@ -1,0 +1,1 @@
+ALTER TABLE "cartridge_credits" ADD COLUMN "reservation_token" uuid;

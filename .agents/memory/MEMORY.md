@@ -35,6 +35,7 @@
 - [F10 colonization operator](f10-colonization-operator.md) — keep SAVANT CONNECTOR separate from delivery lanes; it owns no verdict and stays fail-closed until qualified external gates are wired.
 
 - [Credit reservation fencing](credit-reservation-fencing.md) — expiring/reclaiming reservations need per-claim ownership tokens; age alone cannot stop stale requests mutating a newer claim.
+- [Recovery provenance](recovery-provenance.md) — private cleanup requires matching durable upload intent; retain untracked legacy archives and keep real deletion report-only until reviewed opt-in.
 - [Provider authorization key rotation](provider-authorization-key-rotation.md) — F10 grants use a dedicated current+previous keyring; decrypt with old keys only to re-encrypt under current, and fail closed to reconnect.
 - [ATLAS PDF pagination](atlas-pdf-pagination.md) — with the shared PDFKit theme, buffer pages and add footers after content; pageAdded footer mutations can recurse.
 - [LLM output bounds](llm-output-bounds.md) — non-critical generated metadata should be bounded at the schema boundary so valid artifacts do not fail on provider verbosity.

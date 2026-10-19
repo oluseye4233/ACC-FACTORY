@@ -29,6 +29,7 @@ import {
   claimCartridgeCredit,
   releaseCartridgeCredit,
   linkCreditToCartridge,
+  type CartridgeCreditReservation,
   getCartridgeCreditsSummary,
 } from "../lib/cartridge-credits";
 import { serializeSession } from "./sessions";
@@ -315,7 +316,7 @@ router.post(
     // When subscriptions are disabled the credit machinery is bypassed entirely
     // — staff build cartridges freely, but the LLM spend is still bounded by the
     // company-wide monthly cost cap (`requireCostBudget` above).
-    let creditId: string | null = null;
+    let creditId: CartridgeCreditReservation | null = null;
     if (subscriptionsEnabled()) {
       creditId = await claimCartridgeCredit(userId);
       if (!creditId) {
@@ -516,7 +517,7 @@ router.post(
         try {
           await releaseCartridgeCredit(creditId);
         } catch (releaseErr) {
-          req.log.error({ err: releaseErr, creditId }, "Failed to release cartridge credit");
+          req.log.error({ err: releaseErr, creditId: creditId.id }, "Failed to release cartridge credit; recovery will retry if still unlinked");
         }
       } else if (success && cartridgeId) {
         invalidateCartridgeContext(cartridgeId);

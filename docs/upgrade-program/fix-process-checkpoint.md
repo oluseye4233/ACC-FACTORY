@@ -88,9 +88,9 @@ Residuals, not suppressed:
 The existing React/Clerk peer warnings remain visible; the intentionally pinned
 React version was not changed as an incidental dependency fix.
 
-Credit recovery, preparation-file recovery, grouped user-journey checks and
-accessibility work remain unfinished. No production activation or certification
-is established by these local changes.
+Credit and preparation-file recovery are implemented in the subsequent batch
+below. Grouped user-journey checks and accessibility work remain unfinished.
+No production activation or certification is established by these local changes.
 
 ## Verification of the baseline/dependency batch
 
@@ -110,3 +110,32 @@ is established by these local changes.
   evidence about production installation or the restricted production login.
 - No historical migration file changed; the original baseline hash still
   matches the separate fresh-install manifest.
+
+## Cartridge and private preparation recovery — implemented in development
+
+- Cartridge claims now carry per-claim fencing tokens. Conditional link/release
+  prevents stale requests and ambiguous commit responses from unlinking a paid
+  package. Transient release failures receive bounded retries.
+- Startup/periodic reconciliation recovers at most 100 expired, tokened,
+  unlinked reservations per pass. The existing subscription switch still gates
+  this worker; subscriptions have not been enabled. Un-tokened legacy rows are
+  retained for review.
+- New preparations persist durable upload intent before storage writes and mark
+  it committed atomically with artifact metadata. Rollback/crash leaves
+  recoverable provenance rather than relying on a bucket-wide scan.
+- Storage recovery uses 24-hour intent/object safety windows, the writer's
+  account lock, reference checks, known-state/key checks and exact-generation
+  deletion. Committed, active, shared, unknown and untracked legacy files are
+  retained. Default mode is report-only; actual deletion requires administrator
+  opt-in. The Agent did not enable that setting or delete real storage objects.
+- Two additive public migrations were applied only to the verified development
+  database. The isolated fresh replay passed baseline plus 55 increments and
+  confirmed a second migration run was a no-op.
+- Full workspace typecheck passed. Full API regression run: 79 files passed,
+  647 tests passed / 40 skipped. Final recovery safety suite, including a later
+  unknown-state guard: 14 passed. CI migration safety tests: 3 passed.
+- The development API rebuilt and restarted cleanly with all 56 journal entries
+  applied, health HTTP 200, and the public staff access page rendering normally.
+- Production schema/security installation and protected approvals/releases
+  remain unchanged. See `recovery-operations.md` for rollout boundaries and
+  intentional legacy-retention behavior.

@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { zipSync } from "fflate";
 import { z } from "zod/v4";
-import { db, harnessArtifactsTable } from "@workspace/db";
+import { db, harnessArtifactsTable, preparationStorageLeasesTable } from "@workspace/db";
 import { humanName, OperationsError, type OperationsActor } from "./context";
 import { databaseProtection } from "./database-protection";
 import { hashContent, normaliseDocument, publishRequest, sourceSafety } from "./imprima-model";
@@ -83,10 +83,20 @@ export async function createPreparation(actor: OperationsActor, kind: Preparatio
   const zipEntries = Object.fromEntries(files.map(f => [f.filename, f.bytes]));
   files.push({ filename: `${kind}-preparation-${id}.zip`, format: "ZIP", mime: "application/zip", bytes: Buffer.from(zipSync(zipEntries)), contentHash: manifestHash });
   // Existing artifact persistence, not a fallback connection into protected tables.
-  // Serialize the per-owner quota across workers; no schema or production DDL.
+  // Serialize the per-owner quota across workers; no protected workflow DDL.
+  // Persist upload intent OUTSIDE the save transaction. A crash/rollback must
+  // not erase the evidence needed to recover its uncommitted private bytes.
+  await db.insert(preparationStorageLeasesTable).values({
+    id, userId: actor.id,
+    fileKeys: files.map((_, index) => `spartan-preparations/${actor.id}/${id}/file-${index}`),
+  });
   const [row] = await db.transaction(async tx => {
     const lock = await tx.execute(sql`SELECT pg_try_advisory_xact_lock(hashtext(${actor.id}), 210) AS acquired`);
     if (lock.rows[0]?.acquired !== true) throw new OperationsError(429, "Another preparation is being saved. Please retry after it finishes.");
+    const lease = await tx.select({ id: preparationStorageLeasesTable.id }).from(preparationStorageLeasesTable)
+      .where(and(eq(preparationStorageLeasesTable.id, id), eq(preparationStorageLeasesTable.state, "UPLOADING"),
+        sql`${preparationStorageLeasesTable.createdAt} > now() - interval '1 day'`)).for("update");
+    if (lease.length !== 1) throw new OperationsError(409, "The preparation upload lease has expired. Please prepare a new version.");
     const recent = await tx.select({ id: harnessArtifactsTable.id }).from(harnessArtifactsTable)
       .where(and(eq(harnessArtifactsTable.userId, actor.id), inArray(harnessArtifactsTable.artifactType, Object.values(TYPES)),
         sql`${harnessArtifactsTable.createdAt} > now() - interval '1 day'`)).limit(30);
@@ -100,9 +110,12 @@ export async function createPreparation(actor: OperationsActor, kind: Preparatio
     }
     const record: StoredPreparation = { schemaVersion: "SPARTAN-PREPARATION-1", kind, sourceId: body.sourceId, sourceKind: body.sourceKind,
       sourceHash: source.hash, manifestHash, state: kind === "imprima" ? "PREPARED_DRAFT" : "PREPARED_PROPOSAL", releaseAllowed: false, files: stored, notices: notice };
-    return tx.insert(harnessArtifactsTable).values({ id, userId: actor.id, sessionId: source.sessionId!, artifactType: TYPES[kind],
+    const result = await tx.insert(harnessArtifactsTable).values({ id, userId: actor.id, sessionId: source.sessionId!, artifactType: TYPES[kind],
       featureId: kind === "imprima" ? -210 : -211, parentArtifactId: body.sourceKind === "F95_LIVING_PDD" ? null : body.sourceId,
       name: title, artifactContent: record, contentHash: manifestHash, verificationStatus: "UNVERIFIED", forgeVerified: false, groState: "LIFE", createdAt }).returning();
+    await tx.update(preparationStorageLeasesTable).set({ state: "COMMITTED" })
+      .where(eq(preparationStorageLeasesTable.id, id));
+    return result;
   });
   return dto(row!);
 }

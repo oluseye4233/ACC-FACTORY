@@ -41,3 +41,36 @@ export async function readPrivate(key: string, expectedHash?: string) {
   return bytes;
 }
 export async function deletePrivate(key: string) { await file(key).delete({ ignoreNotFound: true }); }
+
+export type PrivateObjectVersion = { generation: string; createdAt: Date };
+/** Metadata only. Never read file bytes during recovery. */
+export async function inspectPrivate(key: string): Promise<PrivateObjectVersion | null> {
+  try {
+    const [metadata] = await file(key).getMetadata();
+    const generation = String(metadata.generation ?? "");
+    const createdAt = new Date(metadata.timeCreated ?? "");
+    if (!/^\d+$/.test(generation) || !Number.isFinite(createdAt.getTime())) {
+      throw new Error("Private object has no trustworthy version/creation metadata");
+    }
+    return { generation, createdAt };
+  } catch (err) {
+    if ((err as { code?: number }).code === 404) return null;
+    throw err;
+  }
+}
+
+/** Delete exactly the inspected version, never a newer replacement. */
+export async function deletePrivateVersion(key: string, generation: string): Promise<"deleted" | "missing" | "changed"> {
+  if (!key.startsWith("spartan-preparations/") || !/^\d+$/.test(generation)) {
+    throw new Error("Invalid preparation recovery target");
+  }
+  try {
+    await file(key).delete({ ifGenerationMatch: generation });
+    return "deleted";
+  } catch (err) {
+    const code = (err as { code?: number }).code;
+    if (code === 404) return "missing";
+    if (code === 412) return "changed";
+    throw err;
+  }
+}

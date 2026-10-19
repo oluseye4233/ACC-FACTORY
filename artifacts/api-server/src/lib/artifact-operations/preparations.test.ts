@@ -2,9 +2,9 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import { unzipSync } from "fflate";
-import { db, usersTable, harnessSessionsTable, harnessArtifactsTable, shortSprintRunsTable, imprimaJobsTable, harnessFeatureStateTable } from "@workspace/db";
+import { db, usersTable, harnessSessionsTable, harnessArtifactsTable, shortSprintRunsTable, imprimaJobsTable, harnessFeatureStateTable, preparationStorageLeasesTable } from "@workspace/db";
 import { createPreparation, preparationDownload, preparationWorkspace } from "./preparations";
-import { fileHash } from "./private-storage";
+import { fileHash, savePrivate } from "./private-storage";
 import { withOperationsActor, type OperationsActor } from "./context";
 
 const memory = vi.hoisted(() => new Map<string, Buffer>());
@@ -13,11 +13,11 @@ vi.mock("./database-protection", () => ({ databaseProtection: async () => ({ rea
 vi.mock("./private-storage", async original => {
   const actual = await original<typeof import("./private-storage")>();
   return { ...actual,
-    savePrivate: async (key: string, value: Buffer | string) => {
+    savePrivate: vi.fn(async (key: string, value: Buffer | string) => {
       if (memory.has(key)) throw Error("immutable fixture");
       const bytes = Buffer.from(value); memory.set(key, bytes);
       return { key, size: bytes.length, hash: actual.fileHash(bytes) };
-    },
+    }),
     readPrivate: async (key: string, expected?: string) => {
       const bytes = memory.get(key);
       if (!bytes) throw Error("missing fixture");
@@ -50,12 +50,33 @@ describe("SPARTAN preparation: separate owner-scoped lane, not SQL-guard fallbac
   });
   afterAll(async () => {
     if (owner) {
+      await db.delete(preparationStorageLeasesTable).where(eq(preparationStorageLeasesTable.userId, owner.id));
       // Explicit child-first cleanup for parent RESTRICT references; no billed calls.
       await db.delete(harnessArtifactsTable).where(and(eq(harnessArtifactsTable.userId, owner.id), inArray(harnessArtifactsTable.artifactType, ["IMPRIMA_PREPARATION", "SHORT_SPRINT_PREPARATION"])));
       await db.delete(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, microId));
     }
     for (const actor of [owner, other]) if (actor) await db.delete(usersTable).where(eq(usersTable.id, actor.id));
     memory.clear();
+  });
+  it("commits its upload intent atomically with the saved preparation", async () => {
+    const result = await createPreparation(owner, "imprima", { sourceId: spcId, sourceKind: "F5_SPC", options: opts });
+    const [lease] = await db.select().from(preparationStorageLeasesTable).where(eq(preparationStorageLeasesTable.id, result.id));
+    expect(lease).toMatchObject({ state: "COMMITTED", userId: owner.id });
+    expect(lease!.fileKeys.length).toBe(result.files.length);
+  });
+  it("keeps upload intent and partial bytes after a storage failure, without creating an artifact", async () => {
+    vi.mocked(savePrivate).mockImplementationOnce(async (key, value) => {
+      const bytes = Buffer.from(value); memory.set(key, bytes);
+      return { key, size: bytes.length, hash: fileHash(bytes) };
+    }).mockRejectedValueOnce(new Error("interrupted upload fixture"));
+    await expect(createPreparation(owner, "imprima", {
+      sourceId: spcId, sourceKind: "F5_SPC", options: opts,
+    })).rejects.toThrow("interrupted upload");
+    const abandoned = await db.select().from(preparationStorageLeasesTable)
+      .where(and(eq(preparationStorageLeasesTable.userId, owner.id), eq(preparationStorageLeasesTable.state, "UPLOADING")));
+    expect(abandoned).toHaveLength(1);
+    expect(memory.has(abandoned[0]!.fileKeys[0]!)).toBe(true);
+    expect(await db.select().from(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, abandoned[0]!.id))).toHaveLength(0);
   });
   it("archives three real draft formats, preserves exact bytes after JSONB, persists and isolates owners while full guards are missing", async () => {
     const p = await createPreparation(owner, "imprima", { sourceId: spcId, sourceKind: "F5_SPC", options: opts });
