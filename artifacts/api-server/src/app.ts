@@ -23,6 +23,7 @@ import router from "./routes";
 import stripeWebhookRouter from "./routes/stripe-webhook";
 import { logger } from "./lib/logger";
 import { assertBootCriticalConfig } from "./lib/boot-config";
+import { configureRequestBodyParsers } from "./middlewares/requestBody";
 
 // Fail fast if any boot-critical setting is missing (STAFF_ACCESS_CODE,
 // SESSION_SECRET, DATABASE_URL — see lib/boot-config.ts for the full list). In
@@ -62,8 +63,7 @@ app.use("/api/webhooks/stripe", stripeWebhookRouter);
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
 app.use(cors({ credentials: true, origin: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+configureRequestBodyParsers(app);
 // Signed cookies carry the staff session (see lib/staff-auth.ts).
 app.use(cookieParser(process.env.SESSION_SECRET));
 // Staff sessions remain unchanged; Clerk provides separate verified student identities.

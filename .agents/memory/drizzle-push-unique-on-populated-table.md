@@ -43,8 +43,19 @@ root/other-package code_execution can't resolve `@workspace/db`).
 `generate` produces the diff as the next migration. Mark `0000` already-applied by
 inserting a row into `drizzle.__drizzle_migrations` with `created_at` = the entry's
 `when` (folderMillis from `meta/_journal.json`) — the migrator's skip logic only
-compares `created_at`, so this makes `migrate` run only the newer diffs. A fresh
-empty DB instead runs every migration from `0000`.
+compares `created_at`, so this makes `migrate` run only the newer diffs.
+
+Fresh-install replay is a separate requirement from adopting an existing DB.
+Do not assume an introspection baseline is executable simply because incremental
+migrations work on the established development database.
+
+**Why:** the adopted baseline was emitted as commented introspection SQL, and an
+isolated empty PostgreSQL replay exposed an incompatible index operator class.
+Schema-push test setup had hidden that fresh-install failure.
+
+**How to apply:** exercise the actual baseline and incremental history only on an
+explicitly disposable database. Report failures; do not substitute schema push,
+invent applied ledger entries, or rewrite historical checksums to obtain a pass.
 
 **pull→generate churn is spurious.** Introspection represents existing indexes/FKs
 differently than the code does, so the first `generate` emits DROP/CREATE INDEX and

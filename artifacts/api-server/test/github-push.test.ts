@@ -14,6 +14,7 @@ import express, {
   type NextFunction,
 } from "express";
 import { and, eq, inArray } from "drizzle-orm";
+import { configureRequestBodyParsers } from "../src/middlewares/requestBody";
 import {
   db,
   usersTable,
@@ -526,13 +527,8 @@ beforeAll(async () => {
 
   const app = express();
   app.use(injectLog);
-  // NOTE: production `app.ts` mounts `express.json()` with the DEFAULT 100kb
-  // limit, which shadows this route's own 2MB `BUNDLE_TOO_LARGE` guard (and the
-  // zod per-file/file-count limits, which together allow ~6MB) — a real bundle
-  // over 100kb is rejected by the body parser with a 413 *before* reaching the
-  // handler. We raise the limit here so the route's own oversize guard is the
-  // thing under test. See the BUNDLE_TOO_LARGE test below.
-  app.use(express.json({ limit: "10mb" }));
+  // Exercise the same endpoint-scoped parser and errors as production.
+  configureRequestBodyParsers(app);
   const integrationsRouter = (await import("../src/routes/integrations")).default;
   const f10Router = (await import("../src/routes/f10")).default;
   app.use("/api", integrationsRouter);
@@ -955,6 +951,14 @@ describe("POST /integrations/github/push-codebase", () => {
     const body = (await res.json()) as { code?: string };
     expect(res.status).toBe(400);
     expect(body.code).toBe("BUNDLE_TOO_LARGE");
+    expect(mockGh.createdCalls).toHaveLength(0);
+  });
+
+  test("the bundle ceiling counts UTF-8 bytes, not JavaScript characters", async () => {
+    const files = Object.fromEntries(Array.from({ length: 7 }, (_, i) => [`unicode-${i}.txt`, "界".repeat(100_000)]));
+    const res = await push(architectId, { artifactId: bundleArtifactId, repoName: `unicode-${stamp}`, files });
+    expect(res.status).toBe(400);
+    expect((await res.json()).code).toBe("BUNDLE_TOO_LARGE");
     expect(mockGh.createdCalls).toHaveLength(0);
   });
 

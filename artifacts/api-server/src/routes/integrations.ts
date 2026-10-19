@@ -10,6 +10,7 @@ import {
   usersTable,
 } from "@workspace/db";
 import { commercialEligibility } from "../lib/exemplar-marketplace";
+import { GITHUB_BUNDLE_MAX_BYTES } from "../middlewares/requestBody";
 import { requireAuth } from "../lib/auth";
 import { requireTier } from "../lib/tier";
 import {
@@ -933,8 +934,8 @@ router.post(
       return;
     }
 
-    const totalBytes = Object.values(files).reduce((n, c) => n + c.length, 0);
-    if (totalBytes > 2_000_000) {
+    const totalBytes = Object.values(files).reduce((n, c) => n + Buffer.byteLength(c, "utf8"), 0);
+    if (totalBytes > GITHUB_BUNDLE_MAX_BYTES) {
       res
         .status(400)
         .json({ error: "Bundle too large to push (2 MB limit).", code: "BUNDLE_TOO_LARGE" });
