@@ -1,0 +1,27 @@
+{
+  "version": "FRESH-INSTALL-1",
+  "sourceTag": "0000_harsh_miss_america",
+  "sourceSha256": "a6d86191a62ab766e9f0ad1ece0c84fd4812ba3517fe1e02f494a48088f3f7e6",
+  "replacements": [
+    {
+      "before": "CREATE UNIQUE INDEX \"harness_feature_state_session_feature_idx\" ON \"harness_feature_state\" USING btree (\"session_id\" int4_ops,\"feature_id\" int4_ops);",
+      "after": "CREATE UNIQUE INDEX \"harness_feature_state_session_feature_idx\" ON \"harness_feature_state\" USING btree (\"session_id\" uuid_ops,\"feature_id\" int4_ops);"
+    },
+    {
+      "before": "CREATE INDEX \"harness_engine_runs_user_created_idx\" ON \"harness_engine_runs\" USING btree (\"user_id\" timestamptz_ops,\"created_at\" timestamptz_ops);",
+      "after": "CREATE INDEX \"harness_engine_runs_user_created_idx\" ON \"harness_engine_runs\" USING btree (\"user_id\" uuid_ops,\"created_at\" timestamptz_ops);"
+    },
+    {
+      "before": "CREATE INDEX \"jst_assessments_user_created_idx\" ON \"jst_assessments\" USING btree (\"user_id\" timestamptz_ops,\"created_at\" timestamptz_ops);",
+      "after": "CREATE INDEX \"jst_assessments_user_created_idx\" ON \"jst_assessments\" USING btree (\"user_id\" uuid_ops,\"created_at\" timestamptz_ops);"
+    },
+    {
+      "before": "CREATE UNIQUE INDEX \"integration_credentials_user_provider_uniq\" ON \"integration_credentials\" USING btree (\"user_id\" text_ops,\"provider\" text_ops);",
+      "after": "CREATE UNIQUE INDEX \"integration_credentials_user_provider_uniq\" ON \"integration_credentials\" USING btree (\"user_id\" uuid_ops,\"provider\" text_ops);"
+    },
+    {
+      "before": "CREATE UNIQUE INDEX \"badges_user_badge_uniq\" ON \"command_centre_badges\" USING btree (\"user_id\" text_ops,\"badge_id\" text_ops);",
+      "after": "CREATE UNIQUE INDEX \"badges_user_badge_uniq\" ON \"command_centre_badges\" USING btree (\"user_id\" uuid_ops,\"badge_id\" text_ops);"
+    }
+  ]
+}

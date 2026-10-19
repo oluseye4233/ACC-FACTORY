@@ -1,10 +1,10 @@
 // Disposable CI databases only. Never imported by application/deployment startup.
 import { readFile } from "node:fs/promises";
-import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { freshInstallBaseline } from "./fresh-install-baseline.mjs";
 
 export function assertDisposableTarget(connectionString) {
   const url = new URL(connectionString);
@@ -12,15 +12,6 @@ export function assertDisposableTarget(connectionString) {
       url.pathname !== "/workspace_test") {
     throw new Error("CI migration replay requires a localhost database named workspace_test; no changes made.");
   }
-}
-
-export function baselinePayload(source) {
-  const start = source.indexOf("/*");
-  const end = source.lastIndexOf("*/");
-  if (start < 0 || end < start || source.slice(end + 2).trim()) {
-    throw new Error("Unexpected introspection baseline format; review required.");
-  }
-  return source.slice(start + 2, end).split("--> statement-breakpoint").map(s => s.trim()).filter(Boolean);
 }
 
 async function main() {
@@ -31,6 +22,9 @@ async function main() {
   const baseline = journal.entries[0];
   if (baseline.tag !== "0000_harsh_miss_america") throw new Error("Unexpected baseline; review required.");
   const source = await readFile(`${folder}/${baseline.tag}.sql`, "utf8");
+  const manifest = JSON.parse(await readFile(`${folder}/../fresh-install/baseline.json`, "utf8"));
+  if (manifest.sourceTag !== baseline.tag) throw new Error("Fresh-install baseline tag mismatch; review required.");
+  const fresh = freshInstallBaseline(source, manifest);
   const pool = new pg.Pool({ connectionString, max: 1 });
   try {
     const client = await pool.connect();
@@ -40,16 +34,19 @@ async function main() {
       if (existing.rows[0].n !== 0) throw new Error("CI migration replay requires an empty database; no changes made.");
       await client.query("BEGIN");
       try {
-        // 0000 is an intentionally commented introspection baseline. Execute its
-        // SQL only here, on the empty throwaway database, before recording it.
-        for (const [index, statement] of baselinePayload(source).entries()) {
+        // Execute the separate fresh-install baseline. Never modify historical
+        // files or pretend the original commented baseline executed unchanged.
+        for (const [index, statement] of fresh.statements.entries()) {
           try { await client.query(statement); }
           catch (error) { throw new Error(`${baseline.tag}.sql statement ${index + 1}: ${error.message}`); }
         }
         await client.query('CREATE SCHEMA "drizzle"');
         await client.query('CREATE TABLE "drizzle"."__drizzle_migrations" (id SERIAL PRIMARY KEY, hash text NOT NULL, created_at bigint)');
         await client.query('INSERT INTO "drizzle"."__drizzle_migrations" (hash, created_at) VALUES ($1, $2)',
-          [createHash("sha256").update(source).digest("hex"), baseline.when]);
+          [fresh.hash, baseline.when]);
+        await client.query('CREATE TABLE "drizzle"."__fresh_install_baselines" (version text PRIMARY KEY, source_tag text NOT NULL, source_hash text NOT NULL, manifest_hash text NOT NULL, executed_hash text NOT NULL)');
+        await client.query('INSERT INTO "drizzle"."__fresh_install_baselines" VALUES ($1,$2,$3,$4,$5)',
+          [manifest.version, manifest.sourceTag, manifest.sourceSha256, fresh.manifestHash, fresh.hash]);
         await client.query("COMMIT");
       } catch (error) {
         await client.query("ROLLBACK");

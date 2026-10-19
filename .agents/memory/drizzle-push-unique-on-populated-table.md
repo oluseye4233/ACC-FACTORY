@@ -57,6 +57,17 @@ Schema-push test setup had hidden that fresh-install failure.
 explicitly disposable database. Report failures; do not substitute schema push,
 invent applied ledger entries, or rewrite historical checksums to obtain a pass.
 
+Preserve established migration history when repairing fresh installations; the
+user selected a separate fresh-install baseline rather than historical edits.
+
+**Why:** existing databases have already adopted that historical baseline, so
+rewriting it would make old ledger checksums describe different source bytes.
+
+**How to apply:** keep any fresh-install corrections explicit and source-pinned,
+record the checksum of the SQL actually executed plus its provenance, and
+retain the unchanged incremental journal. This is not permission for production
+installation, startup repair or modifying the protected ARK migration package.
+
 **pull→generate churn is spurious.** Introspection represents existing indexes/FKs
 differently than the code does, so the first `generate` emits DROP/CREATE INDEX and
 DROP/ADD FK for objects that already match. Verify against the live DB (`pg_indexes`,

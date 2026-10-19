@@ -20,18 +20,19 @@ subscriber entitlements or the fail-closed deployment startup chain.
 GitHub itself was mocked in the route tests; no repository was created or
 changed by those tests. This is not evidence of a new production deployment.
 
-## Fresh-install migration verification — blocked
+## Fresh-install migration verification — implemented and replayed
 
 CI now invokes a loopback-only, empty `workspace_test` migration replay rather
 than relying on schema push. This is not a production installer and is not
 connected to deployment startup.
 
-The historical introspection baseline is fully commented. The isolated replay
-executes its SQL payload before recording that baseline as executed, then would
-apply incremental migrations and check a second migration run is a no-op.
-It refuses a non-local, differently named or non-empty database.
+The historical introspection baseline is fully commented. Following approval
+to preserve history, `lib/db/fresh-install/baseline.json` defines a separate
+fresh-install recipe pinned to the SHA-256 of that unchanged source. It corrects
+five mismatched operator classes on UUID index columns without removing indexes,
+uniqueness or foreign keys.
 
-An actual PostgreSQL 16 throwaway-cluster run failed in the baseline with:
+The initial PostgreSQL 16 throwaway-cluster run exposed:
 
 ```text
 operator class "int4_ops" does not accept data type uuid
@@ -46,22 +47,66 @@ ON "harness_feature_state" USING btree
 ("session_id" int4_ops,"feature_id" int4_ops);
 ```
 
-`session_id` is UUID. The historical file and recorded checksums have not been
-changed. The baseline transaction rolled back on the isolated cluster.
-Incremental migration replay and the no-op check have NOT passed.
-The new CI migration step is expected to fail until a reviewed baseline repair
-or fresh-install baseline strategy is agreed; it must not fall back to push.
+The separate fresh baseline now executes before all 53 unchanged incremental
+migrations. Its ledger row records the hash of the SQL actually executed; a
+separate provenance row records the source, manifest and executed hashes. It
+does not substitute the original source checksum for different executed SQL.
+Existing database ledger records are not changed.
 
-Two runner safety/format unit tests passed. These do not establish successful
-migration replay.
+The full replay passed on the isolated PostgreSQL 16 database, including a second
+migration run with no new migrations. The runner refuses non-local, differently
+named or non-empty targets and has no production/startup integration.
+Three runner safety/source-integrity unit tests passed.
 
-## Dependency assessment — measured, not remediated
+## Dependency remediation — substantially reduced, residuals retained
 
 A fresh `pnpm audit --json` reported 0 critical, 41 high, 37 moderate and 9 low
 advisory instances across the complete dependency graph. These are package-audit
 counts, not demonstrated exploits or a production reachability assessment.
 The count must not be substituted for the older October 16 report.
 
-Updates have not been installed in this batch. Migration recovery is the current
-blocker in the agreed sequence. Credit recovery, preparation-file recovery,
-grouped user-journey checks and accessibility work remain unfinished.
+Compatible direct-parent updates and scoped patched transitive overrides reduce
+the audit to **0 critical, 1 high, 2 moderate, 0 low**. The minimum-release-age
+guard remains enabled; no exclusion was added to install a newly published
+package. Vite and its test-runner peers remain on major 7; application Zod and
+generator target contracts remain unchanged.
+
+Residuals, not suppressed:
+
+- `braces`: high, no published patched release. Dependency path is
+  `http-proxy-middleware -> micromatch -> braces`. The inspected proxy uses the
+  default literal path filter, not a caller-supplied glob. This narrows the
+  observed exposure but is not a blanket exemption for future usage.
+- `sprintf-js`: moderate, no published patched release. Dependency path is
+  `mammoth -> argparse -> sprintf-js`; the inspected Mammoth CLI imports
+  argparse, while the platform uses Mammoth as a library. No complete dataflow
+  proof is claimed.
+- `postcss-selector-parser`: moderate via `@tailwindcss/typography`'s version-6
+  dependency. The available fix is version 7.1.6; forcing a transitive major
+  upgrade was not treated as a compatible patch.
+
+The existing React/Clerk peer warnings remain visible; the intentionally pinned
+React version was not changed as an incidental dependency fix.
+
+Credit recovery, preparation-file recovery, grouped user-journey checks and
+accessibility work remain unfinished. No production activation or certification
+is established by these local changes.
+
+## Verification of the baseline/dependency batch
+
+- Full workspace typecheck: passed.
+- Full workspace tests against the isolated fresh-install PostgreSQL database:
+  API 618 passed / 40 skipped; frontend 235 passed; scripts 35 passed.
+  Total: 888 passed, 40 skipped, zero failures. Skipped tests are not counted
+  as verified features.
+- API bundled build and frontend production build: passed. Existing frontend
+  sourcemap-location/chunk-size warnings remain non-fatal.
+- Restarted development API health: HTTP 200.
+- A 150 KB unauthenticated GitHub request reached authentication and returned
+  JSON HTTP 401, rather than failing at the old 100 KB parser limit.
+- Development sign-in page screenshot: renders successfully.
+- Isolated fresh database: all five public workflow tables have RLS enabled
+  and forced; both IMPRIMA immutability triggers are present. This is not
+  evidence about production installation or the restricted production login.
+- No historical migration file changed; the original baseline hash still
+  matches the separate fresh-install manifest.
