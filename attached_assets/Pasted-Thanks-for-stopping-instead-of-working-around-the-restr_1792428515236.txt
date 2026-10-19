@@ -1,0 +1,30 @@
+Thanks for stopping instead of working around the restriction. That was the right call. I'll install the fix myself as the database administrator. Please prepare everything I need to review and run it once against production.
+
+1. INSTALL SCRIPT (install_security.sql)
+   - Covers all six protections: the custom role, its grants, the RLS policies, ENABLE + FORCE ROW LEVEL SECURITY, and the immutability triggers with their functions.
+   - Safe to run more than once: CREATE ROLE inside a DO block that checks pg_roles first; DROP POLICY IF EXISTS then CREATE POLICY; CREATE OR REPLACE FUNCTION; DROP TRIGGER IF EXISTS then CREATE TRIGGER.
+   - Wrapped in a single BEGIN; ... COMMIT; so a failure changes nothing.
+   - No passwords or secrets inside. If the role needs a password, leave a clear placeholder and tell me how to set it separately.
+   - Comment each section with the protection it covers and the migration file it comes from.
+   - Do not change, delete or backfill any table data.
+
+2. VERIFICATION SCRIPT (verify_security.sql)
+   - Read-only queries against pg_roles, pg_policies, pg_class (relrowsecurity, relforcerowsecurity) and pg_trigger.
+   - Each check returns PASS/FAIL with a label, so I can confirm all six at a glance.
+
+3. CONNECTION ROLE CHECK
+   - Which role does the production app connect as today?
+   - Does that role own the protected tables, or have BYPASSRLS or superuser rights?
+   - If so, explain exactly how the app will use the new restricted role after the install (connection string change, SET ROLE, etc.). Otherwise the policies won't actually apply to it.
+
+4. PRIVILEGE REQUIREMENTS
+   - List any statement that may need more than table-owner rights (especially CREATE ROLE and GRANT), so I can ask Replit Support about only those.
+
+5. PREVENT RECURRENCE
+   - Add these objects to a versioned migration file that runs as an explicit deploy step (not at app startup), so future publishes include them and don't drop them.
+   - Tell me where it lives and how it runs.
+
+6. AFTER I RUN IT
+   - Give me the exact steps to confirm everything worked, then go ahead with the IMPRIMA and SHORT SPRINTS testing.
+
+Show me both SQL scripts in full before doing anything else. Don't run anything against production yourself.
