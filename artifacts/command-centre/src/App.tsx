@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/react";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
@@ -10,43 +10,15 @@ if (sentryDsn) {
     tracesSampleRate: 0.1,
   });
 }
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation, useSearch } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
-import Verify from "@/pages/verify";
-import Command from "@/pages/command";
-import Sessions from "@/pages/sessions";
-import SessionNew from "@/pages/session-new";
-import SessionDetail from "@/pages/session-detail";
-import SessionVerification from "@/pages/session-verification";
-import Exemplars from "@/pages/exemplars";
-import Sphinx from "@/pages/sphinx";
-import Prompts from "@/pages/prompts";
-import Quests from "@/pages/quests";
-import Account from "@/pages/account";
-import Ingest from "@/pages/ingest";
-import Cartridge from "@/pages/cartridge";
-import F0Dashboard from "@/pages/f0";
-import AdminBadges from "@/pages/admin-badges";
-import AdminOps from "@/pages/admin-ops";
-import AdminProviderBilling from "@/pages/admin-provider-billing";
-import Ascension from "@/pages/ascension";
-import F10Console from "@/pages/f10";
-import Operations from "@/pages/operations";
-import Activity from "@/pages/activity";
-import MeCosts from "@/pages/me-costs";
-import TestYourAgent from "@/pages/test-your-agent";
-import Guide from "@/pages/guide";
-import BoomerangPage from "@/pages/boomerang";
-import LearningPage, { LearningCohortPage } from "@/pages/learning";
 import { StudentIdentityProvider, StudentLogin, StudentSignOut, useStudentIdentity } from "@/components/learning-auth";
 import { authenticatedLearningEntry } from "@/lib/learning-entry";
-import Status from "@/pages/status";
-import CalculateYourSavings from "@/pages/calculate-your-savings";
 import { AccessGate } from "@/components/AccessGate";
 import {
   StaffSessionProvider,
@@ -54,15 +26,47 @@ import {
 } from "@/lib/staff-session";
 import { Redirect } from "wouter";
 import { ThemeProvider } from "next-themes";
-import SpcPlayerDashboard from "@/pages/spc-player/dashboard";
-import SpcPlayerNew from "@/pages/spc-player/new";
-import SpcPlayerDetail from "@/pages/spc-player/detail";
+
+// Keep authentication/providers eager and persistent. Tool code loads only when
+// the existing route gate selects that tool; this does not grant access to it.
+const Verify = lazy(() => import("@/pages/verify"));
+const Command = lazy(() => import("@/pages/command"));
+const Sessions = lazy(() => import("@/pages/sessions"));
+const SessionNew = lazy(() => import("@/pages/session-new"));
+const SessionDetail = lazy(() => import("@/pages/session-detail"));
+const SessionVerification = lazy(() => import("@/pages/session-verification"));
+const Exemplars = lazy(() => import("@/pages/exemplars"));
+const Sphinx = lazy(() => import("@/pages/sphinx"));
+const Prompts = lazy(() => import("@/pages/prompts"));
+const Quests = lazy(() => import("@/pages/quests"));
+const Account = lazy(() => import("@/pages/account"));
+const Ingest = lazy(() => import("@/pages/ingest"));
+const Cartridge = lazy(() => import("@/pages/cartridge"));
+const F0Dashboard = lazy(() => import("@/pages/f0"));
+const AdminBadges = lazy(() => import("@/pages/admin-badges"));
+const AdminOps = lazy(() => import("@/pages/admin-ops"));
+const AdminProviderBilling = lazy(() => import("@/pages/admin-provider-billing"));
+const Ascension = lazy(() => import("@/pages/ascension"));
+const F10Console = lazy(() => import("@/pages/f10"));
+const Operations = lazy(() => import("@/pages/operations"));
+const Activity = lazy(() => import("@/pages/activity"));
+const MeCosts = lazy(() => import("@/pages/me-costs"));
+const TestYourAgent = lazy(() => import("@/pages/test-your-agent"));
+const Guide = lazy(() => import("@/pages/guide"));
+const BoomerangPage = lazy(() => import("@/pages/boomerang"));
+const LearningPage = lazy(() => import("@/pages/learning"));
+const LearningCohortPage = lazy(() => import("@/pages/learning").then(module => ({ default: module.LearningCohortPage })));
+const Status = lazy(() => import("@/pages/status"));
+const CalculateYourSavings = lazy(() => import("@/pages/calculate-your-savings"));
+const SpcPlayerDashboard = lazy(() => import("@/pages/spc-player/dashboard"));
+const SpcPlayerNew = lazy(() => import("@/pages/spc-player/new"));
+const SpcPlayerDetail = lazy(() => import("@/pages/spc-player/detail"));
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 function LoadingScreen() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background">
+    <div role="status" aria-live="polite" className="flex min-h-[100dvh] items-center justify-center bg-background">
       <p className="font-mono text-sm uppercase tracking-[0.2em] text-muted-foreground">
         Loading…
       </p>
@@ -131,6 +135,8 @@ function AuthenticatedRoutes() {
 }
 
 function Gate() {
+  const [requestedPath] = useLocation();
+  const search = useSearch();
   const { data, isLoading, isError, refetch } = useStaffSessionQuery();
   const identity = useStudentIdentity();
   // The SDK may finish sign-in just before its session cookie reaches the API.
@@ -146,14 +152,13 @@ function Gate() {
   }, [identity.isLoaded, identity.isSignedIn, data?.authenticated, refetch]);
 
   // Recovery/status must not wait on a session lookup backed by a failing DB.
-  const requestedPath = window.location.pathname.replace(basePath, "");
   if (requestedPath === "/status" || requestedPath === "/status/") return <PublicRoutes />;
 
   if (isLoading) return <LoadingScreen />;
 
   // If the session lookup fails hard, still let public routes resolve.
   const session = data ?? { authenticated: false };
-  const learningEntry = authenticatedLearningEntry(requestedPath, window.location.search, session.authenticated);
+  const learningEntry = authenticatedLearningEntry(requestedPath, search, session.authenticated);
   if (learningEntry) return <Redirect to={learningEntry} />;
   const studentLoginPath = requestedPath.startsWith("/learn-login") || requestedPath.startsWith("/learn-register");
   const studentPath = requestedPath.startsWith("/learn") || requestedPath.startsWith("/teach/");
@@ -173,12 +178,12 @@ function Gate() {
 
   if (!session.authenticated) {
     if (requestedPath.startsWith("/learn") || requestedPath.startsWith("/teach/")) {
-      const invite = new URLSearchParams(window.location.search).get("invite");
+      const invite = new URLSearchParams(search).get("invite");
       return <Redirect to={invite ? `/learn-login?invite=${encodeURIComponent(invite)}` : "/learn-login"} />;
     }
     // Verification pages and the anonymous acquisition-magnet tools are public
     // even when signed out.
-    const publicPath = window.location.pathname.replace(basePath, "");
+    const publicPath = requestedPath;
     if (
       publicPath.startsWith("/verify") ||
       publicPath.startsWith("/test-your-agent") ||
@@ -215,7 +220,9 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <WouterRouter base={basePath}>
-            <StudentIdentityProvider><Gate /></StudentIdentityProvider>
+            <StudentIdentityProvider>
+              <Suspense fallback={<LoadingScreen />}><Gate /></Suspense>
+            </StudentIdentityProvider>
             </WouterRouter>
             <Toaster />
           </TooltipProvider>

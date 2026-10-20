@@ -233,3 +233,34 @@ and deferred feature extensions. This checkpoint does not claim those are done.
 - This is component-level verification. The previously documented signed-in
   browser verification gap and remaining dependency/build warnings are unchanged.
   No production, role, credential or protected workflow changes were made.
+
+## On-demand work areas and reactive entry routing
+
+- Route components now load on demand; authentication and identity providers
+  stay eager and persistent outside the route-loading boundary. The entry
+  JavaScript file fell from about 2,158 KB to 452 KB (uncompressed build output;
+  this is not a measured page-load time or total network-transfer claim).
+- The existing loading view is an accessible status. Module-download failures
+  show explicit connection/reload guidance; no automatic reload loop or hidden
+  fallback was added.
+- New routing tests exposed a gate that read the URL without subscribing to
+  route changes. The gate now subscribes to pathname and query updates, allowing
+  student and authenticated invitation redirects to settle while retaining
+  invitation/source context and the existing session checks.
+- All 327 frontend tests, frontend typecheck and production build passed.
+  Tests cover authenticated tool deep links, public routes during session lookup
+  failure, named cohort exports, persistent identity, student redirects,
+  invitation retention and module-download errors.
+- One browser pass confirmed public status/marketplace/tools settled, the
+  protected SPC Player URL retained its query behind staff access, the gate's
+  theme toggle worked and the student sign-in entry settled. No credentials or
+  protected tool execution were used. Authenticated tool behaviour remains
+  component-tested, not proven through a signed-in browser session.
+- The public certificate-verification page rendered, but the browser reported
+  one HTTP 401 resource request and a LOG OUT control. Fully anonymous state
+  could not be established for that page; it needs a separate investigation.
+- The deferred session-detail chunk remains about 680 KB and still triggers
+  the existing size warning. Sourcemap-location warnings also remain visible;
+  limits and tooling were not weakened to hide them.
+- Deployment startup/security settings, entitlements, Quest rules and production
+  were not changed.

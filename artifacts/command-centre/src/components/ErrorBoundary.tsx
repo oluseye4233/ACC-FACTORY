@@ -6,6 +6,13 @@ interface State {
   error: Error | null;
 }
 
+export function isChunkLoadError(error: Error | null) {
+  return !!error && (
+    error.name === "ChunkLoadError" ||
+    /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Loading chunk .+ failed/i.test(error.message)
+  );
+}
+
 export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
   state: State = { hasError: false, error: null };
 
@@ -21,12 +28,17 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
 
   render(): ReactNode {
     if (!this.state.hasError) return this.props.children;
+    const pageDownloadFailed = isChunkLoadError(this.state.error);
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-background p-8">
         <div className="max-w-md text-center space-y-4">
-          <h1 className="font-display tracking-widest text-2xl text-destructive">SYSTEM FAULT</h1>
+          <h1 className="font-display tracking-widest text-2xl text-destructive">
+            {pageDownloadFailed ? "PAGE DOWNLOAD FAILED" : "SYSTEM FAULT"}
+          </h1>
           <p className="font-mono text-sm text-muted-foreground">
-            The interface encountered an unrecoverable error. The incident has been recorded.
+            {pageDownloadFailed
+              ? "This page could not be downloaded. Check your connection, then reload. If the platform was just updated, reloading gets the current version."
+              : "The interface encountered an unrecoverable error. The incident has been recorded."}
           </p>
           <pre className="text-xs text-left text-muted-foreground/70 bg-card border border-border rounded p-3 overflow-auto">
             {this.state.error?.message ?? "Unknown error"}
