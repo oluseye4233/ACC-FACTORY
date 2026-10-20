@@ -407,3 +407,58 @@ in development only; the protected ARK security schemas/rules were not modified.
   The restarted web workflow is running and API health returns 200.
   An anonymous `/guide` screenshot rendered the expected staff access gate;
   it does not verify the signed-in guide or other authenticated workflows.
+
+## Accessibility and mobile forms — first focused pass
+
+- Staff entry now has a main landmark, a named form, native required fields,
+  pending-state semantics, and an announced error linked to the access-code
+  field. Phone padding and vertical spacing allow the card to fit narrow or
+  short viewports. Existing login payloads and authentication remain unchanged.
+- The shared header hides its long subtitle below the small-screen breakpoint
+  and reduces control spacing on phones without removing navigation or access
+  controls. Public certificate search stacks its field/button on phones and
+  exposes a named live results region and busy state.
+- Cohort creation stacks fields on phones, wraps validation/action controls,
+  and connects its existing validation guidance to a named form. Cohort
+  eligibility, budgets and draft activation rules were not changed.
+- Verification: 339 frontend tests passed, frontend typecheck and production
+  build passed, and API health returned 200. New component checks cover form
+  labels, required fields, login payload preservation, error announcements,
+  pending states, cohort guidance and certificate loading announcements.
+- Screenshots confirmed public verification at 320px and staff entry at 390px
+  render without visible horizontal clipping. These are anonymous screens;
+  authenticated cohort layout was checked at component level only. This is not
+  a complete site-wide accessibility audit, screen-reader/device certification,
+  or verification of the remaining signed-in F-stage/Player/Boomerang flows.
+- Production, protected database/security rules and queued recovery-dashboard
+  and retention work were not changed.
+
+## Authenticated workspace accessibility — component-level pass
+
+- SPC catalog choices are native toggle buttons with pressed-state semantics,
+  usable with Space and Enter. Catalog search, the manual deck selector and
+  move/remove controls now have accessible names. Reorder targets are larger
+  and the ordinal no longer overlays them. Source locking and deck limits
+  remain unchanged.
+- Boomerang creation has persistent visible labels, unique field IDs per mounted
+  form, native length/required attributes matching existing validation, and
+  pending-state semantics. Return/review fields have accessible names, case
+  disclosures expose expansion state, and return-validation errors announce.
+  Existing origin fingerprints, owner visibility, version checks and
+  advisory-only acceptance/release boundaries remain unchanged.
+- Preparation forms are named and expose saving state. The sprint manifest
+  has an associated label and announced JSON errors; rejected saves and saved
+  results use alert/status semantics. IMPRIMA option fields stack on phones,
+  and saved-preparation paging controls can wrap. These remain private
+  preparations, not protected certification, execution or release workflows.
+- Session verification has an accessible name when its visible text is hidden
+  on phones; the mobile harness drawer has a description.
+- Verification: all 345 frontend tests passed, plus frontend typecheck and
+  production build. Tests cover keyboard SPC selection, named deck controls,
+  source retention, Boomerang label uniqueness and expansion/review controls,
+  preparation JSON errors and rejected saves, and existing session routing.
+  Managed web/API workflows are running and API health returned 200.
+- Browser verification remains limited: anonymous `/spc-player/new` correctly
+  renders the staff access gate at 390px. It does not show the authenticated
+  workspace. No signed-in browser check or full screen-reader/device audit is
+  claimed, and no production/security configuration was changed.

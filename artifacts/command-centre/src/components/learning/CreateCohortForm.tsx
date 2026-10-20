@@ -37,18 +37,18 @@ export function CreateCohortForm() {
   };
 
   return (
-    <form onSubmit={submit} className="border rounded-md p-4 bg-card space-y-3" data-testid="form-create-cohort">
+    <form onSubmit={submit} aria-label="Create cohort draft" aria-busy={create.isPending} aria-describedby={invalid ? "cohort-create-validation" : undefined} className="border rounded-md p-4 bg-card space-y-3" data-testid="form-create-cohort">
       <h3 className="font-display text-lg">New cohort draft</h3>
       <p className="text-xs text-muted-foreground">Created as DRAFT. Nothing is open to students until you activate it. All values are explicit; there are no defaults.</p>
       <label className="block space-y-1"><span className={lab}>Title</span><Input value={f.title} onChange={set("title")} maxLength={160} data-testid="input-cohort-title" /></label>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <label className="block space-y-1"><span className={lab}>Capacity</span><Input type="number" min={1} max={500} value={f.capacity} onChange={set("capacity")} data-testid="input-cohort-capacity" /></label>
         <label className="block space-y-1"><span className={lab}>Ends</span><Input type="datetime-local" value={f.endsAt} onChange={set("endsAt")} data-testid="input-cohort-ends" /></label>
         <label className="block space-y-1"><span className={lab}>Cohort budget USD</span><Input type="number" min={0} step="0.01" value={f.budgetUsd} onChange={set("budgetUsd")} data-testid="input-cohort-budget" /></label>
         <label className="block space-y-1"><span className={lab}>Per student USD</span><Input type="number" min={0} step="0.01" value={f.studentBudgetUsd} onChange={set("studentBudgetUsd")} data-testid="input-cohort-student-budget" /></label>
       </div>
-      <div className="flex items-center gap-2">
-        {invalid && <span className="text-xs text-muted-foreground" data-testid="text-create-invalid">{invalid}</span>}
+      <div className="flex flex-wrap items-center gap-2">
+        {invalid && <span id="cohort-create-validation" className="text-xs text-muted-foreground" data-testid="text-create-invalid">{invalid}</span>}
         <Button type="submit" className="ml-auto" disabled={!!invalid || create.isPending} data-testid="button-create-cohort">Create draft</Button>
       </div>
       {err && <p role="alert" className="text-xs text-destructive" data-testid="text-create-error">{err}</p>}

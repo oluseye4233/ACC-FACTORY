@@ -52,12 +52,14 @@ export default function Verify() {
             </p>
           </div>
 
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <div className="relative flex-1">
+          <form onSubmit={handleSearch} aria-label="Verify certificate" aria-busy={isLoading} className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 aria-label="Certificate ID"
                 type="text"
+                name="certificate-id"
+                required
                 placeholder="Enter Certificate ID..."
                 value={certId}
                 onChange={(e) => setCertId(e.target.value)}
@@ -70,7 +72,7 @@ export default function Verify() {
           </form>
 
           {query && (
-            <div className="pt-8 border-t">
+            <div className="pt-8 border-t" role="region" aria-label="Certificate verification result" aria-live="polite" aria-atomic="true">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground animate-pulse">
                   <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-4" />

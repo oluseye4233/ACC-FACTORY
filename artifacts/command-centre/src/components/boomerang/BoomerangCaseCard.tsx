@@ -45,7 +45,7 @@ export function BoomerangCaseCard({ c, defaultOpen = false }: { c: BoomerangCase
 
   return (
     <article className="border rounded bg-card" data-testid={`card-boomerang-${c.id}`}>
-      <button type="button" className="w-full flex flex-wrap items-center gap-2 p-2.5 text-left hover:bg-muted/40" onClick={() => setOpen(!open)} data-testid={`button-toggle-case-${c.id}`}>
+      <button type="button" aria-expanded={open} className="w-full flex flex-wrap items-center gap-2 p-2.5 text-left hover:bg-muted/40" onClick={() => setOpen(!open)} data-testid={`button-toggle-case-${c.id}`}>
         {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
         <span className="font-mono text-[10px] bg-muted px-1.5 rounded">{c.stage}{engineId != null ? ` · eng ${engineId}` : ""}</span>
         <span className="text-sm font-medium truncate min-w-0 flex-1" data-testid={`text-case-title-${c.id}`}>{c.title}</span>
@@ -87,10 +87,10 @@ export function BoomerangCaseCard({ c, defaultOpen = false }: { c: BoomerangCase
                 )}
               </div>
               <p className="text-muted-foreground">Nothing is launched from here. Execute in SPC Player yourself, then paste the completed run id — or paste returned text manually.</p>
-              <Input placeholder="Completed SPC Player run UUID" value={runId} onChange={(e) => setRunId(e.target.value)} disabled={!!text.trim()} className="font-mono text-xs" data-testid={`input-run-id-${c.id}`} />
-              <Textarea rows={5} placeholder="…or paste returned work (10–40,000 chars)" value={text} maxLength={RESULT_MAX} onChange={(e) => setText(e.target.value)} disabled={!!runId.trim()} className="font-mono text-[11px]" data-testid={`input-result-text-${c.id}`} />
+              <Input aria-label="Completed SPC Player run UUID" placeholder="Completed SPC Player run UUID" value={runId} onChange={(e) => setRunId(e.target.value)} disabled={!!text.trim()} className="font-mono text-xs" data-testid={`input-run-id-${c.id}`} />
+              <Textarea aria-label="Returned supporting work" rows={5} placeholder="…or paste returned work (10–40,000 chars)" value={text} maxLength={RESULT_MAX} onChange={(e) => setText(e.target.value)} disabled={!!runId.trim()} className="font-mono text-[11px]" data-testid={`input-result-text-${c.id}`} />
               <div className="flex items-center gap-2"><span className="text-muted-foreground">{text.length.toLocaleString()} / 40,000</span>
-                {(text || runId) && retErr && <span className="text-destructive" data-testid={`text-return-error-${c.id}`}>{retErr}</span>}
+                {(text || runId) && retErr && <span role="alert" className="text-destructive" data-testid={`text-return-error-${c.id}`}>{retErr}</span>}
                 <Button size="sm" className="ml-auto h-7" disabled={!!retErr || tx.isPending} onClick={() => act(runId.trim() ? { action: "RETURN", spcPlayerRunId: runId.trim() } : { action: "RETURN", resultText: text.trim() })} data-testid={`button-return-${c.id}`}>Record return</Button>
               </div>
             </div>
@@ -98,7 +98,7 @@ export function BoomerangCaseCard({ c, defaultOpen = false }: { c: BoomerangCase
           {ctl.canReview && (
             <div className="border rounded p-2 space-y-2" data-testid={`panel-review-${c.id}`}>
               <span className={lab}>Review returned work</span>
-              <Textarea rows={2} placeholder="Note (required for revision or reject)" value={note} maxLength={4000} onChange={(e) => setNote(e.target.value)} data-testid={`input-note-${c.id}`} />
+              <Textarea aria-label="Review note (required for revision or reject)" rows={2} placeholder="Note (required for revision or reject)" value={note} maxLength={4000} onChange={(e) => setNote(e.target.value)} data-testid={`input-note-${c.id}`} />
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" className="h-7" disabled={c.sourceChanged || tx.isPending} onClick={() => act({ action: "ACCEPT", ...(note.trim() ? { note: note.trim() } : {}) })} data-testid={`button-accept-${c.id}`}>Accept as support</Button>
                 <Button size="sm" variant="outline" className="h-7" disabled={!note.trim() || tx.isPending} onClick={() => act({ action: "REQUEST_REVISION", note: note.trim() })} data-testid={`button-revision-${c.id}`}>Request revision</Button>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetArtifactPreparationsQueryKey,
@@ -110,6 +110,7 @@ type Props = {
 };
 
 export function PreparationLane({ kind, ws, params, offset, setOffset, fetching, initial }: Props) {
+  const manifestId = useId();
   const qc = useQueryClient();
   const mut = useCreateArtifactPreparation();
   const [err, setErr] = useState<string | null>(null);
@@ -163,7 +164,7 @@ export function PreparationLane({ kind, ws, params, offset, setOffset, fetching,
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[380px_minmax(0,1fr)] gap-8" data-testid="panel-preparation">
       <aside className="min-w-0">
-        <form className="border rounded p-4 bg-card space-y-3" onSubmit={submit}>
+        <form aria-label={kind === "imprima" ? "Prepare private draft" : "Prepare sprint package"} aria-busy={mut.isPending} className="border rounded p-4 bg-card space-y-3" onSubmit={submit}>
           <h2 className="text-2xl leading-none">{kind === "imprima" ? "Prepare draft" : "Prepare sprint package"}</h2>
           <p className="font-mono text-[10px] text-muted-foreground">
             {kind === "imprima"
@@ -191,7 +192,7 @@ export function PreparationLane({ kind, ws, params, offset, setOffset, fetching,
               </fieldset>
               <Field label="Title (required)"><Input value={title} maxLength={160} onChange={(e) => setTitle(e.target.value)} data-testid="input-prep-title" /></Field>
               <Field label="Project (required)"><Input value={project} maxLength={120} onChange={(e) => setProject(e.target.value)} data-testid="input-prep-project" /></Field>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Choice label="Audience" value={audience} options={["EXECUTIVE", "TECHNICAL", "CLIENT", "PUBLIC"]} onChange={setAudience} testId="select-prep-audience" />
                 <Choice label="Confidentiality" value={conf} options={["PUBLIC", "INTERNAL", "CONFIDENTIAL"]} onChange={setConf} testId="select-prep-confidentiality" />
                 <Field label="Mode"><Input value="DRAFT" readOnly className="font-mono text-xs" /></Field>
@@ -215,24 +216,24 @@ export function PreparationLane({ kind, ws, params, offset, setOffset, fetching,
                 <p className="font-mono text-[10px] text-secondary" data-testid="text-circuit-mismatch">Source kind {sourceKind} does not match {circuit}; the server will reject it.</p>
               )}
               <Field label="Host target (required)"><Input className="font-mono text-xs" value={hostTarget} onChange={(e) => setHost(e.target.value)} data-testid="input-prep-host" /></Field>
-              <div className="flex items-center gap-2">
-                <span className={lab}>Agent manifest JSON ({MANIFEST_FIELDS.length} fields, proposal only)</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <label htmlFor={manifestId} className={lab}>Agent manifest JSON ({MANIFEST_FIELDS.length} fields, proposal only)</label>
                 <Button type="button" size="sm" variant="ghost" className="ml-auto h-7" onClick={() => setMText(JSON.stringify(PREPARATION_MANIFEST_SAMPLE, null, 2))} data-testid="button-prep-sample">Load sample</Button>
               </div>
-              <Textarea rows={14} className="font-mono text-[11px]" value={mText} onChange={(e) => setMText(e.target.value)} data-testid="input-prep-manifest" />
-              {mErr && <p className="font-mono text-[10px] text-destructive">{mErr}</p>}
+              <Textarea id={manifestId} aria-invalid={mErr ? true : undefined} aria-describedby={mErr ? `${manifestId}-error` : undefined} rows={14} className="font-mono text-[11px]" value={mText} onChange={(e) => setMText(e.target.value)} data-testid="input-prep-manifest" />
+              {mErr && <p id={`${manifestId}-error`} role="alert" className="font-mono text-[10px] text-destructive">{mErr}</p>}
               {missingFields.length > 0 && <p className="font-mono text-[10px] text-secondary">Missing fields: {missingFields.join(", ")}</p>}
             </>
           )}
-          {err && <p className="border border-destructive/40 bg-destructive/5 rounded p-2 font-mono text-xs text-destructive" data-testid="text-prep-error">Rejected: {err}</p>}
-          {okMsg && <p className="font-mono text-xs text-primary" data-testid="text-prep-saved">{okMsg}</p>}
+          {err && <p role="alert" className="border border-destructive/40 bg-destructive/5 rounded p-2 font-mono text-xs text-destructive" data-testid="text-prep-error">Rejected: {err}</p>}
+          {okMsg && <p role="status" className="font-mono text-xs text-primary" data-testid="text-prep-saved">{okMsg}</p>}
           <Button type="submit" className="w-full" disabled={!ok || mut.isPending} data-testid="button-prep-create">
             <FileText className="h-4 w-4 mr-1" /> {mut.isPending ? "Saving…" : kind === "imprima" ? "Save private draft" : "Save sprint preparation"}
           </Button>
         </form>
       </aside>
       <section className="min-w-0 space-y-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-xl leading-none">Saved preparations</h3>
           <span className={`${lab} ml-auto`}>{ws.items.length ? `${offset + 1}–${offset + ws.items.length}` : ""}</span>
           <Button size="sm" variant="outline" className="h-7" disabled={offset === 0 || fetching} onClick={() => setOffset(Math.max(0, offset - PAGE))} data-testid="button-prep-prev">Newer</Button>

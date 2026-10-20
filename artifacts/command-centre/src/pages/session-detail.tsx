@@ -22,6 +22,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -301,6 +302,7 @@ export default function SessionDetail() {
                 <SheetTitle className="font-mono text-xs font-bold text-muted-foreground uppercase tracking-wider text-left">
                   NAVIGATION
                 </SheetTitle>
+                <SheetDescription className="sr-only">Choose a stage in this session's harness sequence.</SheetDescription>
               </SheetHeader>
               <div className="flex-1 overflow-y-auto p-2 space-y-1">
                 {renderSequenceList(() => setSequenceOpen(false))}
@@ -311,6 +313,7 @@ export default function SessionDetail() {
           {id && (
             <Link
               href={`/session/${id}/verification`}
+              aria-label="Session verification"
               className="inline-flex items-center gap-1 h-8 px-2 rounded border font-mono text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
               data-testid="link-verification"
             >

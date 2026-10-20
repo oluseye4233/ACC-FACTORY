@@ -221,11 +221,14 @@ export default function SpcPlayerNew() {
   const renderCardItem = (card: SpcLibraryCard, isSelected: boolean) => {
     const isExemplar = card.provenance.source === "exemplar-library";
     return (
-      <div
+      <button
         key={card.id}
+        type="button"
+        aria-label={`Select ${card.name}`}
+        aria-pressed={isSelected}
         onClick={() => toggleCard(card.id)}
         className={`
-          group flex items-start gap-3 p-3 rounded-md border transition-all cursor-pointer select-none
+          group w-full text-left flex items-start gap-3 p-3 rounded-md border transition-all cursor-pointer select-none
           ${isSelected
             ? "border-primary bg-primary/5 shadow-sm"
             : "border-border/60 hover:border-primary/40 hover:bg-card"
@@ -233,28 +236,28 @@ export default function SpcPlayerNew() {
         `}
         data-testid={`card-select-${card.id}`}
       >
-        <div className={`
+        <span aria-hidden="true" className={`
           mt-0.5 shrink-0 h-4 w-4 rounded-sm border flex items-center justify-center transition-colors
           ${isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30 group-hover:border-primary/50"}
         `}>
           {isSelected ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3 opacity-0 group-hover:opacity-100 text-primary" />}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h4 className="text-xs font-semibold leading-tight truncate">{card.name}</h4>
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-semibold leading-tight truncate">{card.name}</span>
             {isExemplar && (
               <Badge variant="secondary" className="text-[8px] h-4 px-1 py-0 uppercase tracking-tighter shrink-0">
                 Exemplar
               </Badge>
             )}
-          </div>
-          <div className="flex items-center justify-between">
+          </span>
+          <span className="flex items-center justify-between">
             <span className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground truncate">
               {card.slug}
             </span>
-          </div>
-        </div>
-      </div>
+          </span>
+        </span>
+      </button>
     );
   };
 
@@ -305,7 +308,7 @@ export default function SpcPlayerNew() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8" data-testid="form-create-run">
+        <form onSubmit={handleSubmit} aria-label="Create SPC Player run" aria-busy={createRun.isPending} className="space-y-8" data-testid="form-create-run">
           <div className="grid lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-7 space-y-6">
               <div className="space-y-6 bg-card border border-border/50 rounded-lg p-6 shadow-sm">
@@ -391,7 +394,7 @@ export default function SpcPlayerNew() {
                       setDropdownKey((k) => k + 1);
                     }}
                   >
-                    <SelectTrigger className="w-full bg-background font-mono text-xs h-9">
+                    <SelectTrigger aria-label="Add an SPC to the deck" className="w-full bg-background font-mono text-xs h-9">
                       <SelectValue placeholder="Manually add an SPC from catalog..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -427,10 +430,10 @@ export default function SpcPlayerNew() {
                       const isExemplar = card.provenance.source === "exemplar-library";
                       return (
                         <div key={`${id}-${index}`} className="group flex items-center gap-3 bg-background border border-border/50 rounded-md p-2 shadow-sm transition-colors hover:border-border">
-                          <div className="flex flex-col items-center justify-center shrink-0 w-6 h-8 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors">
-                            <button type="button" onClick={() => moveCard(index, -1)} disabled={index === 0} className="hover:text-foreground disabled:opacity-0 transition-opacity p-0.5"><ChevronUp className="h-3.5 w-3.5" /></button>
-                            <span className="font-mono text-[10px] leading-none absolute">{index + 1}</span>
-                            <button type="button" onClick={() => moveCard(index, 1)} disabled={index === selectedCards.length - 1} className="hover:text-foreground disabled:opacity-0 transition-opacity p-0.5"><ChevronDown className="h-3.5 w-3.5" /></button>
+                          <div className="flex flex-col items-center justify-center shrink-0 w-6 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors">
+                            <button type="button" aria-label={`Move ${card.name} earlier`} onClick={() => moveCard(index, -1)} disabled={index === 0} className="h-6 w-6 flex items-center justify-center hover:text-foreground disabled:opacity-0 transition-opacity"><ChevronUp className="h-3.5 w-3.5" /></button>
+                            <span className="font-mono text-[10px] leading-none">{index + 1}</span>
+                            <button type="button" aria-label={`Move ${card.name} later`} onClick={() => moveCard(index, 1)} disabled={index === selectedCards.length - 1} className="h-6 w-6 flex items-center justify-center hover:text-foreground disabled:opacity-0 transition-opacity"><ChevronDown className="h-3.5 w-3.5" /></button>
                           </div>
 
                           <div className="flex-1 min-w-0 pl-2 border-l border-border/40">
@@ -443,7 +446,7 @@ export default function SpcPlayerNew() {
                             <p className="text-[9px] font-mono text-muted-foreground truncate uppercase">{card.slug}</p>
                           </div>
 
-                          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => removeCard(id)}>
+                          <Button type="button" aria-label={`Remove ${card.name} from deck`} variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => removeCard(id)}>
                             <X className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -477,6 +480,7 @@ export default function SpcPlayerNew() {
                   <div className="relative">
                     <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
                     <Input
+                      aria-label="Search SPC catalog"
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       placeholder="Search SPCs by name, slug, or tags..."

@@ -50,6 +50,17 @@ describe("boomerang model", () => {
 });
 
 describe("BoomerangCaseCard", () => {
+  it("exposes expansion state and names its return/review controls", () => {
+    const view = wrap(<BoomerangCaseCard c={mk()} defaultOpen />);
+    expect(screen.getByTestId("button-toggle-case-c1").getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByRole("textbox", { name: "Completed SPC Player run UUID" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Returned supporting work" })).toBeTruthy();
+    fireEvent.click(screen.getByTestId("button-toggle-case-c1"));
+    expect(screen.getByTestId("button-toggle-case-c1").getAttribute("aria-expanded")).toBe("false");
+    view.unmount();
+    wrap(<BoomerangCaseCard c={mk({ state: "RETURNED", resultText: "Supporting findings" })} defaultOpen />);
+    expect(screen.getByRole("textbox", { name: "Review note (required for revision or reject)" })).toBeTruthy();
+  });
   it("returns with run id and expectedVersion", () => {
     wrap(<BoomerangCaseCard c={mk()} defaultOpen />);
     fireEvent.change(screen.getByTestId("input-run-id-c1"), { target: { value: RUN } });
@@ -80,6 +91,16 @@ describe("BoomerangCaseCard", () => {
 });
 
 describe("BoomerangPanel", () => {
+  it("provides persistent field labels with distinct IDs for multiple stage panels", () => {
+    wrap(<><BoomerangPanel originKind="SESSION" originId="s1" stage="F5" /><BoomerangPanel originKind="SESSION" originId="s1" stage="F6" /></>);
+    const titles = screen.getAllByLabelText("Request title (3–200 characters)") as HTMLInputElement[];
+    const briefs = screen.getAllByLabelText("Supporting-work brief (10–8,000 characters)") as HTMLTextAreaElement[];
+    expect(titles).toHaveLength(2);
+    expect(titles[0].id).not.toBe(titles[1].id);
+    expect(titles.every((field) => field.required && field.minLength === 3)).toBe(true);
+    expect(briefs.every((field) => field.required && field.minLength === 10)).toBe(true);
+    expect(screen.getByRole("form", { name: "Request F5 supporting work" }).getAttribute("aria-busy")).toBe("false");
+  });
   it("read-only shows no owner data or controls", () => {
     listData = [mk()];
     wrap(<BoomerangPanel originKind="SESSION" originId="s1" stage="F5" readOnly />);

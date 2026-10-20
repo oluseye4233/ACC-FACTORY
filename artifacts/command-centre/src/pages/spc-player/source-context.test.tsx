@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import SpcPlayerNew from "./new";
 
 const mocks = vi.hoisted(() => ({ mutate: vi.fn(), artifacts: [] as Record<string, unknown>[] }));
@@ -34,6 +35,25 @@ function completeBrief() {
 }
 
 describe("SPC Player source activation and retention", () => {
+  it("supports keyboard deck selection and exposes named deck controls", async () => {
+    const user = userEvent.setup();
+    window.history.replaceState(null, "", "/spc-player/new");
+    render(<SpcPlayerNew />);
+    const card = screen.getByRole("button", { name: "Select Planner" });
+    expect(card.getAttribute("aria-pressed")).toBe("false");
+    card.focus();
+    await user.keyboard(" ");
+    expect(card.getAttribute("aria-pressed")).toBe("true");
+    expect((screen.getByRole("button", { name: "Move Planner earlier" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "Move Planner later" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole("textbox", { name: "Search SPC catalog" })).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "Add an SPC to the deck" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Remove Planner from deck" }));
+    expect(card.getAttribute("aria-pressed")).toBe("false");
+    card.focus();
+    await user.keyboard("{Enter}");
+    expect(card.getAttribute("aria-pressed")).toBe("true");
+  });
   it("automatically binds the F-process source, pins it across reload, and submits that ID", async () => {
     window.history.replaceState(null, "", "/spc-player/new?sourceSessionId=project-a&originFeatureId=5");
     render(<SpcPlayerNew />);

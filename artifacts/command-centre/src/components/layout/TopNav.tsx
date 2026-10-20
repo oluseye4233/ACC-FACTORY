@@ -95,13 +95,13 @@ export function TopNav() {
               alt="ATANDA"
               className="h-14 md:h-16 w-auto drop-shadow-[0_0_8px_rgba(0,0,0,0.6)]"
             />
-            <span className="font-mono text-[9px] md:text-[10px] tracking-[0.2em] text-muted-foreground uppercase whitespace-nowrap">
+            <span className="hidden sm:inline font-mono text-[9px] md:text-[10px] tracking-[0.2em] text-muted-foreground uppercase whitespace-nowrap">
               A Cognitive Engineering Project
             </span>
           </Link>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <ThemeToggle />
           {staff && <CompanySpendMeter />}
           {session.name ? (

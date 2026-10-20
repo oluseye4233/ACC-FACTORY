@@ -31,8 +31,8 @@ export function AccessGate() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
-      <div className="w-[440px] max-w-full rounded-2xl border border-border bg-card p-8 text-card-foreground shadow-lg">
+    <main className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-6">
+      <div className="w-[440px] max-w-full rounded-2xl border border-border bg-card p-5 sm:p-8 text-card-foreground shadow-lg">
         <div className="mb-6 flex items-center justify-between">
           <span aria-hidden="true" />
           <ThemeToggle />
@@ -47,11 +47,11 @@ export function AccessGate() {
         <h1 className="text-center font-display text-2xl tracking-wider text-foreground">
           STAFF ACCESS
         </h1>
-        <p className="mt-1 text-center font-mono text-sm text-muted-foreground">
+        <p id="staff-access-help" className="mt-1 text-center font-mono text-sm text-muted-foreground">
           Enter the team access code to open the HARNESS
         </p>
 
-        <form onSubmit={onSubmit} className="mt-8 space-y-4">
+        <form onSubmit={onSubmit} aria-label="Staff sign-in" aria-describedby="staff-access-help" aria-busy={login.isPending} className="mt-8 space-y-4">
           <div className="space-y-2">
             <label
               htmlFor="staff-name"
@@ -62,6 +62,8 @@ export function AccessGate() {
             <input
               id="staff-name"
               type="text"
+              name="staff-name"
+              required
               autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -80,6 +82,10 @@ export function AccessGate() {
             <input
               id="staff-code"
               type="password"
+              name="staff-code"
+              required
+              aria-describedby={errorMessage ? "staff-access-error" : undefined}
+              aria-invalid={errorMessage ? true : undefined}
               autoComplete="off"
               value={code}
               onChange={(e) => setCode(e.target.value)}
@@ -91,6 +97,8 @@ export function AccessGate() {
 
           {errorMessage ? (
             <p
+              id="staff-access-error"
+              role="alert"
               className="rounded border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
               data-testid="text-login-error"
             >
@@ -119,6 +127,6 @@ export function AccessGate() {
           Internal tool · {basePath || "/"}
         </p>
       </div>
-    </div>
+    </main>
   );
 }
