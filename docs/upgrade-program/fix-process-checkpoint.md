@@ -386,3 +386,24 @@ in development only; the protected ARK security schemas/rules were not modified.
 - Administrator inspection UI and a reviewed retention policy for historical
   delivery metadata are separate optional follow-ups, not destructive cleanup
   enabled by this change.
+
+## Dependency advisories — patched typography; two upstream issues remain
+
+- A targeted typography override replaces vulnerable selector-parser 6.0.10
+  with patched 7.1.6. Compatibility regression tests and the production web build
+  pass; React/Vite pins and release-age safeguards remain unchanged.
+- Audit now reports one high (`braces`) and one moderate (`sprintf-js`), with no
+  upstream patched releases available. Neither advisory was suppressed.
+- Executable boundary checks confirm the proxy default uses literal-path
+  matching even for deeply nested request braces, and DOCX library extraction
+  does not load the CLI's argparse/sprintf-js chain. These observations do not
+  fix the vulnerable packages or authorize new uses of them.
+- See `dependency-advisories.md` for remaining risk, test scope and recheck steps.
+  Production and protected database authorization were not changed.
+- Verification: workspace typechecks passed, followed by a final frontend
+  typecheck after adding its regression test. The managed workspace test run
+  passed 686 API tests (40 skipped), 332 web tests and 37 scripts tests, including
+  both new dependency-boundary checks. The production web build passed.
+  The restarted web workflow is running and API health returns 200.
+  An anonymous `/guide` screenshot rendered the expected staff access gate;
+  it does not verify the signed-in guide or other authenticated workflows.
