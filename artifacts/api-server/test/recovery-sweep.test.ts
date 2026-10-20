@@ -11,7 +11,9 @@ const mocks = vi.hoisted(() => ({
   subscriptionsEnabled: vi.fn(),
   heartbeat: vi.fn(),
   error: vi.fn(),
+  alerts: vi.fn(),
 }));
+vi.mock("../src/lib/recovery-alerts", () => ({ dispatchRecoveryAlerts: mocks.alerts }));
 vi.mock("../src/lib/cartridge-credits", () => ({ reconcileStaleCartridgeCredits: mocks.credits }));
 vi.mock("../src/lib/artifact-operations/preparation-recovery", () => ({ recoverPreparationStorage: mocks.storage }));
 vi.mock("../src/lib/feature-flags", () => ({ subscriptionsEnabled: mocks.subscriptionsEnabled }));
@@ -39,6 +41,7 @@ beforeEach(() => {
   mocks.credits.mockResolvedValue(2);
   mocks.storage.mockResolvedValue({ ...cleanReport });
   mocks.heartbeat.mockResolvedValue(undefined);
+  mocks.alerts.mockResolvedValue({ delivered: 0, failed: 0, deferred: false });
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -48,6 +51,7 @@ describe("bounded scheduled recovery orchestration", () => {
       ok: true,
       credits: { status: "completed", recovered: 2 },
       storage: { status: "completed", report: cleanReport },
+      alerts: { delivered: 0, failed: 0, deferred: false },
     });
     expect(mocks.credits).toHaveBeenCalledOnce();
     expect(mocks.storage).toHaveBeenCalledExactlyOnceWith({ dryRun: true });
@@ -105,6 +109,7 @@ describe("bounded scheduled recovery orchestration", () => {
     mocks.storage.mockRejectedValue(new Error("storage failure"));
     expect(await runRecoverySweep()).toEqual({
       ok: false, credits: { status: "failed" }, storage: { status: "failed" },
+      alerts: { delivered: 0, failed: 0, deferred: false },
     });
     expect(mocks.credits).toHaveBeenCalledOnce();
     expect(mocks.storage).toHaveBeenCalledOnce();
@@ -154,6 +159,16 @@ describe("authenticated recovery cron endpoint", () => {
     expect((await response.json()).ok).toBe(true);
     expect(mocks.storage).toHaveBeenCalledExactlyOnceWith({ dryRun: true });
     expect(mocks.heartbeat).toHaveBeenCalledExactlyOnceWith("recover-abandoned-resources");
+  });
+
+  it("does not stamp scheduled recovery healthy when queued alert delivery fails", async () => {
+    mocks.alerts.mockResolvedValue({ delivered: 0, failed: 1, deferred: false });
+    const response = await fetch(url, {
+      method: "POST", headers: { "x-cron-secret": "local-cron-test" },
+    });
+    expect(response.status).toBe(503);
+    expect((await response.json()).alerts.failed).toBe(1);
+    expect(mocks.heartbeat).not.toHaveBeenCalled();
   });
 
   it.each(["credit", "storage", "object"])("returns 503 without a healthy stamp on a %s failure", async lane => {

@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import { logger } from "./logger";
 import { subscriptionsEnabled } from "./feature-flags";
+import { noteRecoveryFailure, resolveRecoveryFailure, dispatchRecoveryAlerts } from "./recovery-alerts";
 
 const LEASE_MS = 15 * 60 * 1000;
 const RECONCILE_MS = 5 * 60 * 1000;
@@ -53,9 +54,14 @@ export async function releaseCartridgeCredit(reservation: CartridgeCreditReserva
           eq(cartridgeCreditsTable.reservationToken, reservation.token),
         )).returning({ id: cartridgeCreditsTable.id });
       if (released.length !== 1) throw new CartridgeCreditReservationLostError();
+      await resolveRecoveryFailure({ kind: "credit", resourceId: reservation.id, scopeId: reservation.token });
       return;
     } catch (error) {
-      if (error instanceof CartridgeCreditReservationLostError || attempt === 2) throw error;
+      if (error instanceof CartridgeCreditReservationLostError) throw error;
+      if (attempt === 2) {
+        await noteRecoveryFailure({ kind: "credit", resourceId: reservation.id, scopeId: reservation.token });
+        throw error;
+      }
       await delay(50 * (attempt + 1));
     }
   }
@@ -85,19 +91,58 @@ export async function linkCreditToCartridge(
 /** Bounded, restart-safe recovery. Legacy un-tokened rows require review. */
 export async function reconcileStaleCartridgeCredits(now = new Date()): Promise<number> {
   const before = new Date(now.getTime() - LEASE_MS);
-  const result = await db.execute<{ id: string }>(sql`
-    WITH abandoned AS (
-      SELECT id FROM cartridge_credits
-      WHERE status = 'consumed' AND cartridge_package_id IS NULL
-        AND reservation_token IS NOT NULL AND consumed_at < ${before}
-      ORDER BY consumed_at, id LIMIT 100 FOR UPDATE SKIP LOCKED
-    )
-    UPDATE cartridge_credits c
-    SET status = 'available', consumed_at = NULL, reservation_token = NULL
-    FROM abandoned a WHERE c.id = a.id
-    RETURNING c.id
-  `);
-  return result.rows.length;
+  try {
+    const result = await db.execute<{ id: string; reservation_token: string }>(sql`
+      WITH abandoned AS (
+        SELECT id, reservation_token FROM cartridge_credits
+        WHERE status = 'consumed' AND cartridge_package_id IS NULL
+          AND reservation_token IS NOT NULL AND consumed_at < ${before}
+        ORDER BY consumed_at, id LIMIT 100 FOR UPDATE SKIP LOCKED
+      )
+      UPDATE cartridge_credits c
+      SET status = 'available', consumed_at = NULL, reservation_token = NULL
+      FROM abandoned a WHERE c.id = a.id
+      RETURNING c.id, a.reservation_token
+    `);
+    for (const row of result.rows) await resolveRecoveryFailure({ kind: "credit", resourceId: row.id, scopeId: row.reservation_token }, now);
+    return result.rows.length;
+  } catch {
+    // A bad row must not roll back the entire batch forever. Diagnose/retry
+    // bounded candidates individually while preserving token/age/lock fencing.
+    // If the DB itself is unavailable this SELECT throws: cron health, not a
+    // fabricated per-record diagnosis, reports that infrastructure failure.
+    const candidates = await db.execute<{ id: string; reservation_token: string }>(sql`
+      SELECT id, reservation_token FROM cartridge_credits WHERE status = 'consumed'
+        AND cartridge_package_id IS NULL AND reservation_token IS NOT NULL AND consumed_at < ${before}
+      ORDER BY consumed_at, id LIMIT 100
+    `);
+    let released = 0;
+    let errors = 0;
+    for (const row of candidates.rows) {
+      const subject = { kind: "credit" as const, resourceId: row.id, scopeId: row.reservation_token };
+      try {
+        const result = await db.execute(sql`
+          WITH abandoned AS (
+            SELECT id FROM cartridge_credits WHERE id = ${row.id}::uuid AND reservation_token = ${row.reservation_token}::uuid
+              AND status = 'consumed' AND cartridge_package_id IS NULL AND consumed_at < ${before}
+            FOR UPDATE SKIP LOCKED
+          )
+          UPDATE cartridge_credits c SET status = 'available', consumed_at = NULL, reservation_token = NULL
+          FROM abandoned a WHERE c.id = a.id RETURNING c.id
+        `);
+        if (result.rows.length) {
+          released++;
+          await resolveRecoveryFailure(subject, now);
+        }
+      } catch (err) {
+        errors++;
+        await noteRecoveryFailure(subject, now);
+        logger.error({ err, creditId: row.id }, "Individual Cartridge reservation recovery failed");
+      }
+    }
+    if (errors) throw new Error(`Cartridge recovery failed for ${errors} reservations; ${released} recovered`);
+    return released;
+  }
 }
 
 export function startCartridgeCreditReconciler(): () => void {
@@ -111,7 +156,10 @@ export function startCartridgeCreditReconciler(): () => void {
       if (released) logger.warn({ released }, "Recovered abandoned Cartridge credit reservations");
     } catch (err) {
       logger.error({ err }, "Cartridge credit recovery failed; will retry");
-    } finally { running = false; }
+    } finally {
+      await dispatchRecoveryAlerts();
+      running = false;
+    }
   };
   void reconcile();
   const interval = setInterval(() => void reconcile(), RECONCILE_MS);

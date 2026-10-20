@@ -393,6 +393,13 @@
       "when": 1792442130151,
       "tag": "0055_bumpy_master_mold",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1792484484722,
+      "tag": "0056_ordinary_iron_monger",
+      "breakpoints": true
     }
   ]
 }

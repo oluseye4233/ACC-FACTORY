@@ -2,6 +2,7 @@ import { reconcileStaleCartridgeCredits } from "./cartridge-credits";
 import { recoverPreparationStorage, type PreparationRecoveryReport } from "./artifact-operations/preparation-recovery";
 import { subscriptionsEnabled } from "./feature-flags";
 import { logger } from "./logger";
+import { dispatchRecoveryAlerts, type RecoveryAlertReport } from "./recovery-alerts";
 
 type CreditResult =
   | { status: "disabled" }
@@ -16,6 +17,7 @@ export interface RecoverySweepResult {
   ok: boolean;
   credits: CreditResult;
   storage: StorageResult;
+  alerts: RecoveryAlertReport;
 }
 
 /**
@@ -51,9 +53,11 @@ export async function runRecoverySweep(): Promise<RecoverySweepResult> {
     }
   }
 
+  const alerts = await dispatchRecoveryAlerts();
   return {
-    ok: credits.status !== "failed" && storage.status !== "failed",
+    ok: credits.status !== "failed" && storage.status !== "failed" && alerts.failed === 0,
     credits,
     storage,
+    alerts,
   };
 }

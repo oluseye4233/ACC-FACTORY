@@ -55,3 +55,4 @@
 - [Boomerang review boundary](boomerang-review-boundary.md) — acceptance is reviewed supporting input, never automatic execution or release; conservative origin snapshots prevent stale adoption.
 - [FORGE FIELD ENGINEER cohorts](forge-field-engineer-cohorts.md) — free invite-only Guide/Ascension training; course assessment must not change existing Quest eligibility.
 - [Reactive entry routing](reactive-entry-routing.md) — persistent entry gates must subscribe to pathname and query changes; direct-page tests miss blank redirect regressions.
+- [Development workflow ownership](development-workflow-ownership.md) — an address-in-use workflow failure can coexist with a healthy older listener; verify ownership before targeted cleanup.

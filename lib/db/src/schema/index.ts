@@ -52,3 +52,4 @@ export * from "./vte-verification-failures";
 export * from "./artifact-operations";
 export * from "./boomerang";
 export * from "./learning";
+export * from "./recovery-alerts";

@@ -7,6 +7,7 @@ type SendArgs = {
   subject: string;
   html: string;
   text: string;
+  idempotencyKey?: string;
 };
 
 const FROM = process.env.EMAIL_FROM ?? "ATANDA Command Centre <no-reply@atanda.local>";
@@ -45,12 +46,29 @@ async function send(args: SendArgs): Promise<EmailResult> {
       subject: args.subject,
       html: args.html,
       text: args.text,
-    });
+    }, { idempotencyKey: args.idempotencyKey });
     if (result.error) return { ok: false, error: result.error.message };
     return { ok: true, id: result.data?.id ?? "unknown" };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
+}
+
+/** Operator-only operational alert. Never include private paths or raw errors. */
+export function sendRecoveryFailureAlert(args: {
+  to: string; kind: "credit" | "preparation"; resourceId: string;
+  failures: number; firstFailedAt: string; lastFailedAt: string; idempotencyKey: string;
+}): Promise<EmailResult> {
+  const label = args.kind === "credit" ? "Cartridge credit reservation" : "Private preparation upload intent";
+  const text = `${label} ${args.resourceId} has failed recovery in ${args.failures} distinct retry periods.\n` +
+    `First observed: ${args.firstFailedAt}\nLast observed: ${args.lastFailedAt}\n` +
+    "This is an operational failure snapshot, not authorization to delete, refund, approve or release anything. " +
+    "Check the current record before intervening. Existing safety checks remain in force.";
+  return send({
+    to: args.to, subject: `RECOVERY ATTENTION · ${label}`,
+    text, html: `<h2>Recovery needs operator attention</h2><p>${esc(text).replace(/\n/g, "<br>")}</p>`,
+    idempotencyKey: args.idempotencyKey,
+  });
 }
 
 const wrap = (title: string, body: string): string =>

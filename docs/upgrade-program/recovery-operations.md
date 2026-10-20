@@ -126,10 +126,10 @@ The background monitor checks every fifteen minutes, so twenty minutes is the
 staleness threshold, not a guaranteed email delivery deadline.
 The status view can show a never-ticked target if no scheduler has been activated.
 
-This detects missing or repeatedly failing **scheduled** passes. It is not a
-new durable per-item failure ledger, and does not replace an independent outage
-monitor: an unavailable database/email provider can also prevent this API's
-monitor from recording or delivering alerts.
+This detects missing or repeatedly failing **scheduled** passes. The per-record
+failure ledger described below adds a separate operational view of repeated
+record failures. Neither replaces an independent outage monitor: an unavailable
+database/email provider can prevent this API from recording or delivering alerts.
 
 Adding the endpoint/driver does not create a Scheduled Deployment or change
 production configuration. Publish the code and configure/confirm the external
@@ -137,3 +137,65 @@ schedule before declaring wake-up recovery active. Keep the API externally
 reachable by the scheduler; a private deployment sign-in wall will reject it
 before cron authentication. Real private-file deletion remains report-only until
 separately reviewed and explicitly enabled by an administrator.
+
+## Repeated per-record failures and administrator alerts
+
+Additive public-schema migration `0056_ordinary_iron_monger.sql` creates an
+operational failure ledger and per-recipient notification delivery state. It
+does not modify the protected ARK schemas or install/change any security role.
+It has been applied in development only; production must receive the schema
+through the supported Publish process before this code is activated.
+
+- Each credit episode is bound to its exact reservation token. Each preparation
+  episode is bound to its immutable upload intent. Messages show the resource ID,
+  lane, count and observation dates—not private file paths, claim tokens,
+  credentials, raw provider errors or user content.
+- An immediate credit release records a failure only after its three local
+  retries fail. Losing reservation ownership is not an operational failure.
+- Normal bounded batch recovery remains the fast path. If that batch fails,
+  recovery diagnoses/retries at most 100 eligible reservations individually
+  using the same token, age and skip-locked checks. One failing record does not
+  roll back other successful recoveries.
+- Preparation inspection failures are recorded even in report-only mode.
+  A successful inspection/recovery resolves the corresponding failure episode.
+  Busy records are neither failed nor incorrectly declared healed.
+- Failures count at most once per absolute five-minute period across overlapping
+  processes. Three observed failed periods qualify for notification. These
+  need not be adjacent periods: an apply-mode upload intent may retry daily.
+  A later failure after a resolved episode starts a new episode.
+- Dispatch rechecks the current credit token/state or preparation state and
+  respects subscription/storage configuration. Superseded claims and committed
+  preparation intents cannot qualify for an old alert.
+
+### Email delivery and retry semantics
+
+Both interval recovery and scheduled recovery attempt bounded alert delivery.
+Configure `ADMIN_EMAILS` and the existing email provider through the normal
+secrets/configuration flow. Empty recipients defer dispatch without consuming
+notifications. Up to twenty distinct administrator addresses are supported by
+this bounded dispatcher; an excessive list fails explicitly rather than silently
+dropping recipients.
+
+Each pass selects at most twenty failure episodes and attempts at most forty
+messages. Previously unattempted episodes are prioritized, and accepted
+recipients are not retried merely because another recipient failed. Delivery
+leases and ownership tokens prevent competing replicas from independently
+claiming the same notification; expired leases can be retried after a restart.
+
+Only a successful, non-dry-run provider response stamps acceptance. A provider
+failure, a simulated/dry-run response or a missing database acknowledgment leaves
+the notification retryable. Provider idempotency keys remain stable for each
+episode/recipient; their protection is subject to the provider's retention window,
+not an unlimited exactly-once inbox-delivery guarantee.
+
+Scheduled passes with alert-dispatch failures return HTTP 503 and do not refresh
+the successful heartbeat. An empty administrator list is explicitly reported as
+deferred, not as proof of delivered mail. In-process workers log delivery failures
+and retain retry state. A database-wide outage is reported as infrastructure
+failure; it cannot reliably write a per-record diagnosis into that same database.
+
+Messages are operational snapshots and authorize no refund, deletion,
+certification, approval or release. The counters and queued delivery state have
+been tested using isolated resource IDs and mocked email/storage, not real
+production email delivery. Cleanup application mode remains a separate reviewed
+administrator opt-in.

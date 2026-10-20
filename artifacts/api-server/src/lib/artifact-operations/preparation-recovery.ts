@@ -2,6 +2,7 @@ import { and, eq, inArray, lte, ne, or, sql } from "drizzle-orm";
 import { db, harnessArtifactsTable, preparationStorageLeasesTable as leases } from "@workspace/db";
 import { logger } from "../logger";
 import { deletePrivateVersion, inspectPrivate, type PrivateObjectVersion } from "./private-storage";
+import { noteRecoveryFailure, resolveRecoveryFailure, dispatchRecoveryAlerts } from "../recovery-alerts";
 
 const SAFETY_MS = 24 * 60 * 60 * 1000;
 const INTERVAL_MS = 5 * 60 * 1000;
@@ -33,6 +34,8 @@ export async function recoverPreparationStorage({
   )).orderBy(leases.nextRecoveryAt, leases.id).limit(20);
   for (const candidate of due) {
     report.scanned++;
+    let inspected = false;
+    const subject = { kind: "preparation" as const, resourceId: candidate.id, scopeId: candidate.id };
     try {
       await db.transaction(async tx => {
         // Same cross-process owner lock as createPreparation, held through the
@@ -53,6 +56,7 @@ export async function recoverPreparationStorage({
         if (refs.length) {
           report.retained += lease.fileKeys.length;
           if (!dryRun) await tx.update(leases).set({ state: "COMMITTED", lastRecoveryAt: now }).where(eq(leases.id, lease.id));
+          inspected = true;
           return;
         }
         let pending = false;
@@ -77,9 +81,12 @@ export async function recoverPreparationStorage({
           // must not become an untracked leak after a worker/connection failure.
           nextRecoveryAt: new Date(now.getTime() + SAFETY_MS),
         }).where(eq(leases.id, lease.id));
+        inspected = true;
       }, { isolationLevel: "read committed" });
+      if (inspected) await resolveRecoveryFailure(subject, now);
     } catch (err) {
       report.errors++;
+      await noteRecoveryFailure(subject, now);
       logger.error({ err, preparationId: candidate.id }, "Preparation file recovery failed; retained intent for retry");
       // A permanently malformed intent or storage failure must not starve
       // later pages. Preserve provenance and retry tomorrow, never delete it.
@@ -108,6 +115,7 @@ export function startPreparationStorageRecovery(): () => void {
         dryRun: process.env.PREPARATION_ORPHAN_RECOVERY_APPLY !== "true",
       });
       if (report.scanned) logger.info(report, "Private preparation storage recovery");
+      await dispatchRecoveryAlerts();
     } catch (err) {
       logger.error({ err }, "Private preparation recovery scan failed; will retry");
     } finally { running = false; }

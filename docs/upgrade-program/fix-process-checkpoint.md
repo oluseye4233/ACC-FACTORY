@@ -334,3 +334,55 @@ approved the platform.
   the authenticated five-minute schedule. No Scheduled Deployment, production
   secret, security role, migration, billing flag or cleanup opt-in was changed.
   Setup and limitations are in `recovery-operations.md`.
+
+## Development workflow ownership and per-record recovery alerts
+
+### Development port conflicts — resolved
+
+The failing managed workflows coexisted with older, healthy development listeners.
+The listeners' executable identity and working directories were checked before
+targeted termination. The existing managed web/API workflows were restarted;
+artifact port configuration and production were not changed. A failed workflow
+alone was not treated as evidence of a production outage.
+
+### Repeated record failures — implemented in development
+
+This supersedes the earlier limitation that only scheduled-pass health is
+tracked. Additive public migration `0056_ordinary_iron_monger.sql` adds a durable
+per-record failure ledger and per-recipient alert delivery state. It was applied
+in development only; the protected ARK security schemas/rules were not modified.
+
+- Credit episodes are bound to exact reservation tokens; preparation episodes
+  are bound to immutable upload intents. Overlapping replicas count at most one
+  failure per absolute five-minute period. Three observed failed periods qualify
+  for an administrator notification; successful recovery/inspection resolves the
+  episode, and delayed pre-resolution failures cannot reopen it.
+- An exhausted immediate credit-release retry records one failure. Lost fencing
+  ownership is not a failure. A failed credit batch is retried diagnostically in
+  bounded, independently fenced per-record operations so one bad row cannot
+  roll back successful recovery of other rows.
+- Alert dispatch rechecks live ownership/state. Messages contain resource IDs,
+  lane, counts and dates, not file paths, claim tokens or raw provider errors.
+- Each recipient has durable delivery state with fenced leases, retries and a
+  stable provider idempotency key. Successful recipients are not repeated because
+  another recipient failed. Failed/dry-run mail does not consume the alert.
+  Provider acceptance is not a guarantee of inbox delivery or unlimited
+  exactly-once semantics.
+- Scheduled and in-process recovery attempt dispatch. Scheduled notification
+  failures return 503 without a healthy heartbeat. Empty recipient configuration
+  is deferred explicitly. Real email configuration/production delivery remain
+  unverified; private cleanup remains report-only by default.
+
+### Verification and rollout boundary
+
+- Workspace typechecks passed. Focused recovery checks passed, followed by the
+  complete API suite: 82 test files, 686 tests passed, 40 skipped.
+- Real PostgreSQL tests use isolated resource IDs and future-dated episodes so
+  they cannot stamp real operator alerts or be mailed by a running dev worker.
+  Provider/storage calls were mocked; no real email or cloud deletion was tested.
+- Publish the additive schema and code together through the supported process.
+  Confirm the external five-minute schedule, administrator recipients and email
+  provider configuration before declaring production recovery alerts active.
+- Administrator inspection UI and a reviewed retention policy for historical
+  delivery metadata are separate optional follow-ups, not destructive cleanup
+  enabled by this change.
