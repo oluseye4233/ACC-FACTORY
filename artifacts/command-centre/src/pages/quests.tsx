@@ -76,8 +76,13 @@ const BADGE_META: Record<string, { name: string; fullName: string; description: 
 };
 
 export default function Quests() {
-  const { data, isLoading, refetch } = useListMyBadges();
-  const { data: contextCraft, isLoading: isLoadingCC } = useListMyContextCraftBadges();
+  const { data, isLoading, isError, isFetching, refetch } = useListMyBadges();
+  const {
+    data: contextCraft, isLoading: isLoadingCC, isError: isErrorCC,
+    isFetching: isFetchingCC, refetch: refetchCC,
+  } = useListMyContextCraftBadges();
+  const badgesUnavailable = isError || !data;
+  const contextCraftUnavailable = isErrorCC || !contextCraft;
   const { data: me } = useGetMe();
   const { toast } = useToast();
   const recipientName =
@@ -178,8 +183,12 @@ export default function Quests() {
               <div className="text-right">
                 <div className="text-[10px] font-mono text-muted-foreground">EARNED</div>
                 <div className="font-display text-2xl tracking-wider text-primary">
-                  {(contextCraft ?? []).filter((b) => b.earned).length}
-                  <span className="text-muted-foreground text-base"> / 7</span>
+                  {isLoadingCC ? "Loading…" : contextCraftUnavailable ? "Unavailable" : (
+                    <>
+                      {contextCraft!.filter((b) => b.earned).length}
+                      <span className="text-muted-foreground text-base"> / 7</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -191,6 +200,12 @@ export default function Quests() {
                   <Skeleton key={i} className="h-20 w-16" />
                 ))}
               </div>
+            ) : contextCraftUnavailable ? (
+              <QuestLoadError
+                label="Context Craft"
+                retry={() => void refetchCC()}
+                busy={isFetchingCC}
+              />
             ) : (
               <div className="flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-start">
                 {(contextCraft ?? []).map((b) => (
@@ -211,6 +226,12 @@ export default function Quests() {
               <Skeleton key={i} className="h-64" />
             ))}
           </div>
+        ) : badgesUnavailable ? (
+          <QuestLoadError
+            label="Quest badges"
+            retry={() => void refetch()}
+            busy={isFetching}
+          />
         ) : (
           <>
             <SeniorBadgesSection
@@ -344,6 +365,25 @@ export default function Quests() {
           </>
         )}
       </main>
+    </div>
+  );
+}
+
+function QuestLoadError({ label, retry, busy }: {
+  label: string;
+  retry: () => void;
+  busy: boolean;
+}) {
+  return (
+    <div role="alert" aria-label={`${label} unavailable`} aria-busy={busy}
+      className="rounded-md border border-destructive/40 bg-destructive/5 p-4 space-y-3">
+      <p className="text-sm">
+        {label} could not be loaded. Your earned progress is unavailable, not zero.
+        Please retry to see your current status.
+      </p>
+      <Button type="button" variant="outline" onClick={retry} disabled={busy}>
+        {busy ? `Retrying ${label}…` : `Retry ${label}`}
+      </Button>
     </div>
   );
 }

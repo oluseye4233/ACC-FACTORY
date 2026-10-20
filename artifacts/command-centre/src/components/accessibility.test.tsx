@@ -2,11 +2,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ComponentProps } from "react";
+import type { VerifyResult } from "@workspace/api-client-react";
 
 const state = vi.hoisted(() => ({
   login: { mutate: vi.fn(), isPending: false, error: null as Error | null },
   create: { mutate: vi.fn(), isPending: false },
-  verification: { data: undefined, isLoading: false, isError: false, error: null },
+  verification: {
+    data: undefined as VerifyResult | undefined,
+    isLoading: false, isFetching: false, isError: false,
+    error: null as Error | { status: number } | null,
+    refetch: vi.fn(),
+  },
 }));
 vi.mock("@/lib/staff-session", () => ({ useLogin: () => state.login }));
 vi.mock("@/components/layout/ThemeToggle", () => ({ ThemeToggle: () => <button>Theme</button> }));
@@ -17,7 +23,8 @@ vi.mock("wouter", () => ({
   Link: (props: ComponentProps<"a">) => <a {...props} />,
 }));
 vi.mock("@tanstack/react-query", () => ({ useQueryClient: () => ({}) }));
-vi.mock("@workspace/api-client-react", () => ({
+vi.mock("@workspace/api-client-react", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@workspace/api-client-react")>(),
   useCreateLearningCohort: () => state.create,
   useVerifyCertificate: () => state.verification,
   getVerifyCertificateQueryKey: () => ["verify"],
@@ -33,6 +40,10 @@ afterEach(() => {
   state.login.isPending = false;
   state.create.isPending = false;
   state.verification.isLoading = false;
+  state.verification.isFetching = false;
+  state.verification.isError = false;
+  state.verification.error = null;
+  state.verification.data = undefined;
   window.history.replaceState({}, "", "/");
   vi.clearAllMocks();
 });
@@ -87,6 +98,68 @@ describe("cohort form accessibility and mobile layout", () => {
 });
 
 describe("certificate search accessibility", () => {
+  it.each([new Error("Network failed"), { status: 500 }, { status: 429 }, { status: 403 }])(
+    "does not present registry failures as an invalid certificate: %o",
+    (error) => {
+      window.history.replaceState({}, "", "/verify?cert=example-id");
+      state.verification.isError = true;
+      state.verification.error = error;
+      render(<Verify />);
+      expect(screen.getByRole("heading", { name: "VERIFICATION UNAVAILABLE" })).toBeTruthy();
+      expect(screen.queryByRole("heading", { name: "NOT FOUND" })).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Retry verification" }));
+      expect(state.verification.refetch).toHaveBeenCalledOnce();
+    },
+  );
+
+  it("shows not found only for a registry 404 without exposing a retry error", () => {
+    window.history.replaceState({}, "", "/verify?cert=missing");
+    state.verification.isError = true;
+    state.verification.error = { status: 404 };
+    render(<Verify />);
+    expect(screen.getByRole("heading", { name: "NOT FOUND" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Retry verification" })).toBeNull();
+  });
+
+  it("supports an explicit invalid registry response", () => {
+    window.history.replaceState({}, "", "/verify?cert=missing");
+    state.verification.data = { valid: false } as VerifyResult;
+    render(<Verify />);
+    expect(screen.getByRole("heading", { name: "NOT FOUND" })).toBeTruthy();
+  });
+
+  it("rechecks the current certificate when the search form is submitted again", () => {
+    window.history.replaceState({}, "", "/verify?cert=example-id");
+    render(<Verify />);
+    fireEvent.submit(screen.getByRole("form", { name: "Verify certificate" }));
+    expect(state.verification.refetch).toHaveBeenCalledOnce();
+    expect(window.location.search).toBe("?cert=example-id");
+  });
+
+  it("announces a retry in progress instead of showing a stale failure", () => {
+    window.history.replaceState({}, "", "/verify?cert=example-id");
+    state.verification.isError = true;
+    state.verification.error = { status: 500 };
+    state.verification.isFetching = true;
+    render(<Verify />);
+    expect(screen.getByRole("form").getAttribute("aria-busy")).toBe("true");
+    expect(screen.queryByRole("button", { name: "Retry verification" })).toBeNull();
+    expect((screen.getByRole("button", { name: "VERIFYING..." }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("shows a successful certificate after retry and removes the failure", () => {
+    window.history.replaceState({}, "", "/verify?cert=example-id");
+    state.verification.isError = true;
+    state.verification.error = { status: 500 };
+    const { rerender } = render(<Verify />);
+    state.verification.isError = false;
+    state.verification.error = null;
+    state.verification.data = { valid: true, certId: "example-id" } as VerifyResult;
+    rerender(<Verify />);
+    expect(screen.getByRole("heading", { name: "VERIFIED AUTHENTIC" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "VERIFICATION UNAVAILABLE" })).toBeNull();
+  });
+
   it("provides a named search form with a required certificate field", () => {
     render(<Verify />);
     const form = screen.getByRole("form", { name: "Verify certificate" });

@@ -462,3 +462,45 @@ in development only; the protected ARK security schemas/rules were not modified.
   renders the staff access gate at 390px. It does not show the authenticated
   workspace. No signed-in browser check or full screen-reader/device audit is
   claimed, and no production/security configuration was changed.
+
+## Certificate lookup failure handling
+
+- Registry 404s and explicit invalid responses remain distinct from connection,
+  permission, rate-limit and server failures. Failures now say verification is
+  unavailable, without declaring the certificate invalid or exposing raw errors.
+- A retry button rechecks the current certificate. Submitting the same ID also
+  rechecks rather than leaving the previous response unchanged. Background retry
+  exposes the loading/busy state instead of displaying a stale verdict.
+- Nine additional regression cases cover failure classification, retry controls,
+  same-ID submission, loading, explicit invalid responses and successful recovery.
+  The full run passed the other 42 test files; a missing enum in the existing test
+  mock caused one new case to fail. After preserving real module exports in that
+  mock, all 16 tests in the affected file passed. Frontend typecheck and production
+  build passed; pre-existing nonfatal sourcemap warnings remain.
+- Managed development workflows are running, health returns 200, and the public
+  missing-certificate endpoint returns 404 with its expected JSON response. The
+  390px screenshot shows the public loading layout without visible clipping;
+  final failure/retry/success states were checked through component tests.
+- No production configuration, certificate issuance, security checks or protected
+  database permissions were changed.
+
+## Quest section failure recovery
+
+- Quest badges and Context Craft now expose independent error/retry states.
+  A failed section does not hide the other section's successful results.
+- Context Craft shows Loading or Unavailable instead of a false zero earned.
+  Successful empty responses retain the existing zero display.
+- Failed badge requests, including failed refreshes with cached data, withhold
+  senior/download/claim areas until status can be loaded. Retry buttons disable
+  and announce busy state during their requests. Recovery restores current
+  status, including revoked-badge appeal guidance, without submitting a claim.
+- Eight new page tests cover independent failures, stale cached results,
+  concurrent retries, recovery, loading, absent responses and successful empty
+  responses. All 362 frontend tests passed, frontend typecheck and production
+  build passed. Existing nonfatal sourcemap warnings remain.
+- Development web/API workflows are running and health returns 200. The 390px
+  anonymous screenshot shows the expected staff gate, not the signed-in Quest
+  page. Changed states were verified through component tests; no authenticated
+  browser verification or production activation is claimed.
+- Quest eligibility, certification rules, mutation payloads and protected
+  database/security checks are unchanged.

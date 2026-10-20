@@ -24,14 +24,21 @@ export default function Verify() {
 
   const query = searchParams?.get("cert");
   
-  const { data, isLoading, isError, error } = useVerifyCertificate(
+  const { data, isLoading, isFetching, isError, error, refetch } = useVerifyCertificate(
     { cert: query || "" },
     { query: { enabled: !!query, queryKey: getVerifyCertificateQueryKey({ cert: query || "" }) } }
   );
+  const checking = isLoading || isFetching;
+  const notFound = isError && typeof error === "object" && error !== null &&
+    "status" in error && error.status === 404;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (certId.trim()) {
+      if (certId.trim() === query) {
+        void refetch();
+        return;
+      }
       window.history.pushState({}, '', `?cert=${encodeURIComponent(certId.trim())}`);
       setSearchParams(new URLSearchParams(window.location.search));
     }
@@ -52,7 +59,7 @@ export default function Verify() {
             </p>
           </div>
 
-          <form onSubmit={handleSearch} aria-label="Verify certificate" aria-busy={isLoading} className="flex flex-col sm:flex-row gap-2">
+          <form onSubmit={handleSearch} aria-label="Verify certificate" aria-busy={checking} className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -66,24 +73,35 @@ export default function Verify() {
                 className="pl-9 font-mono bg-card"
               />
             </div>
-            <Button type="submit" disabled={!certId.trim() || isLoading} className="font-display tracking-wider">
-              {isLoading ? "VERIFYING..." : "VERIFY"}
+            <Button type="submit" disabled={!certId.trim() || checking} className="font-display tracking-wider">
+              {checking ? "VERIFYING..." : "VERIFY"}
             </Button>
           </form>
 
           {query && (
             <div className="pt-8 border-t" role="region" aria-label="Certificate verification result" aria-live="polite" aria-atomic="true">
-              {isLoading ? (
+              {checking ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground animate-pulse">
                   <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-4" />
                   <p className="font-mono text-sm">QUERYING VERIFICATION MATRIX...</p>
                 </div>
-              ) : isError || (data && !data.valid) ? (
+              ) : isError && !notFound ? (
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-destructive/20 bg-destructive/5 rounded-lg">
+                  <ShieldAlert className="h-16 w-16 text-destructive mb-4" aria-hidden="true" />
+                  <h2 className="font-display text-3xl tracking-wider mb-2">VERIFICATION UNAVAILABLE</h2>
+                  <p className="text-sm text-muted-foreground max-w-[300px]">
+                    We could not check the certificate registry. This does not mean the certificate is invalid. Please try again.
+                  </p>
+                  <Button type="button" className="mt-4" onClick={() => void refetch()}>
+                    Retry verification
+                  </Button>
+                </div>
+              ) : notFound || (data && !data.valid) ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-destructive/20 bg-destructive/5 rounded-lg">
                   <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
                   <h2 className="font-display text-3xl text-destructive tracking-wider mb-2">NOT FOUND</h2>
                   <p className="text-sm text-muted-foreground max-w-[250px]">
-                    The certificate ID provided does not exist in the active registry or has been revoked.
+                    No matching certificate was found in the active registry. Check the certificate ID and try again.
                   </p>
                 </div>
               ) : data && data.valid ? (
