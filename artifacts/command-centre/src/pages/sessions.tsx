@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { useRef, useState } from "react";
+import { Link } from "wouter";
 import { TopNav } from "@/components/layout/TopNav";
 import { useListSessions } from "@workspace/api-client-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -16,6 +16,7 @@ type SessionRecord = {
   sessionName: string;
   status: string;
   updatedAt: unknown;
+  canOpen: boolean;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -57,14 +58,30 @@ function normalizeSession(value: unknown, index: number): SessionRecord {
     sessionName: formatSessionName(session.sessionName),
     status: formatSessionStatus(session.status),
     updatedAt: session.updatedAt,
+    canOpen: Boolean(hasValidId),
   };
 }
 
 export default function Sessions() {
-  const [, setLocation] = useLocation();
-  const { data: sessions, isLoading } = useListSessions();
+  const { data: sessions, isLoading, isError, isFetching, refetch } = useListSessions();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [retrying, setRetrying] = useState(false);
+  const [retryFailed, setRetryFailed] = useState(false);
+  const retryLock = useRef(false);
+  const unavailable = isError || (!isLoading && !Array.isArray(sessions));
+  const hasRecords = Array.isArray(sessions) && sessions.length > 0;
+  const busy = Boolean(isLoading || isFetching || retrying);
+
+  async function retry() {
+    if (retryLock.current || isFetching) return;
+    retryLock.current = true;
+    setRetrying(true);
+    setRetryFailed(false);
+    try { await refetch(); }
+    catch { setRetryFailed(true); }
+    finally { retryLock.current = false; setRetrying(false); }
+  }
 
   const normalizedSessions = Array.isArray(sessions)
     ? sessions.map(normalizeSession)
@@ -121,7 +138,7 @@ export default function Sessions() {
 
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-            <TabsList className="bg-card border w-full md:w-auto h-auto p-1 flex-wrap">
+            <TabsList aria-label="Filter sessions by status" className="bg-card border w-full md:w-auto h-auto p-1 flex-wrap">
               <TabsTrigger value="all" className="font-mono text-xs h-8">ALL</TabsTrigger>
               <TabsTrigger value="in_progress" className="font-mono text-xs h-8">IN PROGRESS</TabsTrigger>
               <TabsTrigger value="complete" className="font-mono text-xs h-8">COMPLETE</TabsTrigger>
@@ -129,8 +146,10 @@ export default function Sessions() {
             </TabsList>
             
             <div className="relative w-full md:w-72">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <label htmlFor="session-search" className="sr-only">Search sessions by name or ID</label>
+              <Search aria-hidden="true" className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
+                id="session-search"
                 placeholder="Search by name or ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -140,15 +159,31 @@ export default function Sessions() {
           </div>
 
           <TabsContent value={activeTab} className="mt-0 outline-none">
-            <div className="border rounded-lg bg-card overflow-hidden">
+            {unavailable && (
+              <section role="alert" aria-label="Sessions unavailable" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/5 p-4">
+                <div className="min-w-0 font-mono text-sm">
+                  <p>Could not load the sessions archive. This does not mean there are no sessions.</p>
+                  {hasRecords && <p className="mt-1 text-muted-foreground">Previously loaded records are shown below; their status may be out of date.</p>}
+                  {retryFailed && <p className="mt-1">Retry failed. Please try again.</p>}
+                </div>
+                <Button variant="outline" onClick={() => void retry()} disabled={busy} aria-busy={busy}>
+                  {busy ? "Retrying sessions..." : "Retry sessions"}
+                </Button>
+              </section>
+            )}
+            <section aria-label="Sessions archive results" aria-busy={busy} className="min-w-0 border rounded-lg bg-card overflow-hidden">
+              <p role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+                {isLoading ? "Loading sessions." : unavailable ? "Sessions unavailable." : `${filteredSessions.length} sessions match the current filters.`}
+              </p>
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead className="hidden md:table-header-group">
+                <table role="table" className="w-full text-left border-collapse">
+                  <caption className="sr-only">Sessions matching the selected status and search</caption>
+                  <thead className="sr-only md:not-sr-only md:table-header-group">
                     <tr className="border-b bg-muted/50">
-                      <th className="py-3 px-4 font-mono text-xs text-muted-foreground font-medium">SESSION NAME</th>
-                      <th className="py-3 px-4 font-mono text-xs text-muted-foreground font-medium w-40">STATUS</th>
-                      <th className="py-3 px-4 font-mono text-xs text-muted-foreground font-medium w-48">LAST MODIFIED</th>
-                      <th className="py-3 px-4 font-mono text-xs text-muted-foreground font-medium w-24 text-right">ACTION</th>
+                      <th scope="col" className="py-3 px-4 font-mono text-xs text-muted-foreground font-medium">SESSION NAME</th>
+                      <th scope="col" className="py-3 px-4 font-mono text-xs text-muted-foreground font-medium w-40">STATUS</th>
+                      <th scope="col" className="py-3 px-4 font-mono text-xs text-muted-foreground font-medium w-48">LAST MODIFIED</th>
+                      <th scope="col" className="py-3 px-4 font-mono text-xs text-muted-foreground font-medium w-24 text-right">ACTION</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -158,7 +193,9 @@ export default function Sessions() {
                           RETRIEVING RECORDS...
                         </td>
                       </tr>
-                    ) : filteredSessions.length === 0 ? (
+                     ) : unavailable && !hasRecords ? (
+                       <tr><td colSpan={4} className="py-12 px-4 text-center text-muted-foreground font-mono text-sm">SESSION RECORDS UNAVAILABLE</td></tr>
+                     ) : filteredSessions.length === 0 ? (
                       <tr>
                         <td colSpan={4} className="py-12 text-center text-muted-foreground font-mono text-sm">
                           NO RECORDS MATCHING CRITERIA
@@ -168,23 +205,13 @@ export default function Sessions() {
                       filteredSessions.map(session => (
                         <tr
                           key={session.id}
-                          role="link"
-                          tabIndex={0}
-                          aria-label={`Open session ${session.sessionName}`}
-                          className="hover:bg-accent/30 focus-visible:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors group cursor-pointer flex flex-col md:table-row p-3 md:p-0 border-b last:border-b-0"
-                          onClick={() => setLocation(`/session/${session.id}`)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              setLocation(`/session/${session.id}`);
-                            }
-                          }}
+                          className="hover:bg-accent/30 transition-colors group flex flex-col md:table-row p-3 md:p-0 border-b last:border-b-0"
                         >
                           <td className="md:py-4 md:px-4 md:table-cell block">
-                            <div className="font-medium mb-1 group-hover:text-primary transition-colors">
-                              {session.sessionName}
+                            <div className="font-medium mb-1 break-words [overflow-wrap:anywhere]">
+                              {session.canOpen ? <Link href={`/session/${encodeURIComponent(session.id)}`} aria-label={`Open session ${session.sessionName}`} className="text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{session.sessionName}</Link> : session.sessionName}
                             </div>
-                            <div className="font-mono text-[10px] md:text-xs text-muted-foreground truncate">
+                            <div className="font-mono text-[10px] md:text-xs text-muted-foreground break-all">
                               ID: {session.idLabel}
                             </div>
                             {/* Mobile-only inline meta */}
@@ -218,9 +245,9 @@ export default function Sessions() {
                             </div>
                           </td>
                           <td className="py-4 px-4 text-right hidden md:table-cell">
-                            <Button size="sm" variant="ghost" className="font-mono text-xs">
-                              ENTER
-                            </Button>
+                            {session.canOpen ? <Button asChild size="sm" variant="ghost" className="font-mono text-xs">
+                              <Link href={`/session/${encodeURIComponent(session.id)}`} aria-label={`Continue session ${session.sessionName}`}>ENTER</Link>
+                            </Button> : <span className="font-mono text-xs text-muted-foreground">UNAVAILABLE</span>}
                           </td>
                         </tr>
                       ))
@@ -228,7 +255,7 @@ export default function Sessions() {
                   </tbody>
                 </table>
               </div>
-            </div>
+            </section>
           </TabsContent>
         </Tabs>
       </main>

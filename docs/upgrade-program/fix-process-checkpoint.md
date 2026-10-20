@@ -590,3 +590,27 @@ evidence-form work were not duplicated.
 The separately queued Quest evidence-form work has not been duplicated. The
 three remaining checklist criteria and that queued implementation mean this is
 not the last fix and not a declaration of production readiness.
+
+## Sessions Archive failure recovery and accessible navigation — 2026-10-20
+
+- Request failures and absent responses are unavailable, not successful empty
+  archives. Retry is explicit, announces busy state and prevents concurrent
+  attempts; rejected retries remain visible and can be retried again.
+- A failed background refresh retains usable cached session links with a clear
+  stale-status warning. Successful recovery retains the operator's search.
+- Search and status filters have accessible names. Result counts/loading/error
+  states are announced, the results region exposes busy state, and native table
+  headings/caption remain available on narrow screens.
+- Native, named session links replace simulated clickable table rows and the
+  nested ENTER button. Invalid IDs do not produce fake destinations. Long names
+  and IDs wrap, and IDs are encoded in navigation URLs.
+- All 10 targeted Sessions Archive tests passed, along with frontend typecheck
+  and production build. No authentication, backend, database, entitlement,
+  protected release gate or third-party provider activation was changed.
+- Signed-in browser verification remains open: the staff-access gate prevents
+  the anonymous screenshot browser from viewing the changed archive. Component
+  checks do not constitute a real screen-reader/device or signed-in browser pass.
+- Registry latest versions still read braces 3.0.3 and sprintf-js 1.1.3; no new
+  audit, dependency replacement, suppression or security remediation is claimed.
+- The broader audit remains in progress. The original equal-weight checklist is
+  still **7/10 (70%)**, not a whole-product or production-readiness percentage.
