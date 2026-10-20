@@ -504,3 +504,44 @@ in development only; the protected ARK security schemas/rules were not modified.
   browser verification or production activation is claimed.
 - Quest eligibility, certification rules, mutation payloads and protected
   database/security checks are unchanged.
+
+## Certificate navigation synchronization
+
+- Certificate lookup now subscribes to router query changes rather than reading
+  the URL only on mount. Back, Forward, pushState and replaceState keep the input
+  and lookup request aligned; removing the certificate clears the result and
+  disables the request. Unsubmitted typing does not change the active lookup.
+- New searches preserve the current pathname, unrelated query parameters and
+  fragment. Same-ID submission still rechecks the current certificate.
+- Four navigation tests use the real router subscription, including actual
+  jsdom history Back/Forward. All 20 tests across navigation and the affected
+  accessibility test file passed. Frontend typecheck and production build passed.
+  The restarted web workflow is running, API health returns 200, and the public
+  verification page renders at 390px without visible clipping. The separate
+  workspace-wide test workflow was still running at this checkpoint; no final
+  result for that run is claimed.
+
+## Stabilization progress report — 2026-10-20
+
+This is a newly defined, equal-weight checklist of recent stabilization work:
+7 of 10 items complete in development = **70%**. It is not a percentage of the
+whole product, the task backlog, feature activation, or production readiness.
+Implementation with scoped verification counts as complete; open verification
+work is listed separately. Keep this denominator explicit in later updates.
+
+| Item | Status |
+| --- | --- |
+| Public verification avoids staff-only spending requests | Complete in development |
+| First accessibility/mobile form pass | Complete in development |
+| SPC Player, Boomerang and preparation accessibility pass | Complete at component level |
+| Typography dependency advisory patch | Complete in development |
+| Certificate failure classification and retries | Complete in development |
+| Quest section failure handling and retries | Complete in development |
+| Certificate URL/history synchronization | Complete in development |
+| Remaining braces and sprintf-js advisories | Open; unresolved upstream findings |
+| Signed-in browser verification of changed journeys | Open |
+| Broader platform accessibility/responsive audit | Open |
+
+Excluded from this denominator: production rollout/confirmation, protected
+IMPRIMA/SHORT SPRINTS installation, independent XVL/VTE/full F12, Azure,
+external schedules/mail activation and all other project backlog work.

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearch } from "wouter";
 import { TopNav } from "@/components/layout/TopNav";
 import { Footer } from "@/components/layout/Footer";
 import { useVerifyCertificate, getVerifyCertificateQueryKey } from "@workspace/api-client-react";
@@ -10,19 +11,13 @@ import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { format } from "date-fns";
 
 export default function Verify() {
-  const [certId, setCertId] = useState("");
-  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null);
-  
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setSearchParams(params);
-    const certParam = params.get("cert");
-    if (certParam) {
-      setCertId(certParam);
-    }
-  }, []);
+  const search = useSearch();
+  const query = new URLSearchParams(search).get("cert") || "";
+  const [certId, setCertId] = useState(query);
 
-  const query = searchParams?.get("cert");
+  useEffect(() => {
+    setCertId(query);
+  }, [query]);
   
   const { data, isLoading, isFetching, isError, error, refetch } = useVerifyCertificate(
     { cert: query || "" },
@@ -39,8 +34,9 @@ export default function Verify() {
         void refetch();
         return;
       }
-      window.history.pushState({}, '', `?cert=${encodeURIComponent(certId.trim())}`);
-      setSearchParams(new URLSearchParams(window.location.search));
+      const url = new URL(window.location.href);
+      url.searchParams.set("cert", certId.trim());
+      window.history.pushState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
     }
   };
 

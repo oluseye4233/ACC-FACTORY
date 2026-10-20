@@ -18,7 +18,8 @@ vi.mock("@/lib/staff-session", () => ({ useLogin: () => state.login }));
 vi.mock("@/components/layout/ThemeToggle", () => ({ ThemeToggle: () => <button>Theme</button> }));
 vi.mock("@/components/layout/TopNav", () => ({ TopNav: () => null }));
 vi.mock("@/components/layout/Footer", () => ({ Footer: () => null }));
-vi.mock("wouter", () => ({
+vi.mock("wouter", async (importOriginal) => ({
+  ...await importOriginal<typeof import("wouter")>(),
   useLocation: () => ["/", vi.fn()],
   Link: (props: ComponentProps<"a">) => <a {...props} />,
 }));
