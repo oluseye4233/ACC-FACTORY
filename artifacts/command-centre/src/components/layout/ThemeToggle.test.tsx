@@ -44,5 +44,23 @@ describe("ThemeToggle", () => {
     });
     expect(toggle.getAttribute("aria-label")).toBe("Switch to light mode");
     expect(toggle.getAttribute("aria-pressed")).toBe("true");
+
+    fireEvent.click(toggle);
+    await waitFor(() => {
+      expect(document.documentElement.classList.contains("light")).toBe(true);
+      expect(localStorage.getItem("atanda-theme")).toBe("light");
+    });
+    expect(toggle.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("restores a saved dark palette when the platform opens again", async () => {
+    localStorage.setItem("atanda-theme", "dark");
+    render(
+      <ThemeProvider attribute="class" defaultTheme="light" storageKey="atanda-theme">
+        <ThemeToggle />
+      </ThemeProvider>,
+    );
+    await waitFor(() => expect(document.documentElement.classList.contains("dark")).toBe(true));
+    expect(screen.getByRole("button", { name: "Switch to light mode" }).getAttribute("aria-pressed")).toBe("true");
   });
 });

@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Hexagon } from "lucide-react";
+import { QuestProgress } from "@/components/shared/QuestProgress";
 import { PillarTriangle } from "@/components/shared/PillarTriangle";
 import type { BadgeProgress } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -156,6 +157,8 @@ export default function Quests() {
             Achievements that unlock advanced FORGE.BONSAI capabilities and credentials.
           </p>
         </div>
+
+        <QuestProgress className="mb-8" />
 
         {/* CONTEXT CRAFT MINI-QUESTS */}
         <Card className="mb-8 border-l-4 border-l-secondary/60 bg-card">

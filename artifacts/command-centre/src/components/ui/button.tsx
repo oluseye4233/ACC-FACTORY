@@ -46,14 +46,18 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  /** Opt-in: gently pulses/glows a control that guides the user forward. Never applied while disabled. */
+  progression?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, progression = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    const glow = progression && !props.disabled && props["aria-disabled"] !== true && props["aria-disabled"] !== "true" && props["aria-busy"] !== true && props["aria-busy"] !== "true"
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant, size, className }), glow && "progression-glow")}
+        data-progression={glow ? "true" : undefined}
         ref={ref}
         {...props}
       />

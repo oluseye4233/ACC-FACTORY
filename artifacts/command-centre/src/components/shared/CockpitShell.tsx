@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ENGINES, PRODUCTION_ENGINE_IDS } from "@/lib/constants";
 import { FeatureStatus, HarnessArtifact } from "@workspace/api-client-react";
 import { ArrowLeft, ArrowRight, Upload, Package, Info, Download } from "lucide-react";
+import { QuestProgress } from "@/components/shared/QuestProgress";
 import { ArtifactTray } from "@/components/shared/ArtifactTray";
 import {
   HoverCard,
@@ -208,7 +209,8 @@ export function CockpitShell({
                  type="button"
                  disabled={!nextEngine || getFeatureStatus(nextEngine.id) === FeatureStatus.LOCKED}
                  onClick={() => nextEngine && onNavigate(nextEngine.id)}
-                 className="min-w-0 rounded-lg border border-border/60 bg-card p-3 text-left disabled:opacity-60"
+                 data-progression={nextEngine && nextEngine.id === attentionEngineId ? "true" : undefined}
+                 className={`min-w-0 rounded-lg border border-border/60 bg-card p-3 text-left disabled:opacity-60 ${nextEngine && nextEngine.id === attentionEngineId ? "progression-glow" : ""}`}
                >
                  <span className="block font-mono text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
                    Where you are going next
@@ -218,6 +220,8 @@ export function CockpitShell({
                  </span>
                </button>
              </div>
+
+             <QuestProgress compact className="mb-4 lg:hidden" />
              
              {/* Workspace renders here */}
              <div className="flex-1 flex flex-col min-h-0 bg-card rounded-lg border border-border/50 shadow-sm overflow-hidden">
@@ -244,6 +248,7 @@ export function CockpitShell({
                   className="w-full font-mono text-[10px] h-7"
                   onClick={() => onNavigate(nextEngine.id)}
                   disabled={getFeatureStatus(nextEngine.id) === FeatureStatus.LOCKED}
+                  progression={nextEngine.id === attentionEngineId}
                 >
                   PROCEED TO {nextEngine.name} <ArrowRight className="h-3 w-3 ml-1.5" />
                 </Button>
@@ -254,6 +259,7 @@ export function CockpitShell({
                 <p className="text-[11px] text-muted-foreground leading-relaxed">No further linear steps. Proceed to Code Oracle or external build.</p>
               </div>
             )}
+            <QuestProgress compact className="mt-3" />
           </div>
 
           <div className="flex-1 flex flex-col min-h-0 mt-2">

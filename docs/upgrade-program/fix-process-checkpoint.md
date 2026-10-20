@@ -89,7 +89,8 @@ The existing React/Clerk peer warnings remain visible; the intentionally pinned
 React version was not changed as an incidental dependency fix.
 
 Credit and preparation-file recovery are implemented in the subsequent batch
-below. Grouped user-journey checks and accessibility work remain unfinished.
+below. Grouped API/component journey checks and a shared-theme accessibility
+pass are recorded in the subsequent section.
 No production activation or certification is established by these local changes.
 
 ## Verification of the baseline/dependency batch
@@ -139,3 +140,57 @@ No production activation or certification is established by these local changes.
 - Production schema/security installation and protected approvals/releases
   remain unchanged. See `recovery-operations.md` for rollout boundaries and
   intentional legacy-retention behavior.
+
+## Grouped journey checks and shared-theme accessibility — verified in development
+
+- Replayed the source-pinned baseline and all 55 increments in a new disposable
+  PostgreSQL 16 database; a second migration run made no changes.
+- Grouped API checks passed: 34 tests across SPC Player, Boomerang, signed-cookie
+  upload integration and private preparations. Providers/storage were mocked as
+  defined by the suites; no real external delivery or protected release occurred.
+- All 277 frontend tests passed, including source binding/retention, standalone
+  artifact selection, Boomerang components and preparation view-model checks.
+  These are component/API checks, not a signed-in browser end-to-end pass.
+- Shared theme fixes improve dark primary labels/buttons, light gold-button
+  text, light destructive buttons, input borders and keyboard focus outlines.
+  Reduced-motion preferences now suppress repeated CSS animation and smooth
+  scrolling. Theme tests cover switching both ways and restoring saved dark mode.
+- New palette tests enforce 4.5:1 for the tested shared text/surface pairs and
+  3:1 for input/focus indicators. This does not certify every page, custom colour,
+  opacity variant or third-party widget as WCAG-conformant.
+- Frontend typecheck and production build passed. The standalone build needs
+  PORT and BASE_PATH, which the managed artifact supplies; rerunning with those
+  settings succeeded. Existing sourcemap and large-chunk warnings remain visible.
+- Both managed services restarted successfully; API health returned HTTP 200,
+  and a desktop screenshot confirmed the public staff-access page renders.
+  Protected pages and mobile interaction were not browser-verified in this pass.
+- No production changes, entitlement changes or security-check exceptions were
+  made. Report-only private-file recovery and protected workflow gates remain.
+
+Remaining scope includes the separately tracked recovery wake-up/alert work,
+residual dependency advisories, broader page-by-page accessibility/browser review
+and deferred feature extensions. This checkpoint does not claim those are done.
+
+## Guided progression and Quest visibility — implemented in development
+
+- Forward-facing controls opt into a slow, shadow-only pulse/glow. Applied to
+  dashboard entry/resume/Guide/Quest links, training guidance and eligible cockpit
+  continuation. Ordinary/destructive actions are not automatically animated;
+  disabled, aria-disabled and busy buttons do not glow.
+- The existing reduced-motion preference suppresses the repeating effect.
+  Hover/focus uses a steady glow while the keyboard focus outline remains.
+- Dashboard, Training, Quests and the shared F-stage cockpit display recorded
+  badge and senior-certificate requirements from the existing badge API.
+  Counts and status are refreshed on mount, focus and every minute.
+- Progress caps each requirement independently, so excess work in one category
+  never substitutes for another. Percentages describe counted requirements,
+  not eligibility decisions. Pending claims, revoked credentials, unknown
+  progress and request failures are explicit. No award or Quest rule changed.
+- Frontend typecheck, production build and all 291 frontend tests passed.
+  Existing non-fatal chunk-size and sourcemap warnings remain.
+- A browser verification attempt reached the staff access gate but had neither
+  an authenticated session nor a secure staff-code login helper. It stopped
+  without reading credentials or bypassing authentication. Therefore signed-in
+  appearance, live API-to-UI comparison and mobile/reduced-motion browser checks
+  remain unverified; automated component/palette tests are not a substitute.
+- No production mutation, security change or credential issuance occurred.

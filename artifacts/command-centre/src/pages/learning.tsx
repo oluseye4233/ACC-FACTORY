@@ -4,6 +4,7 @@ import { getLearningPortfolio, useGetLearningCohort, useGetLearningHome, type Le
 import { ArrowLeft, Download, GraduationCap } from "lucide-react";
 import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
+import { QuestProgress } from "@/components/shared/QuestProgress";
 import { LessonWorkbench, ModeTag } from "@/components/learning/LessonWorkbench";
 import { RedeemPanel } from "@/components/learning/RedeemPanel";
 import { CreateCohortForm } from "@/components/learning/CreateCohortForm";
@@ -55,7 +56,11 @@ function QuestNote() {
       <ul className="text-xs space-y-1">
         {QUEST_RULES.map((q) => <li key={q.badge}><b className="font-mono">{q.badge}</b> · {q.rule} · <Link href={q.href} className="text-primary underline" data-testid={`link-quest-${q.badge}`}>{q.href.slice(1)}</Link></li>)}
       </ul>
-      <Link href="/guide" className="text-xs text-primary underline" data-testid="link-guide">Platform guide</Link>
+      <div className="flex flex-wrap gap-2 pt-1">
+        <Button asChild size="sm" progression><Link href="/quests" data-testid="button-open-quests">Open Quests</Link></Button>
+        <Button asChild size="sm" variant="outline" progression><Link href="/guide" data-testid="link-guide">Platform guide</Link></Button>
+      </div>
+      <QuestProgress compact className="mt-2" />
     </aside>
   );
 }

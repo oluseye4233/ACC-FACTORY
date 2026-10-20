@@ -12,6 +12,7 @@ const apiHooks = vi.hoisted(() => ({
 }));
 
 vi.mock("@workspace/api-client-react", () => apiHooks);
+vi.mock("@/components/shared/QuestProgress", () => ({ QuestProgress: () => null }));
 vi.mock("@/components/layout/TopNav", () => ({ TopNav: () => null }));
 vi.mock("wouter", () => ({
   Link: ({ href, children, ...props }: any) => (

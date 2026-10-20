@@ -11,6 +11,7 @@ import { TopNav } from "@/components/layout/TopNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { QuestProgress } from "@/components/shared/QuestProgress";
 import {
   Activity,
   AlertTriangle,
@@ -60,7 +61,9 @@ function UtilityAction({
   icon: Icon,
   label,
   description,
+  progression = false,
 }: {
+  progression?: boolean;
   href: string;
   icon: typeof FileUp;
   label: string;
@@ -69,7 +72,8 @@ function UtilityAction({
   return (
     <Link
       href={href}
-      className="group flex min-h-[72px] items-center gap-3 rounded-xl border border-border/70 bg-background/60 px-4 py-3 transition-colors hover:border-primary/50 hover:bg-primary/5"
+      className={`group flex min-h-[72px] items-center gap-3 rounded-xl border border-border/70 bg-background/60 px-4 py-3 transition-colors hover:border-primary/50 hover:bg-primary/5${progression ? " progression-glow" : ""}`}
+      data-progression={progression ? "true" : undefined}
     >
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-card text-muted-foreground transition-colors group-hover:border-primary/40 group-hover:text-primary">
         <Icon className="h-4 w-4" />
@@ -403,7 +407,7 @@ export default function Command() {
               >
                 <path d="M3 22C20 4 42 4 77 16M64 4L81 17L63 28" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <Button asChild className="min-h-11 gap-2 font-mono font-bold tracking-wider">
+              <Button asChild progression className="min-h-11 gap-2 font-mono font-bold tracking-wider">
                 <Link href="/guide" data-testid="button-dashboard-guide">
                   <BookOpen className="h-4 w-4" aria-hidden="true" />
                   GUIDE
@@ -458,7 +462,7 @@ export default function Command() {
                 <Link
                   href="/session/new"
                   data-testid="button-build-something"
-                  className="group flex h-48 w-48 flex-col items-center justify-center rounded-full border-4 border-destructive/30 bg-destructive text-center text-destructive-foreground shadow-[0_0_0_10px_rgba(220,38,38,0.08),0_18px_45px_rgba(220,38,38,0.3)] transition-all hover:scale-[1.03] hover:bg-destructive/90 hover:shadow-[0_0_0_14px_rgba(220,38,38,0.1),0_22px_55px_rgba(220,38,38,0.4)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-destructive/40 focus-visible:ring-offset-4 focus-visible:ring-offset-card md:h-56 md:w-56"
+                  className="group flex h-48 w-48 flex-col items-center justify-center rounded-full border-4 border-destructive/30 bg-destructive text-center text-destructive-foreground shadow-[0_0_0_10px_rgba(220,38,38,0.08),0_18px_45px_rgba(220,38,38,0.3)] transition-all hover:scale-[1.03] hover:bg-destructive/90 hover:shadow-[0_0_0_14px_rgba(220,38,38,0.1),0_22px_55px_rgba(220,38,38,0.4)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-destructive/40 focus-visible:ring-offset-4 focus-visible:ring-offset-card md:h-56 md:w-56 progression-glow"
                 >
                   <CirclePlus className="mb-3 h-7 w-7 transition-transform group-hover:rotate-90" />
                   <span className="font-display text-2xl tracking-[0.12em]">BUILD</span>
@@ -468,10 +472,10 @@ export default function Command() {
               </div>
 
               <div className="mt-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                <UtilityAction href="/sessions" icon={Play} label="Resume Session" description="Continue a live harness" />
+                <UtilityAction href="/sessions" progression icon={Play} label="Resume Session" description="Continue a live harness" />
                 <UtilityAction href="/ingest" icon={FileUp} label="Import Existing" description="Bring in a document" />
                 <UtilityAction href="/exemplars" icon={Library} label="Open Library" description="Browse proven examples" />
-                <UtilityAction href="/quests" icon={Trophy} label="View Quests" description="Track operator progress" />
+                <UtilityAction href="/quests" progression icon={Trophy} label="View Quests" description="Track operator progress" />
                 <UtilityAction href="/learn" icon={Trophy} label="FORGE FIELD ENGINEER" description="Manage invite-only training cohorts" />
                 <UtilityAction href="/f0" icon={Briefcase} label="F0 Advisory" description="Open business intelligence" />
                 <UtilityAction href="/spc-player" icon={PlaySquare} label="SPC Player" description="Build and run a Kit Deck" />
@@ -479,6 +483,8 @@ export default function Command() {
               </div>
             </div>
           </section>
+
+          <QuestProgress className="mt-4" />
 
           <section className="my-4 grid gap-2 rounded-xl border border-border/60 bg-card/60 px-4 py-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Command Deck summary">
             <div className="flex items-center gap-3">
