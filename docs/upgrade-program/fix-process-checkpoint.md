@@ -545,3 +545,13 @@ work is listed separately. Keep this denominator explicit in later updates.
 Excluded from this denominator: production rollout/confirmation, protected
 IMPRIMA/SHORT SPRINTS installation, independent XVL/VTE/full F12, Azure,
 external schedules/mail activation and all other project backlog work.
+
+### Dependency follow-up — 2026-10-20
+
+A fresh registry audit still has one high braces advisory and one moderate
+sprintf-js advisory, with no patched releases listed. Both existing
+dependency-boundary checks passed; neither finding is resolved or suppressed.
+See `dependency-advisories.md` for checked versions and scope. No application,
+dependency or security changes were made in this review. Checklist progress
+remains **7/10 (70%)**. The separately queued signed-in verification and Quest
+evidence-form work were not duplicated.

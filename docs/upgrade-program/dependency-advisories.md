@@ -55,6 +55,20 @@ is available.
 
 ## Recheck
 
+### Registry and boundary recheck — 2026-10-20
+
+- A fresh `pnpm audit --json` still reports one high (`braces`) and one
+  moderate (`sprintf-js`) advisory, with no patched version listed for either.
+- Registry latest versions remain braces 3.0.3, sprintf-js 1.1.3,
+  micromatch 4.0.8, http-proxy-middleware 4.2.0 and Mammoth 1.13.0.
+  Upgrading sprintf-js alone would still select an affected version.
+- Both checks in `node --test scripts/src/dependency-boundaries.test.mjs`
+  passed: literal proxy filtering and DOCX library extraction without CLI
+  dependency loading. These remain scoped reachability checks, not fixes.
+- No dependencies, lockfile, audit exclusions, runtime configuration or
+  production services were changed. Typechecks/builds were not rerun for this
+  read-only dependency review.
+
 Run `pnpm audit`, workspace typechecks/tests and the web production build.
 The two open advisories must remain visible; a registry audit will continue to
 exit nonzero while they remain. The boundary tests are included in the existing
