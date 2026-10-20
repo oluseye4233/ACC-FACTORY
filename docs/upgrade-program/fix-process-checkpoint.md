@@ -307,3 +307,30 @@ approved the platform.
 - Signed-in stage interfaces remain component-tested, not browser-verified in
   this batch. No inference engines, protected workflow actions, production
   settings, database schema or private-file deletion settings were changed.
+
+## Scheduled recovery wake-up and failed-pass visibility
+
+- Added authenticated `POST /api/cron/recover-abandoned-resources` and a matching
+  target in the existing scheduled driver. It calls the existing bounded,
+  fenced/provenance-checked workers; subscription gating and report-only storage
+  defaults remain unchanged. Request bodies cannot opt into deletion.
+- Both lanes are attempted independently. Exceptions or returned storage-object
+  errors yield HTTP 503 and no successful heartbeat; the actual CLI driver exits
+  nonzero. Responses expose status/counts, not private object keys or exception
+  messages.
+- Registered the target with existing durable cron health monitoring: five-minute
+  expected cadence, twenty-minute stale threshold, evaluated by the existing
+  fifteen-minute background monitor. Existing administrator alert configuration
+  and deduplication apply. This does not implement a separate per-item failure
+  ledger or an independent infrastructure-outage alert service.
+- Verification: API and scripts typechecks passed; the complete API regression
+  suite passed 665 tests with 40 skipped. New tests exercise authentication,
+  disabled/unconfigured lanes, report-only defaults, lane/object failures,
+  success-only heartbeats, and real scheduled CLI transport/exit status against
+  a local fixture server. No cloud deletion or production mutation was tested.
+- The managed development API rebuilt and started cleanly; health returned 200
+  and an unauthenticated call to the new route returned 401 without running jobs.
+- External activation remains pending: publish this build and configure/confirm
+  the authenticated five-minute schedule. No Scheduled Deployment, production
+  secret, security role, migration, billing flag or cleanup opt-in was changed.
+  Setup and limitations are in `recovery-operations.md`.

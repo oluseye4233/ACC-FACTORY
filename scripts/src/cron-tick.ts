@@ -22,6 +22,9 @@
  *                            paths safe to coexist
  *   - reconcile-f10-deployments every 5 minutes — checks a bounded batch of
  *                            accepted/running provider operations
+ *   - recover-abandoned-resources every 5 minutes — retries bounded credit
+ *                            recovery and private preparation inspection;
+ *                            private-file deletion stays report-only by default
  *
  * Required env:
  *   - CRON_SECRET            shared secret matching the API server
@@ -32,7 +35,8 @@
  *                            (used when no CLI args are given):
  *                            "weekly-digest", "reset-harness-limits",
  *                            "run-f0-monitoring", "sweep-cost-cap-alerts",
- *                            "reconcile-f10-deployments".
+ *                            "reconcile-f10-deployments",
+ *                            "recover-abandoned-resources".
  *                            Defaults to "weekly-digest".
  *   - CRON_TIMEOUT_MS        per-request timeout, default 60000
  *
@@ -46,6 +50,7 @@ const TARGETS: Record<string, string> = {
   "run-f0-monitoring": "/api/cron/run-f0-monitoring",
   "sweep-cost-cap-alerts": "/api/cron/sweep-cost-cap-alerts",
   "reconcile-f10-deployments": "/api/cron/reconcile-f10-deployments",
+  "recover-abandoned-resources": "/api/cron/recover-abandoned-resources",
 };
 
 function envOrDie(name: string): string {

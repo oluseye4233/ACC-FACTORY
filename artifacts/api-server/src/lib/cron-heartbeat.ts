@@ -75,6 +75,13 @@ export interface CronTargetConfig {
  */
 export const CRON_TARGET_CONFIGS: readonly CronTargetConfig[] = [
   {
+    target: "recover-abandoned-resources",
+    label: "Credit and private preparation recovery",
+    schedule: "every 5 minutes (*/5 * * * *)",
+    expectedIntervalMinutes: 5,
+    staleAfterMinutes: 20,
+  },
+  {
     target: "reconcile-f10-deployments",
     label: "F10 deployment reconciliation",
     schedule: "every 5 minutes (*/5 * * * *)",

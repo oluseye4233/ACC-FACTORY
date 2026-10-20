@@ -5,6 +5,7 @@ import { runF0MonitoringSweep } from "../engines/f0";
 import { runCostCapAlertSweepOnce } from "../lib/cost-cap-sweeper";
 import { recordCronTick } from "../lib/cron-heartbeat";
 import { runF10ReconciliationSweep } from "../lib/f10-reconciliation";
+import { runRecoverySweep } from "../lib/recovery-sweep";
 
 const router: IRouter = Router();
 
@@ -73,6 +74,16 @@ router.post("/cron/reconcile-f10-deployments", async (req, res): Promise<void> =
   const result = await runF10ReconciliationSweep();
   await recordCronTick("reconcile-f10-deployments");
   res.json({ ok: true, ...result });
+});
+
+// Scheduled calls wake a sleeping autoscale instance. A per-object storage
+// failure is a failed pass, even when the worker returned rather than threw.
+// Only a completely successful pass may refresh the durable heartbeat.
+router.post("/cron/recover-abandoned-resources", async (req, res): Promise<void> => {
+  if (!requireCronSecret(req, res)) return;
+  const result = await runRecoverySweep();
+  if (result.ok) await recordCronTick("recover-abandoned-resources");
+  res.status(result.ok ? 200 : 503).json(result);
 });
 
 export default router;

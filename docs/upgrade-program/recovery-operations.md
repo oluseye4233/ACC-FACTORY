@@ -80,7 +80,60 @@ need separate provenance review rather than automatic deletion.
 
 ## Operational limitations
 
-Intervals do not wake an autoscaled sleeping API. Startup resumes recovery, but
-an external authenticated scheduled wake-up and stalled-worker alerting are
-separate operational improvements. Successful database-backed/mocked-storage
-tests are not evidence that production cleanup is enabled.
+Intervals do not wake an autoscaled sleeping API. Startup resumes recovery.
+Successful database-backed/mocked-storage tests are not evidence that production
+cleanup is enabled.
+
+## External scheduled wake-up
+
+The existing scheduled-job driver now accepts `recover-abandoned-resources`:
+
+```sh
+pnpm --filter @workspace/scripts run cron-tick -- recover-abandoned-resources
+```
+
+Configure an external scheduled job every five minutes (`*/5 * * * *`) using
+this command, with the existing driver settings:
+
+- `PUBLIC_BASE_URL`: the verified published API origin, not a development URL.
+- `CRON_SECRET`: the same value configured on the published API. Configure this
+  through the secrets interface; never put it in a URL or command argument.
+- `CRON_TIMEOUT_MS`: optional per-request timeout; the default remains 60 seconds.
+
+The driver POSTs `/api/cron/recover-abandoned-resources`. Missing, incorrect, or
+unconfigured cron authentication is rejected before any recovery work.
+Request parameters cannot enable deletion.
+
+Both lanes retain their original bounds and database concurrency protections.
+Credits run only when subscriptions are enabled. Storage is explicitly skipped
+when its private directory is unconfigured; otherwise it is report-only unless
+the existing reviewed operator opt-in is already enabled. A failed lane does
+not prevent the other lane from being attempted.
+
+An exception or any returned per-object storage errors yields HTTP 503, and the
+driver exits nonzero. No successful heartbeat is recorded for that pass. The
+JSON summary contains lane status/counts, not private keys or provider errors.
+Disabled/unconfigured lanes are reported explicitly; a successful scheduled
+invocation is not proof those features are enabled.
+
+### Monitoring and activation boundaries
+
+The target is registered with the existing durable cron monitoring system:
+expected every five minutes, stale after twenty minutes without a successful
+pass. Existing administrator notifications, episode deduplication and recovery
+handling apply; recipient and email-provider configuration are still required.
+The background monitor checks every fifteen minutes, so twenty minutes is the
+staleness threshold, not a guaranteed email delivery deadline.
+The status view can show a never-ticked target if no scheduler has been activated.
+
+This detects missing or repeatedly failing **scheduled** passes. It is not a
+new durable per-item failure ledger, and does not replace an independent outage
+monitor: an unavailable database/email provider can also prevent this API's
+monitor from recording or delivering alerts.
+
+Adding the endpoint/driver does not create a Scheduled Deployment or change
+production configuration. Publish the code and configure/confirm the external
+schedule before declaring wake-up recovery active. Keep the API externally
+reachable by the scheduler; a private deployment sign-in wall will reject it
+before cron authentication. Real private-file deletion remains report-only until
+separately reviewed and explicitly enabled by an administrator.
