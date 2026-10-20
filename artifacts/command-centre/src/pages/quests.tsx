@@ -32,6 +32,7 @@ import type { BadgeProgress } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -271,7 +272,6 @@ export default function Quests() {
                       <div className="space-y-1.5">
                         {Object.entries(b.requirements).map(([k, req]) => {
                           const cur = (b.progress[k] as number | undefined) ?? 0;
-                          const pct = Math.min(100, (cur / req) * 100);
                           const met = cur >= req;
                           return (
                             <div key={k}>
@@ -281,12 +281,13 @@ export default function Quests() {
                                   {cur} / {req}
                                 </span>
                               </div>
-                              <div className="h-1 bg-black/10 rounded">
-                                <div
-                                  className={`h-full rounded transition-all ${met ? "bg-black" : "bg-black/40"}`}
-                                  style={{ width: `${pct}%` }}
-                                />
-                              </div>
+                              <Progress
+                                value={cur}
+                                max={req}
+                                aria-label={`${meta.name} ${k} requirement`}
+                                getValueLabel={() => `${cur} of ${req}`}
+                                className={`h-1 bg-black/10 rounded [&>div]:rounded ${met ? "[&>div]:bg-black" : "[&>div]:bg-black/40"}`}
+                              />
                             </div>
                           );
                         })}
@@ -454,12 +455,13 @@ function SeniorBadgesSection({
                   {pwdds} / {pwddTarget}
                 </span>
               </div>
-              <div className="h-1.5 bg-black/10 rounded">
-                <div
-                  className={`h-full rounded transition-all ${architectEarned ? "bg-black" : "bg-black/40"}`}
-                  style={{ width: `${Math.min(100, (pwdds / pwddTarget) * 100)}%` }}
-                />
-              </div>
+              <Progress
+                value={pwdds}
+                max={pwddTarget}
+                aria-label="Senior architect certified PWDD projects"
+                getValueLabel={() => `${pwdds} of ${pwddTarget} certified projects`}
+                className={`h-1.5 bg-black/10 rounded [&>div]:rounded ${architectEarned ? "[&>div]:bg-black" : "[&>div]:bg-black/40"}`}
+              />
             </div>
             {architectEarned && (
               <div className="mt-4 pt-3 border-t border-black/20">

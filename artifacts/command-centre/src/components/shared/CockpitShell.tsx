@@ -51,7 +51,7 @@ export function CockpitShell({
     .find((engine) => getFeatureStatus(engine.id) === FeatureStatus.AVAILABLE)?.id;
 
   return (
-    <div
+    <main
       className="flex-1 flex flex-col min-h-0 bg-background cockpit-shell"
       data-session-id={sessionId}
     >
@@ -284,6 +284,6 @@ export function CockpitShell({
         </div>
 
       </div>
-    </div>
+    </main>
   );
 }

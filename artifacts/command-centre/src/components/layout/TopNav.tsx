@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
+import { focusMainContent, isCurrentDestination } from "@/lib/navigation";
 import { StudentSignOut } from "@/components/learning-auth";
 import { Button } from "@/components/ui/button";
 import { useStaffSession, useLogout } from "@/lib/staff-session";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -41,7 +43,8 @@ const STAFF_LINKS: Array<{ href: string; label: string }> = [
 
 export function TopNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const search = useSearch();
   const session = useStaffSession();
   const logout = useLogout();
 
@@ -56,11 +59,6 @@ export function TopNav() {
         ]
       : STAFF_LINKS;
 
-  const go = (href: string) => {
-    setMobileOpen(false);
-    setLocation(href);
-  };
-
   const signOut = () => {
     setMobileOpen(false);
     logout.mutate(undefined, {
@@ -70,6 +68,13 @@ export function TopNav() {
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <a
+        href="#main-content"
+        onClick={(event) => { if (focusMainContent()) event.preventDefault(); }}
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-[60] focus:rounded-md focus:border focus:bg-background focus:px-4 focus:py-3 focus:text-foreground"
+      >
+        Skip to main content
+      </a>
       <div className="container flex h-20 items-center justify-between gap-2 px-4">
         <div className="flex items-center gap-6 min-w-0">
           <Link
@@ -127,18 +132,22 @@ export function TopNav() {
                 <SheetTitle className="font-display tracking-wider text-primary">
                   NAVIGATION
                 </SheetTitle>
+                <SheetDescription className="sr-only">
+                  Choose a page. Your current destination is marked as the current page.
+                </SheetDescription>
               </SheetHeader>
-              <nav className="mt-6 flex flex-col">
+              <nav aria-label="Mobile navigation" className="mt-6 flex flex-col">
                 {links.map((l) => (
-                  <button
+                  <Link
                     key={l.href}
-                    type="button"
-                    onClick={() => go(l.href)}
+                    href={l.href}
+                    onClick={() => setMobileOpen(false)}
+                    aria-current={isCurrentDestination(l.href, location, search) ? "page" : undefined}
                     className="text-left font-mono text-sm uppercase tracking-wider py-3 border-b border-border/60 text-foreground hover:text-primary transition-colors"
                     data-testid={`mobile-link-${l.label.toLowerCase()}`}
                   >
                     {l.label}
-                  </button>
+                  </Link>
                 ))}
                 {session.student ? <StudentSignOut /> : <Button
                   variant="ghost"
@@ -160,7 +169,8 @@ export function TopNav() {
           <Link
             key={link.href}
             href={link.href}
-            className="whitespace-nowrap transition-colors hover:text-foreground"
+            aria-current={isCurrentDestination(link.href, location, search) ? "page" : undefined}
+            className="whitespace-nowrap transition-colors hover:text-foreground aria-[current=page]:font-bold aria-[current=page]:text-primary aria-[current=page]:underline aria-[current=page]:underline-offset-4"
           >
             {link.label}
           </Link>

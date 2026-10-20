@@ -194,3 +194,42 @@ and deferred feature extensions. This checkpoint does not claim those are done.
   appearance, live API-to-UI comparison and mobile/reduced-motion browser checks
   remain unverified; automated component/palette tests are not a substitute.
 - No production mutation, security change or credential issuance occurred.
+
+## Progress-bar accessibility and development-service recovery
+
+- Restored failed managed web/API workflows after identifying and stopping
+  leftover server processes occupying their existing ports. No port mappings,
+  deployment commands or production processes were changed.
+- Fixed the shared progress component so its accessible value/state matches
+  its visual fill, including non-percentage maxima. Unknown/non-finite progress
+  remains indeterminate; zero stays a measured zero; invalid maxima and
+  out-of-range inputs cannot produce invalid transforms or inconsistent values.
+- The original Quest requirement bars and senior-architect project bar now use
+  this accessible control with explicit labels and count descriptions.
+  The mobile navigation landmark now has an explicit name.
+- Seven new component tests passed. All 298 frontend tests, frontend typecheck
+  and production build passed. Existing build warnings remain non-fatal.
+- Both managed services are running and API health returned HTTP 200. The public
+  staff-access preview renders correctly. Signed-in browser verification remains
+  unconfirmed, as described above; no authentication bypass was added.
+- No Quest thresholds, entitlement rules, database protections or production
+  activation settings changed.
+
+## Keyboard navigation — implemented and component-tested
+
+- Shared navigation now provides a first-focus skip link that focuses the
+  existing main landmark without adding a permanent tab stop. Existing landmark
+  IDs and deliberate tab settings are preserved.
+- The F-stage cockpit now exposes a main landmark too. Main content has scroll
+  clearance for the sticky header.
+- Desktop and mobile destinations expose `aria-current="page"`; parent/detail
+  routes and the two query-selected operations views are distinguished.
+- Mobile destinations are real links, close the navigation sheet on selection
+  and retain the existing student/staff/admin visibility rules. The sheet has
+  a screen-reader description.
+- Twelve new tests cover keyboard skip activation, current-page matching,
+  mobile selection and student navigation restrictions. All 310 frontend tests,
+  typecheck and production build passed.
+- This is component-level verification. The previously documented signed-in
+  browser verification gap and remaining dependency/build warnings are unchanged.
+  No production, role, credential or protected workflow changes were made.
