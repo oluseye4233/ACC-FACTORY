@@ -130,6 +130,57 @@ describe("F10 provider authorization key rotation route", () => {
 
   const processDeployment = (id: string) => fetch(`${apiUrl}/api/f10/deployments/${id}/process`, { method: "POST" });
 
+  it.each([
+    { provider: "SLACK" as const, target: "SLACK_NOTIFICATIONS", targetConfig: { workspaceId: "T123", channelId: "C123" } },
+    { provider: "SLACK" as const, target: "SLACK_AGENT", targetConfig: { workspaceId: "T123", channelId: "C123", agentEndpoint: "https://agent.example.com/invoke" } },
+    { provider: "LANGCHAIN" as const, target: "LANGCHAIN_APP", targetConfig: { runtimeEndpoint: "https://runtime.example.com/import", deploymentName: "reviewed" } },
+    { provider: "LANGSMITH" as const, target: "LANGSMITH_DATASET", targetConfig: { workspaceId: "workspace-1", datasetName: "Reviewed artifacts" } },
+  ])("queues and delivers $provider / $target only with its active user connection", async ({ provider, target, targetConfig }) => {
+    const [connection] = await db.insert(f10ProviderConnectionsTable).values({
+      tenantId, provider, name: `collaboration-${randomUUID()}`,
+      authorizationRef: sealAuthorizationRef(`opaque-${randomUUID()}`, { current: currentKey }),
+      authorizationKeyVersion: currentKey.version, scopes: [],
+    }).returning();
+    const payload = { sourceArtifactId: source.id, provider, target, connectionRef: connection!.id, outputKind: "PDD", targetConfig, releaseIntent: `release-${randomUUID()}` };
+    const request = (body: unknown) => fetch(`${apiUrl}/api/f10/deployments`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const queued = await request(payload);
+    expect(queued.status).toBe(201);
+    const deployment = await queued.json();
+    expect(deployment.state).toBe("QUEUED");
+    const delivered = await processDeployment(deployment.id);
+    expect(delivered.status).toBe(200);
+    const [stored] = await db.select().from(f10BundleDeploymentsTable).where(eq(f10BundleDeploymentsTable.id, deployment.id));
+    expect(stored).toMatchObject({ state: "ACKNOWLEDGED", provider, target, executionStatus: "NOT_CONFIRMED" });
+    await db.update(f10ProviderConnectionsTable).set({ active: false }).where(eq(f10ProviderConnectionsTable.id, connection!.id));
+    const revoked = await request({ ...payload, releaseIntent: `revoked-${randomUUID()}` });
+    expect(revoked.status).toBe(200);
+    expect(await revoked.json()).toMatchObject({ mode: "EXPORT", deployment: false, reason: "provider connection is unconfigured or revoked" });
+  });
+
+  it("enforces verified code and owner-bound source checks on the manual subscription export", async () => {
+    const [unverified] = await db.insert(harnessArtifactsTable).values({
+      sessionId, userId: tenantId, featureId: 8, artifactType: "VERIFIED_CODEBASE_BUNDLE",
+      name: "Unverified fixture", verificationStatus: "UNVERIFIED",
+      artifactContent: { files: [{ path: "index.js", content: "export default true;" }] },
+    }).returning();
+    const request = (sourceArtifactId: string) => fetch(`${apiUrl}/api/f10/exports/download`, {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ sourceArtifactId, outputKind: "CODE_DJ", family: "PROGRAMMING_ENVIRONMENT", target: "TypeScript/Node", deliveryMode: "EXPORT" }),
+    });
+    expect((await request(randomUUID())).status).toBe(400);
+    expect((await request(unverified!.id)).status).toBe(400);
+    await db.update(harnessArtifactsTable).set({
+      verificationStatus: "VERIFIED", contentHash: "a".repeat(64), verificationEvidenceHash: "b".repeat(64),
+    }).where(eq(harnessArtifactsTable.id, unverified!.id));
+    const exported = await request(unverified!.id);
+    expect(exported.status).toBe(200);
+    expect(exported.headers.get("content-type")).toContain("application/zip");
+    const bytes = Buffer.from(await exported.arrayBuffer());
+    expect(bytes.readUInt32LE(0)).toBe(0x04034b50);
+    const [unchanged] = await db.select().from(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, unverified!.id));
+    expect(unchanged?.artifactType).toBe("VERIFIED_CODEBASE_BUNDLE");
+  });
+
   it("re-encrypts a previous-key grant under the current key before delivery", async () => {
     const plaintext = `previous-provider-reference-${randomUUID()}`;
     const original = sealAuthorizationRef(plaintext, { current: previousKey });

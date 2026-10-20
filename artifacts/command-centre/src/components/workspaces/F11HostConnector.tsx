@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { WorkspaceShell, EmptyState, ErrorBanner } from "./_shared";
 import { extractApiError } from "@/lib/sse";
+import { F11SubscriptionHandoff } from "./F11SubscriptionHandoff";
 
 interface Props {
   sessionId: string;
@@ -222,6 +223,7 @@ export function F11HostConnector({ sessionId, artifacts }: Props) {
           body="Host Connector planning starts from a SPARTAN-certified MVP PDD and its F8 Code Oracle bundle. F11 never hosts an uncertified or hand-assembled source."
           hint="Complete F7/SPARTAN, then run F8 Code Oracle in this session."
         />
+        <div className="p-4 md:p-5"><F11SubscriptionHandoff artifacts={artifacts} preferredSourceId={codeBundle?.id} /></div>
       </WorkspaceShell>
     );
   }
@@ -326,6 +328,8 @@ export function F11HostConnector({ sessionId, artifacts }: Props) {
             </div>
           </div>
         </Card>
+
+        <F11SubscriptionHandoff artifacts={artifacts} preferredSourceId={(planContent?.sourceCodebaseBundleArtifactId as string | undefined) ?? codeBundle.id} />
 
         <Card className="p-5">
           <div className="mb-4 flex items-center gap-2">

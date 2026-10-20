@@ -14,4 +14,7 @@ export const F10ProviderAuthorizeRequestProvider = {
   AZURE: 'AZURE',
   OPENAI_AGENTS: 'OPENAI_AGENTS',
   GEMINI_AGENTS: 'GEMINI_AGENTS',
+  SLACK: 'SLACK',
+  LANGCHAIN: 'LANGCHAIN',
+  LANGSMITH: 'LANGSMITH',
 } as const;

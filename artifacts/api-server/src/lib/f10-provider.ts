@@ -5,6 +5,8 @@ export type ProviderTargetConfig = {
   provider: Family; target: string; region?: string; accountId?: string; roleArn?: string; resourceName?: string;
   subscriptionId?: string; tenantId?: string; resourceGroup?: string; location?: string;
   projectId?: string; agentId?: string; displayName?: string; model?: string; environment?: string; useVertex?: string;
+  workspaceId?: string; channelId?: string; agentEndpoint?: string;
+  runtimeEndpoint?: string; deploymentName?: string; datasetName?: string;
 };
 export type ProviderTransport = (input: { provider: Family; target: string; targetConfig?: Record<string, string>; authorizationRef: string; bundle: Uint8Array; idempotencyKey: string; deadline: Date }) => Promise<{ accepted: boolean; receiptId?: string }>;
 export type ProviderExecutionStatus = "ACCEPTED" | "RUNNING" | "COMPLETED" | "FAILED";
@@ -32,10 +34,17 @@ export const targetConfigError = (c: ProviderTargetConfig): string | undefined =
     AZURE: ["provider", "target", "subscriptionId", "tenantId", "resourceGroup", "location", "resourceName"],
     OPENAI_AGENTS: ["provider", "target", "projectId", "agentId", "model", "environment"],
     GEMINI_AGENTS: ["provider", "target", "projectId", "location", "agentId", "displayName", "model", "environment", "useVertex"],
+    SLACK: ["provider", "target", "workspaceId", "channelId", "agentEndpoint"],
+    LANGCHAIN: ["provider", "target", "runtimeEndpoint", "deploymentName"],
+    LANGSMITH: ["provider", "target", "workspaceId", "datasetName"],
   };
-  if (!["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS"].includes(c.provider)) return "unsupported provider";
+  if (!Object.hasOwn(allowed, c.provider)) return "unsupported provider";
   const unknown = Object.keys(c).find(key => !allowed[c.provider]?.includes(key));
   if (unknown) return `unsupported ${c.provider} target field: ${unknown}`;
+  if (["SLACK", "LANGCHAIN", "LANGSMITH"].includes(c.provider) &&
+      Object.values(c).some(value => value !== undefined && (typeof value !== "string" || !value.trim() || value.length > 2048))) {
+    return "integration target fields must be non-empty strings of at most 2048 characters";
+  }
   if (!required("target")) return "target is required";
   if (c.provider === "AWS" && !["AWS_LAMBDA", "AWS_ECS_FARGATE", "AWS_S3"].includes(c.target)) return "invalid AWS target";
   if (c.provider === "AZURE" && !["AZURE_FUNCTIONS", "AZURE_CONTAINER_APPS", "AZURE_BLOB_STORAGE"].includes(c.target)) return "invalid Azure target";
@@ -45,6 +54,26 @@ export const targetConfigError = (c: ProviderTargetConfig): string | undefined =
   if (c.provider === "AZURE" && (!required("subscriptionId") || !required("resourceGroup") || !required("location") || !required("resourceName"))) return "Azure subscriptionId, resourceGroup, location and resourceName are required";
   if (c.provider === "OPENAI_AGENTS" && (!required("model") || !required("environment"))) return "OpenAI model and environment are required";
   if (c.provider === "GEMINI_AGENTS" && (!required("projectId") || !required("location") || !required("model") || !required("environment"))) return "Gemini projectId, location, model and environment are required";
+  if (c.provider === "SLACK") {
+    if (!["SLACK_NOTIFICATIONS", "SLACK_AGENT"].includes(c.target)) return "invalid Slack target";
+    if (!/^T[A-Z0-9]{2,}$/u.test(c.workspaceId ?? "") || !/^[CG][A-Z0-9]{2,}$/u.test(c.channelId ?? "")) return "Slack workspaceId and channelId must be workspace/channel IDs";
+    if (c.target === "SLACK_AGENT" && !required("agentEndpoint")) return "Slack agentEndpoint is required for agent delivery";
+  }
+  if (c.provider === "LANGCHAIN" && (c.target !== "LANGCHAIN_APP" || !required("runtimeEndpoint") || !required("deploymentName"))) return "LangChain LANGCHAIN_APP, runtimeEndpoint and deploymentName are required";
+  if (c.provider === "LANGSMITH" && (c.target !== "LANGSMITH_DATASET" || !required("workspaceId") || !required("datasetName"))) return "LangSmith LANGSMITH_DATASET, workspaceId and datasetName are required";
+  for (const field of ["agentEndpoint", "runtimeEndpoint"] as const) {
+    const value = c[field];
+    if (value !== undefined) {
+      try {
+        const url = new URL(value);
+        if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash ||
+          url.hostname === "localhost" || url.hostname.endsWith(".localhost") || url.hostname.endsWith(".local") || url.hostname.endsWith(".internal") ||
+          !url.hostname.includes(".") || /^\d+\.\d+\.\d+\.\d+$/u.test(url.hostname) || url.hostname.includes(":")) {
+          return `${field} must be a public HTTPS hostname without credentials, query or fragment`;
+        }
+      } catch { return `${field} must be a public HTTPS URL`; }
+    }
+  }
   return undefined;
 };
 
@@ -174,6 +203,22 @@ const providerExecutionStatuses: Record<string, Record<ProviderExecutionStatus, 
     COMPLETED: ["COMPLETED", "SUCCEEDED", "DONE"],
     FAILED: ["FAILED", "ERROR", "CANCELLED", "CANCELED"],
   },
+  SLACK_NOTIFICATIONS: {
+    ACCEPTED: ["ACCEPTED", "QUEUED"], RUNNING: ["RUNNING", "POSTING"],
+    COMPLETED: ["COMPLETED", "POSTED"], FAILED: ["FAILED", "ERROR"],
+  },
+  SLACK_AGENT: {
+    ACCEPTED: ["ACCEPTED", "QUEUED"], RUNNING: ["RUNNING", "REGISTERING"],
+    COMPLETED: ["COMPLETED", "REGISTERED"], FAILED: ["FAILED", "ERROR"],
+  },
+  LANGCHAIN_APP: {
+    ACCEPTED: ["ACCEPTED", "QUEUED"], RUNNING: ["RUNNING", "IMPORTING"],
+    COMPLETED: ["COMPLETED", "IMPORTED"], FAILED: ["FAILED", "ERROR"],
+  },
+  LANGSMITH_DATASET: {
+    ACCEPTED: ["ACCEPTED", "QUEUED"], RUNNING: ["RUNNING", "PUBLISHING"],
+    COMPLETED: ["COMPLETED", "PUBLISHED"], FAILED: ["FAILED", "ERROR"],
+  },
 };
 
 export function normalizeProviderExecutionStatus(provider: Family, target: string, value: string): ProviderExecutionStatus {
@@ -185,7 +230,10 @@ export function normalizeProviderExecutionStatus(provider: Family, target: strin
     (provider === "AWS" && target.startsWith("AWS_")) ||
     (provider === "AZURE" && target.startsWith("AZURE_")) ||
     (provider === "OPENAI_AGENTS" && target === "OPENAI_AGENTS_SDK") ||
-    (provider === "GEMINI_AGENTS" && target.startsWith("GEMINI_"));
+    (provider === "GEMINI_AGENTS" && target.startsWith("GEMINI_")) ||
+    (provider === "SLACK" && target.startsWith("SLACK_")) ||
+    (provider === "LANGCHAIN" && target === "LANGCHAIN_APP") ||
+    (provider === "LANGSMITH" && target === "LANGSMITH_DATASET");
   const aliases = targetBelongsToProvider ? providerExecutionStatuses[target] : undefined;
   if (aliases) {
     for (const status of ["ACCEPTED", "RUNNING", "COMPLETED", "FAILED"] as const) {

@@ -905,7 +905,7 @@ export const GetF10CatalogResponse = zod.object({
   "sourceTypes": zod.array(zod.string()),
   "outputKinds": zod.array(zod.string()),
   "families": zod.array(zod.object({
-  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
+  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'SLACK', 'LANGSMITH', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
   "liveMode": zod.enum(['EXPORT', 'INTERNAL_HANDOFF', 'USER_AUTHORIZED']),
   "fallbackMode": zod.union([zod.literal('EXPORT'),zod.literal(null)]).nullable(),
   "deployed": zod.boolean(),
@@ -1462,8 +1462,8 @@ export const ListF10SourcesResponse = zod.array(ListF10SourcesResponseItem)
 export const CreateF10ExportManifestBody = zod.object({
   "sourceArtifactId": zod.string().uuid(),
   "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
-  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
-  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE', 'VS Code', 'Cursor', 'Windsurf', 'JetBrains', 'Replit', 'Visual Studio', 'Xcode', 'Android Studio', 'Eclipse', 'Vim/Neovim', 'Replit Agent', 'Lovable', 'Bolt', 'v0', 'Base44', 'TypeScript/Node', 'Python', 'Java', 'C#', 'C++', 'Go', 'Rust', 'PHP', 'Ruby', 'Swift', 'Kotlin', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB']).describe('Closed provider target identifier; provider targets are not arbitrary provider names.'),
+  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'SLACK', 'LANGSMITH', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
+  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE', 'SLACK_NOTIFICATIONS', 'SLACK_AGENT', 'LANGCHAIN_APP', 'LANGSMITH_DATASET', 'VS Code', 'Cursor', 'Windsurf', 'JetBrains', 'Replit', 'Visual Studio', 'Xcode', 'Android Studio', 'Eclipse', 'Vim/Neovim', 'Replit Agent', 'Lovable', 'Bolt', 'v0', 'Base44', 'TypeScript/Node', 'Python', 'Java', 'C#', 'C++', 'Go', 'Rust', 'PHP', 'Ruby', 'Swift', 'Kotlin', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB']).describe('Closed provider target identifier; provider targets are not arbitrary provider names.'),
   "deliveryMode": zod.enum(['EXPORT', 'INTERNAL_HANDOFF']).optional()
 })
 
@@ -1484,7 +1484,7 @@ export const CreateF10ExportManifestResponse = zod.object({
 }),
   "profile": zod.object({
   "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
-  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
+  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'SLACK', 'LANGSMITH', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
   "target": zod.string(),
   "deliveryMode": zod.enum(['EXPORT', 'INTERNAL_HANDOFF'])
 }),
@@ -1506,8 +1506,8 @@ export const CreateF10ExportManifestResponse = zod.object({
 export const DownloadF10ExportBody = zod.object({
   "sourceArtifactId": zod.string().uuid(),
   "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
-  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
-  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE', 'VS Code', 'Cursor', 'Windsurf', 'JetBrains', 'Replit', 'Visual Studio', 'Xcode', 'Android Studio', 'Eclipse', 'Vim/Neovim', 'Replit Agent', 'Lovable', 'Bolt', 'v0', 'Base44', 'TypeScript/Node', 'Python', 'Java', 'C#', 'C++', 'Go', 'Rust', 'PHP', 'Ruby', 'Swift', 'Kotlin', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB']).describe('Closed provider target identifier; provider targets are not arbitrary provider names.'),
+  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'SLACK', 'LANGSMITH', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
+  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE', 'SLACK_NOTIFICATIONS', 'SLACK_AGENT', 'LANGCHAIN_APP', 'LANGSMITH_DATASET', 'VS Code', 'Cursor', 'Windsurf', 'JetBrains', 'Replit', 'Visual Studio', 'Xcode', 'Android Studio', 'Eclipse', 'Vim/Neovim', 'Replit Agent', 'Lovable', 'Bolt', 'v0', 'Base44', 'TypeScript/Node', 'Python', 'Java', 'C#', 'C++', 'Go', 'Rust', 'PHP', 'Ruby', 'Swift', 'Kotlin', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB']).describe('Closed provider target identifier; provider targets are not arbitrary provider names.'),
   "deliveryMode": zod.enum(['EXPORT', 'INTERNAL_HANDOFF']).optional()
 })
 
@@ -1526,8 +1526,8 @@ export const pushF10ExportToGitHubBodyTwoBranchMax = 255;
 export const PushF10ExportToGitHubBody = zod.object({
   "sourceArtifactId": zod.string().uuid(),
   "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
-  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
-  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE', 'VS Code', 'Cursor', 'Windsurf', 'JetBrains', 'Replit', 'Visual Studio', 'Xcode', 'Android Studio', 'Eclipse', 'Vim/Neovim', 'Replit Agent', 'Lovable', 'Bolt', 'v0', 'Base44', 'TypeScript/Node', 'Python', 'Java', 'C#', 'C++', 'Go', 'Rust', 'PHP', 'Ruby', 'Swift', 'Kotlin', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB']).describe('Closed provider target identifier; provider targets are not arbitrary provider names.'),
+  "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'SLACK', 'LANGSMITH', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
+  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE', 'SLACK_NOTIFICATIONS', 'SLACK_AGENT', 'LANGCHAIN_APP', 'LANGSMITH_DATASET', 'VS Code', 'Cursor', 'Windsurf', 'JetBrains', 'Replit', 'Visual Studio', 'Xcode', 'Android Studio', 'Eclipse', 'Vim/Neovim', 'Replit Agent', 'Lovable', 'Bolt', 'v0', 'Base44', 'TypeScript/Node', 'Python', 'Java', 'C#', 'C++', 'Go', 'Rust', 'PHP', 'Ruby', 'Swift', 'Kotlin', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'GITHUB']).describe('Closed provider target identifier; provider targets are not arbitrary provider names.'),
   "deliveryMode": zod.enum(['EXPORT', 'INTERNAL_HANDOFF']).optional()
 }).and(zod.object({
   "family": zod.enum(['GITHUB']),
@@ -1628,7 +1628,7 @@ export const listF10ProviderConnectionsResponseOneScopesMax = 50;
 
 
 export const ListF10ProviderConnectionsResponseItem = zod.object({
-  "provider": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS']),
+  "provider": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'SLACK', 'LANGCHAIN', 'LANGSMITH']),
   "name": zod.string().min(1).max(listF10ProviderConnectionsResponseOneNameMax),
   "scopes": zod.array(zod.string()).max(listF10ProviderConnectionsResponseOneScopesMax)
 }).and(zod.object({
@@ -1645,12 +1645,16 @@ export const authorizeF10ProviderConnectionBodyReturnToMax = 500;
 
 
 export const AuthorizeF10ProviderConnectionBody = zod.object({
-  "provider": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS']),
+  "provider": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'SLACK', 'LANGCHAIN', 'LANGSMITH']),
   "returnTo": zod.string().max(authorizeF10ProviderConnectionBodyReturnToMax).optional(),
   "connectionId": zod.string().uuid().optional()
 })
 
-export const AuthorizeF10ProviderConnectionResponse = zod.unknown()
+export const AuthorizeF10ProviderConnectionResponse = zod.object({
+  "configured": zod.literal(true),
+  "provider": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'SLACK', 'LANGCHAIN', 'LANGSMITH']),
+  "authorizeUrl": zod.string().url()
+})
 
 
 export const F10ProviderConnectionCallbackQueryParams = zod.object({
@@ -1701,14 +1705,19 @@ export const ListF10BundleDeploymentsResponse = zod.array(ListF10BundleDeploymen
 
 
 
+export const createF10BundleDeploymentBodyTargetConfigFiveWorkspaceIdRegExp = new RegExp('^T[A-Z0-9]{2,}$');
+export const createF10BundleDeploymentBodyTargetConfigFiveChannelIdRegExp = new RegExp('^[CG][A-Z0-9]{2,}$');
+
+
+
 export const createF10BundleDeploymentBodyReleaseIntentMax = 200;
 
 
 
 export const CreateF10BundleDeploymentBody = zod.object({
   "sourceArtifactId": zod.string().uuid(),
-  "provider": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS']),
-  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE']),
+  "provider": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'SLACK', 'LANGCHAIN', 'LANGSMITH']),
+  "target": zod.enum(['AWS_LAMBDA', 'AWS_ECS_FARGATE', 'AWS_S3', 'AZURE_FUNCTIONS', 'AZURE_CONTAINER_APPS', 'AZURE_BLOB_STORAGE', 'OPENAI_AGENTS_SDK', 'GEMINI_ADK', 'GEMINI_VERTEX_AGENT_ENGINE', 'SLACK_NOTIFICATIONS', 'SLACK_AGENT', 'LANGCHAIN_APP', 'LANGSMITH_DATASET']),
   "connectionRef": zod.string().uuid(),
   "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
   "targetConfig": zod.union([zod.object({
@@ -1735,6 +1744,16 @@ export const CreateF10BundleDeploymentBody = zod.object({
   "model": zod.string().min(1),
   "environment": zod.string().min(1),
   "useVertex": zod.enum(['true', 'false']).optional()
+}),zod.object({
+  "workspaceId": zod.string().regex(createF10BundleDeploymentBodyTargetConfigFiveWorkspaceIdRegExp),
+  "channelId": zod.string().regex(createF10BundleDeploymentBodyTargetConfigFiveChannelIdRegExp),
+  "agentEndpoint": zod.string().url().optional().describe('Public HTTPS hosted-agent endpoint; required for SLACK_AGENT. No credentials or query tokens.')
+}),zod.object({
+  "runtimeEndpoint": zod.string().url().describe('Public HTTPS runtime endpoint; credential references are held by the broker.'),
+  "deploymentName": zod.string().min(1)
+}),zod.object({
+  "workspaceId": zod.string().min(1),
+  "datasetName": zod.string().min(1)
 })]).describe('Provider-specific deployment target. Unknown fields are rejected.'),
   "releaseIntent": zod.string().min(1).max(createF10BundleDeploymentBodyReleaseIntentMax)
 })

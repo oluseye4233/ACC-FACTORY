@@ -8,7 +8,7 @@ import { requireAuth } from "../lib/auth";
 import { deterministicIdempotencyKey, retryDelay, validateHttpsDestination, verifyF9Hmac, verifyPrerequisites } from "../lib/f10";
 import { createF10Adapters, createF10CustodyProvider, createF10ProductionStore, envSecretProvider } from "../lib/f10-production";
 import { F10ReleaseService } from "../lib/f10-service";
-import { buildExport, FAMILIES, OUTPUT_KINDS, SOURCE_TYPES, TARGETS, type ExportProfile, type OutputKind, type Family, type OwnedSource } from "../lib/f10-export";
+import { buildExport, FAMILIES, NATIVE_PROVIDERS, OUTPUT_KINDS, SOURCE_TYPES, TARGETS, type ExportProfile, type OutputKind, type Family, type OwnedSource } from "../lib/f10-export";
 import { assertQueuedBundleHash, authorizationKeyringFromEnv, AuthorizationKeyUnavailableError, targetConfigError, createProviderAdapter, openAuthorizationRef, providerBrokerTransport, sealAuthorizationRef, trustedProviderTargetConfig } from "../lib/f10-provider";
 import { reconcileF10BundleDeployment } from "../lib/f10-reconciliation";
 import { decryptApiKey } from "../lib/integration-crypto";
@@ -81,9 +81,9 @@ function readPendingGitHubRefUpdate(value: unknown): PendingGitHubRefUpdate | nu
     result: result as GitHubPushResult,
   };
 }
-const AuthorizeBody = z.object({ provider: z.enum(["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS"]), returnTo: z.string().max(500).optional(), connectionId: z.string().uuid().optional() });
+const AuthorizeBody = z.object({ provider: z.enum(NATIVE_PROVIDERS), returnTo: z.string().max(500).optional(), connectionId: z.string().uuid().optional() });
 const DeploymentBody = z.object({
-  sourceArtifactId: z.string().uuid(), provider: z.enum(["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS"]),
+  sourceArtifactId: z.string().uuid(), provider: z.enum(NATIVE_PROVIDERS),
   target: z.string().min(1).max(80), connectionRef: z.string().uuid(), outputKind: z.enum(OUTPUT_KINDS),
   targetConfig: z.record(z.string(), z.string()).default({}), releaseIntent: z.string().min(1).max(200),
 });
@@ -267,8 +267,8 @@ router.get("/f10/catalog", requireAuth, (_req, res): void => {
        liveMode: ["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS", "GITHUB"].includes(family) ? "USER_AUTHORIZED" : family === "F0" || family === "SPC_PLAYER" ? "INTERNAL_HANDOFF" : "EXPORT",
        fallbackMode: ["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS", "GITHUB"].includes(family) ? "EXPORT" : null,
        deployed: ["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS"].includes(family) && providerBrokerConfigured,
-       configuration: ["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS", "GITHUB"].includes(family) ? "requires authorization through the user's own provider account; credential values are never requested or returned" : "deterministic file export only",
-       targets: family === "AWS" ? TARGETS.AWS : family === "AZURE" ? TARGETS.AZURE : family === "OPENAI_AGENTS" ? TARGETS.OPENAI_AGENTS : family === "GEMINI_AGENTS" ? TARGETS.GEMINI_AGENTS : family === "IDE" ? TARGETS.IDE : family === "VIBE_APP" ? TARGETS.VIBE_APP : family === "PROGRAMMING_ENVIRONMENT" ? TARGETS.PROGRAMMING_ENVIRONMENT : [family],
+       configuration: [...NATIVE_PROVIDERS, "GITHUB"].includes(family) ? "Export/manual handoff available; connected delivery requires authorization through the user's own provider account and a configured broker adapter. Subscription and provider approval are external; credential values are never requested or returned." : "deterministic file export only",
+       targets: family in TARGETS ? TARGETS[family as keyof typeof TARGETS] : [family],
       supportedOutputs: family === "PROGRAMMING_ENVIRONMENT" ? ["CODE_DJ"] : OUTPUT_KINDS,
     })),
     httpsRelease: { separate: true, live: true, mode: "SIGNED_F9_OSIRIS_HTTPS" },

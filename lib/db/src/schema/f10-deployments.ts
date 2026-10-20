@@ -1,7 +1,7 @@
 import { index, integer, jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid, boolean } from "drizzle-orm/pg-core";
 import { usersTable } from "./users";
 
-export const f10Provider = pgEnum("f10_provider", ["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS"]);
+export const f10Provider = pgEnum("f10_provider", ["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS", "SLACK", "LANGCHAIN", "LANGSMITH"]);
 export const f10DeploymentState = pgEnum("f10_deployment_state", ["REQUESTED", "QUEUED", "DISPATCHING", "ACKNOWLEDGED", "BLOCKED", "FAILED_PERMANENT", "DEAD_LETTERED"]);
 export const f10DeploymentAttemptState = pgEnum("f10_deployment_attempt_state", ["CLAIMED", "ACKNOWLEDGED", "RETRYABLE", "PERMANENT", "FENCED"]);
 

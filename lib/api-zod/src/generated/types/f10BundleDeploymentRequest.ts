@@ -11,7 +11,10 @@ import type { F10BundleDeploymentRequestOutputKind } from './f10BundleDeployment
 import type { F10BundleDeploymentRequestProvider } from './f10BundleDeploymentRequestProvider';
 import type { F10BundleDeploymentRequestTarget } from './f10BundleDeploymentRequestTarget';
 import type { F10GeminiTargetConfig } from './f10GeminiTargetConfig';
+import type { F10LangChainTargetConfig } from './f10LangChainTargetConfig';
+import type { F10LangSmithTargetConfig } from './f10LangSmithTargetConfig';
 import type { F10OpenAiTargetConfig } from './f10OpenAiTargetConfig';
+import type { F10SlackTargetConfig } from './f10SlackTargetConfig';
 
 export interface F10BundleDeploymentRequest {
   sourceArtifactId: string;
@@ -20,7 +23,7 @@ export interface F10BundleDeploymentRequest {
   connectionRef: string;
   outputKind: F10BundleDeploymentRequestOutputKind;
   /** Provider-specific deployment target. Unknown fields are rejected. */
-  targetConfig: F10AwsTargetConfig | F10AzureTargetConfig | F10OpenAiTargetConfig | F10GeminiTargetConfig;
+  targetConfig: F10AwsTargetConfig | F10AzureTargetConfig | F10OpenAiTargetConfig | F10GeminiTargetConfig | F10SlackTargetConfig | F10LangChainTargetConfig | F10LangSmithTargetConfig;
   /**
      * @minLength 1
      * @maxLength 200

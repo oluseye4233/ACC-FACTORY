@@ -35,6 +35,7 @@ import {
   type F10ExportInputDeliveryMode,
   type F10ExportManifest,
   type F10GitHubPushResult,
+  type F10BundleDeploymentRequest,
   useListF10ColonizationRuns,
   useCreateF10ColonizationRun,
   useGetF10ColonizationRun,
@@ -97,6 +98,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { TopNav } from "@/components/layout/TopNav";
+import { PROVIDER_CONFIG_FIELDS, PROVIDER_TARGETS, PROVIDER_LABELS, TARGET_LABELS, ProviderOnboarding, ManualHandoffNotice, isFieldRequired, validateProviderConfig, buildTargetConfig, isNativeProvider, type NativeProvider } from "@/components/f10/native-providers";
 
 interface ExtendedF10Release extends F10Release {
   machineArtifactId?: string;
@@ -111,12 +113,6 @@ interface ExtendedF10Release extends F10Release {
   dlq?: any;
 }
 
-const PROVIDER_CONFIG_FIELDS: Record<"AWS" | "AZURE" | "OPENAI_AGENTS" | "GEMINI_AGENTS", Array<{ key: string; label: string; required?: boolean }>> = {
-  AWS: [{ key: "region", label: "Region", required: true }, { key: "resourceName", label: "Resource name", required: true }, { key: "accountId", label: "Account ID" }, { key: "roleArn", label: "Role ARN" }],
-  AZURE: [{ key: "subscriptionId", label: "Subscription ID", required: true }, { key: "resourceGroup", label: "Resource group", required: true }, { key: "location", label: "Location", required: true }, { key: "resourceName", label: "Resource name", required: true }, { key: "tenantId", label: "Tenant ID" }],
-  OPENAI_AGENTS: [{ key: "model", label: "Model", required: true }, { key: "environment", label: "Environment", required: true }, { key: "projectId", label: "Project ID" }, { key: "agentId", label: "Agent ID" }],
-  GEMINI_AGENTS: [{ key: "projectId", label: "Project ID", required: true }, { key: "location", label: "Location", required: true }, { key: "model", label: "Model", required: true }, { key: "environment", label: "Environment", required: true }, { key: "agentId", label: "Agent ID" }, { key: "displayName", label: "Display name" }],
-};
 
 const releaseSchema = z.object({
   machineArtifactId: z.string().min(1, "Machine Artifact ID is required"),
@@ -588,11 +584,12 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
       refetchOnWindowFocus: true,
     },
   });
-  const [provider, setProvider] = useState<"AWS" | "AZURE" | "OPENAI_AGENTS" | "GEMINI_AGENTS">("AWS");
+  const [provider, setProvider] = useState<NativeProvider>("AWS");
   const [providerTarget, setProviderTarget] = useState("AWS_LAMBDA");
   const [deploymentSource, setDeploymentSource] = useState("");
   const [deploymentConnection, setDeploymentConnection] = useState("");
   const [deploymentConfig, setDeploymentConfig] = useState<Record<string, string>>({});
+  const [deploymentConfigErrors, setDeploymentConfigErrors] = useState<Record<string, string>>({});
   const [selectedBundleDeployment, setSelectedBundleDeployment] = useState("");
   const { data: bundleDeploymentDetail } = useGetF10BundleDeployment(selectedBundleDeployment, { query: { enabled: Boolean(selectedBundleDeployment), queryKey: getGetF10BundleDeploymentQueryKey(selectedBundleDeployment) } });
 
@@ -783,22 +780,21 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
     );
   }
 
-  const providerTargets: Record<string, string[]> = {
-    AWS: ["AWS_LAMBDA", "AWS_ECS_FARGATE", "AWS_S3"],
-    AZURE: ["AZURE_FUNCTIONS", "AZURE_CONTAINER_APPS", "AZURE_BLOB_STORAGE"],
-    OPENAI_AGENTS: ["OPENAI_AGENTS_SDK"],
-    GEMINI_AGENTS: ["GEMINI_ADK", "GEMINI_VERTEX_AGENT_ENGINE"],
-  };
+  const providerTargets = PROVIDER_TARGETS;
+  function selectProvider(p: NativeProvider) { setProvider(p); setProviderTarget(PROVIDER_TARGETS[p][0]); setDeploymentConfig({}); setDeploymentConfigErrors({}); setDeploymentConnection(""); }
+  function selectProviderTarget(t: string) { setProviderTarget(t); setDeploymentConfig({}); setDeploymentConfigErrors({}); }
+  const activeProviderConnections = providerConnections.filter(c => c.provider === provider && c.active);
   function handleCreateProviderConnection(connectionId?: string, providerOverride = provider) {
-      authorizeProviderConnection.mutate({ data: { provider: providerOverride, returnTo: sessionId ? `${window.location.origin}/session/${sessionId}` : `${window.location.origin}/f10`, connectionId } }, {
-      onSuccess: (result: any) => { if (result?.authorizeUrl) window.location.assign(result.authorizeUrl); else toast({ title: "Provider unavailable", description: "Use the deterministic export fallback.", variant: "destructive" }); },
+      authorizeProviderConnection.mutate({ data: { provider: providerOverride, returnTo: sessionId ? `/session/${sessionId}` : "/f10", connectionId } }, {
+      onSuccess: (result) => { if (result?.authorizeUrl) window.location.assign(result.authorizeUrl); else toast({ title: "Broker adapter unavailable", description: "No broker adapter is configured for this provider. Use the manual export from Hand-off and continue in your own account.", variant: "destructive" }); },
       onError: (e) => toast({ title: "Connection failed", description: getErrorMessage(e), variant: "destructive" }),
     });
   }
   function handleCreateBundleDeployment() {
-    const missing = PROVIDER_CONFIG_FIELDS[provider].filter(field => field.required && !deploymentConfig[field.key]?.trim());
-    if (missing.length) { toast({ title: "Target configuration incomplete", description: `Enter ${missing.map(field => field.label).join(", ")}.`, variant: "destructive" }); return; }
-    createBundleDeployment.mutate({ data: { sourceArtifactId: deploymentSource, provider, target: providerTarget as any, connectionRef: deploymentConnection, outputKind: (sources.find(source => source.id === deploymentSource)?.outputKind || "SPC") as any, targetConfig: deploymentConfig as any, releaseIntent: `command-centre-${Date.now()}` } }, {
+    const errors = validateProviderConfig(provider, providerTarget, deploymentConfig);
+    setDeploymentConfigErrors(errors);
+    if (Object.keys(errors).length) { toast({ title: "Target configuration incomplete", description: Object.values(errors).join(" "), variant: "destructive" }); return; }
+    createBundleDeployment.mutate({ data: { sourceArtifactId: deploymentSource, provider, target: providerTarget as F10BundleDeploymentRequest["target"], connectionRef: deploymentConnection, outputKind: sources.find(source => source.id === deploymentSource)?.outputKind || "SPC", targetConfig: buildTargetConfig(provider, deploymentConfig) as unknown as F10BundleDeploymentRequest["targetConfig"], releaseIntent: `command-centre-${Date.now()}` } }, {
       onSuccess: (result: any) => { queryClient.invalidateQueries({ queryKey: getListF10BundleDeploymentsQueryKey() }); toast({ title: result?.deployment === false ? "Export fallback ready" : "Deployment queued", description: result?.deployment === false ? "Provider is unconfigured or revoked; no deployment was claimed." : "Provider acceptance and execution are not confirmed." }); },
       onError: (e) => toast({ title: "Deployment failed", description: getErrorMessage(e), variant: "destructive" }),
     });
@@ -1244,26 +1240,47 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
             <Card className="mb-8 border-primary/30 bg-primary/5">
               <CardHeader><CardTitle className="font-display tracking-widest text-lg">NATIVE PROVIDER BUNDLE LANE</CardTitle><CardDescription className="font-mono text-xs">Connect your own provider account. The server creates the bundle; provider acceptance is not proof of execution.</CardDescription></CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-3 md:grid-cols-4">
-                  <select className="h-10 rounded-md border border-input bg-background px-3 font-mono text-xs" value={provider} onChange={e => { const p = e.target.value as typeof provider; setProvider(p); setProviderTarget(providerTargets[p][0]); setDeploymentConfig({}); setDeploymentConnection(""); }}>
-                    {Object.keys(providerTargets).map(p => <option key={p}>{p}</option>)}
-                  </select>
-                  <select className="h-10 rounded-md border border-input bg-background px-3 font-mono text-xs" value={providerTarget} onChange={e => setProviderTarget(e.target.value)}>
-                    {providerTargets[provider].map(t => <option key={t}>{t}</option>)}
-                  </select>
+                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+                  <label className="grid gap-1 font-mono text-[10px] uppercase text-muted-foreground">Provider
+                    <select className="h-10 rounded-md border border-input bg-background px-3 font-mono text-xs normal-case text-foreground" value={provider} onChange={e => { if (isNativeProvider(e.target.value)) selectProvider(e.target.value); }}>
+                      {Object.keys(providerTargets).map(p => <option key={p} value={p}>{PROVIDER_LABELS[p as NativeProvider] ?? p}</option>)}
+                    </select>
+                  </label>
+                  <label className="grid gap-1 font-mono text-[10px] uppercase text-muted-foreground">Target
+                    <select className="h-10 rounded-md border border-input bg-background px-3 font-mono text-xs normal-case text-foreground" value={providerTarget} onChange={e => selectProviderTarget(e.target.value)}>
+                      {providerTargets[provider].map(t => <option key={t} value={t}>{TARGET_LABELS[t] ?? t}</option>)}
+                    </select>
+                  </label>
                 </div>
-                <div className="flex gap-2"><Button type="button" size="sm" onClick={() => handleCreateProviderConnection()} disabled={authorizeProviderConnection.isPending}> {authorizeProviderConnection.isPending ? "Opening authorization..." : "Connect account"} </Button></div>
+                <ManualHandoffNotice provider={provider} onManualExport={() => {
+                  if (deploymentSource) setSelectedSourceId(deploymentSource);
+                  setSelectedFamily(provider);
+                  setSelectedTarget(providerTarget);
+                  setActiveTab("handoff");
+                }} />
+                <ProviderOnboarding provider={provider} target={providerTarget} onConnect={() => handleCreateProviderConnection()} connecting={authorizeProviderConnection.isPending} hasActiveConnection={activeProviderConnections.length > 0} />
+                <div className="flex gap-2"><Button type="button" size="sm" onClick={() => handleCreateProviderConnection()} disabled={authorizeProviderConnection.isPending}> {authorizeProviderConnection.isPending ? "Opening authorization..." : `Connect ${PROVIDER_LABELS[provider]} account`} </Button></div>
                 <div className="grid gap-3 md:grid-cols-3">
-                  <select className="h-10 rounded-md border border-input bg-background px-3 font-mono text-xs" value={deploymentSource} onChange={e => setDeploymentSource(e.target.value)}><option value="">Source artifact</option>{sources.map(s => <option key={s.id} value={s.id}>{s.name || s.id.slice(0, 8)}</option>)}</select>
-                  <select className="h-10 rounded-md border border-input bg-background px-3 font-mono text-xs" value={deploymentConnection} onChange={e => setDeploymentConnection(e.target.value)}><option value="">Authorization connection</option>{providerConnections.filter(c => c.provider === provider && c.active).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+                  <select aria-label="Source artifact" className="h-10 rounded-md border border-input bg-background px-3 font-mono text-xs" value={deploymentSource} onChange={e => setDeploymentSource(e.target.value)}><option value="">Source artifact</option>{sources.map(s => <option key={s.id} value={s.id}>{s.name || s.id.slice(0, 8)}</option>)}</select>
+                  <select aria-label={`${PROVIDER_LABELS[provider]} authorization connection`} className="h-10 rounded-md border border-input bg-background px-3 font-mono text-xs" value={deploymentConnection} onChange={e => setDeploymentConnection(e.target.value)}><option value="">{activeProviderConnections.length ? "Authorization connection" : `No active ${PROVIDER_LABELS[provider]} connection`}</option>{activeProviderConnections.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
                   <Button type="button" onClick={handleCreateBundleDeployment} disabled={createBundleDeployment.isPending || !deploymentSource || !deploymentConnection}>{createBundleDeployment.isPending ? "Generating..." : "Deploy or export fallback"}</Button>
                 </div>
-                <div className="grid gap-3 md:grid-cols-3">
-                  {PROVIDER_CONFIG_FIELDS[provider].map(field => (
-                    <Input key={field.key} aria-label={field.label} placeholder={`${field.label}${field.required ? " *" : ""}`} value={deploymentConfig[field.key] ?? ""} onChange={event => setDeploymentConfig(current => ({ ...current, [field.key]: event.target.value }))} />
-                  ))}
-                </div>
-                <div className="space-y-2">{connectionsLoading ? <p className="font-mono text-xs">Loading connections...</p> : providerConnections.map(c => <div key={c.id} className="flex items-center justify-between border border-border/50 p-2 font-mono text-xs"><span>{c.provider} · {c.name} · {c.active ? "ACTIVE" : "REVOKED"}</span>{c.active ? <Button size="sm" variant="outline" onClick={() => revokeProviderConnection.mutate({ id: c.id }, { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListF10ProviderConnectionsQueryKey() }) })}>Revoke</Button> : <Button size="sm" variant="outline" onClick={() => { setProvider(c.provider as typeof provider); handleCreateProviderConnection(c.id, c.provider as typeof provider); }} disabled={authorizeProviderConnection.isPending}>Reconnect</Button>}</div>)}</div>
+                <fieldset className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                  <legend className="mb-2 font-mono text-[10px] uppercase text-muted-foreground">{TARGET_LABELS[providerTarget] ?? providerTarget} configuration. Never paste tokens or secrets here.</legend>
+                  {PROVIDER_CONFIG_FIELDS[provider].map(field => {
+                    const id = `f10-cfg-${provider}-${field.key}`;
+                    const required = isFieldRequired(field, providerTarget);
+                    const error = deploymentConfigErrors[field.key];
+                    return (
+                      <div key={field.key} className="grid gap-1">
+                        <label htmlFor={id} className="font-mono text-[10px] uppercase text-muted-foreground">{field.label}{required ? " (required)" : " (optional)"}</label>
+                        <Input id={id} type={field.endpoint ? "url" : "text"} inputMode={field.endpoint ? "url" : undefined} autoComplete="off" required={required} aria-invalid={Boolean(error)} aria-describedby={error || field.hint ? `${id}-desc` : undefined} placeholder={field.endpoint ? "https://" : field.label} value={deploymentConfig[field.key] ?? ""} onChange={event => { const v = event.target.value; setDeploymentConfig(current => ({ ...current, [field.key]: v })); if (error) setDeploymentConfigErrors(cur => { const n = { ...cur }; delete n[field.key]; return n; }); }} />
+                        {(error || field.hint) && <p id={`${id}-desc`} className={`font-mono text-[10px] ${error ? "text-destructive" : "text-muted-foreground"}`}>{error || field.hint}</p>}
+                      </div>
+                    );
+                  })}
+                </fieldset>
+                <div className="space-y-2">{connectionsLoading ? <p className="font-mono text-xs">Loading connections...</p> : providerConnections.map(c => <div key={c.id} className="flex items-center justify-between border border-border/50 p-2 font-mono text-xs"><span>{PROVIDER_LABELS[c.provider as NativeProvider] ?? c.provider} · {c.name} · {c.active ? "ACTIVE" : "REVOKED"}</span>{c.active ? <Button size="sm" variant="outline" onClick={() => revokeProviderConnection.mutate({ id: c.id }, { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListF10ProviderConnectionsQueryKey() }) })}>Revoke</Button> : <Button size="sm" variant="outline" onClick={() => { if (isNativeProvider(c.provider) && c.provider !== provider) selectProvider(c.provider); handleCreateProviderConnection(c.id, c.provider as NativeProvider); }} disabled={authorizeProviderConnection.isPending}>Reconnect</Button>}</div>)}</div>
                 <div className="border-t border-border/50 pt-3 space-y-2">
                   <p className="font-mono text-[10px] uppercase text-muted-foreground">Bundle deployment history</p>
                   {deploymentsLoading ? <p className="font-mono text-xs">Loading deployment history...</p> : bundleDeployments.map(d => (

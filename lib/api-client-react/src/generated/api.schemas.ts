@@ -684,6 +684,8 @@ export const F10ExportInputFamily = {
   F0: 'F0',
   SPC_PLAYER: 'SPC_PLAYER',
   LANGCHAIN: 'LANGCHAIN',
+  SLACK: 'SLACK',
+  LANGSMITH: 'LANGSMITH',
   GITHUB: 'GITHUB',
   PROGRAMMING_ENVIRONMENT: 'PROGRAMMING_ENVIRONMENT',
 } as const;
@@ -706,6 +708,10 @@ export const F10ExportInputTarget = {
   OPENAI_AGENTS_SDK: 'OPENAI_AGENTS_SDK',
   GEMINI_ADK: 'GEMINI_ADK',
   GEMINI_VERTEX_AGENT_ENGINE: 'GEMINI_VERTEX_AGENT_ENGINE',
+  SLACK_NOTIFICATIONS: 'SLACK_NOTIFICATIONS',
+  SLACK_AGENT: 'SLACK_AGENT',
+  LANGCHAIN_APP: 'LANGCHAIN_APP',
+  LANGSMITH_DATASET: 'LANGSMITH_DATASET',
   VS_Code: 'VS Code',
   Cursor: 'Cursor',
   Windsurf: 'Windsurf',
@@ -850,6 +856,8 @@ export const F10CatalogFamilyFamily = {
   F0: 'F0',
   SPC_PLAYER: 'SPC_PLAYER',
   LANGCHAIN: 'LANGCHAIN',
+  SLACK: 'SLACK',
+  LANGSMITH: 'LANGSMITH',
   GITHUB: 'GITHUB',
   PROGRAMMING_ENVIRONMENT: 'PROGRAMMING_ENVIRONMENT',
 } as const;
@@ -948,6 +956,8 @@ export const F10ManifestProfileFamily = {
   F0: 'F0',
   SPC_PLAYER: 'SPC_PLAYER',
   LANGCHAIN: 'LANGCHAIN',
+  SLACK: 'SLACK',
+  LANGSMITH: 'LANGSMITH',
   GITHUB: 'GITHUB',
   PROGRAMMING_ENVIRONMENT: 'PROGRAMMING_ENVIRONMENT',
 } as const;
@@ -1032,6 +1042,9 @@ export const F10ProviderConnectionRequestProvider = {
   AZURE: 'AZURE',
   OPENAI_AGENTS: 'OPENAI_AGENTS',
   GEMINI_AGENTS: 'GEMINI_AGENTS',
+  SLACK: 'SLACK',
+  LANGCHAIN: 'LANGCHAIN',
+  LANGSMITH: 'LANGSMITH',
 } as const;
 
 export interface F10ProviderConnectionRequest {
@@ -1053,6 +1066,9 @@ export const F10ProviderAuthorizeRequestProvider = {
   AZURE: 'AZURE',
   OPENAI_AGENTS: 'OPENAI_AGENTS',
   GEMINI_AGENTS: 'GEMINI_AGENTS',
+  SLACK: 'SLACK',
+  LANGCHAIN: 'LANGCHAIN',
+  LANGSMITH: 'LANGSMITH',
 } as const;
 
 export interface F10ProviderAuthorizeRequest {
@@ -1525,6 +1541,9 @@ export const F10BundleDeploymentRequestProvider = {
   AZURE: 'AZURE',
   OPENAI_AGENTS: 'OPENAI_AGENTS',
   GEMINI_AGENTS: 'GEMINI_AGENTS',
+  SLACK: 'SLACK',
+  LANGCHAIN: 'LANGCHAIN',
+  LANGSMITH: 'LANGSMITH',
 } as const;
 
 export type F10BundleDeploymentRequestTarget = typeof F10BundleDeploymentRequestTarget[keyof typeof F10BundleDeploymentRequestTarget];
@@ -1540,6 +1559,10 @@ export const F10BundleDeploymentRequestTarget = {
   OPENAI_AGENTS_SDK: 'OPENAI_AGENTS_SDK',
   GEMINI_ADK: 'GEMINI_ADK',
   GEMINI_VERTEX_AGENT_ENGINE: 'GEMINI_VERTEX_AGENT_ENGINE',
+  SLACK_NOTIFICATIONS: 'SLACK_NOTIFICATIONS',
+  SLACK_AGENT: 'SLACK_AGENT',
+  LANGCHAIN_APP: 'LANGCHAIN_APP',
+  LANGSMITH_DATASET: 'LANGSMITH_DATASET',
 } as const;
 
 export type F10BundleDeploymentRequestOutputKind = typeof F10BundleDeploymentRequestOutputKind[keyof typeof F10BundleDeploymentRequestOutputKind];
@@ -1605,6 +1628,29 @@ export interface F10GeminiTargetConfig {
   useVertex?: F10GeminiTargetConfigUseVertex;
 }
 
+export interface F10SlackTargetConfig {
+  /** @pattern ^T[A-Z0-9]{2,}$ */
+  workspaceId: string;
+  /** @pattern ^[CG][A-Z0-9]{2,}$ */
+  channelId: string;
+  /** Public HTTPS hosted-agent endpoint; required for SLACK_AGENT. No credentials or query tokens. */
+  agentEndpoint?: string;
+}
+
+export interface F10LangChainTargetConfig {
+  /** Public HTTPS runtime endpoint; credential references are held by the broker. */
+  runtimeEndpoint: string;
+  /** @minLength 1 */
+  deploymentName: string;
+}
+
+export interface F10LangSmithTargetConfig {
+  /** @minLength 1 */
+  workspaceId: string;
+  /** @minLength 1 */
+  datasetName: string;
+}
+
 export interface F10BundleDeploymentRequest {
   sourceArtifactId: string;
   provider: F10BundleDeploymentRequestProvider;
@@ -1612,7 +1658,7 @@ export interface F10BundleDeploymentRequest {
   connectionRef: string;
   outputKind: F10BundleDeploymentRequestOutputKind;
   /** Provider-specific deployment target. Unknown fields are rejected. */
-  targetConfig: F10AwsTargetConfig | F10AzureTargetConfig | F10OpenAiTargetConfig | F10GeminiTargetConfig;
+  targetConfig: F10AwsTargetConfig | F10AzureTargetConfig | F10OpenAiTargetConfig | F10GeminiTargetConfig | F10SlackTargetConfig | F10LangChainTargetConfig | F10LangSmithTargetConfig;
   /**
      * @minLength 1
      * @maxLength 200
@@ -5559,6 +5605,25 @@ export const GetShortSprintPreflightProfile = {
   STANDARD: 'STANDARD',
   REGULATED: 'REGULATED',
 } as const;
+
+export type AuthorizeF10ProviderConnection200Provider = typeof AuthorizeF10ProviderConnection200Provider[keyof typeof AuthorizeF10ProviderConnection200Provider];
+
+
+export const AuthorizeF10ProviderConnection200Provider = {
+  AWS: 'AWS',
+  AZURE: 'AZURE',
+  OPENAI_AGENTS: 'OPENAI_AGENTS',
+  GEMINI_AGENTS: 'GEMINI_AGENTS',
+  SLACK: 'SLACK',
+  LANGCHAIN: 'LANGCHAIN',
+  LANGSMITH: 'LANGSMITH',
+} as const;
+
+export type AuthorizeF10ProviderConnection200 = {
+  configured: true;
+  provider: AuthorizeF10ProviderConnection200Provider;
+  authorizeUrl: string;
+};
 
 export type F10ProviderConnectionCallbackParams = {
 state: string;

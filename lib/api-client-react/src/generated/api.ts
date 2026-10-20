@@ -47,6 +47,7 @@ import type {
   AtlasPdd,
   AtlasPddJson,
   AtomicPrompt,
+  AuthorizeF10ProviderConnection200,
   BadgeProgress,
   BoomerangCase,
   BoomerangInput,
@@ -2852,7 +2853,7 @@ export const getAuthorizeF10ProviderConnectionUrl = () => {
   return `/api/f10/connections/authorize`
 }
 
-export const authorizeF10ProviderConnection = async (f10ProviderAuthorizeRequest: F10ProviderAuthorizeRequest, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+export const authorizeF10ProviderConnection = async (f10ProviderAuthorizeRequest: F10ProviderAuthorizeRequest, options?: Parameters<typeof customFetch>[1]): Promise<AuthorizeF10ProviderConnection200> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -2868,7 +2869,7 @@ export const authorizeF10ProviderConnection = async (f10ProviderAuthorizeRequest
     }
     return headers;
   };
-return customFetch<void>(getAuthorizeF10ProviderConnectionUrl(),
+return customFetch<AuthorizeF10ProviderConnection200>(getAuthorizeF10ProviderConnectionUrl(),
   {
     ...options,
     method: 'POST',

@@ -84,3 +84,19 @@ claiming a provider deployment that has not been separately qualified.
 ranking for deterministic plan output; require adapter provenance, capabilities,
 Vault scopes, reversibility, governance, and an explicit execution-lift
 qualification before H4–H8. F10 and CHAT_ONLY must not bypass these gates.
+
+## Subscription-based handoff boundary
+
+Users may use F10 and F11 as a manual handoff to third-party accounts they already
+subscribe to, or sign up externally. Treat that as preparation/delivery, separate
+from automated provider execution and certified promotion.
+
+**Why:** The product owner explicitly authorized subscription-based third-party
+handoff as the activation path, without authorizing subscriptions to substitute
+for release evidence or provider execution qualification.
+
+**How to apply:** Keep signup/account continuation available without a broker.
+Require an owned verified source for hosting-package export, preserve the
+selected source's lineage, and never advance protected stages for a download,
+provider link click or claimed subscription. LangChain itself is a framework;
+do not invent a mandatory paid LangChain subscription.

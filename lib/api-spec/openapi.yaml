@@ -308,7 +308,18 @@ paths:
       operationId: authorizeF10ProviderConnection
       tags: [f10]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/F10ProviderAuthorizeRequest" } } } }
-      responses: { "200": { description: Provider OAuth/broker authorization URL or deterministic fallback } }
+      responses:
+        "200":
+          description: Provider OAuth/broker authorization URL
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [configured, provider, authorizeUrl]
+                properties:
+                  configured: { type: boolean, enum: [true] }
+                  provider: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, SLACK, LANGCHAIN, LANGSMITH] }
+                  authorizeUrl: { type: string, format: uri }
   /f10/connections/callback:
     get:
       operationId: f10ProviderConnectionCallback
@@ -3504,13 +3515,13 @@ components:
       properties:
         sourceArtifactId: { type: string, format: uuid }
         outputKind: { type: string, enum: [SPC, MA, MPDD, PDD, CODE_DJ] }
-        family: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, IDE, VIBE_APP, F0, SPC_PLAYER, LANGCHAIN, GITHUB, PROGRAMMING_ENVIRONMENT] }
+        family: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, IDE, VIBE_APP, F0, SPC_PLAYER, LANGCHAIN, SLACK, LANGSMITH, GITHUB, PROGRAMMING_ENVIRONMENT] }
         target:
           type: string
           minLength: 1
           maxLength: 120
           description: Closed provider target identifier; provider targets are not arbitrary provider names.
-          enum: [AWS_LAMBDA, AWS_ECS_FARGATE, AWS_S3, AZURE_FUNCTIONS, AZURE_CONTAINER_APPS, AZURE_BLOB_STORAGE, OPENAI_AGENTS_SDK, GEMINI_ADK, GEMINI_VERTEX_AGENT_ENGINE, VS Code, Cursor, Windsurf, JetBrains, Replit, Visual Studio, Xcode, Android Studio, Eclipse, Vim/Neovim, Replit Agent, Lovable, Bolt, v0, Base44, TypeScript/Node, Python, Java, C#, C++, Go, Rust, PHP, Ruby, Swift, Kotlin, F0, SPC_PLAYER, LANGCHAIN, GITHUB]
+          enum: [AWS_LAMBDA, AWS_ECS_FARGATE, AWS_S3, AZURE_FUNCTIONS, AZURE_CONTAINER_APPS, AZURE_BLOB_STORAGE, OPENAI_AGENTS_SDK, GEMINI_ADK, GEMINI_VERTEX_AGENT_ENGINE, SLACK_NOTIFICATIONS, SLACK_AGENT, LANGCHAIN_APP, LANGSMITH_DATASET, VS Code, Cursor, Windsurf, JetBrains, Replit, Visual Studio, Xcode, Android Studio, Eclipse, Vim/Neovim, Replit Agent, Lovable, Bolt, v0, Base44, TypeScript/Node, Python, Java, C#, C++, Go, Rust, PHP, Ruby, Swift, Kotlin, F0, SPC_PLAYER, LANGCHAIN, GITHUB]
         deliveryMode: { type: string, enum: [EXPORT, INTERNAL_HANDOFF] }
     F10GitHubPushInput:
       allOf:
@@ -3556,7 +3567,7 @@ components:
       type: object
       required: [family, liveMode, fallbackMode, deployed, configuration, targets, supportedOutputs]
       properties:
-        family: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, IDE, VIBE_APP, F0, SPC_PLAYER, LANGCHAIN, GITHUB, PROGRAMMING_ENVIRONMENT] }
+        family: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, IDE, VIBE_APP, F0, SPC_PLAYER, LANGCHAIN, SLACK, LANGSMITH, GITHUB, PROGRAMMING_ENVIRONMENT] }
         liveMode: { type: string, enum: [EXPORT, INTERNAL_HANDOFF, USER_AUTHORIZED] }
         fallbackMode: { type: ["string", "null"], enum: [EXPORT, null] }
         deployed: { type: boolean }
@@ -3593,7 +3604,7 @@ components:
       required: [outputKind, family, target, deliveryMode]
       properties:
         outputKind: { type: string, enum: [SPC, MA, MPDD, PDD, CODE_DJ] }
-        family: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, IDE, VIBE_APP, F0, SPC_PLAYER, LANGCHAIN, GITHUB, PROGRAMMING_ENVIRONMENT] }
+        family: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, IDE, VIBE_APP, F0, SPC_PLAYER, LANGCHAIN, SLACK, LANGSMITH, GITHUB, PROGRAMMING_ENVIRONMENT] }
         target: { type: string }
         deliveryMode: { type: string, enum: [EXPORT, INTERNAL_HANDOFF] }
     F10ManifestFile:
@@ -3631,7 +3642,7 @@ components:
       additionalProperties: false
       required: [provider, name, scopes]
       properties:
-        provider: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS] }
+        provider: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, SLACK, LANGCHAIN, LANGSMITH] }
         name: { type: string, minLength: 1, maxLength: 120 }
         scopes: { type: array, maxItems: 50, items: { type: string } }
     F10ProviderAuthorizeRequest:
@@ -3639,7 +3650,7 @@ components:
       additionalProperties: false
       required: [provider]
       properties:
-        provider: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS] }
+        provider: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, SLACK, LANGCHAIN, LANGSMITH] }
         returnTo: { type: string, maxLength: 500 }
         connectionId: { type: string, format: uuid }
     F10ProviderConnection:
@@ -3798,8 +3809,8 @@ components:
       required: [sourceArtifactId, provider, target, connectionRef, outputKind, targetConfig, releaseIntent]
       properties:
         sourceArtifactId: { type: string, format: uuid }
-        provider: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS] }
-        target: { type: string, enum: [AWS_LAMBDA, AWS_ECS_FARGATE, AWS_S3, AZURE_FUNCTIONS, AZURE_CONTAINER_APPS, AZURE_BLOB_STORAGE, OPENAI_AGENTS_SDK, GEMINI_ADK, GEMINI_VERTEX_AGENT_ENGINE] }
+        provider: { type: string, enum: [AWS, AZURE, OPENAI_AGENTS, GEMINI_AGENTS, SLACK, LANGCHAIN, LANGSMITH] }
+        target: { type: string, enum: [AWS_LAMBDA, AWS_ECS_FARGATE, AWS_S3, AZURE_FUNCTIONS, AZURE_CONTAINER_APPS, AZURE_BLOB_STORAGE, OPENAI_AGENTS_SDK, GEMINI_ADK, GEMINI_VERTEX_AGENT_ENGINE, SLACK_NOTIFICATIONS, SLACK_AGENT, LANGCHAIN_APP, LANGSMITH_DATASET] }
         connectionRef: { type: string, format: uuid }
         outputKind: { type: string, enum: [SPC, MA, MPDD, PDD, CODE_DJ] }
         targetConfig:
@@ -3809,7 +3820,32 @@ components:
             - $ref: "#/components/schemas/F10AzureTargetConfig"
             - $ref: "#/components/schemas/F10OpenAiTargetConfig"
             - $ref: "#/components/schemas/F10GeminiTargetConfig"
+            - $ref: "#/components/schemas/F10SlackTargetConfig"
+            - $ref: "#/components/schemas/F10LangChainTargetConfig"
+            - $ref: "#/components/schemas/F10LangSmithTargetConfig"
         releaseIntent: { type: string, minLength: 1, maxLength: 200 }
+    F10SlackTargetConfig:
+      type: object
+      additionalProperties: false
+      required: [workspaceId, channelId]
+      properties:
+        workspaceId: { type: string, pattern: "^T[A-Z0-9]{2,}$" }
+        channelId: { type: string, pattern: "^[CG][A-Z0-9]{2,}$" }
+        agentEndpoint: { type: string, format: uri, description: Public HTTPS hosted-agent endpoint; required for SLACK_AGENT. No credentials or query tokens. }
+    F10LangChainTargetConfig:
+      type: object
+      additionalProperties: false
+      required: [runtimeEndpoint, deploymentName]
+      properties:
+        runtimeEndpoint: { type: string, format: uri, description: Public HTTPS runtime endpoint; credential references are held by the broker. }
+        deploymentName: { type: string, minLength: 1 }
+    F10LangSmithTargetConfig:
+      type: object
+      additionalProperties: false
+      required: [workspaceId, datasetName]
+      properties:
+        workspaceId: { type: string, minLength: 1 }
+        datasetName: { type: string, minLength: 1 }
     F10AwsTargetConfig:
       type: object
       additionalProperties: false

@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 
 export const SOURCE_TYPES = ["SPC", "MA_BIRTH_PACKAGE", "MICRO_PDD", "ATLAS_PDD", "ATLAS_PDD_JSON", "MVP_PDD", "CODEBASE_BUNDLE", "VERIFIED_CODEBASE_BUNDLE"] as const;
 export type SourceType = (typeof SOURCE_TYPES)[number];
-export const FAMILIES = ["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS", "IDE", "VIBE_APP", "F0", "SPC_PLAYER", "LANGCHAIN", "GITHUB", "PROGRAMMING_ENVIRONMENT"] as const;
+export const FAMILIES = ["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS", "IDE", "VIBE_APP", "F0", "SPC_PLAYER", "LANGCHAIN", "SLACK", "LANGSMITH", "GITHUB", "PROGRAMMING_ENVIRONMENT"] as const;
+export const NATIVE_PROVIDERS = ["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS", "SLACK", "LANGCHAIN", "LANGSMITH"] as const;
 export type Family = (typeof FAMILIES)[number];
 export const TARGETS = {
   // Provider targets are deliberately closed sets.  A provider name is not a
@@ -12,6 +13,9 @@ export const TARGETS = {
   AZURE: ["AZURE_FUNCTIONS", "AZURE_CONTAINER_APPS", "AZURE_BLOB_STORAGE"] as const,
   OPENAI_AGENTS: ["OPENAI_AGENTS_SDK"] as const,
   GEMINI_AGENTS: ["GEMINI_ADK", "GEMINI_VERTEX_AGENT_ENGINE"] as const,
+  SLACK: ["SLACK_NOTIFICATIONS", "SLACK_AGENT"] as const,
+  LANGCHAIN: ["LANGCHAIN", "LANGCHAIN_APP"] as const,
+  LANGSMITH: ["LANGSMITH_DATASET"] as const,
   IDE: ["VS Code", "Cursor", "Windsurf", "JetBrains", "Replit", "Visual Studio", "Xcode", "Android Studio", "Eclipse", "Vim/Neovim"],
   VIBE_APP: ["Replit Agent", "Lovable", "Bolt", "v0", "Base44"],
   PROGRAMMING_ENVIRONMENT: ["TypeScript/Node", "Python", "Java", "C#", "C++", "Go", "Rust", "PHP", "Ruby", "Swift", "Kotlin"],
@@ -37,6 +41,9 @@ export function validateProfile(profile: ExportProfile): string | undefined {
   if (profile.family === "AZURE" && !TARGETS.AZURE.includes(profile.target as never)) return "invalid Azure target";
   if (profile.family === "OPENAI_AGENTS" && !TARGETS.OPENAI_AGENTS.includes(profile.target as never)) return "invalid OpenAI Agents target";
   if (profile.family === "GEMINI_AGENTS" && !TARGETS.GEMINI_AGENTS.includes(profile.target as never)) return "invalid Gemini Agents target";
+  if (profile.family === "SLACK" && !TARGETS.SLACK.includes(profile.target as never)) return "invalid Slack target";
+  if (profile.family === "LANGCHAIN" && !TARGETS.LANGCHAIN.includes(profile.target as never)) return "invalid LangChain target";
+  if (profile.family === "LANGSMITH" && !TARGETS.LANGSMITH.includes(profile.target as never)) return "invalid LangSmith target";
   if (profile.family === "IDE" && !TARGETS.IDE.includes(profile.target as never)) return "invalid IDE target";
   if (profile.family === "VIBE_APP" && !TARGETS.VIBE_APP.includes(profile.target as never)) return "invalid vibe app target";
   if (profile.family === "PROGRAMMING_ENVIRONMENT" && !TARGETS.PROGRAMMING_ENVIRONMENT.includes(profile.target as never)) return "invalid programming environment target";
@@ -91,6 +98,8 @@ export function buildExport(source: OwnedSource, profile: ExportProfile): Export
     OPENAI_AGENTS: ["handoff/openai-agents.md", "# OpenAI Agents native bundle\n\nThis bundle contains agent definitions only. Use your own authorized OpenAI project connection and review before registering an agent. This export does not call OpenAI or prove agent execution.\n"],
     GEMINI_AGENTS: ["handoff/gemini-agents.md", `# Gemini native bundle (${profile.target})\n\nThis bundle contains agent definitions only. Use your own authorized Google Cloud connection and review before registering an agent. This export does not call Gemini or prove agent execution.\n`],
     LANGCHAIN: ["handoff/langchain.md", "# LangChain handoff\n\nInstall dependencies in your own environment and provide provider credentials locally:\n\n    npm install langchain\n"],
+    SLACK: ["handoff/slack.md", "# Slack delivery\n\nAuthorize your own workspace through the configured broker. SLACK_NOTIFICATIONS posts a source-bound release update; SLACK_AGENT registers an entry point to an already hosted, reviewed agent. An export does neither. Tokens and signing secrets stay in the broker. Slack workspace/app approval and the required scopes are separate from any paid subscription.\n"],
+    LANGSMITH: ["handoff/langsmith.md", "# LangSmith dataset delivery\n\nAuthorize your own LangSmith workspace through the configured broker. Review before publishing the selected artifact as an evaluation dataset example. Publication does not execute an evaluation, establish tracing, or certify the artifact. LangSmith subscriptions and limits are managed by LangSmith.\n"],
     GITHUB: ["handoff/github.md", "# GitHub handoff\n\nAuthorize with your own GitHub account, then review and push explicitly:\n\n    gh auth login\n    gh repo create <OWNER>/<REPO>\n    git push origin <BRANCH>\n\nNo repository is created by this export.\n"],
     IDE: ["handoff/ide.md", `# ${profile.target} handoff\n\nOpen this folder in your own ${profile.target} installation. No IDE session is started by this export.\n`],
     VIBE_APP: ["handoff/vibe-app.md", `# ${profile.target} handoff\n\nImport these reviewed files into your own ${profile.target} workspace. Follow that product's user authorization flow; this export does not upload content.\n`],
@@ -100,7 +109,7 @@ export function buildExport(source: OwnedSource, profile: ExportProfile): Export
   };
   const [starterPath, starterContent] = starters[profile.family];
   add(starterPath, Buffer.from(starterContent), "profile-instructions", "text/markdown");
-  if (["AWS", "AZURE", "OPENAI_AGENTS", "GEMINI_AGENTS"].includes(profile.family)) {
+  if (NATIVE_PROVIDERS.includes(profile.family as typeof NATIVE_PROVIDERS[number])) {
     add("deployment/provider-target.json", json({
       schemaVersion: "f10-provider-target-v1",
       provider: profile.family,
@@ -109,6 +118,31 @@ export function buildExport(source: OwnedSource, profile: ExportProfile): Export
       execution: "NOT_PERFORMED",
       acceptance: "Bundle generated; provider acceptance and execution must be confirmed by the provider.",
     }), "provider-target", "application/json");
+  }
+  if (["SLACK", "LANGCHAIN", "LANGSMITH"].includes(profile.family)) {
+    add("integration/contract.json", json({
+      schemaVersion: "f10-collaboration-v1", provider: profile.family, target: profile.target,
+      source: sourceMeta,
+      operation: profile.target === "SLACK_NOTIFICATIONS" ? "POST_RELEASE_UPDATE" :
+        profile.target === "SLACK_AGENT" ? "REGISTER_HOSTED_AGENT_ENTRYPOINT" :
+        profile.family === "LANGSMITH" ? "PUBLISH_EVALUATION_DATASET_EXAMPLE" : "IMPORT_REVIEWED_ARTIFACT",
+      authorization: "USER_OWNED_REFERENCE",
+      requiresConfiguredBrokerAdapter: true,
+      automaticExecution: false,
+      qualification: "Delivery completion is not agent execution, an evaluation result, or release clearance.",
+    }), "integration-contract", "application/json");
+    if (profile.target === "SLACK_NOTIFICATIONS") {
+      add("integration/slack-message.json", json({
+        text: `F10 artifact ready for review: ${(source.name || source.id).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")} (${profile.outputKind}). Source ${source.id}; SHA-256 ${sourceMeta.contentSha256}. Delivery is not proof of execution or certification.`,
+        mrkdwn: false, parse: "none", link_names: false, unfurl_links: false, unfurl_media: false,
+      }), "notification", "application/json");
+    }
+    if (profile.family === "LANGSMITH") {
+      add("integration/langsmith-example.json", json({
+        inputs: { artifact: source.content },
+        metadata: { source_artifact_id: source.id, content_sha256: sourceMeta.contentSha256, output_kind: profile.outputKind },
+      }), "evaluation-example", "application/json");
+    }
   }
   add(".env.example", Buffer.from("# Configuration names only; supply values in your destination\nF10_TARGET=\nF10_SOURCE_ID=\n"), "configuration", "text/plain");
   const manifest = { ...manifestBase, files: files.map(({ content: _content, ...f }) => f), bundleSha256: "" };
