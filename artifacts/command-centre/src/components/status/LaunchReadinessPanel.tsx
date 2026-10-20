@@ -19,9 +19,9 @@ function fmt(ts: string | null) {
 
 function Row({ label, value, tone }: { label: string; value: string; tone: ReadinessTone }) {
   return (
-    <div className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-wider">
-      <span className="text-muted-foreground">{label}</span>
-      <span className={`rounded border px-1.5 py-0.5 font-bold ${toneClass[tone]}`}>{value}</span>
+    <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-wider">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className={`min-w-0 max-w-full break-words rounded border px-1.5 py-0.5 font-bold ${toneClass[tone]}`}>{value}</dd>
     </div>
   );
 }
@@ -41,12 +41,14 @@ export function LaunchReadinessPanel({ compact = false }: { compact?: boolean })
   const dbDown = !q.isError && q.data?.database === "unavailable";
 
   return (
-    <div className="space-y-3" data-testid="launch-readiness">
-      <div className="flex items-center justify-between gap-2">
+    <div className="space-y-3" role="region" aria-label="Database and AI dependency status"
+      aria-busy={q.isFetching} data-testid="launch-readiness">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span
-          className={`rounded border px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wider ${toneClass[overallTone]}`}
+          className={`min-w-0 max-w-full break-words rounded border px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wider ${toneClass[overallTone]}`}
           role="status"
           aria-live="polite"
+          aria-atomic="true"
           data-testid="launch-readiness-overall"
         >
           {v.overallLabel}
@@ -64,25 +66,25 @@ export function LaunchReadinessPanel({ compact = false }: { compact?: boolean })
       </div>
 
       {q.isError && (
-        <p className="rounded border border-yellow-500/30 bg-yellow-500/5 px-3 py-2 font-mono text-[10px] text-yellow-500" data-testid="launch-readiness-fetch-error">
+        <p role="alert" className="rounded border border-yellow-500/30 bg-yellow-500/5 px-3 py-2 font-mono text-[10px] text-yellow-500" data-testid="launch-readiness-fetch-error">
           The status check could not be reached. Dependency state is unknown, not confirmed down. Retrying every 30 seconds.
         </p>
       )}
 
-      <div className="space-y-2">
+      <dl className="space-y-2">
         <Row label="Database" value={v.database.label} tone={v.database.tone} />
         <Row label="AI provider key" value={v.ai.label} tone={v.ai.tone} />
-      </div>
+      </dl>
 
       {dbDown && (
-        <p className="rounded border border-destructive/30 bg-destructive/5 px-3 py-2 font-mono text-[10px] text-destructive" data-testid="launch-readiness-db-down">
+        <p role="alert" className="rounded border border-destructive/30 bg-destructive/5 px-3 py-2 font-mono text-[10px] text-destructive" data-testid="launch-readiness-db-down">
           The database is unavailable. An operator must restore it; there is nothing visitors need to enter or do. Never share credentials to fix this.
         </p>
       )}
 
-      {v.message && !compact && <p className="text-xs text-muted-foreground">{v.message}</p>}
+      {v.message && !compact && <p className="break-words text-xs text-muted-foreground">{v.message}</p>}
 
-      <p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+      <p className="break-words font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
         {v.checkedAt ? `Checked ${fmt(v.checkedAt)}` : "No current check result"} · auto-refresh 30s
       </p>
 
@@ -93,7 +95,7 @@ export function LaunchReadinessPanel({ compact = false }: { compact?: boolean })
             {v.deferred.map((d) => (
               <li key={d} className="flex items-start gap-2 text-xs text-muted-foreground">
                 <span className="mt-0.5 rounded border border-border px-1 font-mono text-[9px] uppercase">Deferred</span>
-                <span>{d}</span>
+                <span className="min-w-0 break-words">{d}</span>
               </li>
             ))}
           </ul>

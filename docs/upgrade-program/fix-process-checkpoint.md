@@ -555,3 +555,38 @@ See `dependency-advisories.md` for checked versions and scope. No application,
 dependency or security changes were made in this review. Checklist progress
 remains **7/10 (70%)**. The separately queued signed-in verification and Quest
 evidence-form work were not duplicated.
+
+## Public dependency-status accessibility and narrow-screen pass
+
+- The dependency panel is a named region with busy state. Overall status is
+  announced atomically, request failures and confirmed database outages are
+  explicit alerts, and dependency labels/values use definition-list semantics.
+- Status controls and rows wrap on narrow screens; long messages, timestamps
+  and deferred requirements can break rather than force horizontal overflow.
+- Readiness meaning remains unchanged: an unreachable check is unknown, not a
+  confirmed outage, and dependency readiness is not feature/certification
+  readiness. No credentials, scheduler configuration or database roles changed.
+- Six new component cases plus four existing readiness-view tests passed.
+  Frontend typecheck and production build passed, and the managed full-workspace
+  typecheck also finished successfully. The separate full test workflow was
+  still running; its final outcome is not claimed here.
+- A full-page 320px public `/status` screenshot shows wrapped controls and
+  deferred requirements without visible horizontal clipping. Managed web/API
+  services are running and API health returns 200.
+- The wider platform accessibility audit is still **in progress**, not complete:
+  this public-panel check is not a site-wide audit or real screen-reader/device
+  certification. The original equal-weight checklist stays **7/10 (70%)**.
+
+### Remaining closure criteria
+
+1. Dependency advisories: a compatible patched release or separately reviewed
+   replacement is required; existing reachability tests alone cannot close this.
+2. Signed-in journey verification: complete the separately queued authorized
+   browser pass for Quest, Player, Boomerang and preparation.
+3. Wider accessibility/responsive audit: verify remaining routes and interaction
+   states across narrow/desktop viewports and keyboard/screen-reader use; record
+   route-specific gaps rather than marking the whole audit done from one panel.
+
+The separately queued Quest evidence-form work has not been duplicated. The
+three remaining checklist criteria and that queued implementation mean this is
+not the last fix and not a declaration of production readiness.
