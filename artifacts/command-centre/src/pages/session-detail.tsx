@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useParams, Link } from "wouter";
 import { BoomerangPanel } from "@/components/boomerang";
@@ -27,21 +27,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { ArrowLeft, AlertTriangle, ListOrdered, FileCheck2 } from "lucide-react";
-import { F1TestPrompt } from "@/components/workspaces/F1TestPrompt";
-import { F2BuildAtomic } from "@/components/workspaces/F2BuildAtomic";
-import { F3BuildMa } from "@/components/workspaces/F3BuildMa";
-import { F4MicroPdd } from "@/components/workspaces/F4MicroPdd";
-import { F5BuildSpc } from "@/components/workspaces/F5BuildSpc";
-import { F6DraftPdd } from "@/components/workspaces/F6DraftPdd";
-import { F7ConvertMvp } from "@/components/workspaces/F7ConvertMvp";
-import { F6VdjBuild } from "@/components/workspaces/F6VdjBuild";
-import { F8CodeDj } from "@/components/workspaces/F8CodeDj";
-import { MathmonLayer } from "@/components/workspaces/MathmonLayer";
-import { F9MachineFloor } from "@/components/workspaces/F9MachineFloor";
-import F10Console from "@/pages/f10";
-import { F11HostConnector } from "@/components/workspaces/F11HostConnector";
 import { ProviderSelector } from "@/components/shared/ProviderSelector";
 import { SessionOrgVisibility } from "@/components/shared/SessionOrgVisibility";
+
+// Keep the cockpit mounted while only the selected stage's interface loads.
+// Selection and artifact gates below remain the authority for rendering.
+const F1TestPrompt = lazy(() => import("@/components/workspaces/F1TestPrompt").then(m => ({ default: m.F1TestPrompt })));
+const F2BuildAtomic = lazy(() => import("@/components/workspaces/F2BuildAtomic").then(m => ({ default: m.F2BuildAtomic })));
+const F3BuildMa = lazy(() => import("@/components/workspaces/F3BuildMa").then(m => ({ default: m.F3BuildMa })));
+const F4MicroPdd = lazy(() => import("@/components/workspaces/F4MicroPdd").then(m => ({ default: m.F4MicroPdd })));
+const F5BuildSpc = lazy(() => import("@/components/workspaces/F5BuildSpc").then(m => ({ default: m.F5BuildSpc })));
+const F6DraftPdd = lazy(() => import("@/components/workspaces/F6DraftPdd").then(m => ({ default: m.F6DraftPdd })));
+const F7ConvertMvp = lazy(() => import("@/components/workspaces/F7ConvertMvp").then(m => ({ default: m.F7ConvertMvp })));
+const F6VdjBuild = lazy(() => import("@/components/workspaces/F6VdjBuild").then(m => ({ default: m.F6VdjBuild })));
+const F8CodeDj = lazy(() => import("@/components/workspaces/F8CodeDj").then(m => ({ default: m.F8CodeDj })));
+const MathmonLayer = lazy(() => import("@/components/workspaces/MathmonLayer").then(m => ({ default: m.MathmonLayer })));
+const F9MachineFloor = lazy(() => import("@/components/workspaces/F9MachineFloor").then(m => ({ default: m.F9MachineFloor })));
+const F10Console = lazy(() => import("@/pages/f10"));
+const F11HostConnector = lazy(() => import("@/components/workspaces/F11HostConnector").then(m => ({ default: m.F11HostConnector })));
 
 export default function SessionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -412,7 +415,7 @@ export default function SessionDetail() {
               </div>
             ))}
           {id && (
-            <>
+            <Suspense fallback={<p role="status" aria-live="polite" className="p-6 text-sm text-muted-foreground">Loading stage workspace…</p>}>
               {activeEngineId === 1 && <F1TestPrompt sessionId={id} artifacts={artifacts || []} />}
               {activeEngineId === 2 && <F2BuildAtomic sessionId={id} artifacts={artifacts || []} />}
               {activeEngineId === 3 && <F3BuildMa sessionId={id} artifacts={artifacts || []} />}
@@ -438,7 +441,7 @@ export default function SessionDetail() {
               {activeEngineId === 13 && getFeatureStatus(13) !== FeatureStatus.LOCKED && (
                 <F11HostConnector sessionId={id} artifacts={artifacts || []} />
               )}
-            </>
+            </Suspense>
           )}
         </div>
       </CockpitShell>

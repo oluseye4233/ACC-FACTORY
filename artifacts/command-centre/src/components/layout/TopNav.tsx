@@ -49,7 +49,14 @@ export function TopNav() {
   const logout = useLogout();
 
   const allowedStudentLinks = new Set(["/learn", "/guide", "/sessions", "/ascension", "/quests", "/boomerang", "/spc-player", "/ingest", "/cartridge", "/f0"]);
-  const links = session.student ? STAFF_LINKS.filter((l) => allowedStudentLinks.has(l.href)) :
+  const authenticated = session.authenticated;
+  const staff = authenticated && !session.student;
+  const links = !authenticated
+    ? [
+        { href: "/verify", label: "Verify a certificate" },
+        { href: "/status", label: "Service status" },
+      ]
+    : session.student ? STAFF_LINKS.filter((l) => allowedStudentLinks.has(l.href)) :
     session.role === "ADMIN"
       ? [
           ...STAFF_LINKS,
@@ -96,7 +103,7 @@ export function TopNav() {
 
         <div className="flex items-center gap-3 shrink-0">
           <ThemeToggle />
-          {!session.student && <CompanySpendMeter />}
+          {staff && <CompanySpendMeter />}
           {session.name ? (
             <span
               className="hidden sm:inline-block max-w-40 truncate font-mono text-xs uppercase tracking-wider text-muted-foreground"
@@ -106,7 +113,7 @@ export function TopNav() {
               {session.name}
             </span>
           ) : null}
-          {session.student ? <StudentSignOut /> : <Button
+          {authenticated && session.student ? <StudentSignOut /> : staff ? <Button
             variant="ghost"
             size="sm"
             onClick={signOut}
@@ -114,6 +121,8 @@ export function TopNav() {
             data-testid="button-logout"
           >
             LOG OUT
+          </Button> : <Button asChild variant="outline" size="sm">
+            <Link href="/" data-testid="link-staff-sign-in">Staff sign-in</Link>
           </Button>}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
@@ -149,13 +158,13 @@ export function TopNav() {
                     {l.label}
                   </Link>
                 ))}
-                {session.student ? <StudentSignOut /> : <Button
+                {authenticated && session.student ? <StudentSignOut /> : staff ? <Button
                   variant="ghost"
                   onClick={signOut}
                   className="mt-6 justify-start font-mono text-sm text-muted-foreground"
                 >
                   LOG OUT
-                </Button>}
+                </Button> : null}
               </nav>
             </SheetContent>
           </Sheet>
@@ -176,7 +185,7 @@ export function TopNav() {
           </Link>
         ))}
       </nav>
-      {!session.student && <CompanySpendBanner />}
+      {staff && <CompanySpendBanner />}
     </header>
   );
 }

@@ -165,20 +165,20 @@ const gotoStage = (navName: string) =>
   fireEvent.click(screen.getByTestId(`feature-nav-${navName}`));
 
 describe("SessionDetail — F0 advisory placement", () => {
-  it("shows the advisory nudge before F1 by default", () => {
+  it("shows the advisory nudge before F1 by default", async () => {
     render(<SessionDetail />);
     expect(screen.getByTestId(PROMPT)).toBeTruthy();
-    expect(screen.getByTestId("workspace-F1TestPrompt")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F1TestPrompt")).toBeTruthy();
   });
 
-  it("shows the advisory nudge after F7 (certified)", () => {
+  it("shows the advisory nudge after F7 (certified)", async () => {
     render(<SessionDetail />);
     gotoStage("f7");
     expect(screen.getByTestId(PROMPT)).toBeTruthy();
-    expect(screen.getByTestId("workspace-F7ConvertMvp")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F7ConvertMvp")).toBeTruthy();
   });
 
-  it("shows the advisory nudge after F8 / CODE ORACLE (engine 9)", () => {
+  it("shows the advisory nudge after F8 / CODE ORACLE (engine 9)", async () => {
     useListSessionArtifactsMock.mockReturnValue({
       data: [{ artifactType: "MVP_PDD", spartanCert: { certId: "cert-1" } }],
       isLoading: false,
@@ -186,7 +186,7 @@ describe("SessionDetail — F0 advisory placement", () => {
     render(<SessionDetail />);
     gotoStage("f8");
     expect(screen.getByTestId(PROMPT)).toBeTruthy();
-    expect(screen.getByTestId("workspace-F8CodeDj")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F8CodeDj")).toBeTruthy();
   });
 
   it.each([
@@ -199,10 +199,10 @@ describe("SessionDetail — F0 advisory placement", () => {
     ["mm", "MathmonLayer"],
   ])(
     "does NOT show the advisory nudge at the %s stage",
-    (navName, workspace) => {
+    async (navName, workspace) => {
       render(<SessionDetail />);
       gotoStage(navName);
-      expect(screen.getByTestId(`workspace-${workspace}`)).toBeTruthy();
+      expect(await screen.findByTestId(`workspace-${workspace}`)).toBeTruthy();
       expect(screen.queryByTestId(PROMPT)).toBeNull();
     },
   );
@@ -244,11 +244,11 @@ describe("SessionDetail — F0 advisory placement", () => {
     expect(link.getAttribute("href")).toBe("/f0");
   });
 
-  it("does not render the nudge before F1 once its dismissal is persisted", () => {
+  it("does not render the nudge before F1 once its dismissal is persisted", async () => {
     localStorage.setItem("f0-advisory-dismissed:session-1:pre-f1", "1");
     render(<SessionDetail />);
     expect(screen.queryByTestId(PROMPT)).toBeNull();
-    expect(screen.getByTestId("workspace-F1TestPrompt")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F1TestPrompt")).toBeTruthy();
   });
 });
 
@@ -259,7 +259,7 @@ const setFeatureStates = (states: Array<{ featureId: number; status: string }>) 
 };
 
 describe("SessionDetail — locked-stage navigation gate", () => {
-  it("keeps a LOCKED stage inert when its nav item is clicked", () => {
+  it("keeps a LOCKED stage inert when its nav item is clicked", async () => {
     // F1 available (active by default); F5 locked, everything else available.
     setFeatureStates(
       [1, 2, 3, 4, 5, 6, 7].map((id) => ({
@@ -270,7 +270,7 @@ describe("SessionDetail — locked-stage navigation gate", () => {
     render(<SessionDetail />);
 
     // Sanity: we start on F1.
-    expect(screen.getByTestId("workspace-F1TestPrompt")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F1TestPrompt")).toBeTruthy();
 
     // The locked stage's nav button is disabled...
     const lockedNav = screen.getByTestId("feature-nav-f5") as HTMLButtonElement;
@@ -279,10 +279,10 @@ describe("SessionDetail — locked-stage navigation gate", () => {
     // ...and clicking it does not switch the workspace to F5.
     gotoStage("f5");
     expect(screen.queryByTestId("workspace-F5BuildSpc")).toBeNull();
-    expect(screen.getByTestId("workspace-F1TestPrompt")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F1TestPrompt")).toBeTruthy();
   });
 
-  it("does not switch away from the active stage when a locked stage is clicked", () => {
+  it("does not switch away from the active stage when a locked stage is clicked", async () => {
     // F1 & F2 complete, F3 active target, F4+ locked.
     setFeatureStates([
       { featureId: 1, status: "COMPLETE" },
@@ -297,12 +297,12 @@ describe("SessionDetail — locked-stage navigation gate", () => {
 
     // Move to the available F3 stage.
     gotoStage("f3");
-    expect(screen.getByTestId("workspace-F3BuildMa")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F3BuildMa")).toBeTruthy();
 
     // Clicking the locked F4 leaves us on F3.
     gotoStage("f4");
     expect(screen.queryByTestId("workspace-F4MicroPdd")).toBeNull();
-    expect(screen.getByTestId("workspace-F3BuildMa")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F3BuildMa")).toBeTruthy();
   });
 });
 
@@ -368,7 +368,7 @@ describe("SessionDetail — side-step engines stay navigable", () => {
     ["mm", "MathmonLayer"],
   ])(
     "navigates to %s regardless of feature_states",
-    (navName, workspace) => {
+    async (navName, workspace) => {
       // Every linear stage locked — the side-steps must still be reachable.
       setFeatureStates(
         [1, 2, 3, 4, 5, 6, 7].map((id) => ({ featureId: id, status: "LOCKED" })),
@@ -379,18 +379,18 @@ describe("SessionDetail — side-step engines stay navigable", () => {
       expect(nav.disabled).toBe(false);
 
       gotoStage(navName);
-      expect(screen.getByTestId(`workspace-${workspace}`)).toBeTruthy();
+      expect(await screen.findByTestId(`workspace-${workspace}`)).toBeTruthy();
     },
   );
 
-  it("keeps F6-VDJ and Mathmon navigable even with no feature_states at all", () => {
+  it("keeps F6-VDJ and Mathmon navigable even with no feature_states at all", async () => {
     useListFeatureStateMock.mockReturnValue({ data: [], isLoading: false });
     render(<SessionDetail />);
 
     gotoStage("f6-vdj");
-    expect(screen.getByTestId("workspace-F6VdjBuild")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F6VdjBuild")).toBeTruthy();
     gotoStage("mm");
-    expect(screen.getByTestId("workspace-MathmonLayer")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-MathmonLayer")).toBeTruthy();
   });
 
   it("locks F8 until a SPARTAN-certified MVP PDD exists", () => {
@@ -431,11 +431,11 @@ describe("SessionDetail — side-step engines stay navigable", () => {
     });
     expect((screen.getByTestId("feature-nav-f11") as HTMLButtonElement).disabled).toBe(false);
     gotoStage("f9");
-    expect(screen.getByTestId("workspace-F9MachineFloor")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F9MachineFloor")).toBeTruthy();
     gotoStage("f10");
-    expect(screen.getByTestId("workspace-F10Console")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F10Console")).toBeTruthy();
     gotoStage("f11");
-    expect(screen.getByTestId("workspace-F11HostConnector")).toBeTruthy();
+    expect(await screen.findByTestId("workspace-F11HostConnector")).toBeTruthy();
   });
 
   it("routes a Software bundle directly to F10 and F11 while skipping F9", async () => {

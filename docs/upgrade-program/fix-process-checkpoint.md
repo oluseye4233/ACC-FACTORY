@@ -264,3 +264,46 @@ and deferred feature extensions. This checkpoint does not claim those are done.
   limits and tooling were not weakened to hide them.
 - Deployment startup/security settings, entitlements, Quest rules and production
   were not changed.
+
+## Public verification header and stage-by-stage loading
+
+BUGMXT logic/outcome and execution-assurance guidance, plus CODE DJ
+dependency-order/fidelity guidance, were applied as analyst checklists.
+This is not a claim that an SPC engine ran, issued a certificate, or independently
+approved the platform.
+
+### Public certificate verification — resolved in development
+
+- Root cause: the shared header treated "not a student" as sufficient to mount
+  staff spending components and logout controls, even when no authenticated
+  session existed. These components requested the correctly protected spending
+  API from an anonymous page.
+- The header now requires authenticated staff before mounting spend widgets or
+  staff logout. Anonymous visitors see public verification/status links and a
+  staff sign-in link. Authenticated staff/student navigation rules remain.
+- The certificate input now has an explicit accessible label.
+- A fresh browser context confirmed `/api/auth/session` returned
+  `authenticated:false`, and verification browsing/submission made no company
+  spend requests and produced no unexpected 401 response.
+- An intentionally nonexistent certificate retained its `?cert=` query/input
+  and returned the expected public 404 with a visible NOT FOUND result.
+  A separate anonymous spending request still returned HTTP 401. No API guard
+  was removed or made public.
+- The settled 402px navigation drawer fit both public links without overflow.
+  An initially clipped screenshot was captured during its entrance animation;
+  a focused bounds/animation check confirmed no persistent layout defect.
+
+### F-stage bundle — resolved in this build
+
+- Stage interfaces now load individually, after existing stage/artifact selection
+  checks, inside a local accessible loading boundary. The cockpit stays mounted.
+  Software/Firmware routing and protected release gates were not changed.
+- The session-detail chunk fell from about 680 KB to 54 KB; the largest output
+  JavaScript chunk is now the roughly 452 KB entry file. This production build
+  emitted no oversized-JavaScript-chunk warning. Sourcemap warnings remain.
+- All 329 frontend tests and typecheck passed; the production build passed.
+  Existing stage-selection/gating tests now await loaded workspaces rather than
+  assuming synchronous import completion.
+- Signed-in stage interfaces remain component-tested, not browser-verified in
+  this batch. No inference engines, protected workflow actions, production
+  settings, database schema or private-file deletion settings were changed.

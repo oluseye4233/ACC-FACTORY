@@ -8,6 +8,7 @@ const state = vi.hoisted(() => ({
   pathname: "/command",
   search: "",
   student: false,
+  authenticated: true,
   navigate: vi.fn(),
 }));
 vi.mock("wouter", () => ({
@@ -18,14 +19,14 @@ vi.mock("wouter", () => ({
   ),
 }));
 vi.mock("@/lib/staff-session", () => ({
-  useStaffSession: () => ({ authenticated: true, role: "ADMIN", student: state.student }),
+  useStaffSession: () => ({ authenticated: state.authenticated, role: "ADMIN", student: state.student }),
   useLogout: () => ({ mutate: vi.fn() }),
 }));
 vi.mock("@/components/learning-auth", () => ({ StudentSignOut: () => <button>Student sign out</button> }));
 vi.mock("./ThemeToggle", () => ({ ThemeToggle: () => <button>Theme</button> }));
 vi.mock("./CompanySpendMeter", () => ({
-  CompanySpendMeter: () => null,
-  CompanySpendBanner: () => null,
+  CompanySpendMeter: () => <span data-testid="company-spend-meter" />,
+  CompanySpendBanner: () => <span data-testid="company-spend-banner" />,
 }));
 
 import { TopNav } from "./TopNav";
@@ -35,6 +36,7 @@ afterEach(() => {
   state.pathname = "/command";
   state.search = "";
   state.student = false;
+  state.authenticated = true;
   vi.clearAllMocks();
 });
 
@@ -77,5 +79,30 @@ describe("keyboard and current-page navigation", () => {
     expect(within(navigation).queryByRole("link", { name: "IMPRIMA" })).toBeNull();
     expect(within(navigation).queryByRole("link", { name: "Admin" })).toBeNull();
     expect(within(navigation).getByRole("link", { name: "Training" })).toBeTruthy();
+    expect(screen.queryByTestId("company-spend-meter")).toBeNull();
+    expect(screen.queryByTestId("company-spend-banner")).toBeNull();
+  });
+
+  it("does not mount staff spend queries or logout controls for public visitors", () => {
+    state.authenticated = false;
+    state.pathname = "/verify";
+    render(<TopNav />);
+    expect(screen.queryByTestId("company-spend-meter")).toBeNull();
+    expect(screen.queryByTestId("company-spend-banner")).toBeNull();
+    expect(screen.queryByRole("button", { name: "LOG OUT" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Student sign out" })).toBeNull();
+    expect(screen.getByRole("link", { name: "Staff sign-in" }).getAttribute("href")).toBe("/");
+    const navigation = screen.getByRole("navigation", { name: "Main navigation" });
+    expect(within(navigation).getByRole("link", { name: "Verify a certificate" }).getAttribute("aria-current")).toBe("page");
+    expect(within(navigation).queryByRole("link", { name: "Costs" })).toBeNull();
+    expect(within(navigation).queryByRole("link", { name: "Admin" })).toBeNull();
+  });
+
+  it("retains company spend views and logout for authenticated staff", () => {
+    render(<TopNav />);
+    expect(screen.getByTestId("company-spend-meter")).toBeTruthy();
+    expect(screen.getByTestId("company-spend-banner")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "LOG OUT" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Staff sign-in" })).toBeNull();
   });
 });

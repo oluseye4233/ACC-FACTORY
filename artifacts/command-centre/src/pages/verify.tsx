@@ -56,6 +56,7 @@ export default function Verify() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
+                aria-label="Certificate ID"
                 type="text"
                 placeholder="Enter Certificate ID..."
                 value={certId}
