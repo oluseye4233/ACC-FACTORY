@@ -574,3 +574,17 @@ mtime_ms = 1792273587476
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/99e16ee4-7d33-4e24-a5e6-ae87d5ed836c/caac52ef-7160-48b9-bd16-a33ff3590e40"
 storage_version_token = "1792273597294644"
 content_type = "image/svg+xml"
+
+[[outputs]]
+id = "o9yig2JBhWQ1RjDCEmMAG"
+uri = "file://generated-artifacts/atlas-360-scan-2026-10-20/ATLAS_360_SCAN_Living_PDD_2026-10-20.pdf"
+type = "pdf"
+title = "Updated ATLAS 360 SCAN Living PDD"
+description = "30-page current-state draft: eight SCAN stages, four ATLAS parts, 45 atomic assessment units, a 36-route site map, live/pending status register and evidence limitations. Edition: 20 October 2026."
+logical_id = "16678cd0-bd97-4bba-b792-d9a47e521935"
+content_hash = "sha256:6e17fa1e0a6566e8df4d11cf55bc21033e1341d2b60b08c475bcde83fc4c65c9"
+size = 61784
+mtime_ms = 1792557496891
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/16678cd0-bd97-4bba-b792-d9a47e521935/e245b585-7d1f-4503-8431-ebce0600a411"
+storage_version_token = "1792557513688990"
+content_type = "application/pdf"
