@@ -588,3 +588,17 @@ mtime_ms = 1792557496891
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/16678cd0-bd97-4bba-b792-d9a47e521935/e245b585-7d1f-4503-8431-ebce0600a411"
 storage_version_token = "1792557513688990"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "Wh7ItgRtMWvkB8s-pc6pz"
+uri = "file://generated-artifacts/forge-training-manual/FORGE_FIELD_ENGINEER_Cohort_Training_Manual.pdf"
+type = "pdf"
+title = "FORGE FIELD ENGINEER — Cohort Training Manual"
+description = "42-page draft covering all 31 training modules, step-by-step walkthroughs, worked examples, exercises, evidence checklists, Quest rules and instructor guidance."
+logical_id = "beb140ef-c030-4483-9a91-7b21e93da4b5"
+content_hash = "sha256:c4929b79967d2bfaba643ea406ceb644a177f685afbab14de72761baa4b1e889"
+size = 93105
+mtime_ms = 1792562220401
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/beb140ef-c030-4483-9a91-7b21e93da4b5/3fd0cdc8-f0b8-4729-8ee2-1a417591c7b4"
+storage_version_token = "1792562239482508"
+content_type = "application/pdf"

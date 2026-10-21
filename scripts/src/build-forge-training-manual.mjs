@@ -423,12 +423,12 @@ page("9. Scope, sources and final checklist", [
 // Render compact contents after pagination so the references are exact.
 doc.switchToPage(tocPage);
 doc.y = 115;
-for (const item of toc) {
+for (const [index, item] of toc.entries()) {
+  const y = 115 + index * 15.2;
   doc.fillColor(item.title.startsWith("Module") ? "#374151" : NAVY)
     .font(item.title.startsWith("Module") ? "Helvetica" : "Helvetica-Bold").fontSize(8.6)
-    .text(plain(item.title), 48, doc.y, { width: 452, lineBreak: false });
-  doc.fillColor(ACCENT).text(String(item.page), 510, doc.y, { width: 34, align: "right", lineBreak: false });
-  doc.y += 15.2;
+    .text(plain(item.title), 48, y, { width: 452, lineBreak: false });
+  doc.fillColor(ACCENT).text(String(item.page), 510, y, { width: 34, align: "right", lineBreak: false });
 }
 const { count } = doc.bufferedPageRange();
 for (let i = 0; i < count; i++) {
