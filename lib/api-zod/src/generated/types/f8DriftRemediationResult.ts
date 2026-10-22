@@ -12,6 +12,7 @@ import type { PfpReport } from './pfpReport';
 export interface F8DriftRemediationResult {
   state: F8DriftRemediationResultState;
   remediationArtifactId: string;
+  sourceMvpPddArtifactId: string;
   boomerangCaseId?: string;
   summary: string;
   bundle?: CodebaseBundle;

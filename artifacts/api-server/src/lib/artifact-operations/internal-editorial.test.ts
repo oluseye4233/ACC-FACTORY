@@ -5,6 +5,12 @@ import { reviewInternalDocument } from "./internal-editorial";
 import { internalEvaluation } from "./internal-evaluation";
 
 vi.mock("../../engines/shared", () => ({ callLlmJson: vi.fn() }));
+// Adapter contract tests stay pure; durable database checkpoints have their
+// own integration suite with real owner IDs.
+vi.mock("./internal-review-recovery", async () => {
+  const shared = await import("../../engines/shared");
+  return { recoverableInternalReview: shared.callLlmJson };
+});
 const context = { userId: "fixture", sessionId: "fixture-session", engineId: -201 };
 const config = publishRequest.parse({ title: "Example", project: "Demo", author: "Human Author", authorIsHuman: true, formats: ["HTML"] });
 const source = { text: "This document explains the proposed workflow for a demonstration." };
@@ -25,6 +31,7 @@ describe("IMPRIMA Internal editorial adapters", () => {
     const report = internalEvaluation({ kind: "imprima", source, sourceHash: document.sourceHash, scores: { jcseScore: 50, mathmonScore: 90 }, assessedAt: new Date(), editorial: result.evidence });
     expect(report.state).toBe("PASS");
     expect(report.releaseAllowed).toBe(false);
+    expect(report.editorialEvidence).toMatchObject({ sourceHash: document.sourceHash, changes: result.evidence.changes });
   });
   it("rejects protected edits before SOCRATES", async () => {
     vi.mocked(callLlmJson).mockResolvedValueOnce({ edits: [{ blockId: "unknown", text: "Replacement" }], clarity: 90, summary: null, glossary: [] });

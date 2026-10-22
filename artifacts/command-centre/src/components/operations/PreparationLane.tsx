@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MANIFEST_FIELDS, PREPARATION_MANIFEST_SAMPLE, downloadFrom, errMessage, isRec, rec, str, type OpsKind } from "@/lib/artifact-ops";
 import { streamSse } from "@/lib/sse";
+import { InternalEditorialChanges } from "./InternalEditorialChanges";
 
 const lab = "font-mono text-[10px] uppercase tracking-wider text-muted-foreground";
 const sel = "h-9 w-full rounded-md border bg-background px-2 font-mono text-xs";
@@ -104,6 +105,8 @@ export function InternalReport({ id, value }: { id: string; value: unknown }) {
           })}
         </ul>
       )}
+      {(r.editorialEvidence || checks.some(c => c.id === "KLARITY")) &&
+        <InternalEditorialChanges value={r.editorialEvidence} sourceHash={str(r.sourceHash)} />}
       {isRec(inherited) && Object.keys(inherited).length > 0 && (
         <details className="font-mono text-[10px]">
           <summary className={`${lab} cursor-pointer`}>Inherited recorded evidence</summary>
@@ -249,6 +252,7 @@ export function PreparationLane({ kind, ws, params, offset, setOffset, fetching,
             <div className="border-l-2 border-secondary pl-2 font-mono text-[10px] space-y-1" data-testid="text-internal-explainer">
               <p>{kind === "imprima" ? "Runs budgeted KLARITY clarity editing and SOCRATES claims review using the default Claude provider. Model review is internal, not external verification, independent verification or proof of truth. The saved report includes findings and the downloadable review includes edits. Sources are limited to 30 KB of normalized content and 100 editable paragraphs." : "Deterministic internal assessment; no new editorial model reviews, not external verification."} JCSE / MATHMON scores are inherited only from this exact source, not rerun.</p>
               <p>Missing checks stay NOT RUN; incomplete evidence makes the result INCONCLUSIVE. SOCRATES HOLD fails the assessment and requires correction in a new saved source. All files remain private DRAFT proposals and are not releasable. Model or budget failures stop the request; no successful assessment is saved.</p>
+              {kind === "imprima" && <p>Completed model steps are saved. Retry the same source and options to resume without repeating completed KLARITY or SOCRATES calls. An unknown provider outcome stops for ledger review, never an automatic second charge. KLARITY’s retained edits appear in the saved assessment below.</p>}
             </div>
           )}
           <p className="font-mono text-[10px] text-muted-foreground">

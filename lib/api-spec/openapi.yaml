@@ -1343,6 +1343,24 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /harness/f8-remediation:
+    get:
+      operationId: getF8RemediationProgress
+      tags: [harness]
+      summary: Recover the latest owned F8 remediation progress without a model call
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Latest attempt, or null when none exists
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/F8RemediationProgress" }
+        "400": { description: Invalid session ID }
+        "404": { $ref: "#/components/responses/NotFound" }
   /harness/f8-remediate:
     post:
       operationId: remediateF8Drift
@@ -3270,6 +3288,10 @@ components:
               state: { type: string, enum: [PASS, FAIL, INCONCLUSIVE, NOT_RUN] }
               detail: { type: string }
         inheritedEvidence: { type: object, additionalProperties: true }
+        editorialEvidence:
+          type: object
+          description: Owner-private KLARITY edit evidence and SOCRATES review; never release clearance
+          additionalProperties: true
         releaseAllowed: { type: boolean, enum: [false] }
         externalVerification: { type: string, enum: [NOT_RUN] }
     ArtifactPreparation:
@@ -7149,6 +7171,18 @@ components:
         connectorInvoked: { type: boolean, enum: [false] }
         externalSend: { type: boolean, enum: [false] }
 
+    F8RemediationProgress:
+      type: object
+      required: [attempt]
+      properties:
+        attempt:
+          type: [object, "null"]
+          required: [phase, reportArtifactId, updatedAt]
+          properties:
+            phase: { type: string }
+            reportArtifactId: { type: string, format: uuid }
+            updatedAt: { type: string, format: date-time }
+            result: { $ref: "#/components/schemas/F8DriftRemediationResult" }
     RemediateF8DriftInput:
       type: object
       required: [sessionId, reportArtifactId]
@@ -7158,10 +7192,11 @@ components:
         provider: { type: string, enum: [claude, openai, gemini, deepseek, kimi, qwen, glm] }
     F8DriftRemediationResult:
       type: object
-      required: [state, remediationArtifactId, summary]
+      required: [state, remediationArtifactId, sourceMvpPddArtifactId, summary]
       properties:
         state: { type: string, enum: [RECHECKED, REVIEW_REQUIRED, RECHECK_FAILED] }
         remediationArtifactId: { type: string }
+        sourceMvpPddArtifactId: { type: string, format: uuid }
         boomerangCaseId: { type: string }
         summary: { type: string }
         bundle: { $ref: "#/components/schemas/CodebaseBundle" }

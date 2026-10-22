@@ -1,11 +1,14 @@
 import { z } from "zod/v4";
 import type { Request, Response } from "express";
-import { db, boomerangCasesTable } from "@workspace/db";
-import { RemediateF8DriftBody } from "@workspace/api-zod";
+import { db, boomerangCasesTable, f8RemediationAttemptsTable } from "@workspace/db";
+import { and, desc, eq } from "drizzle-orm";
+import { GetF8RemediationProgressQueryParams, RemediateF8DriftBody } from "@workspace/api-zod";
 import { CodebaseOutputSchema } from "./f8codedj";
 import { PfpReportSchema, evaluateAndPersistPfp } from "./pfp";
 import { callLlmJson, loadArtifact, ownedSessionOr404, persistArtifact, resolveProvider, sendProviderTierError } from "./shared";
 import { boomerangHash, boomerangOrigin } from "../lib/boomerang";
+import { findRepairEvidence, lockRepairAttempt, openRepairAttempt, repairAttemptId, saveRepairAttempt } from "../lib/f8-remediation-attempts";
+import { CostBudgetExceededError } from "../lib/cost-budget";
 
 export const RepairSchema = z.object({
   decision: z.enum(["REPAIR", "REVIEW_REQUIRED"]),
@@ -49,6 +52,21 @@ export function validateRepair(
   if (indices.size !== findingCount || [...indices].some(i => i >= findingCount)) throw new Error("Repair must account for every drift finding");
 }
 
+export async function handleF8RemediationProgress(req: Request, res: Response): Promise<void> {
+  const parsed = GetF8RemediationProgressQueryParams.safeParse(req.query);
+  if (!parsed.success) { res.status(400).json({ error: "A valid sessionId is required" }); return; }
+  const guard = await ownedSessionOr404(req, parsed.data.sessionId);
+  if (!guard.ok) { res.status(guard.status).json({ error: guard.error }); return; }
+  const [attempt] = await db.select().from(f8RemediationAttemptsTable).where(and(
+    eq(f8RemediationAttemptsTable.userId, guard.userId),
+    eq(f8RemediationAttemptsTable.sessionId, parsed.data.sessionId),
+  )).orderBy(desc(f8RemediationAttemptsTable.updatedAt)).limit(1);
+  res.json({ attempt: attempt && typeof attempt.data.reportArtifactId === "string" ? {
+    phase: attempt.phase, reportArtifactId: attempt.data.reportArtifactId,
+    updatedAt: attempt.updatedAt.toISOString(), ...(attempt.data.result ? { result: attempt.data.result } : {}),
+  } : null });
+}
+
 export async function handleF8Remediation(req: Request, res: Response): Promise<void> {
   const parsed = RemediateF8DriftBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
@@ -83,6 +101,9 @@ export async function handleF8Remediation(req: Request, res: Response): Promise<
     res.status(409).json({ error: "Certified PDD, bundle and drift report lineage must match exactly" }); return;
   }
   const baseline = boomerangHash({ mvp: mvp.artifactContent, cert: mvp.spartanCert, bundle: original, report: content });
+  const attemptId = repairAttemptId(guard.userId, sessionId, report.id);
+  const unlock = await lockRepairAttempt(attemptId);
+  if (!unlock) { res.status(409).json({ error: "This drift repair is still running. Wait for it to finish, then resume; do not start another repair." }); return; }
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.flushHeaders?.();
@@ -92,18 +113,52 @@ export async function handleF8Remediation(req: Request, res: Response): Promise<
   emit("progress", { message: "Repairing the exact drift-checked bundle against its certified PDD…" });
   const heartbeat = setInterval(() => emit("ping", {}), 10000);
   try {
-    const repair = await callLlmJson(provider, SYSTEM, JSON.stringify({
+    const attempt = await openRepairAttempt(attemptId, guard.userId, sessionId, baseline);
+    const progress = attempt.data;
+    progress.reportArtifactId = report.id;
+    const save = async (phase: string) => {
+      await saveRepairAttempt(attemptId, guard.userId, phase, progress);
+      attempt.phase = phase;
+    };
+    if (attempt.phase === "COMPLETE") {
+      emit("complete", progress.result);
+      return;
+    }
+    if (attempt.phase === "REPAIR_STARTED") {
+      throw new Error("The previous repair dispatch has an unknown outcome. It will not be repeated or charged again automatically. Review the run ledger and retained evidence before authorizing a new drift report.");
+    }
+    let repair: z.infer<typeof RepairSchema>;
+    if (progress.repair) {
+      repair = RepairSchema.parse(progress.repair);
+      emit("progress", { message: "Resuming saved repair. The completed CODE DJ call will not be repeated." });
+    } else {
+      // Save intent BEFORE dispatch. A crash between provider completion and
+      // checkpointing is deliberately ambiguous, never permission to charge again.
+      await save("REPAIR_STARTED");
+      try {
+        repair = await callLlmJson(provider, SYSTEM, JSON.stringify({
       sourceReferences: { mvpPddArtifactId: mvp.id, codebaseBundleArtifactId: bundle.id, driftReportArtifactId: report.id },
       certifiedMvpPdd: mvp.artifactContent, originalBundle: original, driftReport: repairReport,
-    }), RepairSchema, { sessionId, userId: guard.userId, engineId: 9 });
+        }), RepairSchema, { sessionId, userId: guard.userId, engineId: 9 });
+      } catch (err) {
+        // A reservation denial proves the provider was not dispatched.
+        if (err instanceof CostBudgetExceededError) await save("READY");
+        throw err;
+      }
+      validateRepair(repair, original, repairReport.findings.length);
+      progress.repair = repair;
+      await save("REPAIRED");
+    }
     validateRepair(repair, original, repairReport.findings.length);
     const [freshMvp, freshBundle, freshReport] = await Promise.all([mvp.id, bundle.id, report.id].map(id => loadArtifact(id, guard.userId)));
     if (!freshMvp || !freshBundle || !freshReport || baseline !== boomerangHash({
       mvp: freshMvp.artifactContent, cert: freshMvp.spartanCert, bundle: freshBundle.artifactContent, report: freshReport.artifactContent,
     })) throw new Error("Source evidence changed during remediation; start a fresh request");
-    const record = await persistArtifact({
+    // Recover artifacts saved just before a worker/process interruption.
+    const retained = await findRepairEvidence(guard.userId, sessionId, attemptId);
+    const record = retained.journal ?? await persistArtifact({
       sessionId, userId: guard.userId, featureId: 8, artifactType: "F8_DRIFT_REMEDIATION",
-      artifactContent: { decision: repair.decision, summary: repair.summary, corrections: repair.corrections,
+      artifactContent: { repairAttemptId: attemptId, decision: repair.decision, summary: repair.summary, corrections: repair.corrections,
         sourceReportArtifactId: report.id, sourceCodebaseBundleArtifactId: bundle.id,
         sourceMvpPddArtifactId: mvp.id, sourceHash: baseline, derivedCoverageFinding,
         caveat: "AI-generated remediation, not executed tests, approval, certification or release." }, provider,
@@ -120,7 +175,9 @@ export async function handleF8Remediation(req: Request, res: Response): Promise<
         caveat: "Generated supporting work, not executed test evidence or release approval." });
       const resultHash = boomerangHash({ resultText, runId: null, sourceHash: origin.hash });
       const at = new Date().toISOString();
-      const [review] = await db.insert(boomerangCasesTable).values({
+      const priorResult = retained.review?.resultText;
+      const sameReview = priorResult && priorResult === resultText;
+      const review = (sameReview ? retained.review : null) ?? (await db.insert(boomerangCasesTable).values({
         userId: guard.userId, originKind: "SESSION", originId: sessionId, stage: "F8",
         title: "F8 drift remediation review", brief: `Automated supporting correction against certified MVP PDD ${mvp.id}; bundle ${bundle.id}; drift report ${report.id}. Review the new evidence without treating it as release clearance.`,
         sourceHash: origin.hash, sourceRefs: origin.refs, state: "RETURNED", version: 2,
@@ -129,8 +186,12 @@ export async function handleF8Remediation(req: Request, res: Response): Promise<
           { action: "REQUESTED", at, note: "Operator requested one automated repair and immediate re-drift check.", resultHash: null, resultText: null, spcPlayerRunId: null },
           { action: "RETURN", at, note: state, resultHash, resultText, spcPlayerRunId: null },
         ],
-      }).returning({ id: boomerangCasesTable.id });
-      emit("complete", { state, remediationArtifactId: record.id, boomerangCaseId: review!.id, ...payload });
+      }).returning({ id: boomerangCasesTable.id }))[0];
+      // Recheck recovery can update its result while preserving the original
+      // failed-check case as history. Never mutate an accepted review.
+      progress.result = { state, remediationArtifactId: record.id, sourceMvpPddArtifactId: mvp.id, boomerangCaseId: review!.id, ...payload };
+      await save(state === "RECHECK_FAILED" ? (progress.recheckUncertain ? "RECHECK_UNCERTAIN" : "RECHECK_FAILED") : "COMPLETE");
+      emit("complete", progress.result);
     };
     if (repair.decision === "REVIEW_REQUIRED") {
       await finish("REVIEW_REQUIRED", { summary: repair.summary });
@@ -138,9 +199,9 @@ export async function handleF8Remediation(req: Request, res: Response): Promise<
     }
     const corrected = repair.bundle!;
     const artifactClass = original.artifactClass === "SOFTWARE" ? "SOFTWARE" : "FIRMWARE";
-    const next = await persistArtifact({
+    const next = retained.bundle ?? await persistArtifact({
       sessionId, userId: guard.userId, featureId: 8, artifactType: "CODEBASE_BUNDLE",
-      artifactContent: { ...corrected, artifactClass,
+      artifactContent: { ...corrected, artifactClass, repairAttemptId: attemptId,
         ...(original.hardwareConfigId ? { hardwareConfigId: original.hardwareConfigId } : {}),
         sourceMvpPddArtifactId: mvp.id, sourceCertId: original.sourceCertId,
         sourceCodebaseBundleArtifactId: bundle.id, remediationArtifactId: record.id,
@@ -150,15 +211,24 @@ export async function handleF8Remediation(req: Request, res: Response): Promise<
       ...(original.hardwareConfigId ? { hardwareConfigId: original.hardwareConfigId } : {}) };
     emit("progress", { message: "Corrected bundle saved. Running a fresh PFP re-drift check…", artifactId: next.id });
     let recheck: Awaited<ReturnType<typeof evaluateAndPersistPfp>>;
+    if (retained.report) {
+      recheck = { ...PfpReportSchema.parse(retained.report.artifactContent), artifactId: retained.report.id, f0ReportCode: null };
+    } else {
+    if (attempt.phase === "RECHECK_STARTED" || attempt.phase === "RECHECK_UNCERTAIN") {
+      throw new Error("The corrected bundle is retained, but the previous PFP dispatch has an unknown outcome. No model call was repeated. Open the saved bundle and use RE-DRIFT CHECK only after reviewing the run ledger.");
+    }
+    await save("RECHECK_STARTED");
     try {
       // Shared callLlmJson reserves budget and records actual spend separately for
       // this second call. A denial retains the corrected bundle for manual retry.
       recheck = await evaluateAndPersistPfp({ sessionId, userId: guard.userId, provider, mvp: freshMvp, bundle: next, log: req.log });
     } catch (err) {
       req.log.warn({ err, bundleId: next.id }, "Remediation retained; fresh drift check failed");
+      progress.recheckUncertain = !(err instanceof CostBudgetExceededError);
       await finish("RECHECK_FAILED", { bundle: resultBundle,
-        summary: `Corrected bundle retained, but re-drift check did not complete: ${(err as Error).message}. Use RE-DRIFT CHECK to retry. No passing verdict was issued.` });
+        summary: `Corrected bundle retained, but re-drift check did not complete: ${(err as Error).message}. ${progress.recheckUncertain ? "The provider outcome may be billable; review the run ledger before explicitly authorizing RE-DRIFT CHECK. Automated resume will not dispatch again." : "The provider was not dispatched; resume to retry only the check after resolving the budget limit."} No passing verdict was issued.` });
       return;
+    }
     }
     await finish("RECHECKED", { summary: repair.summary, bundle: resultBundle, report: recheck });
   } catch (err) {
@@ -167,5 +237,6 @@ export async function handleF8Remediation(req: Request, res: Response): Promise<
   } finally {
     clearInterval(heartbeat);
     res.end();
+    await unlock();
   }
 }

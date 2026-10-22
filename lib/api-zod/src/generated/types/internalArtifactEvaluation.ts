@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { InternalArtifactEvaluationChecksItem } from './internalArtifactEvaluationChecksItem';
+import type { InternalArtifactEvaluationEditorialEvidence } from './internalArtifactEvaluationEditorialEvidence';
 import type { InternalArtifactEvaluationExternalVerification } from './internalArtifactEvaluationExternalVerification';
 import type { InternalArtifactEvaluationInheritedEvidence } from './internalArtifactEvaluationInheritedEvidence';
 import type { InternalArtifactEvaluationState } from './internalArtifactEvaluationState';
@@ -18,6 +19,8 @@ export interface InternalArtifactEvaluation {
   caveat: string;
   checks: InternalArtifactEvaluationChecksItem[];
   inheritedEvidence: InternalArtifactEvaluationInheritedEvidence;
+  /** Owner-private KLARITY edit evidence and SOCRATES review; never release clearance */
+  editorialEvidence?: InternalArtifactEvaluationEditorialEvidence;
   releaseAllowed: false;
   externalVerification: InternalArtifactEvaluationExternalVerification;
 }

@@ -615,12 +615,16 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
             onBusyChange={setRemediating}
             onResult={data => {
               if (data.bundle) {
+                // Recovery can restore an older repair after the selected PDD
+                // changed. Never relabel that report as evidence for the UI's
+                // current selection; restore the server-bound contract too.
+                setSourceId(data.sourceMvpPddArtifactId);
                 setResult(data.bundle);
                 setActiveFile(data.bundle.files[0]?.path ?? "");
                 setVerifiedArtifactId(null);
                 setHostPlan(undefined);
                 setPfp(data.report);
-                setPfpContext({ bundleId: data.bundle.artifactId, sourceId });
+                setPfpContext({ bundleId: data.bundle.artifactId, sourceId: data.sourceMvpPddArtifactId });
               }
               if (data.report) {
                 setDriftGateBlock(null);

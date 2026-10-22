@@ -1,8 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import { unzipSync } from "fflate";
-import { db, usersTable, harnessSessionsTable, harnessArtifactsTable, shortSprintRunsTable, imprimaJobsTable, harnessFeatureStateTable, preparationStorageLeasesTable } from "@workspace/db";
+import { db, usersTable, harnessSessionsTable, harnessArtifactsTable, shortSprintRunsTable, imprimaJobsTable, harnessFeatureStateTable, preparationStorageLeasesTable, internalReviewStepsTable } from "@workspace/db";
 import { createPreparation, preparationDownload, preparationWorkspace } from "./preparations";
 import { fileHash, savePrivate } from "./private-storage";
 import { withOperationsActor, type OperationsActor } from "./context";
@@ -53,6 +53,14 @@ describe("SPARTAN preparation: separate owner-scoped lane, not SQL-guard fallbac
       { userId: owner.id, sessionId, featureId: 6, artifactType: "ATLAS_PDD" as const, artifactContent: { text: "patient treatment" } },
     ]).returning();
     [spcId, microId, sensitiveId] = sourceRows.map(r => r.id);
+  });
+  beforeEach(async () => {
+    // Each test intentionally simulates a DIFFERENT provider outcome. Do not
+    // reuse a completed model checkpoint from another test of the same fixture.
+    await db.delete(internalReviewStepsTable).where(eq(internalReviewStepsTable.userId, owner.id));
+    vi.mocked(callLlmJson).mockReset().mockImplementation(async (_provider, _system, _prompt, _schema, context) => context!.engineId === -201
+      ? { edits: [], clarity: 82, summary: null, glossary: [] }
+      : { verdict: "CLEAR", flags: [], rationale: "No material unsupported claims found in this fixture." });
   });
   afterAll(async () => {
     if (owner) {

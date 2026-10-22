@@ -3474,6 +3474,75 @@ export const HarnessAtlasCrystalliseResponse = zod.object({
 
 
 /**
+ * @summary Recover the latest owned F8 remediation progress without a model call
+ */
+export const GetF8RemediationProgressQueryParams = zod.object({
+  "sessionId": zod.coerce.string().uuid()
+})
+
+export const getF8RemediationProgressResponseAttemptResultReportFciMin = 0;
+export const getF8RemediationProgressResponseAttemptResultReportFciMax = 100;
+
+
+
+export const GetF8RemediationProgressResponse = zod.object({
+  "attempt": zod.object({
+  "phase": zod.string(),
+  "reportArtifactId": zod.string().uuid(),
+  "updatedAt": zod.coerce.date(),
+  "result": zod.object({
+  "state": zod.enum(['RECHECKED', 'REVIEW_REQUIRED', 'RECHECK_FAILED']),
+  "remediationArtifactId": zod.string(),
+  "sourceMvpPddArtifactId": zod.string().uuid(),
+  "boomerangCaseId": zod.string().optional(),
+  "summary": zod.string(),
+  "bundle": zod.object({
+  "artifactId": zod.string().uuid(),
+  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "artifactClass": zod.enum(['SOFTWARE', 'FIRMWARE']),
+  "hardwareConfigId": zod.enum(['INDUSTRIAL_MCU', 'ROBOTICS_RTCL', 'APPLIANCE_FLEET']).optional().describe('Reference hardware profile for a firmware-specific Code DJ and MECHA run.'),
+  "manifest": zod.object({
+  "framework": zod.string(),
+  "language": zod.string(),
+  "entrypoint": zod.string(),
+  "installCommand": zod.string(),
+  "runCommand": zod.string(),
+  "buildCommand": zod.string().nullish(),
+  "deployTarget": zod.string()
+}),
+  "files": zod.array(zod.object({
+  "path": zod.string().describe('Project-root-relative path, e.g. src/index.ts'),
+  "language": zod.string().describe('ISO-ish language hint, e.g. typescript, json, md, env'),
+  "content": zod.string()
+})),
+  "notes": zod.string()
+}).optional(),
+  "report": zod.object({
+  "artifactId": zod.string().uuid(),
+  "f0ReportCode": zod.string().nullish().describe('F0 advisory report code assigned at report-generation time, formatted [CODE]-[SKU]-[TIMESTAMP] and anchored to the owning MVP PDD\'s SKU. Null when the source MVP PDD has no SKU yet.'),
+  "verdict": zod.enum(['pass', 'pass_with_notes', 'fail']),
+  "fci": zod.number().int().min(getF8RemediationProgressResponseAttemptResultReportFciMin).max(getF8RemediationProgressResponseAttemptResultReportFciMax),
+  "summary": zod.string(),
+  "findings": zod.array(zod.object({
+  "code": zod.enum(['SPEC_DRIFT', 'PDD_ORPHAN', 'UNAUTHORIZED_EXTENSION', 'CIRCULAR_DEPENDENCY', 'SEMANTIC_DRIFT', 'OVER_SPECIFICATION', 'AMBIGUOUS_OUTPUT']),
+  "severity": zod.enum(['critical', 'high', 'medium', 'low']),
+  "pddRef": zod.string(),
+  "codeRef": zod.string(),
+  "detail": zod.string()
+})),
+  "counts": zod.object({
+  "critical": zod.number().int(),
+  "high": zod.number().int(),
+  "medium": zod.number().int(),
+  "low": zod.number().int()
+})
+}).optional()
+}).optional()
+}).nullable()
+})
+
+
+/**
  * @summary Repair an exact drift-checked bundle and immediately recheck it without changing its certified contract
  */
 export const RemediateF8DriftBody = zod.object({
@@ -7225,6 +7294,7 @@ export const GetArtifactPreparationsResponse = zod.object({
   "detail": zod.string()
 })),
   "inheritedEvidence": zod.record(zod.string(), zod.unknown()),
+  "editorialEvidence": zod.record(zod.string(), zod.unknown()).optional().describe('Owner-private KLARITY edit evidence and SOCRATES review; never release clearance'),
   "releaseAllowed": zod.literal(false),
   "externalVerification": zod.enum(['NOT_RUN'])
 }).optional()

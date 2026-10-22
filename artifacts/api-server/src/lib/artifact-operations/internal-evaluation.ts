@@ -65,5 +65,6 @@ export function internalEvaluation(input: {
     : checks.some(c => c.state === "NOT_RUN" || c.state === "INCONCLUSIVE") ? "INCONCLUSIVE" as const : "PASS" as const;
   return { schemaVersion: "ATANDA-INTERNAL-EVAL-1", state, sourceHash: input.sourceHash, assessedAt: input.assessedAt.toISOString(),
     caveat: INTERNAL_CAVEAT, checks, inheritedEvidence: { sourceScores: input.scores, sprintEligibility: eligibility },
+    ...(input.editorial ? { editorialEvidence: input.editorial } : {}),
     releaseAllowed: false as const, externalVerification: "NOT_RUN" as const };
 }

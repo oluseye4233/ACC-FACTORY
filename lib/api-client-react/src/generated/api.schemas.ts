@@ -198,6 +198,11 @@ export type InternalArtifactEvaluationChecksItem = {
 
 export type InternalArtifactEvaluationInheritedEvidence = { [key: string]: unknown };
 
+/**
+ * Owner-private KLARITY edit evidence and SOCRATES review; never release clearance
+ */
+export type InternalArtifactEvaluationEditorialEvidence = { [key: string]: unknown };
+
 export type InternalArtifactEvaluationExternalVerification = typeof InternalArtifactEvaluationExternalVerification[keyof typeof InternalArtifactEvaluationExternalVerification];
 
 
@@ -213,6 +218,8 @@ export interface InternalArtifactEvaluation {
   caveat: string;
   checks: InternalArtifactEvaluationChecksItem[];
   inheritedEvidence: InternalArtifactEvaluationInheritedEvidence;
+  /** Owner-private KLARITY edit evidence and SOCRATES review; never release clearance */
+  editorialEvidence?: InternalArtifactEvaluationEditorialEvidence;
   releaseAllowed: false;
   externalVerification: InternalArtifactEvaluationExternalVerification;
 }
@@ -5132,6 +5139,40 @@ export interface SpcPlayerDistributionPlan {
   externalSend: false;
 }
 
+export type F8DriftRemediationResultState = typeof F8DriftRemediationResultState[keyof typeof F8DriftRemediationResultState];
+
+
+export const F8DriftRemediationResultState = {
+  RECHECKED: 'RECHECKED',
+  REVIEW_REQUIRED: 'REVIEW_REQUIRED',
+  RECHECK_FAILED: 'RECHECK_FAILED',
+} as const;
+
+export interface F8DriftRemediationResult {
+  state: F8DriftRemediationResultState;
+  remediationArtifactId: string;
+  sourceMvpPddArtifactId: string;
+  boomerangCaseId?: string;
+  summary: string;
+  bundle?: CodebaseBundle;
+  report?: PfpReport;
+}
+
+/**
+ * @nullable
+ */
+export type F8RemediationProgressAttempt = {
+  phase: string;
+  reportArtifactId: string;
+  updatedAt: string;
+  result?: F8DriftRemediationResult;
+} | null;
+
+export interface F8RemediationProgress {
+  /** @nullable */
+  attempt: F8RemediationProgressAttempt;
+}
+
 export type RemediateF8DriftInputProvider = typeof RemediateF8DriftInputProvider[keyof typeof RemediateF8DriftInputProvider];
 
 
@@ -5149,24 +5190,6 @@ export interface RemediateF8DriftInput {
   sessionId: string;
   reportArtifactId: string;
   provider?: RemediateF8DriftInputProvider;
-}
-
-export type F8DriftRemediationResultState = typeof F8DriftRemediationResultState[keyof typeof F8DriftRemediationResultState];
-
-
-export const F8DriftRemediationResultState = {
-  RECHECKED: 'RECHECKED',
-  REVIEW_REQUIRED: 'REVIEW_REQUIRED',
-  RECHECK_FAILED: 'RECHECK_FAILED',
-} as const;
-
-export interface F8DriftRemediationResult {
-  state: F8DriftRemediationResultState;
-  remediationArtifactId: string;
-  boomerangCaseId?: string;
-  summary: string;
-  bundle?: CodebaseBundle;
-  report?: PfpReport;
 }
 
 export type SpcPlayerOutputPackageNextStep = typeof SpcPlayerOutputPackageNextStep[keyof typeof SpcPlayerOutputPackageNextStep];
@@ -5781,6 +5804,10 @@ code: string;
 };
 
 export type ListHarnessF9RunsParams = {
+sessionId: string;
+};
+
+export type GetF8RemediationProgressParams = {
 sessionId: string;
 };
 

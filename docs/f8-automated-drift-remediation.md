@@ -42,5 +42,30 @@ test evidence. Prior CI/IDE verification and hosting results are not inherited
 by the new bundle. No Boomerang case is automatically accepted, and no stage,
 badge, certificate or protected release gate is advanced.
 
-New journal records use an additional application artifact type backed by the
-existing text column. No database migration or security-policy change is needed.
+## Interruption recovery and review comparison
+
+Repair attempts now have owner-scoped durable progress separate from immutable
+artifacts. One database advisory lock excludes concurrent workers. Completed
+repair results, saved bundles and saved PFP reports are reused after a retry.
+Completed results can be restored via the read-only progress endpoint without
+a model call or a daily-run charge. After a known pre-dispatch budget denial,
+an explicit resume retries only the denied phase.
+
+If a worker stops after dispatch but before saving the provider's result, the
+outcome is unknown. The system refuses another automatic dispatch. Review the
+model ledger before explicitly requesting another check. This is conservative
+duplicate-charge prevention, not a claim of provider-level exactly-once billing.
+There is no automatic retry loop.
+
+Boomerang F8 reviews now compare original and corrected file content, with
+added/removed/changed/unchanged labels and plain-text line changes. The view
+checks owner-protected artifact responses, session, journal, PDD and report
+links before displaying a comparison. Unavailable or mismatched evidence is
+reported, not inferred. Large comparisons show complete replacement text with
+an explicit notice rather than silently truncating.
+
+The recovery upgrade adds public-schema application migrations for bookkeeping.
+Development/replay applies the committed migrations; production must include
+the new table in its reviewed Publish schema plan. The separate ARK startup
+migrator does not apply this public migration. No ARK security migration,
+protected workflow role, policy, approval or certification gate is changed.

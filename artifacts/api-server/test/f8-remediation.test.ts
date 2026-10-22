@@ -1,9 +1,39 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Request, Response } from "express";
+import { CostBudgetExceededError } from "../src/lib/cost-budget";
 
 const mocks = vi.hoisted(() => ({
   artifacts: new Map<string, Record<string, unknown>>(), calls: vi.fn(),
   persist: vi.fn(), review: vi.fn(), owner: "owner", failRecheck: false, reviewRequired: false,
+  attempt: null as null | { phase: string; data: Record<string, unknown>; sourceHash: string },
+  locked: false,
+  unknownRecheck: false,
+}));
+vi.mock("../src/lib/f8-remediation-attempts", () => ({
+  repairAttemptId: () => "attempt-id",
+  lockRepairAttempt: async () => {
+    if (mocks.locked) return null;
+    mocks.locked = true; return async () => { mocks.locked = false; };
+  },
+  openRepairAttempt: async (_id: string, _owner: string, _session: string, hash: string) => {
+    if (!mocks.attempt) mocks.attempt = { phase: "READY", data: {}, sourceHash: hash };
+    if (mocks.attempt.sourceHash !== hash) throw new Error("Source evidence changed since this repair began");
+    return structuredClone(mocks.attempt);
+  },
+  saveRepairAttempt: async (_id: string, _owner: string, phase: string, data: Record<string, unknown>) => {
+    mocks.attempt = { ...mocks.attempt!, phase, data: structuredClone(data) };
+  },
+  findRepairEvidence: async () => {
+    const artifacts = [...mocks.artifacts.values()];
+    const linked = artifacts.filter(a => (a.artifactContent as Record<string, unknown>).repairAttemptId === "attempt-id");
+    const bundle = linked.find(a => a.artifactType === "CODEBASE_BUNDLE");
+    return {
+      journal: linked.find(a => a.artifactType === "F8_DRIFT_REMEDIATION"), bundle,
+      report: bundle && artifacts.find(a => a.artifactType === "PFP_REPORT" &&
+        (a.artifactContent as Record<string, unknown>).sourceCodebaseBundleArtifactId === bundle.id),
+      review: undefined,
+    };
+  },
 }));
 vi.mock("@workspace/db", async original => {
   const actual = await original<typeof import("@workspace/db")>();
@@ -31,13 +61,14 @@ vi.mock("../src/engines/shared", async original => {
     },
     callLlmJson: async (_provider: unknown, _system: string, prompt: string, schema: { parse: (v: unknown) => unknown }, context: unknown) => {
       mocks.calls(prompt, context);
-      if (mocks.calls.mock.calls.length === 1) return schema.parse({
+      if ((context as { engineId: number }).engineId === 9) return schema.parse({
         decision: mocks.reviewRequired ? "REVIEW_REQUIRED" : "REPAIR",
         summary: "Corrected the contract mismatch; generated code has not been executed.",
         corrections: [{ findingIndex: 0, action: "Align return value with approved requirement." }],
         bundle: mocks.reviewRequired ? null : codeBundle(),
       });
-      if (mocks.failRecheck) throw new Error("Monthly LLM cost cap reached");
+      if (mocks.failRecheck) throw new CostBudgetExceededError({ status: 402, body: { error: "Monthly LLM cost cap reached" } } as never);
+      if (mocks.unknownRecheck) throw new Error("Provider returned but saving the verdict failed");
       // A contradictory model PASS must not clear the actual critical finding.
       return schema.parse(driftReport());
     },
@@ -63,6 +94,8 @@ function driftReport() {
 beforeEach(() => {
   mocks.calls.mockClear(); mocks.persist.mockClear(); mocks.review.mockClear();
   mocks.artifacts.clear(); mocks.owner = "owner"; mocks.failRecheck = false; mocks.reviewRequired = false;
+  mocks.attempt = null; mocks.locked = false; mocks.calls.mockReset();
+  mocks.unknownRecheck = false;
   for (const a of [
     { id: mvpId, artifactType: "MVP_PDD", spartanCert: { certId: "cert" }, artifactContent: { requirement: "return 42" } },
     { id: bundleId, artifactType: "CODEBASE_BUNDLE", artifactContent: {
@@ -86,6 +119,7 @@ describe("automated F8 drift remediation", () => {
     const original = structuredClone(mocks.artifacts.get(bundleId));
     const result = await run(); const done = result.complete();
     expect(done.state).toBe("RECHECKED");
+    expect(done.sourceMvpPddArtifactId).toBe(mvpId);
     expect(done.report.verdict).toBe("fail"); expect(done.report.counts.critical).toBe(1);
     expect(done.bundle.artifactId).toBe("saved-2");
     expect(done.bundle.artifactClass).toBe("FIRMWARE"); expect(done.bundle.hardwareConfigId).toBe("hardware");
@@ -143,5 +177,76 @@ describe("automated F8 drift remediation", () => {
     repair.corrections = [{ findingIndex: 0, action: "Fix" }];
     expect(() => validateRepair(repair, { ...codeBundle(), platform: "expo-mobile" }, 1)).toThrow(/platform/);
     expect(() => validateRepair(repair, { ...codeBundle(), files: [{ path: "missing.ts" }] }, 1)).toThrow(/omitted/);
+  });
+  it("replays a completed attempt without any further model calls or evidence writes", async () => {
+    const first = (await run()).complete();
+    const replay = (await run()).complete();
+    expect(replay).toEqual(first);
+    expect(mocks.calls).toHaveBeenCalledTimes(2);
+    expect(mocks.persist).toHaveBeenCalledTimes(3);
+    expect(mocks.review).toHaveBeenCalledTimes(1);
+  });
+  it("retries only a failed recheck, keeping the original corrected bundle", async () => {
+    mocks.failRecheck = true;
+    expect((await run()).complete().state).toBe("RECHECK_FAILED");
+    mocks.failRecheck = false;
+    const resumed = (await run()).complete();
+    expect(resumed.state).toBe("RECHECKED");
+    expect(resumed.bundle.artifactId).toBe("saved-2");
+    expect(mocks.calls.mock.calls.map(c => c[1].engineId)).toEqual([9, 11, 11]);
+    expect(mocks.persist).toHaveBeenCalledTimes(3);
+  });
+  it("rejects a concurrent request before another provider call", async () => {
+    mocks.locked = true;
+    const result = await run();
+    expect(result.status).toBe(409);
+    expect(mocks.calls).not.toHaveBeenCalled();
+  });
+  it("refuses to repeat an uncertain repair dispatch after interruption", async () => {
+    await run();
+    mocks.attempt!.phase = "REPAIR_STARTED";
+    mocks.attempt!.data = { reportArtifactId: reportId };
+    mocks.calls.mockClear();
+    expect((await run()).frames).toContain("unknown outcome");
+    expect(mocks.calls).not.toHaveBeenCalled();
+  });
+  it("recovers a saved repair and bundle after process interruption without another repair call", async () => {
+    mocks.failRecheck = true;
+    await run();
+    mocks.attempt!.phase = "REPAIRED";
+    mocks.failRecheck = false; mocks.calls.mockClear();
+    expect((await run()).complete().state).toBe("RECHECKED");
+    expect(mocks.calls.mock.calls.map(c => c[1].engineId)).toEqual([11]);
+    expect(mocks.persist).toHaveBeenCalledTimes(3);
+  });
+  it("recovers an already persisted PFP report after a lost completion checkpoint", async () => {
+    await run();
+    mocks.attempt!.phase = "RECHECK_STARTED";
+    mocks.calls.mockClear();
+    expect((await run()).complete().report.verdict).toBe("fail");
+    expect(mocks.calls).not.toHaveBeenCalled();
+  });
+  it("does not dispatch again when a prior recheck outcome is unknown", async () => {
+    mocks.failRecheck = true; await run();
+    mocks.attempt!.phase = "RECHECK_STARTED"; mocks.calls.mockClear();
+    expect((await run()).frames).toContain("PFP dispatch has an unknown outcome");
+    expect(mocks.calls).not.toHaveBeenCalled();
+  });
+  it("rejects changed source evidence on replay instead of silently starting a new paid attempt", async () => {
+    await run();
+    mocks.artifacts.get(mvpId)!.artifactContent = { requirement: "changed after completion" };
+    mocks.calls.mockClear();
+    expect((await run()).frames).toContain("Source evidence changed");
+    expect(mocks.calls).not.toHaveBeenCalled();
+  });
+  it("does not treat an unknown provider or persistence failure as permission to recharge PFP", async () => {
+    mocks.unknownRecheck = true;
+    const first = (await run()).complete();
+    expect(first.state).toBe("RECHECK_FAILED");
+    expect(first.summary).toContain("may be billable");
+    expect(mocks.attempt!.phase).toBe("RECHECK_UNCERTAIN");
+    mocks.calls.mockClear();
+    expect((await run()).frames).toContain("PFP dispatch has an unknown outcome");
+    expect(mocks.calls).not.toHaveBeenCalled();
   });
 });

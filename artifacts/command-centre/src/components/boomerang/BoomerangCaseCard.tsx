@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RESULT_MAX, STAGE_ENGINE_ID, apiError, controlsFor, downloadCaseJson, fmtTime, returnError, shortHash } from "./boomerang-model";
+import { F8BundleComparison } from "./F8BundleComparison";
 
 const lab = "font-mono text-[10px] uppercase tracking-wider text-muted-foreground";
 
@@ -69,6 +70,8 @@ export function BoomerangCaseCard({ c, defaultOpen = false }: { c: BoomerangCase
               <div className={lab}>Returned work · hash {shortHash(c.resultHash)}</div>
               {c.spcPlayerRunId && <div className="mt-1">SPC Player run <span className="break-all" data-testid={`text-run-id-${c.id}`}>{c.spcPlayerRunId}</span></div>}
               {c.resultText && <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap text-[10px]">{c.resultText}</pre>}
+              {c.stage === "F8" && c.originKind === "SESSION" && c.resultText &&
+                <F8BundleComparison resultText={c.resultText} sessionId={c.originId} />}
             </div>
           )}
           {ctl.driftBlocked && (

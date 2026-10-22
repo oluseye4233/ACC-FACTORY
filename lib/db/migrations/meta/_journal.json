@@ -407,6 +407,20 @@
       "when": 1792523180105,
       "tag": "0057_nasty_havok",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1792677730960,
+      "tag": "0058_elite_young_avengers",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1792678447607,
+      "tag": "0059_tan_iceman",
+      "breakpoints": true
     }
   ]
 }

@@ -1,13 +1,17 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-const mock = vi.hoisted(() => ({ stream: vi.fn() }));
+const mock = vi.hoisted(() => ({ stream: vi.fn(), recovery: null as unknown, refetch: vi.fn() }));
+vi.mock("@workspace/api-client-react", async original => ({
+  ...await original<typeof import("@workspace/api-client-react")>(),
+  useGetF8RemediationProgress: () => ({ data: mock.recovery, refetch: mock.refetch, isError: false }),
+}));
 vi.mock("@/lib/sse", async original => ({
   ...await original<typeof import("@/lib/sse")>(), streamSse: mock.stream,
 }));
 import { F8DriftRemediation } from "./F8DriftRemediation";
 afterEach(cleanup);
-beforeEach(() => { mock.stream.mockReset(); });
+beforeEach(() => { mock.stream.mockReset(); mock.recovery = null; mock.refetch.mockClear(); });
 function setup(reportArtifactId: string | undefined = "report") {
   const onResult = vi.fn(), onBusyChange = vi.fn();
   const view = render(<F8DriftRemediation sessionId="session" reportArtifactId={reportArtifactId} provider="claude"
@@ -59,5 +63,22 @@ describe("F8 automatic remediation control", () => {
     await waitFor(() => expect(onResult).toHaveBeenCalledTimes(1));
     expect(mock.stream).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("status").textContent).toContain("RECHECK FAILED");
+  });
+  it("restores completed work without calling the paid endpoint", () => {
+    const result = { state: "RECHECKED", summary: "Saved correction", remediationArtifactId: "record", bundle: { artifactId: "saved" } };
+    mock.recovery = { attempt: { phase: "COMPLETE", reportArtifactId: "report", result } };
+    const { onResult } = setup();
+    fireEvent.click(screen.getByRole("button", { name: "RESTORE SAVED REPAIR RESULT" }));
+    expect(onResult).toHaveBeenCalledWith(result);
+    expect(mock.stream).not.toHaveBeenCalled();
+  });
+  it("recovers the original report for an interrupted attempt after reload", async () => {
+    mock.recovery = { attempt: { phase: "REPAIRED", reportArtifactId: "original-report" } };
+    mock.stream.mockImplementation(async (_url, _body, emit) => emit({ event: "complete", data: {
+      state: "RECHECKED", summary: "Resumed", remediationArtifactId: "record" } }));
+    render(<F8DriftRemediation sessionId="session" disabled={false} onResult={vi.fn()} onBusyChange={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "RESUME REPAIR + RE-DRIFT CHECK" }));
+    await waitFor(() => expect(mock.stream).toHaveBeenCalledWith(expect.any(String),
+      { sessionId: "session", reportArtifactId: "original-report" }, expect.any(Function), expect.any(AbortSignal)));
   });
 });

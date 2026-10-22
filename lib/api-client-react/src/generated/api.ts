@@ -114,6 +114,7 @@ import type {
   F10ReleaseRequest,
   F10Source,
   F5StepOutcome,
+  F8RemediationProgress,
   F8VerificationEvidence,
   F8VerificationEvidenceInput,
   F8VerificationFinalizeInput,
@@ -131,6 +132,7 @@ import type {
   GetArtifactOperationsParams,
   GetArtifactPreparationsParams,
   GetBoomerangRemediationParams,
+  GetF8RemediationProgressParams,
   GetShortSprintPreflightParams,
   GetSphinxCatalog200,
   HarnessArtifact,
@@ -8503,6 +8505,114 @@ export const useHarnessAtlasCrystallise = <TError = ErrorType<ForbiddenResponse 
       > => {
       return useMutation(getHarnessAtlasCrystalliseMutationOptions(options), queryClient);
     }
+
+export const getGetF8RemediationProgressUrl = (params: GetF8RemediationProgressParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/harness/f8-remediation?${stringifiedParams}` : `/api/harness/f8-remediation`
+}
+
+/**
+ * @summary Recover the latest owned F8 remediation progress without a model call
+ */
+export const getF8RemediationProgress = async (params: GetF8RemediationProgressParams, options?: Parameters<typeof customFetch>[1]): Promise<F8RemediationProgress> => {
+
+  return customFetch<F8RemediationProgress>(getGetF8RemediationProgressUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetF8RemediationProgressQueryKey = (params?: GetF8RemediationProgressParams,) => {
+    return [
+    `/api/harness/f8-remediation`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetF8RemediationProgressQueryOptions = <TData = Awaited<ReturnType<typeof getF8RemediationProgress>>, TError = ErrorType<void | NotFoundResponse>>(params: GetF8RemediationProgressParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getF8RemediationProgress>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetF8RemediationProgressQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getF8RemediationProgress>>> = ({ signal }) => getF8RemediationProgress(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getF8RemediationProgress>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetF8RemediationProgressQueryResult = NonNullable<Awaited<ReturnType<typeof getF8RemediationProgress>>>
+export type GetF8RemediationProgressQueryError = ErrorType<void | NotFoundResponse>
+
+
+export function useGetF8RemediationProgress<TData = Awaited<ReturnType<typeof getF8RemediationProgress>>, TError = ErrorType<void | NotFoundResponse>>(
+ params: GetF8RemediationProgressParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getF8RemediationProgress>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getF8RemediationProgress>>,
+          TError,
+          Awaited<ReturnType<typeof getF8RemediationProgress>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetF8RemediationProgress<TData = Awaited<ReturnType<typeof getF8RemediationProgress>>, TError = ErrorType<void | NotFoundResponse>>(
+ params: GetF8RemediationProgressParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getF8RemediationProgress>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getF8RemediationProgress>>,
+          TError,
+          Awaited<ReturnType<typeof getF8RemediationProgress>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetF8RemediationProgress<TData = Awaited<ReturnType<typeof getF8RemediationProgress>>, TError = ErrorType<void | NotFoundResponse>>(
+ params: GetF8RemediationProgressParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getF8RemediationProgress>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Recover the latest owned F8 remediation progress without a model call
+ */
+
+export function useGetF8RemediationProgress<TData = Awaited<ReturnType<typeof getF8RemediationProgress>>, TError = ErrorType<void | NotFoundResponse>>(
+ params: GetF8RemediationProgressParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getF8RemediationProgress>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetF8RemediationProgressQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getRemediateF8DriftUrl = () => {
 
