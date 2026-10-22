@@ -3,6 +3,20 @@ name: Managed Publish database guards
 description: Verify that security semantics survive the development-to-production schema plan, not just table and policy names.
 ---
 
+Treat unfamiliar guard definitions as requiring review, even when a substring
+check would recognize the expected actor setting or trigger name.
+
+**Why:** A name can survive while its predicate becomes broader or its function
+becomes a no-op. Conversely, PostgreSQL catalog formatting may change without
+changing semantics; automatically accepting unfamiliar forms hides that review
+decision.
+
+**How to apply:** Check required positive privileges as well as prohibited ones,
+and distinguish catalog membership from the effective role inside the actual
+request transaction. PostgreSQL JSON represents OIDs as strings while a driver
+may parse native OID arrays as numbers; handle explicit equivalent
+representations, not arbitrary truthy/coerced role identifiers.
+
 Inspect the managed Publish schema plan before recommending a release that
 depends on PostgreSQL roles, RLS predicates, FORCE RLS or trigger functions.
 Do not assume applying a development SQL migration carries all its effects

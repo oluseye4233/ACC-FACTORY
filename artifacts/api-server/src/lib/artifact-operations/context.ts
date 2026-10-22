@@ -17,6 +17,12 @@ export function withOperationsActor<T>(actor: OperationsActor, fn: (tx: Operatio
     if (!(await databaseProtection(tx)).ready) throw new OperationsError(503, "Private artifact operations are unavailable until the deployment's database isolation and immutable-version guards are verified.", "DATABASE_GUARDS_MISSING");
     try { await tx.execute(sql`SET LOCAL ROLE atanda_artifact_operations`); }
     catch { throw new OperationsError(503, "Private artifact operations require the approved restricted database role.", "DATABASE_ROLE_UNAVAILABLE"); }
+    const switched = await tx.execute(sql`SELECT current_user='atanda_artifact_operations'
+      AND NOT rolsuper AND NOT rolbypassrls AND NOT rolcanlogin
+      AND NOT rolcreatedb AND NOT rolcreaterole AND NOT rolreplication AS restricted_actor
+      FROM pg_roles WHERE rolname=current_user`);
+    if (switched.rows[0]?.restricted_actor !== true) throw new OperationsError(503,
+      "The workflow transaction did not enter the approved restricted role.", "DATABASE_ROLE_UNVERIFIED");
     await tx.execute(sql`select set_config('app.operations_actor', ${actor.id}, true), set_config('app.operations_admin', ${String(actor.role === "ADMIN")}, true)`);
     return fn(tx);
   });

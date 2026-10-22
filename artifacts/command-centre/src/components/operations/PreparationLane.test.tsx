@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ArtifactPreparationWorkspace } from "@workspace/api-client-react";
-import { InternalReport, PreparationLane } from "./PreparationLane";
+import { GuardStatus, InternalReport, PreparationLane } from "./PreparationLane";
 
 const state = vi.hoisted(() => ({ mutateAsync: vi.fn(), pending: false }));
 vi.mock("@workspace/api-client-react", async (original) => ({
@@ -28,6 +28,28 @@ function mount(kind: "imprima" | "short-sprints" = "short-sprints", internal = f
 }
 
 afterEach(() => { cleanup(); state.pending = false; state.mutateAsync.mockReset(); });
+
+describe("protected workflow readiness explanations", () => {
+  it("names missing positive privileges without implying the private lane is disabled", () => {
+    render(<GuardStatus ws={{ ...workspace, databaseProtection: { ready: false, checks: [
+      { id: "restricted_role", ready: true }, { id: "required_permissions", ready: false },
+      { id: "policy_scope", ready: false },
+    ] } }} />);
+    expect(screen.getByText(/database guards not verified/)).toBeTruthy();
+    expect(screen.getByTestId("status-check-required_permissions").textContent).toBe("NOT READY Required workflow permissions");
+    expect(screen.getByText(/private preparation lane below works independently/)).toBeTruthy();
+    expect(screen.getByTestId("status-check-policy_scope").textContent).toContain("NOT READY");
+  });
+  it("shows a ready guard and preserves unknown check names instead of hiding them", () => {
+    render(<GuardStatus ws={{ ...workspace, databaseProtection: { ready: true, checks: [
+      { id: "role_membership", ready: true }, { id: "new_reviewed_check", ready: true },
+    ] } }} />);
+    expect(screen.getByText("Protected workflow guards ready")).toBeTruthy();
+    expect(screen.getByTestId("status-check-role_membership").textContent).toBe("READY Application role membership");
+    expect(screen.getByTestId("status-check-new_reviewed_check").textContent).toContain("new_reviewed_check");
+    expect(screen.queryByText(/private preparation lane below works independently/)).toBeNull();
+  });
+});
 
 describe("preparation form accessibility", () => {
   it("labels the manifest and associates announced JSON errors with it", () => {

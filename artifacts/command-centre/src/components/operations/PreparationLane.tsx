@@ -43,16 +43,27 @@ function Choice({ label, value, options, onChange, testId }: { label: string; va
 
 export function GuardStatus({ ws }: { ws: ArtifactPreparationWorkspace }) {
   const p = ws.databaseProtection;
+  const labels: Record<string, string> = {
+    restricted_role: "Restricted workflow role",
+    role_membership: "Application role membership",
+    required_permissions: "Required workflow permissions",
+    forced_rls: "Forced row-level security",
+    owner_policies: "Owner isolation rules",
+    authority_policies: "Verifier authority rules",
+    policy_scope: "No unexpected access policies",
+    immutable_versions: "Immutable publication versions",
+    restricted_permissions: "Forbidden privileges absent",
+  };
   return (
     <div className={`border rounded p-3 font-mono text-[11px] ${p.ready ? "border-primary/40" : "border-secondary/60 bg-secondary/5"}`} data-testid="status-db-protection">
       <div className="flex items-center gap-2">
         {p.ready ? <ShieldCheck className="h-4 w-4 text-primary" /> : <ShieldAlert className="h-4 w-4 text-secondary" />}
-        <b>{p.ready ? "Protected workflow guards ready" : "Protected workflow unavailable: database guards not installed"}</b>
+        <b>{p.ready ? "Protected workflow guards ready" : "Protected workflow unavailable: database guards not verified"}</b>
       </div>
       <ul className="mt-2 grid sm:grid-cols-2 gap-x-4">
         {p.checks.map((c) => (
           <li key={c.id} data-testid={`status-check-${c.id}`}>
-            <span className={c.ready ? "text-primary" : "text-destructive"}>{c.ready ? "READY" : "MISSING"}</span> {c.id}
+            <span className={c.ready ? "text-primary" : "text-destructive"}>{c.ready ? "READY" : "NOT READY"}</span> {labels[c.id] ?? c.id}
           </li>
         ))}
       </ul>
