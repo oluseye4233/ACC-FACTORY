@@ -4,9 +4,10 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildExport, validateProfile } from "./f10-export";
+import { installGovernance } from "./artifact-governance";
 
 const source = (type: any = "SPC", content: unknown = { title: "demo" }, id = "00000000-0000-0000-0000-000000000001") =>
-  ({ id, type, content, name: "demo" });
+  ({ id, type, content: ["SPC", "MA_BIRTH_PACKAGE"].includes(type) ? installGovernance(content) : content, name: "demo" });
 
 describe("F10 deterministic exports", () => {
   it("validates target options and honest internal handoffs", () => {

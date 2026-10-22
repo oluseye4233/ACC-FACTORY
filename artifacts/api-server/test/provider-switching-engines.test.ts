@@ -1,6 +1,7 @@
 import express, { type Express, type RequestHandler } from "express";
 import { describe, test, expect } from "vitest";
 import { and, desc, eq } from "drizzle-orm";
+import { installGovernance } from "../src/lib/artifact-governance";
 import {
   db,
   usersTable,
@@ -148,7 +149,7 @@ async function insertArtifact(
       userId: fx.user.id,
       featureId,
       artifactType,
-      artifactContent,
+      artifactContent: ["MA_BIRTH_PACKAGE", "SPC"].includes(artifactType) ? installGovernance(artifactContent) : artifactContent,
       ...extras,
     })
     .returning();

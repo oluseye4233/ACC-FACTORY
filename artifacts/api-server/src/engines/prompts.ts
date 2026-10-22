@@ -1,3 +1,4 @@
+import { GOVERNANCE_GENERATION_INSTRUCTIONS } from "../lib/artifact-governance";
 // HARNESS engine system prompts — v2.1.
 // v2.1 grounds the prompts in the canonical doctrine of the reference SPC/PDD
 // corpus in `attached_assets/` (SPHINX ULTRA SI, BUGMXT SI, CELL SI, SPARTAN,
@@ -213,6 +214,7 @@ BIRTH PACKAGE
   knowledge    What it knows — corpora, references, axioms.
   behaviour    How it acts — tone, rituals, decision rules.
   lifecycle    When it activates, how it retires, escalation triggers.
+${GOVERNANCE_GENERATION_INSTRUCTIONS}
 ${JSON_ONLY_GUARDRAIL}
 
 Response schema (every key REQUIRED — downstream Zod validation rejects the
@@ -229,12 +231,20 @@ response if ANY top-level key or birthPackage subkey is missing):
     "behaviour":  string,   // REQUIRED — never omit (UK spelling: "behaviour", not "behavior")
     "lifecycle":  string    // REQUIRED — never omit
   },
-  "escalated": boolean      // REQUIRED — must be literally true or false, never null/missing
+  "escalated": boolean,     // REQUIRED — must be literally true or false, never null/missing
+  "gro": "SAFE_LIFE"|"GREY"|"RED",
+  "zpos": { "AEOS":number(0..100), "NEXUS":number(0..100), "PRISM":number(0..100),
+            "QUANTUM":number(0..100), "SYNTHESIS":number(0..100) },
+  "honestyGate": { "assumptions":[string], "limitations":[string],
+                   "unverifiedClaims":[string], "evidence":[string] }
 }
 
 Exactly 8 organelle entries, in the canonical order above. All 5 birthPackage
 fields and the top-level "escalated" boolean MUST be present in every response,
-even when escalated=false.
+even when escalated=false. The top-level gro, zpos and honestyGate objects are
+also REQUIRED, not birthPackage subfields. Include exactly the five ZPOS keys
+above. All four honesty arrays are required; limitations must contain at least
+one truthful limitation. Never substitute a claim of independent verification.
 ` as const;
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -336,6 +346,7 @@ MISSION
 Given the complete 7-step FORGE answers, synthesise a Super Prompt Card with
 15 sections in the canonical SPC ordering (BUGMXT SI is the exemplar). Also
 compute IQS, GRO, and a ZPOS+5 vector.
+${GOVERNANCE_GENERATION_INSTRUCTIONS}
 
 THE 15 SECTIONS (use these "key" values verbatim)
   1  card_identity_metadata    Identity table: name, version, owner, class,
@@ -422,12 +433,17 @@ Response schema:
   "sections": [{ "key":string, "title":string, "body":markdown_string }],
   "iqs": number(0..100),
   "gro": "SAFE_LIFE"|"GREY"|"RED",
-  "zpos": { (any string keys): number(0..100) }
+  "zpos": { "AEOS":number(0..100), "NEXUS":number(0..100), "PRISM":number(0..100),
+            "QUANTUM":number(0..100), "SYNTHESIS":number(0..100) },
+  "honestyGate": { "assumptions":[string], "limitations":[string],
+                   "unverifiedClaims":[string], "evidence":[string] }
 }
 
 Exactly 15 section entries, in the canonical order above, using the exact
 "key" values listed. "title" is the human-readable version
-(e.g. key="executive_summary", title="Executive Summary").
+(e.g. key="executive_summary", title="Executive Summary"). All five ZPOS keys
+and all four honesty arrays are required. Include at least one truthful
+limitation; never invent evidence or independent certification.
 ` as const;
 
 // ───────────────────────────────────────────────────────────────────────────

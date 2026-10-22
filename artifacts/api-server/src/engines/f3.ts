@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import type { Request, Response } from "express";
 import { HarnessF3StreamBody } from "@workspace/api-zod";
 import { F3_SYSTEM } from "./prompts";
+import { GeneratedGovernanceSchema } from "../lib/artifact-governance";
 import {
   advanceFeatureState,
   callLlmJson,
@@ -48,7 +49,7 @@ const F3OutputSchema = z.object({
     lifecycle: z.string(),
   }),
   escalated: z.boolean(),
-});
+}).extend(GeneratedGovernanceSchema.shape);
 
 export async function handleF3Stream(req: Request, res: Response): Promise<void> {
   const parsed = HarnessF3StreamBody.safeParse(req.body);
@@ -94,7 +95,10 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
       userId: guard.userId,
       engineId: 3,
     });
-  })();
+  })().then(
+    value => ({ ok: true as const, value }),
+    error => ({ ok: false as const, error }),
+  );
 
   send("start", { totalOrganelles: ORGANELLES.length });
   for (let i = 0; i < ORGANELLES.length; i++) {
@@ -108,7 +112,12 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
 
   let out: z.infer<typeof F3OutputSchema>;
   try {
-    out = await llmPromise;
+    // Settle rejection immediately while progress animation is running, then
+    // report it here. A fast provider/schema failure must not become an
+    // unhandled rejection before this await is reached.
+    const outcome = await llmPromise;
+    if (!outcome.ok) throw outcome.error;
+    out = outcome.value;
   } catch (err) {
     const code =
       err instanceof ProviderRequiresTierError
@@ -172,6 +181,6 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
   if (out.escalated) {
     send("escalation", { from: 3, to: 5 });
   }
-  send("complete", { ...out, artifactId: artifact.id });
+  send("complete", { ...(artifact.artifactContent as Record<string, unknown>), artifactId: artifact.id });
   res.end();
 }

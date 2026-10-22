@@ -1,12 +1,13 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { createHash } from "node:crypto";
 import { buildExport, validateProfile, type Family } from "./f10-export";
+import { installGovernance } from "./artifact-governance";
 import {
   createProviderAdapter, normalizeProviderExecutionStatus, providerBrokerTransport,
   targetConfigError, type ProviderTargetConfig,
 } from "./f10-provider";
 
-const source = { id: "00000000-0000-0000-0000-000000000001", type: "SPC" as const, name: "Reviewed agent", content: { prompt: "User-reviewed instructions" } };
+const source = { id: "00000000-0000-0000-0000-000000000001", type: "SPC" as const, name: "Reviewed agent", content: installGovernance({ prompt: "User-reviewed instructions" }) };
 const configs: ProviderTargetConfig[] = [
   { provider: "SLACK", target: "SLACK_NOTIFICATIONS", workspaceId: "T123", channelId: "C123" },
   { provider: "SLACK", target: "SLACK_AGENT", workspaceId: "T123", channelId: "C123", agentEndpoint: "https://agent.example.com/invoke" },

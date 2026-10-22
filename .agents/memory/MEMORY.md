@@ -22,7 +22,7 @@
 - [Test seeds & unique columns](test-seed-unique-constants.md) — never seed a fixed constant into a UNIQUE column; killed/concurrent runs leave rows behind and every later seed hits duplicate-key.
 - [Pending migration → dev drift](pending-migration-dev-drift.md) — runtime "relation/column does not exist" for an object present in schema+committed migration = unapplied dev migration; fix with `db run migrate`, not code.
 - [Shared-DB global-SUM gates in tests](test-shared-db-cost-cap.md) — neutralise live aggregate gates (cost cap) in vitest setup; intentional logger.warn tests must mock the pino singleton or output misattributes across suites.
-- [Headless capture pipeline](headless-capture-pipeline.md) — nohup children die when a bash call ends; long capture scripts must be resumable + run in foreground chunks; nix chromium + puppeteer-core + in-page fetch login works.
+- [Headless capture and test auth](headless-capture-pipeline.md) — use managed jobs or resumable captures; browser-only Clerk test login does not satisfy the separate staff wall.
 - [Exactly-once alert stamps](exactly-once-alert-stamps.md) — threshold emails: UNIQUE(period,threshold) insert-before-send, never stamp with empty recipients; toISOString month keys break past year 9999.
 - [EmailResult ok contract](email-result-ok-contract.md) — send() never throws provider errors; every caller must check .ok before stamping sent-markers; email mocks must return {ok:true}; esc() all template HTML.
 - [GitHub repo mirror](github-repo-mirror.md) — auto-sync to GitHub uses the Data API (connector token lacks workflow scope, so git push with .github/workflows changes is rejected); trailer on remote head = resume point.
@@ -33,6 +33,7 @@
 - [SPC Player Exemplar KIT DECKS](spc-player-exemplar-kit-decks.md) — unified Exemplar catalog; deterministic brief matching + manual choice; 1–12 unique ordered SPCs; optional F5 side-step.
 - [F10 release gateway](f10-connector-release-gateway.md) — contract requires immutable signed F9 artifacts under active OSIRIS custody; receipts prove delivery only.
 - [F10 colonization operator](f10-colonization-operator.md) — keep SAVANT CONNECTOR separate from delivery lanes; it owns no verdict and stays fail-closed until qualified external gates are wired.
+- [Governance portability](governance-portability.md) — adapt target packaging, not mandatory safeguards; partial exports do not establish distributed coverage or target enforcement.
 
 - [Credit reservation fencing](credit-reservation-fencing.md) — expiring/reclaiming reservations need per-claim ownership tokens; age alone cannot stop stale requests mutating a newer claim.
 - [Recovery provenance](recovery-provenance.md) — private cleanup requires matching durable upload intent; retain untracked legacy archives and keep real deletion report-only until reviewed opt-in.

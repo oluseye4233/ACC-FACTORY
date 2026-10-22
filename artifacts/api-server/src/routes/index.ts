@@ -35,6 +35,7 @@ import xvlVerificationRouter from "./xvl-verification";
 import shortSprintsRouter from "./short-sprints";
 import artifactOperationsRouter from "./artifact-operations";
 import boomerangRouter from "./boomerang";
+import artifactGovernanceRouter from "./artifact-governance";
 import { guardSkippedEngine } from "../lib/artifact-operations/engine-guard";
 
 const router: IRouter = Router();
@@ -42,6 +43,7 @@ router.use(learningRouter);
 router.use(guardSkippedEngine);
 router.use(artifactOperationsRouter);
 router.use(boomerangRouter);
+router.use(artifactGovernanceRouter);
 
 router.use(healthRouter);
 router.use(staffAuthRouter);

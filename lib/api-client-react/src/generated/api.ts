@@ -36,6 +36,7 @@ import type {
   AdminRevokeBadgeInput,
   AdminRevokeBadgeResult,
   AiseClaimInput,
+  ArtifactGovernanceStatus,
   ArtifactOperationKind,
   ArtifactOperationRequest,
   ArtifactOperationsWorkspace,
@@ -163,6 +164,7 @@ import type {
   IngestionCheckoutInput,
   IngestionCreditsSummary,
   IngestionDocument,
+  InstallGovernanceInput,
   JstInput,
   JstSummary,
   LaunchReadiness,
@@ -264,6 +266,196 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetArtifactGovernanceUrl = (artifactId: string,) => {
+
+
+
+
+  return `/api/harness/artifacts/${artifactId}/governance`
+}
+
+/**
+ * @summary Inspect owned MA/SPC governance criteria without claiming compliance
+ */
+export const getArtifactGovernance = async (artifactId: string, options?: Parameters<typeof customFetch>[1]): Promise<ArtifactGovernanceStatus> => {
+
+  return customFetch<ArtifactGovernanceStatus>(getGetArtifactGovernanceUrl(artifactId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetArtifactGovernanceQueryKey = (artifactId: string,) => {
+    return [
+    `/api/harness/artifacts/${artifactId}/governance`
+    ] as const;
+    }
+
+
+export const getGetArtifactGovernanceQueryOptions = <TData = Awaited<ReturnType<typeof getArtifactGovernance>>, TError = ErrorType<void>>(artifactId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getArtifactGovernance>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetArtifactGovernanceQueryKey(artifactId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getArtifactGovernance>>> = ({ signal }) => getArtifactGovernance(artifactId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: artifactId !== null && artifactId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getArtifactGovernance>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetArtifactGovernanceQueryResult = NonNullable<Awaited<ReturnType<typeof getArtifactGovernance>>>
+export type GetArtifactGovernanceQueryError = ErrorType<void>
+
+
+export function useGetArtifactGovernance<TData = Awaited<ReturnType<typeof getArtifactGovernance>>, TError = ErrorType<void>>(
+ artifactId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getArtifactGovernance>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getArtifactGovernance>>,
+          TError,
+          Awaited<ReturnType<typeof getArtifactGovernance>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetArtifactGovernance<TData = Awaited<ReturnType<typeof getArtifactGovernance>>, TError = ErrorType<void>>(
+ artifactId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getArtifactGovernance>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getArtifactGovernance>>,
+          TError,
+          Awaited<ReturnType<typeof getArtifactGovernance>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetArtifactGovernance<TData = Awaited<ReturnType<typeof getArtifactGovernance>>, TError = ErrorType<void>>(
+ artifactId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getArtifactGovernance>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Inspect owned MA/SPC governance criteria without claiming compliance
+ */
+
+export function useGetArtifactGovernance<TData = Awaited<ReturnType<typeof getArtifactGovernance>>, TError = ErrorType<void>>(
+ artifactId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getArtifactGovernance>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetArtifactGovernanceQueryOptions(artifactId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getInstallArtifactGovernanceUrl = (artifactId: string,) => {
+
+
+
+
+  return `/api/harness/artifacts/${artifactId}/governance`
+}
+
+/**
+ * @summary Create an unverified governed revision without mutating or approving a legacy artifact
+ */
+export const installArtifactGovernance = async (artifactId: string,
+    installGovernanceInput: InstallGovernanceInput, options?: Parameters<typeof customFetch>[1]): Promise<ArtifactGovernanceStatus> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ArtifactGovernanceStatus>(getInstallArtifactGovernanceUrl(artifactId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(installGovernanceInput)
+  }
+);}
+
+
+
+
+
+export const getInstallArtifactGovernanceMutationKey = () => ['installArtifactGovernance'] as const;
+
+export const getInstallArtifactGovernanceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof installArtifactGovernance>>, TError,InstallArtifactGovernanceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof installArtifactGovernance>>, TError,InstallArtifactGovernanceMutationVariables, TContext> => {
+
+const mutationKey = getInstallArtifactGovernanceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof installArtifactGovernance>>, InstallArtifactGovernanceMutationVariables> = (props) => {
+          const {artifactId,data} = props ?? {};
+
+          return  installArtifactGovernance(artifactId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InstallArtifactGovernanceMutationResult = NonNullable<Awaited<ReturnType<typeof installArtifactGovernance>>>
+    export type InstallArtifactGovernanceMutationBody = BodyType<InstallGovernanceInput>
+    export type InstallArtifactGovernanceMutationError = ErrorType<void>
+    export type InstallArtifactGovernanceMutationVariables = {artifactId: string;data: BodyType<InstallGovernanceInput>}
+
+    /**
+ * @summary Create an unverified governed revision without mutating or approving a legacy artifact
+ */
+export const useInstallArtifactGovernance = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof installArtifactGovernance>>, TError,InstallArtifactGovernanceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof installArtifactGovernance>>,
+        TError,
+        InstallArtifactGovernanceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInstallArtifactGovernanceMutationOptions(options), queryClient);
+    }
 
 export const getGetLearningHomeUrl = () => {
 

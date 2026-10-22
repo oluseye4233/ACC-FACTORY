@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { GovernancePanel } from "@/components/shared/GovernancePanel";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
@@ -357,7 +358,15 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
                     </TabsContent>
                   ))}
                 </Tabs>
+                {latestArtifact?.id && (
+                  <div className="mt-4">
+                    <GovernancePanel key={latestArtifact.id} artifactId={latestArtifact.id} sessionId={sessionId} />
+                  </div>
+                )}
               </Card>
+            )}
+            {!pkg && latestArtifact?.id && (
+              <GovernancePanel key={latestArtifact.id} artifactId={latestArtifact.id} sessionId={sessionId} />
             )}
           </div>
         </div>

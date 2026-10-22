@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import type { Request, Response } from "express";
 import { HarnessF4Body } from "@workspace/api-zod";
 import { F4_SYSTEM } from "./prompts";
+import { assertGovernance } from "../lib/artifact-governance";
 import {
   advanceFeatureState,
   callLlmJson,
@@ -42,6 +43,12 @@ export async function handleF4(req: Request, res: Response): Promise<void> {
   if (!source || source.sessionId !== sessionId) {
     res.status(404).json({ error: "Source artifact not found in this session" });
     return;
+  }
+  if (["MA_BIRTH_PACKAGE", "SPC"].includes(source.artifactType)) {
+    try { assertGovernance(source.artifactContent); } catch (error) {
+      res.status(409).json({ error: error instanceof Error ? error.message : "Governance review required", code: "GOVERNANCE_REQUIRED" });
+      return;
+    }
   }
   const userPrompt = `Source artifact (${source.artifactType}):\n${JSON.stringify(source.artifactContent, null, 2)}\n\nTarget VIBE: ${targetVibe}`;
   let out: z.infer<typeof F4OutputSchema>;

@@ -47,6 +47,7 @@ import {
   sendProviderTierError,
 } from "../engines/shared";
 import { spcPlayerRegistry } from "../lib/spc-player";
+import { GOVERNANCE_RUNTIME_INSTRUCTIONS, installGovernance } from "../lib/artifact-governance";
 import { getExemplar, listExemplars } from "../data/exemplars";
 
 const router: IRouter = Router();
@@ -1215,7 +1216,7 @@ router.post(
         const card = orderedCards[index]!;
         const result = await callLlmJson(
           provider,
-          `You are executing one generic SPC Player card in a conservative PRE_BUILD runtime derived from a user-authorized REVERB v3 source. Do not invent card-specific editorial behavior. Return the card's own verdict unchanged, concise useful content, and evidence. Execution profile: ${profile}.`,
+          `You are executing one generic SPC Player card in a conservative PRE_BUILD runtime derived from a user-authorized REVERB v3 source. Do not invent card-specific editorial behavior. Return the card's own verdict unchanged, concise useful content, and evidence. Execution profile: ${profile}.\n${GOVERNANCE_RUNTIME_INSTRUCTIONS}`,
           [
             `Brief:\n${owned.draft.brief}`,
             `Card: ${card.name} (${card.slug})`,
@@ -1306,14 +1307,14 @@ router.post(
 
     const advisory = executionAdvisory(profile, stages, true);
     const completedAt = new Date();
-    const outputPackage = {
+    const outputPackage = installGovernance({
       ...(remediation ? { remediation, nextStep: "RE_INGEST_F1", sourceRunId: owned.draft.id } : {}),
       content: stages,
       governanceEvaluation,
       advisory,
       scores: governanceEvaluation!.scores,
       distributionPlan: PLAN_ONLY_DISTRIBUTION,
-    };
+    });
     const completed = await fencedUpdate(execution.id, req.localUser!.id, attemptToken, {
         status: "completed",
         stageResults: stages,

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { GovernanceSelectionSchema, savantGovernancePackage, type GovernanceSelection } from "./artifact-governance";
 
 export const SOURCE_TYPES = ["SPC", "MA_BIRTH_PACKAGE", "MICRO_PDD", "ATLAS_PDD", "ATLAS_PDD_JSON", "MVP_PDD", "CODEBASE_BUNDLE", "VERIFIED_CODEBASE_BUNDLE"] as const;
 export type SourceType = (typeof SOURCE_TYPES)[number];
@@ -29,11 +30,13 @@ const ALLOWED: Record<OutputKind, readonly SourceType[]> = {
 const sha = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
 const json = (v: unknown) => Buffer.from(JSON.stringify(v, null, 2) + "\n");
 export type OwnedSource = { id: string; type: SourceType; name?: string | null; content: unknown; createdAt?: string | Date };
-export type ExportProfile = { outputKind: OutputKind; family: Family; target: string; deliveryMode?: "EXPORT" | "INTERNAL_HANDOFF" };
+export type ExportProfile = { outputKind: OutputKind; family: Family; target: string; deliveryMode?: "EXPORT" | "INTERNAL_HANDOFF"; governance?: GovernanceSelection };
 export type ExportFile = { path: string; mediaType: string; bytes: number; sha256: string; role: string; content: Buffer };
 export type ExportResult = { manifest: Record<string, unknown>; files: ExportFile[]; bundle: Buffer };
 
 export function validateProfile(profile: ExportProfile): string | undefined {
+  if (profile.governance && !GovernanceSelectionSchema.safeParse(profile.governance).success) return "invalid SAVANT governance selection";
+  if (profile.governance && !["SPC", "MA"].includes(profile.outputKind)) return "governance customization requires an SPC or MA source";
   if (!FAMILIES.includes(profile.family)) return "unsupported destination family";
   if (!OUTPUT_KINDS.includes(profile.outputKind) || !ALLOWED[profile.outputKind]) return "unsupported output kind";
   if (profile.family === "PROGRAMMING_ENVIRONMENT" && profile.outputKind !== "CODE_DJ") return "programming environments support CODE_DJ output only";
@@ -86,10 +89,17 @@ export function buildExport(source: OwnedSource, profile: ExportProfile): Export
     files.push({ path: clean, mediaType, bytes: value.length, sha256: sha(value), role, content: value });
   };
   const deliveryMode = profile.deliveryMode ?? (profile.family === "F0" || profile.family === "SPC_PLAYER" ? "INTERNAL_HANDOFF" : "EXPORT");
-  const manifestBase = { schemaVersion: "f10-export-v1", source: sourceMeta, profile: { ...profile, deliveryMode }, bundleSha256Scope: "zip-final-bytes; embedded manifest uses empty bundleSha256 to avoid circular hashing" };
+  const governance = ["SPC", "MA"].includes(profile.outputKind)
+    ? savantGovernancePackage(source.content, profile.governance ?? { mode: "FULL", modules: ["GRO", "ZPOS", "HONESTY_GATE"] }, { family: profile.family, target: profile.target }) : undefined;
+  const manifestBase = { schemaVersion: "f10-export-v1", source: sourceMeta, profile: { ...profile, deliveryMode }, ...(governance ? { governance: governance.manifest } : {}), bundleSha256Scope: "zip-final-bytes; embedded manifest uses empty bundleSha256 to avoid circular hashing" };
   add("source/artifact.json", sourceBytes, "source");
   add("source/lineage.json", json({ sourceArtifactId: source.id, sourceType: source.type }), "lineage", "application/json");
   add("README.md", Buffer.from(`# F10 ${profile.outputKind} export\n\nTarget: ${profile.target}\nFamily: ${profile.family}\nDelivery: ${deliveryMode}\n\nThis deterministic export is not a deployment. Review and authorize it in the destination.\n`), "instructions", "text/markdown");
+  if (governance) {
+    add("governance/manifest.json", json(governance.manifest), "governance-manifest", "application/json");
+    add("governance/selected-modules.json", json(governance.modules), "selected-governance", "application/json");
+    add("governance/instructions.md", Buffer.from(governance.instructions), "governance-instructions", "text/markdown");
+  }
   if (profile.outputKind === "CODE_DJ") for (const file of extractScaffold(source.content)) add(file.path, file.content, "scaffold");
   if (["F0", "SPC_PLAYER"].includes(profile.family)) add("import.json", json({ format: "f10-import-v1", sourceArtifactId: source.id, outputKind: profile.outputKind }), "import", "application/json");
   const starters: Record<Family, [string, string]> = {

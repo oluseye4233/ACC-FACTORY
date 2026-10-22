@@ -733,6 +733,66 @@ export interface LaunchReadiness {
   deferred: string[];
 }
 
+export interface InstallGovernanceInput {
+  confirmCreateRevision: true;
+}
+
+export type GovernanceSelectionMode = typeof GovernanceSelectionMode[keyof typeof GovernanceSelectionMode];
+
+
+export const GovernanceSelectionMode = {
+  FULL: 'FULL',
+  FRAGMENTED: 'FRAGMENTED',
+} as const;
+
+export type GovernanceSelectionModulesItem = typeof GovernanceSelectionModulesItem[keyof typeof GovernanceSelectionModulesItem];
+
+
+export const GovernanceSelectionModulesItem = {
+  GRO: 'GRO',
+  ZPOS: 'ZPOS',
+  HONESTY_GATE: 'HONESTY_GATE',
+} as const;
+
+export interface GovernanceSelection {
+  mode: GovernanceSelectionMode;
+  /**
+     * @minItems 1
+     * @maxItems 3
+     */
+  modules: GovernanceSelectionModulesItem[];
+}
+
+export type ArtifactGovernanceStatusStatus = typeof ArtifactGovernanceStatusStatus[keyof typeof ArtifactGovernanceStatusStatus];
+
+
+export const ArtifactGovernanceStatusStatus = {
+  LEGACY_UNVERIFIED: 'LEGACY_UNVERIFIED',
+  INVALID: 'INVALID',
+  BLOCKED: 'BLOCKED',
+  REVIEW_REQUIRED: 'REVIEW_REQUIRED',
+  CRITERIA_INSTALLED: 'CRITERIA_INSTALLED',
+} as const;
+
+export type ArtifactGovernanceStatusModulesItem = typeof ArtifactGovernanceStatusModulesItem[keyof typeof ArtifactGovernanceStatusModulesItem];
+
+
+export const ArtifactGovernanceStatusModulesItem = {
+  GRO: 'GRO',
+  ZPOS: 'ZPOS',
+  HONESTY_GATE: 'HONESTY_GATE',
+} as const;
+
+export interface ArtifactGovernanceStatus {
+  artifactId: string;
+  installed: boolean;
+  status: ArtifactGovernanceStatusStatus;
+  assessment: string;
+  modules: ArtifactGovernanceStatusModulesItem[];
+  sourceContentHash: string;
+  caveat: string;
+}
+
 export type F10ExportInputOutputKind = typeof F10ExportInputOutputKind[keyof typeof F10ExportInputOutputKind];
 
 
@@ -826,6 +886,7 @@ export const F10ExportInputDeliveryMode = {
 } as const;
 
 export interface F10ExportInput {
+  governance?: GovernanceSelection;
   sourceArtifactId: string;
   outputKind: F10ExportInputOutputKind;
   family: F10ExportInputFamily;

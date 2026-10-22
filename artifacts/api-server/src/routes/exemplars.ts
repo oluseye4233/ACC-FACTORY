@@ -25,6 +25,7 @@ import {
   buildPublishedSpcMetadata,
 } from "../lib/spc-player";
 import { exemplarSummary } from "../lib/exemplar-marketplace";
+import { inspectGovernance, installGovernance } from "../lib/artifact-governance";
 import marketplaceRoutes from "./exemplar-marketplace";
 
 const router: IRouter = Router();
@@ -185,7 +186,7 @@ router.post(
       return;
     }
     const artifactSnapshot = artifact.artifactContent as Record<string, unknown>;
-    const snapshot =
+    let snapshot =
       kind === "SPC"
         ? {
             ...artifactSnapshot,
@@ -196,6 +197,11 @@ router.post(
             ),
           }
         : artifactSnapshot;
+    // Publishing changes a new snapshot, never the stored source. Rebind
+    // valid criteria only; legacy SPCs must remain explicitly unverified.
+    if (kind === "SPC" && inspectGovernance(artifactSnapshot).installed) {
+      snapshot = installGovernance(snapshot);
+    }
     const body = JSON.stringify(snapshot, null, 2);
     const [row] = await db
       .insert(exemplarLibraryItemsTable)

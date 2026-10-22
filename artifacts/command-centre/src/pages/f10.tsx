@@ -97,6 +97,9 @@ import {
   Github,
   ExternalLink
 } from "lucide-react";
+import { GovernancePanel } from "@/components/shared/GovernancePanel";
+import { DEFAULT_GOVERNANCE_SELECTION, governanceForExport, isGovernedKind, validateGovernanceSelection } from "@/components/shared/governance-selection";
+import type { GovernanceSelection } from "@workspace/api-client-react";
 import { TopNav } from "@/components/layout/TopNav";
 import { PROVIDER_CONFIG_FIELDS, PROVIDER_TARGETS, PROVIDER_LABELS, TARGET_LABELS, ProviderOnboarding, ManualHandoffNotice, isFieldRequired, validateProviderConfig, buildTargetConfig, isNativeProvider, type NativeProvider } from "@/components/f10/native-providers";
 
@@ -618,6 +621,24 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
   const selectedFamilyData = catalog?.families.find(f => f.family === selectedFamily);
   const selectedSource = sources.find(s => s.id === selectedSourceId);
   const selectedSourceOutputKind = selectedSource?.outputKind;
+  const [governanceSelection, setGovernanceSelection] = useState<GovernanceSelection>(DEFAULT_GOVERNANCE_SELECTION);
+  const governanceInvalid = isGovernedKind(selectedSourceOutputKind) && validateGovernanceSelection(governanceSelection) !== null;
+
+  // Reset selection on source change; drop any stale manifest when source/target/selection change.
+  useEffect(() => { setGovernanceSelection(DEFAULT_GOVERNANCE_SELECTION); }, [selectedSourceId]);
+  useEffect(() => { setManifestData(null); setShowManifestDialog(false); }, [selectedSourceId, selectedFamily, selectedTarget, governanceSelection]);
+
+  const exportInput = (family: F10ExportInputFamily, deliveryMode: F10ExportInputDeliveryMode): F10ExportInput | null => {
+    if (!selectedSource || !selectedTarget) return null;
+    return {
+      sourceArtifactId: selectedSource.id,
+      outputKind: selectedSource.outputKind as F10ExportInputOutputKind,
+      family,
+      target: selectedTarget as F10ExportInputTarget,
+      deliveryMode,
+      ...governanceForExport(selectedSource.outputKind, governanceSelection),
+    };
+  };
 
   useEffect(() => {
     if (selectedFamilyData && selectedSourceOutputKind) {
@@ -671,14 +692,13 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
   };
 
   const handlePushToGitHub = async () => {
-    if (!selectedSource || selectedFamily !== "GITHUB" || !selectedTarget || !githubRepository || !githubBranch) return;
+    if (!selectedSource || selectedFamily !== "GITHUB" || !selectedTarget || !githubRepository || !githubBranch || governanceInvalid) return;
+    const base = exportInput("GITHUB", "EXPORT");
+    if (!base) return;
     try {
       const result = await pushF10ExportToGitHub.mutateAsync({ data: {
-        sourceArtifactId: selectedSource.id,
-        outputKind: selectedSource.outputKind as F10ExportInputOutputKind,
-        family: "GITHUB",
-        target: selectedTarget as F10ExportInputTarget,
-        deliveryMode: "EXPORT",
+        ...base,
+        family: "GITHUB" as const,
         repository: githubRepository,
         branch: githubBranch,
       } });
@@ -696,13 +716,8 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
     if (!selectedSource || !selectedFamily || !selectedTarget) return;
 
     const mode = selectedFamilyData?.liveMode === "INTERNAL_HANDOFF" ? "INTERNAL_HANDOFF" : "EXPORT";
-    const input: F10ExportInput = {
-      sourceArtifactId: selectedSource.id,
-      outputKind: selectedSource.outputKind as F10ExportInputOutputKind,
-      family: selectedFamily as F10ExportInputFamily,
-      target: selectedTarget as any,
-      deliveryMode: mode as F10ExportInputDeliveryMode
-    };
+    const input = exportInput(selectedFamily as F10ExportInputFamily, mode as F10ExportInputDeliveryMode);
+    if (!input || governanceInvalid) return;
 
     try {
       const manifest = await createF10ExportManifest.mutateAsync({ data: input });
@@ -721,13 +736,8 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
     if (!selectedSource || !selectedFamily || !selectedTarget) return;
 
     const mode = selectedFamilyData?.liveMode === "INTERNAL_HANDOFF" ? "INTERNAL_HANDOFF" : "EXPORT";
-    const input: F10ExportInput = {
-      sourceArtifactId: selectedSource.id,
-      outputKind: selectedSource.outputKind as F10ExportInputOutputKind,
-      family: selectedFamily as F10ExportInputFamily,
-      target: selectedTarget as any,
-      deliveryMode: mode as F10ExportInputDeliveryMode
-    };
+    const input = exportInput(selectedFamily as F10ExportInputFamily, mode as F10ExportInputDeliveryMode);
+    if (!input || governanceInvalid) return;
 
     try {
       const blob = await downloadF10Export.mutateAsync({ data: input });
@@ -1072,8 +1082,17 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
                     Specify destination platform and delivery profile
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex-1 p-6 flex flex-col">
+                <CardContent className="flex-1 p-6 flex flex-col overflow-y-auto">
                   <div className="space-y-6 flex-1">
+                    {selectedSource && isGovernedKind(selectedSource.outputKind) && (
+                      <GovernancePanel
+                        key={selectedSource.id}
+                        artifactId={selectedSource.id}
+                        selection={governanceSelection}
+                        onSelectionChange={setGovernanceSelection}
+                        onRevisionCreated={(status) => setSelectedSourceId(status.artifactId)}
+                      />
+                    )}
                     <div className="space-y-2">
                       <label className="font-mono text-xs uppercase text-muted-foreground">Destination Family</label>
                       <Select value={selectedFamily} onValueChange={setSelectedFamily} disabled={!selectedSource}>
@@ -1166,7 +1185,7 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
                                     <Button
                                       type="button"
                                       onClick={handlePushToGitHub}
-                                      disabled={!selectedSourceId || !selectedTarget || !githubRepository || !githubBranch || pushF10ExportToGitHub.isPending}
+                                      disabled={!selectedSourceId || !selectedTarget || !githubRepository || !githubBranch || pushF10ExportToGitHub.isPending || governanceInvalid}
                                       data-testid="btn-push-github"
                                       className="w-full font-mono uppercase text-xs"
                                     >
@@ -1216,7 +1235,7 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
                     <Button
                       variant="outline"
                       onClick={handlePreviewManifest}
-                      disabled={!selectedSourceId || !selectedFamily || !selectedTarget || createF10ExportManifest.isPending}
+                      disabled={!selectedSourceId || !selectedFamily || !selectedTarget || createF10ExportManifest.isPending || governanceInvalid}
                       data-testid="btn-preview-manifest"
                       className="flex-1 font-mono uppercase text-xs tracking-wider"
                     >
@@ -1224,7 +1243,7 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
                     </Button>
                     <Button
                       onClick={handleDownloadBundle}
-                      disabled={!selectedSourceId || !selectedFamily || !selectedTarget || downloadF10Export.isPending}
+                      disabled={!selectedSourceId || !selectedFamily || !selectedTarget || downloadF10Export.isPending || governanceInvalid}
                       data-testid="btn-download-bundle"
                       className="flex-1 font-mono uppercase text-xs tracking-wider"
                     >

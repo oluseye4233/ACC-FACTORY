@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { HarnessF6Body, HarnessF6DraftStreamBody } from "@workspace/api-zod";
 import type { LlmProvider } from "@workspace/db";
 import { F6_SYSTEM } from "./prompts";
+import { assertGovernance } from "../lib/artifact-governance";
 import {
   advanceFeatureState,
   callLlmJson,
@@ -52,6 +53,9 @@ async function buildF6Prompt(
     const source = await loadArtifact(sourceArtifactId, userId);
     if (!source || source.sessionId !== sessionId || source.artifactType !== "SPC") {
       throw new MissingSourceError("Source SPC not found in this session", 404);
+    }
+    try { assertGovernance(source.artifactContent); } catch (error) {
+      throw new MissingSourceError(error instanceof Error ? error.message : "Governance review required", 409);
     }
     return `Mode: FROM_SPC\n\nSource SPC:\n${JSON.stringify(source.artifactContent, null, 2)}`;
   }

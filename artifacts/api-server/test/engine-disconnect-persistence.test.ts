@@ -23,7 +23,7 @@ import {
 // suite is the regression net for those five branches: it opens the real SSE
 // stream against a real Express server, aborts the fetch mid-run, and polls
 // the database until the durable row lands.
-const llm = vi.hoisted(() => ({ responseText: "" }));
+const llm = vi.hoisted(() => ({ responseText: "", delayMs: 2000 }));
 
 // Keep the canned LLM response pending until after the client has aborted, so
 // the disconnect genuinely happens mid-run (before the handler awaits the LLM
@@ -53,7 +53,7 @@ vi.mock("@workspace/integrations-anthropic-ai", async (importOriginal) => {
     getAnthropic: () => ({
       messages: {
         create: async () => {
-          await new Promise((r) => setTimeout(r, LLM_DELAY_MS));
+          await new Promise((r) => setTimeout(r, llm.delayMs));
           return {
             content: [{ type: "text", text: llm.responseText }],
             usage: { input_tokens: 50, output_tokens: 40 },
@@ -261,7 +261,13 @@ const SAMPLE_ATLAS_PDD = {
   implementation: "Generate via an LLM with a deterministic JSON schema.",
 };
 
+const GOVERNANCE_ASSESSMENT = {
+  gro: "SAFE_LIFE",
+  zpos: { AEOS: 80, NEXUS: 80, PRISM: 80, QUANTUM: 80, SYNTHESIS: 80 },
+  honestyGate: { assumptions: [], limitations: ["Synthetic test response; not independently verified."], unverifiedClaims: [], evidence: [] },
+};
 const F3_RESPONSE = {
+  ...GOVERNANCE_ASSESSMENT,
   classification: {
     phase: "PHASE_1",
     kind: "PLANNER",
@@ -280,13 +286,13 @@ const F3_RESPONSE = {
 };
 
 const F5_RESPONSE = {
+  ...GOVERNANCE_ASSESSMENT,
   sections: [
     { key: "objective", title: "Objective", body: "Plan a week of dinners on $120." },
     { key: "scope", title: "Scope", body: "Dinners only." },
   ],
   iqs: 8,
   gro: "SAFE_LIFE",
-  zpos: { budget: 1 },
 };
 
 const F6_RESPONSE = SAMPLE_ATLAS_PDD;
@@ -316,6 +322,7 @@ const TEST_TIMEOUT_MS = 20_000;
 describe("streaming engines — client disconnect mid-stream must not lose the output", () => {
   beforeEach(() => {
     llm.responseText = "";
+    llm.delayMs = LLM_DELAY_MS;
   });
 
   test(
@@ -460,6 +467,27 @@ describe("streaming engines — client disconnect mid-stream must not lose the o
     },
     TEST_TIMEOUT_MS,
   );
+
+  test("F5 rejects a fast incomplete governance response without an unhandled rejection or saved SPC", async () => {
+    llm.delayMs = 0;
+    llm.responseText = JSON.stringify({ ...F5_RESPONSE, honestyGate: undefined });
+    const fx = await seed();
+    const srv = await startServer(buildApp(fx.user, fx.subscriber, "/api/harness/f5/finalize", handleF5FinalizeStream));
+    try {
+      const response = await fetch(`${srv.url}/api/harness/f5/finalize`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: fx.sessionId, name: "Must not persist", answers: { "1": "Invoice reviewer" }, provider: "claude" }),
+      });
+      const body = await response.text();
+      expect(body).toMatch(/event:\s*error/);
+      expect(body).not.toMatch(/event:\s*complete/);
+      expect(body).toContain("honestyGate");
+      expect(await latestArtifact(fx.sessionId, "SPC")).toBeFalsy();
+    } finally {
+      await srv.close();
+      await cleanup(fx.user.id);
+    }
+  }, TEST_TIMEOUT_MS);
 
   test(
     "F6 draft: a mid-stream disconnect still persists the ATLAS PDD artifact",

@@ -135,11 +135,16 @@ export interface PersistArtifactInput {
   // MATHMON / FORGE VERIFIED gate (D26). Set only by the F7 certification path.
   mathmonScore?: number | null;
   forgeVerified?: boolean;
+  parentArtifactId?: string;
 }
 
 export async function persistArtifact(
   input: PersistArtifactInput,
 ): Promise<typeof harnessArtifactsTable.$inferSelect> {
+  const { installGovernance, governanceHash } = await import("../lib/artifact-governance");
+  const governed = input.artifactType === "SPC" || input.artifactType === "MA_BIRTH_PACKAGE";
+  const artifactContent = governed ? installGovernance(input.artifactContent) : input.artifactContent;
+  const declaredGro = input.artifactContent.gro;
   const provider = input.provider ?? null;
   const modelId =
     input.modelId ?? (provider ? PROVIDER_MODELS[provider] ?? null : null);
@@ -157,12 +162,14 @@ export async function persistArtifact(
       featureId: input.featureId,
       artifactType: input.artifactType,
       name: input.name ?? null,
-      artifactContent: input.artifactContent,
+      artifactContent,
+      parentArtifactId: input.parentArtifactId,
+      contentHash: governed ? governanceHash(artifactContent) : undefined,
       scorecards: input.scorecards ?? [],
       sku,
       jcseScore: input.jcseScore ?? null,
       certTier: input.certTier ?? null,
-      groState: input.groState ?? "SAFE_LIFE",
+      groState: governed ? (["SAFE_LIFE", "GREY", "RED"].includes(String(declaredGro)) ? String(declaredGro) : "UNKNOWN") : input.groState ?? "SAFE_LIFE",
       spartanCert: input.spartanCert ?? null,
       mathmonScore: input.mathmonScore ?? null,
       forgeVerified: input.forgeVerified ?? false,

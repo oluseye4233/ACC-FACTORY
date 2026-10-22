@@ -16,6 +16,7 @@ import { getGitHubClientFromToken } from "../lib/github";
 import { requireTier } from "../lib/tier";
 import { COLONIZATION_TARGET_CLASSES, evaluateColonization, evaluatePromotionGate, type ColonizationInput } from "../lib/f10-colonization";
 import { buildArtifactFilename } from "@workspace/artifact-naming";
+import { GovernanceSelectionSchema } from "../lib/artifact-governance";
 
 const router: IRouter = Router();
 const Body = z.object({
@@ -39,6 +40,7 @@ const ExportBody = z.object({
   family: z.enum(FAMILIES),
   target: z.string().trim().min(1).max(120),
   deliveryMode: z.enum(["EXPORT", "INTERNAL_HANDOFF"]).optional(),
+  governance: GovernanceSelectionSchema.optional(),
 });
 const GitHubPushBody = ExportBody.extend({
   family: z.literal("GITHUB"),

@@ -8,6 +8,46 @@
 import * as zod from 'zod';
 
 
+/**
+ * @summary Inspect owned MA/SPC governance criteria without claiming compliance
+ */
+export const GetArtifactGovernanceParams = zod.object({
+  "artifactId": zod.coerce.string().uuid()
+})
+
+export const GetArtifactGovernanceResponse = zod.object({
+  "artifactId": zod.string().uuid(),
+  "installed": zod.boolean(),
+  "status": zod.enum(['LEGACY_UNVERIFIED', 'INVALID', 'BLOCKED', 'REVIEW_REQUIRED', 'CRITERIA_INSTALLED']),
+  "assessment": zod.string(),
+  "modules": zod.array(zod.enum(['GRO', 'ZPOS', 'HONESTY_GATE'])),
+  "sourceContentHash": zod.string(),
+  "caveat": zod.string()
+})
+
+
+/**
+ * @summary Create an unverified governed revision without mutating or approving a legacy artifact
+ */
+export const InstallArtifactGovernanceParams = zod.object({
+  "artifactId": zod.coerce.string().uuid()
+})
+
+export const InstallArtifactGovernanceBody = zod.object({
+  "confirmCreateRevision": zod.literal(true)
+})
+
+export const InstallArtifactGovernanceResponse = zod.object({
+  "artifactId": zod.string().uuid(),
+  "installed": zod.boolean(),
+  "status": zod.enum(['LEGACY_UNVERIFIED', 'INVALID', 'BLOCKED', 'REVIEW_REQUIRED', 'CRITERIA_INSTALLED']),
+  "assessment": zod.string(),
+  "modules": zod.array(zod.enum(['GRO', 'ZPOS', 'HONESTY_GATE'])),
+  "sourceContentHash": zod.string(),
+  "caveat": zod.string()
+})
+
+
 export const GetLearningHomeResponse = zod.object({
   "plan": zod.string(),
   "price": zod.number(),
@@ -1482,7 +1522,15 @@ export const ListF10SourcesResponse = zod.array(ListF10SourcesResponseItem)
 /**
  * @summary Create a deterministic F10 export manifest from an owned artifact
  */
+export const createF10ExportManifestBodyGovernanceModulesMax = 3;
+
+
+
 export const CreateF10ExportManifestBody = zod.object({
+  "governance": zod.object({
+  "mode": zod.enum(['FULL', 'FRAGMENTED']),
+  "modules": zod.array(zod.enum(['GRO', 'ZPOS', 'HONESTY_GATE'])).min(1).max(createF10ExportManifestBodyGovernanceModulesMax)
+}).optional(),
   "sourceArtifactId": zod.string().uuid(),
   "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
   "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'SLACK', 'LANGSMITH', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
@@ -1526,7 +1574,15 @@ export const CreateF10ExportManifestResponse = zod.object({
 /**
  * @summary Download a deterministic F10 ZIP export
  */
+export const downloadF10ExportBodyGovernanceModulesMax = 3;
+
+
+
 export const DownloadF10ExportBody = zod.object({
+  "governance": zod.object({
+  "mode": zod.enum(['FULL', 'FRAGMENTED']),
+  "modules": zod.array(zod.enum(['GRO', 'ZPOS', 'HONESTY_GATE'])).min(1).max(downloadF10ExportBodyGovernanceModulesMax)
+}).optional(),
   "sourceArtifactId": zod.string().uuid(),
   "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
   "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'SLACK', 'LANGSMITH', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),
@@ -1541,12 +1597,18 @@ export const DownloadF10ExportResponse = zod.unknown()
  * File bytes are reconstructed from the owned source artifact and selected profile; caller-supplied files are not accepted.
  * @summary Rebuild and push an owned F10 handoff to an authorized GitHub repository
  */
+export const pushF10ExportToGitHubBodyOneGovernanceModulesMax = 3;
+
 export const pushF10ExportToGitHubBodyTwoRepositoryRegExp = new RegExp('^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$');
 export const pushF10ExportToGitHubBodyTwoBranchMax = 255;
 
 
 
 export const PushF10ExportToGitHubBody = zod.object({
+  "governance": zod.object({
+  "mode": zod.enum(['FULL', 'FRAGMENTED']),
+  "modules": zod.array(zod.enum(['GRO', 'ZPOS', 'HONESTY_GATE'])).min(1).max(pushF10ExportToGitHubBodyOneGovernanceModulesMax)
+}).optional(),
   "sourceArtifactId": zod.string().uuid(),
   "outputKind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'CODE_DJ']),
   "family": zod.enum(['AWS', 'AZURE', 'OPENAI_AGENTS', 'GEMINI_AGENTS', 'IDE', 'VIBE_APP', 'F0', 'SPC_PLAYER', 'LANGCHAIN', 'SLACK', 'LANGSMITH', 'GITHUB', 'PROGRAMMING_ENVIRONMENT']),

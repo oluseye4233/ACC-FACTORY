@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { GovernancePanel } from "@/components/shared/GovernancePanel";
 import { GeneratedBy } from "@/components/shared/GeneratedBy";
 import { WorkspaceShell, ErrorBanner } from "./_shared";
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
@@ -517,6 +518,10 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
                       </pre>
                     </details>
                   ))}
+                  {targetArtifactId && (
+                    <GovernancePanel key={targetArtifactId} artifactId={targetArtifactId} sessionId={sessionId}
+                      onRevisionCreated={status => setSpc(current => current ? { ...current, artifactId: status.artifactId } : current)} />
+                  )}
                   <SpcLineage
                     artifacts={artifacts ?? []}
                     targetArtifactId={targetArtifactId}

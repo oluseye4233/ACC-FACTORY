@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import type { LlmProvider } from "@workspace/db";
 import { HarnessF5Body, HarnessF5FinalizeStreamBody } from "@workspace/api-zod";
 import { F5_QUESTION_SYSTEM, F5_FINALIZE_SYSTEM } from "./prompts";
+import { GeneratedGovernanceSchema, governanceBlock } from "../lib/artifact-governance";
 import {
   advanceFeatureState,
   callLlmJson,
@@ -30,11 +31,9 @@ const SpcOutputSchema = z.object({
     }),
   ),
   iqs: z.number(),
-  gro: z.enum(["SAFE_LIFE", "GREY", "RED"]),
-  zpos: z.record(z.string(), z.number()),
-});
+}).extend(GeneratedGovernanceSchema.shape);
 
-type Spc = z.infer<typeof SpcOutputSchema>;
+type Spc = z.infer<typeof SpcOutputSchema> & { governance?: ReturnType<typeof governanceBlock> };
 
 // FORGE.COMMIT synthesis is the heavy single LLM call of F5. It is delivered
 // over SSE (see handleF5FinalizeStream) so the proxy sees bytes well within its
@@ -42,19 +41,20 @@ type Spc = z.infer<typeof SpcOutputSchema>;
 // with a 502. The LLM call and persistence are split into the two helpers below
 // so the streaming handler and the legacy JSON `finalize` branch share one code
 // path.
-function synthesiseSpc(
+async function synthesiseSpc(
   provider: LlmProvider,
   accumulated: Record<string, unknown>,
   sessionId: string,
   userId: string,
 ): Promise<Spc> {
-  return callLlmJson(
+  const result = await callLlmJson(
     provider,
     F5_FINALIZE_SYSTEM,
     `Accumulated FORGE 7-step answers:\n${JSON.stringify(accumulated, null, 2)}`,
     SpcOutputSchema,
     { sessionId, userId, engineId: 5 },
   );
+  return { ...result, governance: governanceBlock(result) };
 }
 
 async function persistSpc(
@@ -210,7 +210,10 @@ export async function handleF5FinalizeStream(req: Request, res: Response): Promi
   };
 
   // Kick off the LLM synthesis while progress checkpoints stream in parallel.
-  const llmPromise = synthesiseSpc(provider, accumulated, sessionId, guard.userId);
+  const llmPromise = synthesiseSpc(provider, accumulated, sessionId, guard.userId).then(
+    value => ({ ok: true as const, value }),
+    error => ({ ok: false as const, error }),
+  );
 
   send("start", { totalSteps: COMMIT_STEPS.length });
   for (let i = 0; i < COMMIT_STEPS.length; i++) {
@@ -224,7 +227,9 @@ export async function handleF5FinalizeStream(req: Request, res: Response): Promi
 
   let spc: Spc;
   try {
-    spc = await llmPromise;
+    const outcome = await llmPromise;
+    if (!outcome.ok) throw outcome.error;
+    spc = outcome.value;
   } catch (err) {
     const code =
       err instanceof ProviderRequiresTierError

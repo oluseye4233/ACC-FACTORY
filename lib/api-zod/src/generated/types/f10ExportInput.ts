@@ -9,8 +9,10 @@ import type { F10ExportInputDeliveryMode } from './f10ExportInputDeliveryMode';
 import type { F10ExportInputFamily } from './f10ExportInputFamily';
 import type { F10ExportInputOutputKind } from './f10ExportInputOutputKind';
 import type { F10ExportInputTarget } from './f10ExportInputTarget';
+import type { GovernanceSelection } from './governanceSelection';
 
 export interface F10ExportInput {
+  governance?: GovernanceSelection;
   sourceArtifactId: string;
   outputKind: F10ExportInputOutputKind;
   family: F10ExportInputFamily;
