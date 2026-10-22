@@ -3035,7 +3035,8 @@ paths:
     post:
       operationId: createArtifactPreparation
       tags: [artifactOperations]
-      summary: Save a source-preserving draft or non-releasable proposal; no LLM or deployment is run
+      summary: Save a private draft or proposal, optionally with internal editorial model review
+      description: Ordinary preparation and SHORT SPRINT Internal make no model calls. IMPRIMA Internal runs budgeted KLARITY and SOCRATES adapters, never granting certification or release. With Accept text/event-stream, IMPRIMA Internal returns start/progress/complete/error events; complete data is ArtifactPreparation. Other callers receive the 201 JSON response.
       parameters:
         - { name: kind, in: path, required: true, schema: { $ref: '#/components/schemas/ArtifactOperationKind' } }
       requestBody:
@@ -3044,6 +3045,12 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/ArtifactPreparationInput' }
       responses:
+        '200':
+          description: IMPRIMA Internal event stream when Accept is text/event-stream; complete carries ArtifactPreparation and error carries a safe error message.
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/ArtifactPreparation'
         '201':
           description: New private preparation version
           content:

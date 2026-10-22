@@ -16186,7 +16186,8 @@ export const getCreateArtifactPreparationUrl = (kind: ArtifactOperationKind,) =>
 }
 
 /**
- * @summary Save a source-preserving draft or non-releasable proposal; no LLM or deployment is run
+ * Ordinary preparation and SHORT SPRINT Internal make no model calls. IMPRIMA Internal runs budgeted KLARITY and SOCRATES adapters, never granting certification or release. With Accept text/event-stream, IMPRIMA Internal returns start/progress/complete/error events; complete data is ArtifactPreparation. Other callers receive the 201 JSON response.
+ * @summary Save a private draft or proposal, optionally with internal editorial model review
  */
 export const createArtifactPreparation = async (kind: ArtifactOperationKind,
     artifactPreparationInput: ArtifactPreparationInput, options?: Parameters<typeof customFetch>[1]): Promise<ArtifactPreparation> => {
@@ -16253,7 +16254,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateArtifactPreparationMutationVariables = {kind: ArtifactOperationKind;data: BodyType<ArtifactPreparationInput>}
 
     /**
- * @summary Save a source-preserving draft or non-releasable proposal; no LLM or deployment is run
+ * @summary Save a private draft or proposal, optionally with internal editorial model review
  */
 export const useCreateArtifactPreparation = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createArtifactPreparation>>, TError,CreateArtifactPreparationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}

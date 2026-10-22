@@ -33,8 +33,30 @@ failed external or database security gates.
   declarations do not establish source certification, elapsed build time,
   independent review, absence of critical issues or agent runtime behaviour.
 
-No fresh model evaluation, KLARITY/SOCRATES editorial review, independent
-verification pack, agent execution or deployment is performed.
+IMPRIMA Internal now additionally runs KLARITY clarity editing followed by
+SOCRATES claims interrogation, using budgeted, usage-recorded model adapters.
+KLARITY may edit only unprotected prose; protected content is checked for
+fidelity. No editable prose means KLARITY is NOT_RUN. Its 0–100 clarity score
+is a model estimate, not a quality certification; PASS means the bounded
+adapter completed. SOCRATES CLEAR maps to PASS, CLEAR_WITH_NOTES to
+INCONCLUSIVE, and HOLD (including any HIGH/CRITICAL flag) to FAIL.
+HOLD is visible in the private draft and requires a corrected source and a new
+assessment. Neither CLEAR nor an overall internal PASS grants publication.
+
+The archived `internal-editorial-review.json` contains provider, source and
+reviewed-content hashes, edits, clarity estimate and the complete SOCRATES
+findings. `source-snapshot.json` retains the original input. The saved internal
+assessment displays the checks and findings after reload.
+
+Internal editorial requests are limited to 30 KB of normalized content and
+100 editable paragraphs. Model/budget failures stop the request without
+saving a successful preparation; completed provider calls remain accounted.
+Retrying starts a new assessment and may incur model usage again.
+The browser uses a heartbeat event stream so model reviews do not wait
+silently behind the proxy timeout. Leaving the page disconnects the browser,
+not the server assessment; refresh saved assessments before retrying.
+Ordinary preparation and SHORT SPRINT Internal do not invoke these adapters.
+No independent verification pack, agent execution or deployment is performed.
 
 ## State interpretation
 

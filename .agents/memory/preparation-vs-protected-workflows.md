@@ -34,3 +34,13 @@ as equivalent certification or an automatic response to failed protections.
 and downloadable packages; never promote an internal PASS into an external
 receipt or claim a model/editorial check ran when only recorded scores were
 inherited.
+
+IMPRIMA Internal may run KLARITY and SOCRATES as explicitly internal model
+adapters at the user's request; this does not make them independent evaluators.
+
+**Why:** The user wants useful editorial review in the internal lane while
+retaining the original externally governed lane in parallel.
+
+**How to apply:** Label model estimates and claims judgments, preserve missing
+evidence and HOLD, account for model spend, and keep every internal outcome
+ineligible for protected approval, certification or release.

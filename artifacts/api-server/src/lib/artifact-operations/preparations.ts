@@ -11,6 +11,7 @@ import { fileHash, readPrivate, savePrivate } from "./private-storage";
 import { ownedOperationsSession, publicationSources, savedPublicationSource } from "./sources";
 import { prepareSprintSource } from "./short-sprints";
 import { internalEvaluation, INTERNAL_CAVEAT } from "./internal-evaluation";
+import { reviewInternalDocument, type InternalEditorialEvidence } from "./internal-editorial";
 
 export type PreparationKind = "imprima" | "short-sprints";
 const TYPES = { imprima: "IMPRIMA_PREPARATION", "short-sprints": "SHORT_SPRINT_PREPARATION" } as const;
@@ -44,7 +45,7 @@ export async function preparationWorkspace(actor: OperationsActor, kind: Prepara
   ]);
   return { kind, items: rows.slice(0, 50).map(dto), hasMore: rows.length > 50, authorName: actor.displayName,
     sources: sources.filter(s => s.sessionId && (kind === "imprima" || ["F4_MICRO_PDD", "F5_SPC"].includes(s.kind))),
-    databaseProtection: protection, notices: [...notice, "No model calls are made. IMPRIMA preserves the source; editorial and truthfulness reviews are NOT RUN.",
+    databaseProtection: protection, notices: [...notice, "Ordinary preparation makes no model calls. IMPRIMA Internal runs budgeted KLARITY and SOCRATES model reviews; these are not independent verification.",
       "Session-backed sources are supported in this MVP. Sessionless service/Player publishing remains in the guarded full workflow."] };
 }
 export async function createPreparation(actor: OperationsActor, kind: PreparationKind, input: unknown) {
@@ -55,15 +56,25 @@ export async function createPreparation(actor: OperationsActor, kind: Preparatio
   const id = randomUUID(), createdAt = new Date();
   const files: { filename: string; format: string; mime: string; bytes: Buffer; contentHash: string }[] = [];
   let sprint: Parameters<typeof internalEvaluation>[0]["sprint"];
+  let editorial: InternalEditorialEvidence | undefined;
   let title: string;
   if (kind === "imprima") {
     const config = publishRequest.parse({ ...body.options, author });
     if (config.mode !== "DRAFT") throw new OperationsError(409, "SPARTAN preparation supports DRAFT only. Final requires the guarded approval workflow.");
     const scan = sourceSafety(source.raw, config);
     if (scan.groState !== "LIFE") throw new OperationsError(409, "This source requires the guarded safety/human-review workflow; no preparation was released.");
-    const cdm = normaliseDocument(body.sourceKind, body.sourceId, source.raw, config);
+    let cdm = normaliseDocument(body.sourceKind, body.sourceId, source.raw, config);
     cdm.disclosure = "SPARTAN source-preserving DRAFT. No KLARITY/SOCRATES editorial or truthfulness review has run. No approval or certification is asserted.";
-    if (body.evaluationMode === "INTERNAL") cdm.disclosure += ` ${INTERNAL_CAVEAT}`;
+    if (body.evaluationMode === "INTERNAL") {
+      const reviewed = await reviewInternalDocument(cdm, { userId: actor.id, sessionId: source.sessionId, engineId: -201 });
+      cdm = reviewed.cdm;
+      editorial = reviewed.evidence;
+      cdm.disclosure = `IMPRIMA Internal DRAFT. KLARITY: ${editorial.clarity === null ? "NOT_RUN (no editable prose)" : `clarity estimate ${editorial.clarity}/100`}. SOCRATES: ${editorial.review.verdict}. ${INTERNAL_CAVEAT}`;
+      const evidence = Buffer.from(JSON.stringify(editorial, null, 2));
+      files.push({ filename: "internal-editorial-review.json", format: "JSON", mime: "application/json", bytes: evidence, contentHash: fileHash(evidence) });
+      const original = Buffer.from(JSON.stringify(source.raw, null, 2));
+      files.push({ filename: "source-snapshot.json", format: "JSON", mime: "application/json", bytes: original, contentHash: source.hash });
+    }
     for (const format of config.formats) {
       const f = await renderImprima(cdm, format, { renderedAt: createdAt, version: 1, approval: null, collision: 1 });
       files.push({ filename: f.filename, format, bytes: f.bytes, mime: f.mime, contentHash: f.contentHash });
@@ -89,7 +100,7 @@ export async function createPreparation(actor: OperationsActor, kind: Preparatio
       jcseScore: harnessArtifactsTable.jcseScore, mathmonScore: harnessArtifactsTable.mathmonScore,
     }).from(harnessArtifactsTable).where(and(eq(harnessArtifactsTable.id, body.sourceId), eq(harnessArtifactsTable.userId, actor.id)));
     assessment = internalEvaluation({ kind, source: source.raw, sourceHash: source.hash, assessedAt: createdAt,
-      scores: scores ?? { jcseScore: null, mathmonScore: null }, sprint });
+      scores: scores ?? { jcseScore: null, mathmonScore: null }, sprint, editorial });
     const bytes = Buffer.from(JSON.stringify(assessment, null, 2));
     files.push({ filename: "internal-evaluation.json", format: "JSON", mime: "application/json", bytes, contentHash: fileHash(bytes) });
     if (kind === "short-sprints") {

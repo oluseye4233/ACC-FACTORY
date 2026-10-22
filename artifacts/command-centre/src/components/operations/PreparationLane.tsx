@@ -1,8 +1,10 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetArtifactPreparationsQueryKey,
   useCreateArtifactPreparation,
+  createArtifactPreparation,
+  getCreateArtifactPreparationUrl,
   type ArtifactPreparation,
   type ArtifactPreparationWorkspace,
   type GetArtifactPreparationsParams,
@@ -12,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MANIFEST_FIELDS, PREPARATION_MANIFEST_SAMPLE, downloadFrom, errMessage, isRec, rec, str, type OpsKind } from "@/lib/artifact-ops";
+import { streamSse } from "@/lib/sse";
 
 const lab = "font-mono text-[10px] uppercase tracking-wider text-muted-foreground";
 const sel = "h-9 w-full rounded-md border bg-background px-2 font-mono text-xs";
@@ -170,7 +173,24 @@ type Props = {
 export function PreparationLane({ kind, ws, params, offset, setOffset, fetching, initial, internal = false }: Props) {
   const manifestId = useId();
   const qc = useQueryClient();
-  const mut = useCreateArtifactPreparation();
+  const abort = useRef<AbortController | null>(null);
+  useEffect(() => () => abort.current?.abort(), []);
+  const mut = useCreateArtifactPreparation({ mutation: { mutationFn: async ({ kind: requestedKind, data }) => {
+    if (requestedKind !== "imprima" || data.evaluationMode !== "INTERNAL") return createArtifactPreparation(requestedKind, data);
+    const controller = new AbortController();
+    abort.current = controller;
+    let result: ArtifactPreparation | undefined;
+    let failure: Error | undefined;
+    try {
+      await streamSse(getCreateArtifactPreparationUrl(requestedKind), data, event => {
+        if (event.event === "complete") result = event.data as ArtifactPreparation;
+        if (event.event === "error") failure = new Error(str(rec(event.data).error) ?? "Internal review failed.");
+      }, controller.signal);
+      if (failure) throw failure;
+      if (!result) throw new Error("Review connection ended without confirmation. Refresh saved assessments before retrying.");
+      return result;
+    } finally { if (abort.current === controller) abort.current = null; }
+  } } });
   const [err, setErr] = useState<string | null>(null);
   const [okMsg, setOk] = useState<string | null>(null);
   const [sourceId, setSourceId] = useState(initial.sourceId);
@@ -227,13 +247,13 @@ export function PreparationLane({ kind, ws, params, offset, setOffset, fetching,
           <h2 className="text-2xl leading-none">{internal ? (kind === "imprima" ? "IMPRIMA Internal" : "SHORT SPRINT Internal") : kind === "imprima" ? "Prepare draft" : "Prepare sprint package"}</h2>
           {internal && (
             <div className="border-l-2 border-secondary pl-2 font-mono text-[10px] space-y-1" data-testid="text-internal-explainer">
-              <p>Deterministic internal assessment. It inherits already-recorded JCSE / MATHMON evidence for this source; it does not run new editorial LLM reviews and is not external verification or certification.</p>
-              <p>Checks without recorded evidence stay NOT RUN and the result is INCONCLUSIVE. All files are DRAFT proposals, private to your account, and not releasable.</p>
+              <p>{kind === "imprima" ? "Runs budgeted KLARITY clarity editing and SOCRATES claims review using the default Claude provider. Model review is internal, not external verification, independent verification or proof of truth. The saved report includes findings and the downloadable review includes edits. Sources are limited to 30 KB of normalized content and 100 editable paragraphs." : "Deterministic internal assessment; no new editorial model reviews, not external verification."} JCSE / MATHMON scores are inherited only from this exact source, not rerun.</p>
+              <p>Missing checks stay NOT RUN; incomplete evidence makes the result INCONCLUSIVE. SOCRATES HOLD fails the assessment and requires correction in a new saved source. All files remain private DRAFT proposals and are not releasable. Model or budget failures stop the request; no successful assessment is saved.</p>
             </div>
           )}
           <p className="font-mono text-[10px] text-muted-foreground">
             {kind === "imprima"
-              ? "Source-preserving rendering only. No LLM or editorial adapters run, no scores, no certification. Mode is DRAFT."
+              ? internal ? "Internal model-reviewed DRAFT only. No certification, Final approval or release." : "Source-preserving rendering only. No LLM or editorial adapters run, no scores, no certification. Mode is DRAFT."
               : "Non-releasable proposal package. No tests, gates, release, or deployment run here."}
           </p>
           <Field label="Source">

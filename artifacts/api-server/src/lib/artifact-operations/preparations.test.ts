@@ -6,8 +6,14 @@ import { db, usersTable, harnessSessionsTable, harnessArtifactsTable, shortSprin
 import { createPreparation, preparationDownload, preparationWorkspace } from "./preparations";
 import { fileHash, savePrivate } from "./private-storage";
 import { withOperationsActor, type OperationsActor } from "./context";
+import { callLlmJson } from "../../engines/shared";
 
 const memory = vi.hoisted(() => new Map<string, Buffer>());
+vi.mock("../../engines/shared", () => ({
+  callLlmJson: vi.fn(async (_provider, _system, _prompt, _schema, context) => context.engineId === -201
+    ? { edits: [], clarity: 82, summary: null, glossary: [] }
+    : { verdict: "CLEAR", flags: [], rationale: "No material unsupported claims found in this fixture." }),
+}));
 // Simulate the actual production blocker WITHOUT altering shared dev security.
 vi.mock("./database-protection", () => ({ databaseProtection: async () => ({ ready: false, checks: [{ id: "restricted_role", ready: false }] }) }));
 vi.mock("./private-storage", async original => {
@@ -73,6 +79,11 @@ describe("SPARTAN preparation: separate owner-scoped lane, not SQL-guard fallbac
     const reportFile = result.files.find(f => f.filename === "internal-evaluation.json")!;
     const report = await preparationDownload(owner, "imprima", result.id, reportFile.id);
     expect(JSON.parse(report.bytes.toString()).caveat).toContain("Not independently evaluated");
+    expect(result.internalEvaluation?.checks.find(c => c.id === "SOCRATES")?.state).toBe("PASS");
+    const editorialFile = result.files.find(f => f.filename === "internal-editorial-review.json")!;
+    const editorial = JSON.parse((await preparationDownload(owner, "imprima", result.id, editorialFile.id)).bytes.toString());
+    expect(editorial).toMatchObject({ review: { verdict: "CLEAR" }, releaseAllowed: false, independentVerification: "NOT_RUN" });
+    expect(result.files.some(f => f.filename === "source-snapshot.json")).toBe(true);
     const zipFile = result.files.find(f => f.format === "ZIP")!;
     const archive = unzipSync((await preparationDownload(owner, "imprima", result.id, zipFile.id)).bytes);
     const manifest = JSON.parse(Buffer.from(archive["integrity-manifest.json"]!).toString());
@@ -82,6 +93,23 @@ describe("SPARTAN preparation: separate owner-scoped lane, not SQL-guard fallbac
     expect(workspace.items.find(p => p.id === result.id)?.internalEvaluation?.state).toBe("INCONCLUSIVE");
     await expect(preparationDownload(other, "imprima", result.id, reportFile.id)).rejects.toThrow("not found");
     await expect(withOperationsActor(owner, async () => true)).rejects.toThrow();
+  });
+  it("retains a SOCRATES HOLD as a failed private assessment and disclosed draft", async () => {
+    vi.mocked(callLlmJson).mockResolvedValueOnce({ edits: [], clarity: 82, summary: null, glossary: [] })
+      .mockResolvedValueOnce({ verdict: "HOLD", flags: [{ id: "claim", claim: "Unsupported approval", question: "Where is the evidence?", severity: "HIGH" }], rationale: "Needs human correction." });
+    const result = await createPreparation(owner, "imprima", { sourceId: spcId, sourceKind: "F5_SPC", options: { ...opts, formats: ["HTML"] }, evaluationMode: "INTERNAL" });
+    expect(result.internalEvaluation?.state).toBe("FAIL");
+    expect(result.internalEvaluation?.checks.find(c => c.id === "KLARITY")?.state).toBe("PASS");
+    expect(result.internalEvaluation?.checks.find(c => c.id === "SOCRATES")?.detail).toContain("HOLD");
+    const html = result.files.find(f => f.format === "HTML")!;
+    expect((await preparationDownload(owner, "imprima", result.id, html.id)).bytes.toString()).toContain("SOCRATES: HOLD");
+    expect(result.releaseAllowed).toBe(false);
+  });
+  it("does not save a successful preparation when a model review fails", async () => {
+    const before = await preparationWorkspace(owner, "imprima", sessionId);
+    vi.mocked(callLlmJson).mockRejectedValueOnce(new Error("Provider unavailable fixture"));
+    await expect(createPreparation(owner, "imprima", { sourceId: spcId, sourceKind: "F5_SPC", options: opts, evaluationMode: "INTERNAL" })).rejects.toThrow("Provider unavailable");
+    expect((await preparationWorkspace(owner, "imprima", sessionId)).items).toHaveLength(before.items.length);
   });
   it("creates SC TWO Internal with honest UNKNOWN eligibility and an archived caveat", async () => {
     const result = await createPreparation(owner, "short-sprints", { sourceId: spcId, sourceKind: "F5_SPC",

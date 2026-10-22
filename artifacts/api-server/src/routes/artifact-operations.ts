@@ -34,10 +34,34 @@ router.get("/artifact-operations/:kind/preparations", requireAuth, async (req, r
     res.json(await preparationWorkspace(actorOf(req), kindSchema.parse(req.params.kind), query.sessionId, query.offset));
   } catch (error) { fail(res, error); }
 });
-router.post("/artifact-operations/:kind/preparations", requireAuth, async (req, res) => {
+router.post("/artifact-operations/:kind/preparations", requireAuth, (req, res, next) => {
+  if (req.params.kind === "imprima" && req.body?.evaluationMode === "INTERNAL") { void requireCostBudget(req, res, next); return; }
+  next();
+}, async (req, res) => {
+  let heartbeat: ReturnType<typeof setInterval> | undefined;
+  const streaming = req.params.kind === "imprima" && req.body?.evaluationMode === "INTERNAL" && req.get("Accept")?.includes("text/event-stream") === true;
+  const emit = (event: string, data: unknown) => { if (!res.destroyed) res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`); };
   try {
-    res.status(201).json(await createPreparation(actorOf(req), kindSchema.parse(req.params.kind), req.body));
-  } catch (error) { fail(res, error); }
+    if (req.params.kind === "imprima" && req.body?.evaluationMode === "INTERNAL") {
+      const provider = resolveProvider(req, req.body?.options?.provider, "claude");
+      req.body = { ...req.body, options: { ...req.body.options, provider } };
+    }
+    if (streaming) {
+      res.set({ "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no" });
+      res.flushHeaders();
+      emit("start", { message: "Running internal editorial assessment. Output remains private." });
+      heartbeat = setInterval(() => emit("progress", { message: "Internal review is running." }), 10_000);
+      res.on("close", () => { if (heartbeat) clearInterval(heartbeat); });
+    }
+    const result = await createPreparation(actorOf(req), kindSchema.parse(req.params.kind), req.body);
+    if (streaming) { emit("complete", result); res.end(); }
+    else res.status(201).json(result);
+  } catch (error) {
+    if (res.headersSent) {
+      emit("error", { error: error instanceof OperationsError ? error.message : "Internal editorial review failed. No successful assessment was saved. Check provider availability and budget before retrying." });
+      res.end();
+    } else if (!sendProviderTierError(res, error)) fail(res, error);
+  } finally { if (heartbeat) clearInterval(heartbeat); }
 });
 router.get("/artifact-operations/:kind/preparations/:preparationId/files/:fileId", requireAuth, async (req, res) => {
   try {

@@ -7017,7 +7017,8 @@ export const GetArtifactPreparationsResponse = zod.object({
 
 
 /**
- * @summary Save a source-preserving draft or non-releasable proposal; no LLM or deployment is run
+ * Ordinary preparation and SHORT SPRINT Internal make no model calls. IMPRIMA Internal runs budgeted KLARITY and SOCRATES adapters, never granting certification or release. With Accept text/event-stream, IMPRIMA Internal returns start/progress/complete/error events; complete data is ArtifactPreparation. Other callers receive the 201 JSON response.
+ * @summary Save a private draft or proposal, optionally with internal editorial model review
  */
 export const CreateArtifactPreparationParams = zod.object({
   "kind": zod.enum(['imprima', 'short-sprints'])
@@ -7032,47 +7033,7 @@ export const CreateArtifactPreparationBody = zod.object({
   "evaluationMode": zod.enum(['PREPARATION', 'INTERNAL']).default(createArtifactPreparationBodyEvaluationModeDefault)
 })
 
-export const CreateArtifactPreparationResponse = zod.object({
-  "id": zod.string().uuid(),
-  "kind": zod.enum(['imprima', 'short-sprints']),
-  "title": zod.string(),
-  "sessionId": zod.string().uuid(),
-  "sourceId": zod.string().uuid(),
-  "sourceKind": zod.string(),
-  "sourceHash": zod.string(),
-  "manifestHash": zod.string(),
-  "state": zod.enum(['PREPARED_DRAFT', 'PREPARED_PROPOSAL']),
-  "releaseAllowed": zod.literal(false),
-  "createdAt": zod.coerce.date(),
-  "files": zod.array(zod.object({
-  "id": zod.string(),
-  "format": zod.string(),
-  "filename": zod.string(),
-  "size": zod.number().int(),
-  "contentHash": zod.string(),
-  "fileHash": zod.string(),
-  "variant": zod.string(),
-  "downloadPath": zod.string()
-})),
-  "notices": zod.array(zod.string()),
-  "evaluationMode": zod.enum(['PREPARATION', 'INTERNAL']).optional(),
-  "internalEvaluation": zod.object({
-  "schemaVersion": zod.string(),
-  "state": zod.enum(['PASS', 'FAIL', 'INCONCLUSIVE']),
-  "sourceHash": zod.string(),
-  "assessedAt": zod.coerce.date(),
-  "caveat": zod.string(),
-  "checks": zod.array(zod.object({
-  "id": zod.string(),
-  "label": zod.string(),
-  "state": zod.enum(['PASS', 'FAIL', 'INCONCLUSIVE', 'NOT_RUN']),
-  "detail": zod.string()
-})),
-  "inheritedEvidence": zod.record(zod.string(), zod.unknown()),
-  "releaseAllowed": zod.literal(false),
-  "externalVerification": zod.enum(['NOT_RUN'])
-}).optional()
-})
+export const CreateArtifactPreparationResponse = zod.unknown()
 
 
 export const DownloadArtifactPreparationFileParams = zod.object({

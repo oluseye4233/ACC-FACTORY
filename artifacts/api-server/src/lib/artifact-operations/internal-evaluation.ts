@@ -1,15 +1,17 @@
 import { evaluateJsonContract } from "../xvl-contract";
 import { evaluateSprintEligibility, sprintEligibilityInputSchema } from "../short-sprint-eligibility";
 import { hashContent } from "./imprima-model";
+import type { InternalEditorialEvidence } from "./internal-editorial";
 
 type Check = { id: string; label: string; state: "PASS" | "FAIL" | "INCONCLUSIVE" | "NOT_RUN"; detail: string };
-export const INTERNAL_CAVEAT = "Internal assessment only, using recorded internal scores and bounded deterministic checks. Not independently evaluated, certified, approved for Final publication, marketplace qualified, sealed or released. No deployment or stage advancement is authorized. Missing evidence is not a pass.";
+export const INTERNAL_CAVEAT = "Internal assessment only, using recorded internal scores, bounded deterministic checks and, when explicitly recorded, internal model editorial review. Model estimates are not proof of truth. Not independently evaluated, certified, approved for Final publication, marketplace qualified, sealed or released. No deployment or stage advancement is authorized. Missing evidence is not a pass.";
 type Scores = { jcseScore: number | null; mathmonScore: number | null };
 
 /** No external receipts, verification statuses or protected workflow records are written here. */
 export function internalEvaluation(input: {
   kind: "imprima" | "short-sprints"; sourceHash: string; source: unknown;
   scores: Scores; assessedAt: Date;
+  editorial?: InternalEditorialEvidence;
   sprint?: { circuit: "SC_ONE" | "SC_TWO"; target: "SOFTWARE" | "FIRMWARE"; profile: "PROTOTYPE_LIGHT" | "STANDARD" | "REGULATED"; manifest: Record<string, unknown> };
 }) {
   const checks: Check[] = [
@@ -46,6 +48,15 @@ export function internalEvaluation(input: {
     checks.push({ id: "SPRINT_ELIGIBILITY", label: "Existing sprint eligibility policy",
       state: eligibility.state === "ELIGIBLE" ? "PASS" : eligibility.state === "INELIGIBLE" ? "FAIL" : "INCONCLUSIVE",
       detail: `${eligibility.state}. Unresolved certified or measured facts remain UNKNOWN; no YES decision, verification pack or external route is opened.` });
+  } else if (input.editorial) {
+    const e = input.editorial;
+    checks.push({ id: "KLARITY", label: "KLARITY internal clarity review",
+      state: e.clarity === null ? "NOT_RUN" : "PASS",
+      detail: e.clarity === null ? "No editable prose; protected content retained. No clarity score asserted."
+        : `Review completed; clarity model estimate ${e.clarity}/100. ${e.changes.length} edits applied with protected-content fidelity checks. This PASS records adapter completion, not a quality threshold or proof of accuracy.` });
+    checks.push({ id: "SOCRATES", label: "SOCRATES internal claims review",
+      state: e.review.verdict === "HOLD" ? "FAIL" : e.review.verdict === "CLEAR_WITH_NOTES" ? "INCONCLUSIVE" : "PASS",
+      detail: `${e.review.verdict}: ${e.review.rationale} ${e.review.flags.map(f => `[${f.severity}] ${f.claim} — ${f.question}`).join(" ")} Internal model judgment only; not independent truth verification. HOLD requires source correction and a new assessment; no release is permitted.` });
   } else {
     checks.push({ id: "EDITORIAL_REVIEW", label: "KLARITY / SOCRATES review", state: "NOT_RUN",
       detail: "Source-preserving DRAFT rendering only. No new clarity, truthfulness or editorial model assessment is claimed." });
