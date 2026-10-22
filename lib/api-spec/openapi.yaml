@@ -3203,6 +3203,29 @@ components:
         sourceId: { type: string, format: uuid }
         sourceKind: { type: string }
         options: { type: object, additionalProperties: true }
+        evaluationMode: { type: string, enum: [PREPARATION, INTERNAL], default: PREPARATION }
+    InternalArtifactEvaluation:
+      type: object
+      required: [schemaVersion, state, sourceHash, assessedAt, caveat, checks, inheritedEvidence, releaseAllowed, externalVerification]
+      properties:
+        schemaVersion: { type: string }
+        state: { type: string, enum: [PASS, FAIL, INCONCLUSIVE] }
+        sourceHash: { type: string }
+        assessedAt: { type: string, format: date-time }
+        caveat: { type: string }
+        checks:
+          type: array
+          items:
+            type: object
+            required: [id, label, state, detail]
+            properties:
+              id: { type: string }
+              label: { type: string }
+              state: { type: string, enum: [PASS, FAIL, INCONCLUSIVE, NOT_RUN] }
+              detail: { type: string }
+        inheritedEvidence: { type: object, additionalProperties: true }
+        releaseAllowed: { type: boolean, enum: [false] }
+        externalVerification: { type: string, enum: [NOT_RUN] }
     ArtifactPreparation:
       type: object
       required: [id, kind, title, sessionId, sourceId, sourceKind, sourceHash, manifestHash, state, releaseAllowed, createdAt, files, notices]
@@ -3220,6 +3243,8 @@ components:
         createdAt: { type: string, format: date-time }
         files: { type: array, items: { $ref: '#/components/schemas/ArtifactOperationFile' } }
         notices: { type: array, items: { type: string } }
+        evaluationMode: { type: string, enum: [PREPARATION, INTERNAL] }
+        internalEvaluation: { $ref: '#/components/schemas/InternalArtifactEvaluation' }
     ArtifactPreparationWorkspace:
       type: object
       required: [kind, items, sources, hasMore, authorName, databaseProtection, notices]

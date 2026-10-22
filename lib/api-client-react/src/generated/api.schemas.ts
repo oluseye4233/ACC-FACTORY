@@ -155,10 +155,66 @@ export interface BoomerangCase {
 
 export type ArtifactPreparationInputOptions = { [key: string]: unknown };
 
+export type ArtifactPreparationInputEvaluationMode = typeof ArtifactPreparationInputEvaluationMode[keyof typeof ArtifactPreparationInputEvaluationMode];
+
+
+export const ArtifactPreparationInputEvaluationMode = {
+  PREPARATION: 'PREPARATION',
+  INTERNAL: 'INTERNAL',
+} as const;
+
 export interface ArtifactPreparationInput {
   sourceId: string;
   sourceKind: string;
   options: ArtifactPreparationInputOptions;
+  evaluationMode?: ArtifactPreparationInputEvaluationMode;
+}
+
+export type InternalArtifactEvaluationState = typeof InternalArtifactEvaluationState[keyof typeof InternalArtifactEvaluationState];
+
+
+export const InternalArtifactEvaluationState = {
+  PASS: 'PASS',
+  FAIL: 'FAIL',
+  INCONCLUSIVE: 'INCONCLUSIVE',
+} as const;
+
+export type InternalArtifactEvaluationChecksItemState = typeof InternalArtifactEvaluationChecksItemState[keyof typeof InternalArtifactEvaluationChecksItemState];
+
+
+export const InternalArtifactEvaluationChecksItemState = {
+  PASS: 'PASS',
+  FAIL: 'FAIL',
+  INCONCLUSIVE: 'INCONCLUSIVE',
+  NOT_RUN: 'NOT_RUN',
+} as const;
+
+export type InternalArtifactEvaluationChecksItem = {
+  id: string;
+  label: string;
+  state: InternalArtifactEvaluationChecksItemState;
+  detail: string;
+};
+
+export type InternalArtifactEvaluationInheritedEvidence = { [key: string]: unknown };
+
+export type InternalArtifactEvaluationExternalVerification = typeof InternalArtifactEvaluationExternalVerification[keyof typeof InternalArtifactEvaluationExternalVerification];
+
+
+export const InternalArtifactEvaluationExternalVerification = {
+  NOT_RUN: 'NOT_RUN',
+} as const;
+
+export interface InternalArtifactEvaluation {
+  schemaVersion: string;
+  state: InternalArtifactEvaluationState;
+  sourceHash: string;
+  assessedAt: string;
+  caveat: string;
+  checks: InternalArtifactEvaluationChecksItem[];
+  inheritedEvidence: InternalArtifactEvaluationInheritedEvidence;
+  releaseAllowed: false;
+  externalVerification: InternalArtifactEvaluationExternalVerification;
 }
 
 export type ArtifactPreparationState = typeof ArtifactPreparationState[keyof typeof ArtifactPreparationState];
@@ -167,6 +223,14 @@ export type ArtifactPreparationState = typeof ArtifactPreparationState[keyof typ
 export const ArtifactPreparationState = {
   PREPARED_DRAFT: 'PREPARED_DRAFT',
   PREPARED_PROPOSAL: 'PREPARED_PROPOSAL',
+} as const;
+
+export type ArtifactPreparationEvaluationMode = typeof ArtifactPreparationEvaluationMode[keyof typeof ArtifactPreparationEvaluationMode];
+
+
+export const ArtifactPreparationEvaluationMode = {
+  PREPARATION: 'PREPARATION',
+  INTERNAL: 'INTERNAL',
 } as const;
 
 export type ArtifactOperationKind = typeof ArtifactOperationKind[keyof typeof ArtifactOperationKind];
@@ -202,6 +266,8 @@ export interface ArtifactPreparation {
   createdAt: string;
   files: ArtifactOperationFile[];
   notices: string[];
+  evaluationMode?: ArtifactPreparationEvaluationMode;
+  internalEvaluation?: InternalArtifactEvaluation;
 }
 
 export type ArtifactPreparationWorkspaceDatabaseProtectionChecksItem = {

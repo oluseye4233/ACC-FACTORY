@@ -6978,7 +6978,24 @@ export const GetArtifactPreparationsResponse = zod.object({
   "variant": zod.string(),
   "downloadPath": zod.string()
 })),
-  "notices": zod.array(zod.string())
+  "notices": zod.array(zod.string()),
+  "evaluationMode": zod.enum(['PREPARATION', 'INTERNAL']).optional(),
+  "internalEvaluation": zod.object({
+  "schemaVersion": zod.string(),
+  "state": zod.enum(['PASS', 'FAIL', 'INCONCLUSIVE']),
+  "sourceHash": zod.string(),
+  "assessedAt": zod.coerce.date(),
+  "caveat": zod.string(),
+  "checks": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "state": zod.enum(['PASS', 'FAIL', 'INCONCLUSIVE', 'NOT_RUN']),
+  "detail": zod.string()
+})),
+  "inheritedEvidence": zod.record(zod.string(), zod.unknown()),
+  "releaseAllowed": zod.literal(false),
+  "externalVerification": zod.enum(['NOT_RUN'])
+}).optional()
 })),
   "sources": zod.array(zod.object({
   "id": zod.string(),
@@ -7006,10 +7023,13 @@ export const CreateArtifactPreparationParams = zod.object({
   "kind": zod.enum(['imprima', 'short-sprints'])
 })
 
+export const createArtifactPreparationBodyEvaluationModeDefault = `PREPARATION`;
+
 export const CreateArtifactPreparationBody = zod.object({
   "sourceId": zod.string().uuid(),
   "sourceKind": zod.string(),
-  "options": zod.record(zod.string(), zod.unknown())
+  "options": zod.record(zod.string(), zod.unknown()),
+  "evaluationMode": zod.enum(['PREPARATION', 'INTERNAL']).default(createArtifactPreparationBodyEvaluationModeDefault)
 })
 
 export const CreateArtifactPreparationResponse = zod.object({
@@ -7034,7 +7054,24 @@ export const CreateArtifactPreparationResponse = zod.object({
   "variant": zod.string(),
   "downloadPath": zod.string()
 })),
-  "notices": zod.array(zod.string())
+  "notices": zod.array(zod.string()),
+  "evaluationMode": zod.enum(['PREPARATION', 'INTERNAL']).optional(),
+  "internalEvaluation": zod.object({
+  "schemaVersion": zod.string(),
+  "state": zod.enum(['PASS', 'FAIL', 'INCONCLUSIVE']),
+  "sourceHash": zod.string(),
+  "assessedAt": zod.coerce.date(),
+  "caveat": zod.string(),
+  "checks": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "state": zod.enum(['PASS', 'FAIL', 'INCONCLUSIVE', 'NOT_RUN']),
+  "detail": zod.string()
+})),
+  "inheritedEvidence": zod.record(zod.string(), zod.unknown()),
+  "releaseAllowed": zod.literal(false),
+  "externalVerification": zod.enum(['NOT_RUN'])
+}).optional()
 })
 
 

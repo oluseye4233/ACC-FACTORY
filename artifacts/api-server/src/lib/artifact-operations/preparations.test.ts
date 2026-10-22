@@ -64,6 +64,32 @@ describe("SPARTAN preparation: separate owner-scoped lane, not SQL-guard fallbac
     expect(lease).toMatchObject({ state: "COMMITTED", userId: owner.id });
     expect(lease!.fileKeys.length).toBe(result.files.length);
   });
+  it("archives an internal assessment without activating the external workflow", async () => {
+    const result = await createPreparation(owner, "imprima", {
+      sourceId: spcId, sourceKind: "F5_SPC", options: opts, evaluationMode: "INTERNAL",
+    });
+    expect(result).toMatchObject({ evaluationMode: "INTERNAL", releaseAllowed: false,
+      internalEvaluation: { state: "INCONCLUSIVE", externalVerification: "NOT_RUN", sourceHash: result.sourceHash } });
+    const reportFile = result.files.find(f => f.filename === "internal-evaluation.json")!;
+    const report = await preparationDownload(owner, "imprima", result.id, reportFile.id);
+    expect(JSON.parse(report.bytes.toString()).caveat).toContain("Not independently evaluated");
+    const zipFile = result.files.find(f => f.format === "ZIP")!;
+    const archive = unzipSync((await preparationDownload(owner, "imprima", result.id, zipFile.id)).bytes);
+    const manifest = JSON.parse(Buffer.from(archive["integrity-manifest.json"]!).toString());
+    expect(manifest).toMatchObject({ evaluationMode: "INTERNAL", releaseAllowed: false, independentVerification: "NOT_RUN" });
+    expect(manifest.files.find((f: { filename: string }) => f.filename === reportFile.filename).sha256).toBe(reportFile.fileHash);
+    const workspace = await preparationWorkspace(owner, "imprima", sessionId);
+    expect(workspace.items.find(p => p.id === result.id)?.internalEvaluation?.state).toBe("INCONCLUSIVE");
+    await expect(preparationDownload(other, "imprima", result.id, reportFile.id)).rejects.toThrow("not found");
+    await expect(withOperationsActor(owner, async () => true)).rejects.toThrow();
+  });
+  it("creates SC TWO Internal with honest UNKNOWN eligibility and an archived caveat", async () => {
+    const result = await createPreparation(owner, "short-sprints", { sourceId: spcId, sourceKind: "F5_SPC",
+      evaluationMode: "INTERNAL", options: { circuit: "SC_TWO", target: "SOFTWARE", profile: "STANDARD", hostTarget: "private-test", manifest } });
+    expect(result).toMatchObject({ state: "PREPARED_PROPOSAL", releaseAllowed: false, evaluationMode: "INTERNAL" });
+    expect(result.internalEvaluation?.inheritedEvidence.sprintEligibility?.state).toBe("INCONCLUSIVE");
+    expect(result.files.some(f => f.filename === "INTERNAL-ONLY.md")).toBe(true);
+  });
   it("keeps upload intent and partial bytes after a storage failure, without creating an artifact", async () => {
     vi.mocked(savePrivate).mockImplementationOnce(async (key, value) => {
       const bytes = Buffer.from(value); memory.set(key, bytes);

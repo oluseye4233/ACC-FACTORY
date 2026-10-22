@@ -19,3 +19,18 @@ its application-level isolation honestly. Never let a preparation advance
 stages, issue a certificate, qualify a marketplace listing or claim Final.
 The full lane keeps its database guards and remains closed when they fail.
 Do not assert SPARTAN full-product FFS or FORGE certification for this subset.
+
+The user requested explicit **IMPRIMA Internal** and **SHORT SPRINT Internal**
+options operating in parallel with the original externally governed versions.
+Use internal evaluation states honestly: absent evidence stays NOT_RUN /
+INCONCLUSIVE, and internal results must not satisfy external verification,
+Final approval, custody, marketplace qualification or release gates.
+
+**Why:** Internal assessments should provide useful private working outputs
+while independent verification remains a separate standard, not be disguised
+as equivalent certification or an automatic response to failed protections.
+
+**How to apply:** Preserve separate mode labels and the caveat in saved reports
+and downloadable packages; never promote an internal PASS into an external
+receipt or claim a model/editorial check ran when only recorded scores were
+inherited.

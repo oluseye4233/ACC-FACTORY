@@ -11,7 +11,7 @@ import { Archive, Download, FileText, ShieldAlert, ShieldCheck } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MANIFEST_FIELDS, PREPARATION_MANIFEST_SAMPLE, downloadFrom, errMessage, isRec, type OpsKind } from "@/lib/artifact-ops";
+import { MANIFEST_FIELDS, PREPARATION_MANIFEST_SAMPLE, downloadFrom, errMessage, isRec, rec, str, type OpsKind } from "@/lib/artifact-ops";
 
 const lab = "font-mono text-[10px] uppercase tracking-wider text-muted-foreground";
 const sel = "h-9 w-full rounded-md border bg-background px-2 font-mono text-xs";
@@ -57,7 +57,62 @@ export function GuardStatus({ ws }: { ws: ArtifactPreparationWorkspace }) {
   );
 }
 
+const STATE_TONE: Record<string, string> = {
+  PASS: "border-primary/50 text-primary bg-primary/10",
+  FAIL: "border-destructive/50 text-destructive bg-destructive/10",
+  INCONCLUSIVE: "border-secondary/60 text-secondary bg-secondary/10",
+  NOT_RUN: "border-dashed border-border text-muted-foreground",
+};
+
+function EvalTag({ state, testId }: { state: string; testId?: string }) {
+  return <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded border ${STATE_TONE[state] ?? STATE_TONE.NOT_RUN}`} data-testid={testId}>{state.replace("_", " ")}</span>;
+}
+
+export function InternalReport({ id, value }: { id: string; value: unknown }) {
+  const r = rec(value);
+  if (!isRec(value)) return <p className="font-mono text-[10px] text-muted-foreground border border-dashed rounded p-2" data-testid={`text-internal-missing-${id}`}>Internal report not recorded. Treat as INCONCLUSIVE.</p>;
+  const state = str(r.state) ?? "INCONCLUSIVE";
+  const checks = Array.isArray(r.checks) ? r.checks.map(rec) : [];
+  const inherited = r.inheritedEvidence;
+  return (
+    <section className="border border-secondary/50 rounded p-3 space-y-2 bg-secondary/5" aria-label="Internal assessment report" data-testid={`panel-internal-report-${id}`}>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-wider">Internal assessment</span>
+        <EvalTag state={state} testId={`status-internal-${id}`} />
+        <span className="font-mono text-[10px] text-muted-foreground ml-auto">release {r.releaseAllowed === true ? "UNEXPECTED" : "NOT ALLOWED"} · external {str(r.externalVerification) ?? "NOT_RUN"}</span>
+      </div>
+      {str(r.caveat) && <p className="font-mono text-[11px] border-l-2 border-secondary pl-2" data-testid={`text-internal-caveat-${id}`}>{str(r.caveat)}</p>}
+      <div className="font-mono text-[10px] text-muted-foreground break-all space-y-0.5" data-testid={`text-internal-provenance-${id}`}>
+        <div>schema {str(r.schemaVersion) ?? "unrecorded"}</div>
+        <div>sourceHash {str(r.sourceHash) ?? "unrecorded"}</div>
+        <div>assessedAt {str(r.assessedAt) ? fmt(str(r.assessedAt)!) : "unrecorded"}</div>
+      </div>
+      {checks.length === 0 ? <p className="font-mono text-[10px] text-muted-foreground">No checks recorded.</p> : (
+        <ul className="divide-y font-mono text-[11px]">
+          {checks.map((c, i) => {
+            const cid = str(c.id) ?? `check-${i}`;
+            return (
+              <li key={cid} className="py-1 flex flex-wrap items-baseline gap-2" data-testid={`row-internal-check-${cid}`}>
+                <EvalTag state={str(c.state) ?? "NOT_RUN"} />
+                <b>{str(c.label) ?? cid}</b>
+                {str(c.detail) && <span className="text-muted-foreground w-full">{str(c.detail)}</span>}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {isRec(inherited) && Object.keys(inherited).length > 0 && (
+        <details className="font-mono text-[10px]">
+          <summary className={`${lab} cursor-pointer`}>Inherited recorded evidence</summary>
+          <pre className="max-h-48 overflow-auto bg-muted/40 p-2 rounded whitespace-pre-wrap">{JSON.stringify(inherited, null, 2)}</pre>
+        </details>
+      )}
+    </section>
+  );
+}
+
 function PrepCard({ p }: { p: ArtifactPreparation }) {
+  const isInternal = p.evaluationMode === "INTERNAL";
   const [err, setErr] = useState<string | null>(null);
   const dl = (path: string, name: string) => downloadFrom(path, name).then(() => setErr(null), (e) => setErr(errMessage(e).message));
   const zip = p.files.find((f) => f.format.toUpperCase() === "ZIP" || f.filename.endsWith(".zip"));
@@ -66,6 +121,7 @@ function PrepCard({ p }: { p: ArtifactPreparation }) {
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-border bg-muted/40" data-testid={`status-prep-${p.id}`}>{p.state}</span>
         <span className="font-mono text-[10px] px-2 py-0.5 rounded border border-secondary/50 text-secondary">PRIVATE · NOT RELEASABLE</span>
+        <span className={`font-mono text-[10px] px-2 py-0.5 rounded border ${isInternal ? "border-primary/50 text-primary bg-primary/10 font-bold" : "border-border text-muted-foreground"}`} data-testid={`badge-mode-${p.id}`}>{isInternal ? "INTERNAL ASSESSMENT" : "PREPARATION"}</span>
         <h4 className="text-lg leading-none">{p.title}</h4>
         <span className="font-mono text-[10px] text-muted-foreground ml-auto">{fmt(p.createdAt)}</span>
       </div>
@@ -75,6 +131,7 @@ function PrepCard({ p }: { p: ArtifactPreparation }) {
         <div data-testid={`text-source-hash-${p.id}`}>sourceHash {p.sourceHash}</div>
         <div data-testid={`text-manifest-hash-${p.id}`}>manifestHash {p.manifestHash}</div>
       </div>
+      {isInternal && <InternalReport id={p.id} value={p.internalEvaluation} />}
       {p.notices.length > 0 && <ul className="font-mono text-[10px] list-disc pl-4">{p.notices.map((n, i) => <li key={i}>{n}</li>)}</ul>}
       {zip && (
         <Button size="sm" className="h-7" onClick={() => dl(zip.downloadPath, zip.filename)} data-testid={`button-prep-zip-${p.id}`}>
@@ -107,9 +164,10 @@ type Props = {
   setOffset: (n: number) => void;
   fetching: boolean;
   initial: { sourceId: string; sourceKind: string; sessionId: string };
+  internal?: boolean;
 };
 
-export function PreparationLane({ kind, ws, params, offset, setOffset, fetching, initial }: Props) {
+export function PreparationLane({ kind, ws, params, offset, setOffset, fetching, initial, internal = false }: Props) {
   const manifestId = useId();
   const qc = useQueryClient();
   const mut = useCreateArtifactPreparation();
@@ -151,11 +209,12 @@ export function PreparationLane({ kind, ws, params, offset, setOffset, fetching,
       ? { formats, mode: "DRAFT", title: title.trim(), project: project.trim(), authorIsHuman: true, timezone: "America/Chicago", audience, confidentiality: conf, riskDomain: "GENERAL" }
       : { circuit, target, profile, hostTarget: hostTarget.trim(), manifest };
     try {
-      const prep = await mut.mutateAsync({ kind, data: { sourceId, sourceKind, options } });
+      const data = internal ? { sourceId, sourceKind, options, evaluationMode: "INTERNAL" as const } : { sourceId, sourceKind, options };
+      const prep = await mut.mutateAsync({ kind, data });
       const key = getGetArtifactPreparationsQueryKey(kind, params);
       qc.setQueryData<ArtifactPreparationWorkspace>(key, (old) => old ? { ...old, items: [prep, ...old.items.filter((i) => i.id !== prep.id)] } : old);
       qc.invalidateQueries({ queryKey: [`/api/artifact-operations/${kind}/preparations`] });
-      setOk(`Saved ${prep.state} ${prep.id.slice(0, 8)} with ${prep.files.length} files.`);
+      setOk(`Saved ${internal ? "internal assessment " : ""}${prep.state} ${prep.id.slice(0, 8)} with ${prep.files.length} files.`);
     } catch (x) {
       setErr(errMessage(x).message);
     }
@@ -164,8 +223,14 @@ export function PreparationLane({ kind, ws, params, offset, setOffset, fetching,
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[380px_minmax(0,1fr)] gap-8" data-testid="panel-preparation">
       <aside className="min-w-0">
-        <form aria-label={kind === "imprima" ? "Prepare private draft" : "Prepare sprint package"} aria-busy={mut.isPending} className="border rounded p-4 bg-card space-y-3" onSubmit={submit}>
-          <h2 className="text-2xl leading-none">{kind === "imprima" ? "Prepare draft" : "Prepare sprint package"}</h2>
+        <form aria-label={internal ? (kind === "imprima" ? "IMPRIMA Internal assessment" : "SHORT SPRINT Internal assessment") : kind === "imprima" ? "Prepare private draft" : "Prepare sprint package"} aria-busy={mut.isPending} className="border rounded p-4 bg-card space-y-3" onSubmit={submit}>
+          <h2 className="text-2xl leading-none">{internal ? (kind === "imprima" ? "IMPRIMA Internal" : "SHORT SPRINT Internal") : kind === "imprima" ? "Prepare draft" : "Prepare sprint package"}</h2>
+          {internal && (
+            <div className="border-l-2 border-secondary pl-2 font-mono text-[10px] space-y-1" data-testid="text-internal-explainer">
+              <p>Deterministic internal assessment. It inherits already-recorded JCSE / MATHMON evidence for this source; it does not run new editorial LLM reviews and is not external verification or certification.</p>
+              <p>Checks without recorded evidence stay NOT RUN and the result is INCONCLUSIVE. All files are DRAFT proposals, private to your account, and not releasable.</p>
+            </div>
+          )}
           <p className="font-mono text-[10px] text-muted-foreground">
             {kind === "imprima"
               ? "Source-preserving rendering only. No LLM or editorial adapters run, no scores, no certification. Mode is DRAFT."
@@ -228,7 +293,7 @@ export function PreparationLane({ kind, ws, params, offset, setOffset, fetching,
           {err && <p role="alert" className="border border-destructive/40 bg-destructive/5 rounded p-2 font-mono text-xs text-destructive" data-testid="text-prep-error">Rejected: {err}</p>}
           {okMsg && <p role="status" className="font-mono text-xs text-primary" data-testid="text-prep-saved">{okMsg}</p>}
           <Button type="submit" className="w-full" disabled={!ok || mut.isPending} data-testid="button-prep-create">
-            <FileText className="h-4 w-4 mr-1" /> {mut.isPending ? "Saving…" : kind === "imprima" ? "Save private draft" : "Save sprint preparation"}
+            <FileText className="h-4 w-4 mr-1" /> {mut.isPending ? (internal ? "Assessing…" : "Saving…") : internal ? "Run internal assessment" : kind === "imprima" ? "Save private draft" : "Save sprint preparation"}
           </Button>
         </form>
       </aside>

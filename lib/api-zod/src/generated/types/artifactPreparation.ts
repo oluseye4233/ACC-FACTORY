@@ -7,7 +7,9 @@
  */
 import type { ArtifactOperationFile } from './artifactOperationFile';
 import type { ArtifactOperationKind } from './artifactOperationKind';
+import type { ArtifactPreparationEvaluationMode } from './artifactPreparationEvaluationMode';
 import type { ArtifactPreparationState } from './artifactPreparationState';
+import type { InternalArtifactEvaluation } from './internalArtifactEvaluation';
 
 export interface ArtifactPreparation {
   id: string;
@@ -23,4 +25,6 @@ export interface ArtifactPreparation {
   createdAt: Date;
   files: ArtifactOperationFile[];
   notices: string[];
+  evaluationMode?: ArtifactPreparationEvaluationMode;
+  internalEvaluation?: InternalArtifactEvaluation;
 }

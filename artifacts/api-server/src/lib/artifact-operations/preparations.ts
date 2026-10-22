@@ -10,14 +10,17 @@ import { renderImprima } from "./imprima-render";
 import { fileHash, readPrivate, savePrivate } from "./private-storage";
 import { ownedOperationsSession, publicationSources, savedPublicationSource } from "./sources";
 import { prepareSprintSource } from "./short-sprints";
+import { internalEvaluation, INTERNAL_CAVEAT } from "./internal-evaluation";
 
 export type PreparationKind = "imprima" | "short-sprints";
 const TYPES = { imprima: "IMPRIMA_PREPARATION", "short-sprints": "SHORT_SPRINT_PREPARATION" } as const;
-const inputSchema = z.object({ sourceId: z.string().uuid(), sourceKind: z.string().max(80), options: z.record(z.string(), z.unknown()) }).strict();
+const inputSchema = z.object({ sourceId: z.string().uuid(), sourceKind: z.string().max(80), options: z.record(z.string(), z.unknown()),
+  evaluationMode: z.enum(["PREPARATION", "INTERNAL"]).default("PREPARATION") }).strict();
 type StoredFile = { id: string; format: string; filename: string; size: number; fileHash: string; contentHash: string; variant: string; objectKey: string; mime: string };
 type StoredPreparation = {
   schemaVersion: "SPARTAN-PREPARATION-1"; kind: PreparationKind; sourceId: string; sourceKind: string; sourceHash: string;
   manifestHash: string; state: "PREPARED_DRAFT" | "PREPARED_PROPOSAL"; releaseAllowed: false; files: StoredFile[]; notices: string[];
+  evaluationMode?: "PREPARATION" | "INTERNAL"; internalEvaluation?: ReturnType<typeof internalEvaluation>;
 };
 const notice = [
   "Private preparation only. No Final approval, source certification, marketplace eligibility, independent verification or deployment is granted.",
@@ -29,6 +32,7 @@ function dto(row: typeof harnessArtifactsTable.$inferSelect) {
   return { id: row.id, kind: p.kind, title: row.name ?? "Preparation", sessionId: row.sessionId, sourceId: p.sourceId,
     sourceKind: p.sourceKind, sourceHash: p.sourceHash, manifestHash: p.manifestHash, state: p.state,
     releaseAllowed: false as const, createdAt: row.createdAt.toISOString(), notices: p.notices,
+    evaluationMode: p.evaluationMode ?? "PREPARATION", ...(p.internalEvaluation ? { internalEvaluation: p.internalEvaluation } : {}),
     files: p.files.map(({ objectKey: _key, mime: _mime, ...f }) => ({ ...f, downloadPath: `/api/artifact-operations/${p.kind}/preparations/${row.id}/files/${f.id}` })) };
 }
 export async function preparationWorkspace(actor: OperationsActor, kind: PreparationKind, sessionId?: string, offset = 0) {
@@ -50,6 +54,7 @@ export async function createPreparation(actor: OperationsActor, kind: Preparatio
   await ownedOperationsSession(actor.id, source.sessionId);
   const id = randomUUID(), createdAt = new Date();
   const files: { filename: string; format: string; mime: string; bytes: Buffer; contentHash: string }[] = [];
+  let sprint: Parameters<typeof internalEvaluation>[0]["sprint"];
   let title: string;
   if (kind === "imprima") {
     const config = publishRequest.parse({ ...body.options, author });
@@ -58,6 +63,7 @@ export async function createPreparation(actor: OperationsActor, kind: Preparatio
     if (scan.groState !== "LIFE") throw new OperationsError(409, "This source requires the guarded safety/human-review workflow; no preparation was released.");
     const cdm = normaliseDocument(body.sourceKind, body.sourceId, source.raw, config);
     cdm.disclosure = "SPARTAN source-preserving DRAFT. No KLARITY/SOCRATES editorial or truthfulness review has run. No approval or certification is asserted.";
+    if (body.evaluationMode === "INTERNAL") cdm.disclosure += ` ${INTERNAL_CAVEAT}`;
     for (const format of config.formats) {
       const f = await renderImprima(cdm, format, { renderedAt: createdAt, version: 1, approval: null, collision: 1 });
       files.push({ filename: f.filename, format, bytes: f.bytes, mime: f.mime, contentHash: f.contentHash });
@@ -67,21 +73,40 @@ export async function createPreparation(actor: OperationsActor, kind: Preparatio
     const expectedKind = (body.options.circuit === "SC_ONE") ? "F4_MICRO_PDD" : "F5_SPC";
     if (body.sourceKind !== expectedKind) throw new OperationsError(400, "Circuit and source kind do not match.");
     const prepared = await prepareSprintSource(actor, source.sessionId, body.sourceId, body.options, id);
+    sprint = prepared.config;
     const scan = sourceSafety({ source: source.raw, manifest: prepared.config.manifest, birthPackage: prepared.birthPackage },
       publishRequest.parse({ title: prepared.config.manifest.name, project: source.sessionId, author, authorIsHuman: true, formats: ["HTML"] }));
     if (scan.groState !== "LIFE") throw new OperationsError(409, "This source or manifest requires the guarded safety-review workflow.");
     for (const f of prepared.releaseFiles) files.push({ filename: f.name, format: "JSON", bytes: Buffer.from(f.content), mime: "application/json", contentHash: source.hash });
     title = prepared.config.manifest.name;
   }
+  let assessment: ReturnType<typeof internalEvaluation> | undefined;
+  const recordNotices = body.evaluationMode === "INTERNAL" ? [...notice, INTERNAL_CAVEAT] : [...notice];
+  if (body.evaluationMode === "INTERNAL") {
+    // Scores are inherited ONLY from this owner-held source. Session snapshots
+    // and unscored sources remain unscored; callers cannot supply score values.
+    const [scores] = body.sourceKind === "F95_LIVING_PDD" ? [] : await db.select({
+      jcseScore: harnessArtifactsTable.jcseScore, mathmonScore: harnessArtifactsTable.mathmonScore,
+    }).from(harnessArtifactsTable).where(and(eq(harnessArtifactsTable.id, body.sourceId), eq(harnessArtifactsTable.userId, actor.id)));
+    assessment = internalEvaluation({ kind, source: source.raw, sourceHash: source.hash, assessedAt: createdAt,
+      scores: scores ?? { jcseScore: null, mathmonScore: null }, sprint });
+    const bytes = Buffer.from(JSON.stringify(assessment, null, 2));
+    files.push({ filename: "internal-evaluation.json", format: "JSON", mime: "application/json", bytes, contentHash: fileHash(bytes) });
+    if (kind === "short-sprints") {
+      const caveat = Buffer.from(`# SHORT SPRINT Internal\n\n${INTERNAL_CAVEAT}\n\nAssessment: ${assessment.state}\nSource SHA-256: ${source.hash}\n`);
+      files.push({ filename: "INTERNAL-ONLY.md", format: "MD", mime: "text/markdown", bytes: caveat, contentHash: fileHash(caveat) });
+    }
+  }
   if (files.reduce((sum, f) => sum + f.bytes.length, 0) > 10_000_000) throw new OperationsError(413, "Combined preparation exceeds the 10 MB limit.");
   const descriptors = files.map(f => ({ filename: f.filename, format: f.format, size: f.bytes.length, sha256: fileHash(f.bytes), contentHash: f.contentHash }));
   const manifest = Buffer.from(JSON.stringify({ schemaVersion: "SPARTAN-PREPARATION-1", id, kind, sourceId: body.sourceId, sourceKind: body.sourceKind,
     sourceHash: source.hash, createdAt: createdAt.toISOString(), author, releaseAllowed: false, certification: "NOT_ASSERTED",
-    independentVerification: "NOT_RUN", humanApproval: "NOT_RECORDED", deployment: "NOT_RUN", notices: notice, files: descriptors }, null, 2));
+    independentVerification: "NOT_RUN", humanApproval: "NOT_RECORDED", deployment: "NOT_RUN", notices: recordNotices,
+    evaluationMode: body.evaluationMode, ...(assessment ? { internalEvaluation: assessment } : {}), files: descriptors }, null, 2));
   const manifestHash = fileHash(manifest);
   files.push({ filename: "integrity-manifest.json", format: "JSON", mime: "application/json", bytes: manifest, contentHash: manifestHash });
   const zipEntries = Object.fromEntries(files.map(f => [f.filename, f.bytes]));
-  files.push({ filename: `${kind}-preparation-${id}.zip`, format: "ZIP", mime: "application/zip", bytes: Buffer.from(zipSync(zipEntries)), contentHash: manifestHash });
+  files.push({ filename: `${kind}-${body.evaluationMode === "INTERNAL" ? "internal" : "preparation"}-${id}.zip`, format: "ZIP", mime: "application/zip", bytes: Buffer.from(zipSync(zipEntries)), contentHash: manifestHash });
   // Existing artifact persistence, not a fallback connection into protected tables.
   // Serialize the per-owner quota across workers; no protected workflow DDL.
   // Persist upload intent OUTSIDE the save transaction. A crash/rollback must
@@ -109,7 +134,8 @@ export async function createPreparation(actor: OperationsActor, kind: Preparatio
         contentHash: f.contentHash, variant: kind === "imprima" ? "draft" : "preparation", objectKey, mime: f.mime });
     }
     const record: StoredPreparation = { schemaVersion: "SPARTAN-PREPARATION-1", kind, sourceId: body.sourceId, sourceKind: body.sourceKind,
-      sourceHash: source.hash, manifestHash, state: kind === "imprima" ? "PREPARED_DRAFT" : "PREPARED_PROPOSAL", releaseAllowed: false, files: stored, notices: notice };
+      sourceHash: source.hash, manifestHash, state: kind === "imprima" ? "PREPARED_DRAFT" : "PREPARED_PROPOSAL", releaseAllowed: false, files: stored, notices: recordNotices,
+      evaluationMode: body.evaluationMode, ...(assessment ? { internalEvaluation: assessment } : {}) };
     const result = await tx.insert(harnessArtifactsTable).values({ id, userId: actor.id, sessionId: source.sessionId!, artifactType: TYPES[kind],
       featureId: kind === "imprima" ? -210 : -211, parentArtifactId: body.sourceKind === "F95_LIVING_PDD" ? null : body.sourceId,
       name: title, artifactContent: record, contentHash: manifestHash, verificationStatus: "UNVERIFIED", forgeVerified: false, groState: "LIFE", createdAt }).returning();

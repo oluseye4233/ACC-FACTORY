@@ -5,10 +5,12 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { ArtifactPreparationInputEvaluationMode } from './artifactPreparationInputEvaluationMode';
 import type { ArtifactPreparationInputOptions } from './artifactPreparationInputOptions';
 
 export interface ArtifactPreparationInput {
   sourceId: string;
   sourceKind: string;
   options: ArtifactPreparationInputOptions;
+  evaluationMode?: ArtifactPreparationInputEvaluationMode;
 }

@@ -577,7 +577,7 @@ export default function Operations() {
   const prepParams = sessionId || prepOffset ? { ...(sessionId ? { sessionId } : {}), ...(prepOffset ? { offset: prepOffset } : {}) } : undefined;
   const prep = useGetArtifactPreparations(kind, prepParams, { query: { queryKey: getGetArtifactPreparationsQueryKey(kind, prepParams) } });
   const guardsReady = prep.data?.databaseProtection.ready === true;
-  const [view, setView] = useState<"prep" | "full">("prep");
+  const [view, setView] = useState<"prep" | "internal" | "full">("prep");
   const ws = useGetArtifactOperations(kind, params, {
     query: { queryKey, enabled: guardsReady, refetchInterval: (query) => ((query.state.data?.items ?? []).some((w) => isActiveState(w.state)) ? 4000 : false) },
   });
@@ -665,13 +665,16 @@ export default function Operations() {
         ) : (
           <div className="space-y-6">
             <GuardStatus ws={prep.data} />
-            <nav className="flex gap-1" aria-label="Workspace lane">
-              <button type="button" onClick={() => setView("prep")} className={`px-3 h-8 rounded border font-mono text-[10px] uppercase tracking-wider ${view === "prep" ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"}`} data-testid="tab-lane-prep">Private preparation</button>
+            <nav className="flex flex-wrap gap-1" aria-label="Workspace lane">
+              <button type="button" onClick={() => setView("prep")} className={`px-3 h-8 rounded border font-mono text-[10px] uppercase tracking-wider ${view === "prep" ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"}`} aria-pressed={view === "prep"} data-testid="tab-lane-prep">Private preparation</button>
+              <button type="button" onClick={() => setView("internal")} className={`px-3 h-8 rounded border font-mono text-[10px] uppercase tracking-wider ${view === "internal" ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"}`} aria-pressed={view === "internal"} data-testid="tab-lane-internal">{kind === "imprima" ? "IMPRIMA Internal" : "SHORT SPRINT Internal"}</button>
               <button type="button" disabled={!guardsReady} onClick={() => setView("full")} className={`px-3 h-8 rounded border font-mono text-[10px] uppercase tracking-wider disabled:opacity-50 ${view === "full" ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"}`} data-testid="tab-lane-full">
                 Protected workflow {guardsReady ? "· available" : "· unavailable"}
               </button>
             </nav>
-            {view === "prep" || !guardsReady ? (
+            {view === "internal" ? (
+              <PreparationLane internal key={`internal:${kind}:${sessionId}:${sourceId}`} kind={kind} ws={prep.data} params={prepParams} offset={prepOffset} setOffset={setPrepOffset} fetching={prep.isFetching} initial={{ sourceId, sourceKind, sessionId }} />
+            ) : view === "prep" || !guardsReady ? (
               <PreparationLane key={`${kind}:${sessionId}:${sourceId}`} kind={kind} ws={prep.data} params={prepParams} offset={prepOffset} setOffset={setPrepOffset} fetching={prep.isFetching} initial={{ sourceId, sourceKind, sessionId }} />
             ) : (
               <>

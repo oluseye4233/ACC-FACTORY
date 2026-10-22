@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ArtifactPreparationWorkspace } from "@workspace/api-client-react";
-import { PreparationLane } from "./PreparationLane";
+import { InternalReport, PreparationLane } from "./PreparationLane";
 
 const state = vi.hoisted(() => ({ mutateAsync: vi.fn(), pending: false }));
 vi.mock("@workspace/api-client-react", async (original) => ({
@@ -18,10 +18,10 @@ const workspace = {
   authorName: "Example author",
 } as unknown as ArtifactPreparationWorkspace;
 
-function mount(kind: "imprima" | "short-sprints" = "short-sprints") {
+function mount(kind: "imprima" | "short-sprints" = "short-sprints", internal = false) {
   return render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <PreparationLane kind={kind} ws={workspace} params={undefined} offset={0} setOffset={vi.fn()} fetching={false}
+      <PreparationLane internal={internal} kind={kind} ws={workspace} params={undefined} offset={0} setOffset={vi.fn()} fetching={false}
         initial={{ sourceId: "source-1", sourceKind: "F4_MICRO_PDD", sessionId: "" }} />
     </QueryClientProvider>,
   );
@@ -58,5 +58,31 @@ describe("preparation form accessibility", () => {
     fireEvent.submit(screen.getByRole("form", { name: "Prepare sprint package" }));
     await waitFor(() => expect(screen.getByTestId("text-prep-error").getAttribute("role")).toBe("alert"));
     expect(screen.getByText(/Non-releasable proposal package/)).toBeTruthy();
+  });
+
+  it("sends evaluationMode only for the internal lane", async () => {
+    const prep = { id: "prep-12345678", state: "DRAFT", files: [] };
+    state.mutateAsync.mockResolvedValue(prep);
+    mount("short-sprints", true);
+    expect(screen.getByTestId("text-internal-explainer").textContent).toMatch(/not external verification/);
+    fireEvent.change(screen.getByLabelText("Host target (required)"), { target: { value: "example-target" } });
+    fireEvent.submit(screen.getByRole("form", { name: "SHORT SPRINT Internal assessment" }));
+    await waitFor(() => expect(state.mutateAsync).toHaveBeenCalled());
+    expect(state.mutateAsync.mock.calls[0][0].data.evaluationMode).toBe("INTERNAL");
+    expect(state.mutateAsync.mock.calls[0][0].data.options.evaluationMode).toBeUndefined();
+    cleanup(); state.mutateAsync.mockClear();
+    mount("short-sprints");
+    fireEvent.change(screen.getByLabelText("Host target (required)"), { target: { value: "example-target" } });
+    fireEvent.submit(screen.getByRole("form", { name: "Prepare sprint package" }));
+    await waitFor(() => expect(state.mutateAsync).toHaveBeenCalled());
+    expect("evaluationMode" in state.mutateAsync.mock.calls[0][0].data).toBe(false);
+  });
+
+  it("renders internal report caveat, checks and provenance", () => {
+    render(<InternalReport id="r1" value={{ schemaVersion: "1", state: "INCONCLUSIVE", sourceHash: "abc", assessedAt: "2025-01-02T00:00:00Z", caveat: "Internal only, not certification.", checks: [{ id: "jcse", label: "JCSE", state: "NOT_RUN", detail: "no record" }], inheritedEvidence: {}, releaseAllowed: false, externalVerification: "NOT_RUN" }} />);
+    expect(screen.getByTestId("status-internal-r1").textContent).toBe("INCONCLUSIVE");
+    expect(screen.getByTestId("text-internal-caveat-r1").textContent).toMatch(/not certification/);
+    expect(screen.getByTestId("text-internal-provenance-r1").textContent).toMatch(/sourceHash abc/);
+    expect(screen.getByTestId("row-internal-check-jcse").textContent).toMatch(/NOT RUN/);
   });
 });
