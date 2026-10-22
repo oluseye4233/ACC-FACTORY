@@ -7,6 +7,7 @@ import {
 } from "@workspace/db";
 import { CreateBoomerangCaseBody, TransitionBoomerangCaseBody } from "@workspace/api-zod";
 import { requireAuth } from "../lib/auth";
+import { boomerangRemediation } from "../lib/boomerang-remediation";
 import {
   assertBoomerangTransition, BOOMERANG_FEATURES, BOOMERANG_STAGES, BoomerangError,
   boomerangHash, boomerangOrigin, boomerangResponse,
@@ -19,6 +20,17 @@ const filters = z.object({
   originId: uuid.optional(), stage: z.enum(BOOMERANG_STAGES).optional(),
   offset: z.coerce.number().int().min(0).max(100_000).default(0),
 }).strict();
+
+router.get("/boomerang/remediation", requireAuth, async (req, res) => {
+  const input = z.object({ sessionId: uuid, stage: z.enum(BOOMERANG_STAGES) }).strict().safeParse(req.query);
+  if (!input.success) { res.status(400).json({ error: "Invalid remediation origin" }); return; }
+  try {
+    res.json(await boomerangRemediation(req.localUser!.id, input.data.sessionId, input.data.stage));
+  } catch (error) {
+    if (!(error instanceof BoomerangError)) throw error;
+    res.status(error.status).json({ error: error.message, code: error.code });
+  }
+});
 
 router.get("/boomerang/origins", requireAuth, async (req, res) => {
   const owner = req.localUser!.id;

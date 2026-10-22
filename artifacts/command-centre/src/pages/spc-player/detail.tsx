@@ -103,6 +103,9 @@ export default function SpcPlayerDetail() {
               : updated.error ?? "The execution failed; the persisted failure is shown below.",
             variant: completed ? "default" : "destructive",
           });
+          if (completed && updated.outputPackage && updated.governance.remediation?.reingestionRequired) {
+            setLocation(`/ingest?spcPlayerRunId=${encodeURIComponent(updated.id)}&rework=1`);
+          }
         },
         onError: (err: any) => {
           queryClient.invalidateQueries({ queryKey: getGetSpcPlayerRunQueryKey(id) });
@@ -456,6 +459,20 @@ export default function SpcPlayerDetail() {
                 </div>
               </div>
             </div>
+
+            {run.status === "COMPLETED" && run.outputPackage && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-4" data-testid="spc-player-ingestion-panel">
+                <h3 className="font-mono text-xs font-bold uppercase tracking-wider">Synthesis complete — continue at F1</h3>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Take this synthesized package to Ingestion for review as a new input. This does not change the original project, accept a Boomerang return, or certify or advance any stage.
+                </p>
+                <Link href={`/ingest?spcPlayerRunId=${encodeURIComponent(run.id)}${run.governance.remediation?.reingestionRequired ? "&rework=1" : ""}`} className="inline-block mt-3">
+                  <Button className="font-mono text-xs uppercase tracking-wider" data-testid="button-return-to-ingestion">
+                    RETURN TO INGESTION (F1) <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            )}
 
             {run.outputPackage && (
               run.originSessionId && run.originFeatureId != null ? (

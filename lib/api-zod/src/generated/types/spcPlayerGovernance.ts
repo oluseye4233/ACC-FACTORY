@@ -5,10 +5,12 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { BoomerangRemediation } from './boomerangRemediation';
 import type { SpcPlayerGovernanceScorePolicy } from './spcPlayerGovernanceScorePolicy';
 import type { SpcPlayerGovernanceSpecVersion } from './spcPlayerGovernanceSpecVersion';
 
 export interface SpcPlayerGovernance {
+  remediation?: BoomerangRemediation;
   specVersion: SpcPlayerGovernanceSpecVersion;
   source: string;
   scorePolicy: SpcPlayerGovernanceScorePolicy;

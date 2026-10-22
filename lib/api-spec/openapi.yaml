@@ -42,6 +42,23 @@ paths:
     $ref: "./learning.yaml#/paths/~1learn~1reviews"
   /learn/portfolio/{id}:
     $ref: "./learning.yaml#/paths/~1learn~1portfolio~1{id}"
+  /boomerang/remediation:
+    get:
+      operationId: getBoomerangRemediation
+      tags: [boomerang]
+      summary: Recommend score-driven rework of the latest owned stage artifact
+      parameters:
+        - { name: sessionId, in: query, required: true, schema: { type: string, format: uuid } }
+        - { name: stage, in: query, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Internal recommendation only; no model execution or stage advancement
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BoomerangRemediation' }
+        '400': { description: Invalid stage }
+        '401': { description: Sign-in required }
+        '404': { description: Owned origin unavailable }
   /boomerang/origins:
     get:
       operationId: getBoomerangOrigins
@@ -7002,6 +7019,9 @@ components:
       additionalProperties: false
       required: [title, brief, selectedCardIds]
       properties:
+        scoreRemediation:
+          type: boolean
+          description: Bind current server-selected low-score evidence and require re-ingestion after rework.
         title: { type: string, minLength: 1, maxLength: 255 }
         brief: { type: string, minLength: 1, maxLength: 100000 }
         selectedCardIds:
@@ -7112,6 +7132,9 @@ components:
       description: Completed SPC content plus its non-detachable advisory.
       required: [content, governanceEvaluation, advisory, scores, distributionPlan]
       properties:
+        remediation: { $ref: '#/components/schemas/BoomerangRemediation' }
+        nextStep: { type: string, enum: [RE_INGEST_F1] }
+        sourceRunId: { type: string, format: uuid }
         content:
           type: array
           items: { $ref: "#/components/schemas/SpcPlayerStageResult" }
@@ -7125,6 +7148,8 @@ components:
       additionalProperties: false
       required: [specVersion, source, scorePolicy]
       properties:
+        remediation:
+          $ref: '#/components/schemas/BoomerangRemediation'
         specVersion: { type: string, enum: ["v4.0"] }
         source: { type: string }
         scorePolicy:
@@ -7140,6 +7165,21 @@ components:
                 type: string
                 enum: [clarity, truthfulness, detectability]
 
+    BoomerangRemediation:
+      type: object
+      required: [status, sessionId, stage, sourceArtifactId, sourceName, sourceHash, jcseScore, mathmonScore, findings, brief, reingestionRequired]
+      properties:
+        status: { type: string, enum: [REWORK_RECOMMENDED, NO_LOW_SCORE, NO_STAGE_ARTIFACT] }
+        sessionId: { type: string, format: uuid }
+        stage: { type: string }
+        sourceArtifactId: { type: [string, 'null'], format: uuid }
+        sourceName: { type: [string, 'null'] }
+        sourceHash: { type: [string, 'null'] }
+        jcseScore: { type: [number, 'null'] }
+        mathmonScore: { type: [number, 'null'] }
+        findings: { type: array, items: { type: string } }
+        brief: { type: string }
+        reingestionRequired: { type: boolean }
     SpcPlayerRun:
       type: object
       additionalProperties: false

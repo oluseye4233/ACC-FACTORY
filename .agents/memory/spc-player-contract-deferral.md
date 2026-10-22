@@ -58,3 +58,12 @@ and stop if a pinned source disappears. Show the real artifact/product name
 with type and distinguishing date/ID metadata; do not invent a product name for
 an unnamed artifact. Keep standalone selection available and preserve the
 normal Boomerang review and protected-stage boundaries.
+
+Completed synthesis may be taken to F1 as a **new ingestion input**, separately
+from return-to-origin supporting work.
+
+**Why:** The user requested a Return to Ingestion (F1) option after synthesis.
+
+**How to apply:** Require a completed saved output, retain its run identity,
+and require explicit loading/review before ordinary ingestion. Never turn this
+navigation into automatic ingestion, Boomerang acceptance or stage advancement.

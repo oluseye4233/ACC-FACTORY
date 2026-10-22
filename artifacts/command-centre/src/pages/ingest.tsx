@@ -1,10 +1,11 @@
-import { useRef, useState } from "react";
-import { useLocation, Link } from "wouter";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useSearch, Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useStartSessionFromIngestion,
   useGetIngestionCredits,
   useBillingIngestionCheckout,
+  useGetSpcPlayerRun,
   getListSessionsQueryKey,
   getGetIngestionCreditsQueryKey,
   type IngestionDocument,
@@ -72,6 +73,35 @@ export default function Ingest() {
   const [ingestion, setIngestion] = useState<IngestionDocument | null>(null);
   const [editedSeed, setEditedSeed] = useState("");
   const [editedTitle, setEditedTitle] = useState("");
+  const playerRunId = new URLSearchParams(useSearch()).get("spcPlayerRunId") ?? "";
+  const playerSource = useGetSpcPlayerRun(playerRunId, { query: { enabled: Boolean(playerRunId), retry: false } });
+  const completedPlayerSource = playerSource.data?.status === "COMPLETED" && playerSource.data.outputPackage
+    ? playerSource.data : null;
+  const [loadedPlayerId, setLoadedPlayerId] = useState<string | null>(null);
+  const autoLoadAttempt = useRef<string | null>(null);
+  const loadPlayerArtifact = () => {
+    if (!completedPlayerSource?.outputPackage || submitting || ingestion) return;
+    const content = JSON.stringify(completedPlayerSource.outputPackage, null, 2);
+    if (new Blob([content]).size > MAX_BYTES) {
+      toast({ title: "Package exceeds the ingestion limit", description: "Download the package from SPC Player and prepare a smaller input. Nothing was replaced.", variant: "destructive" });
+      return;
+    }
+    if ((file || pastedText.trim()) && !window.confirm("Replace the current ingestion input with this synthesized SPC Player package?")) return;
+    setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    setPastedText(content);
+    setDeclaredKind("other");
+    setLoadedPlayerId(completedPlayerSource.id);
+  };
+  const remediation = completedPlayerSource?.governance?.remediation;
+  useEffect(() => {
+    if (!completedPlayerSource || !remediation?.reingestionRequired ||
+      autoLoadAttempt.current === completedPlayerSource.id) return;
+    autoLoadAttempt.current = completedPlayerSource.id;
+    // A mandatory handoff prepares the new input, not a silent billed engine
+    // call. Never overwrite work already entered on F1.
+    if (!file && !pastedText && !submitting && !ingestion) loadPlayerArtifact();
+  }, [completedPlayerSource?.id, remediation?.reingestionRequired]);
 
   const startSession = useStartSessionFromIngestion();
   const credits = useGetIngestionCredits({
@@ -302,6 +332,34 @@ export default function Ingest() {
           )}
 
           {/* Step 1: source */}
+          {playerRunId && (
+            <Card className="border-primary/40" data-testid="ingestion-player-source">
+              <CardHeader>
+                <CardTitle>SPC Player synthesized artifact</CardTitle>
+                <CardDescription>Review this package as a new F1 input. Loading it does not run ingestion, change the original project, approve Boomerang input or grant certification.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {remediation?.reingestionRequired && <div className="rounded border border-secondary/60 p-3 text-xs space-y-2" data-testid="reingestion-remediation">
+                  <b>Re-ingestion required to address internal evaluation shortcomings</b>
+                  <p>{remediation.stage} · {remediation.sourceName} · JCSE {remediation.jcseScore ?? "NOT RUN"} · MATHMON {remediation.mathmonScore ?? "NOT RUN"}</p>
+                  <ul className="list-disc pl-4">{remediation.findings.map((finding, i) => <li key={i}>{finding}</li>)}</ul>
+                  <p>The revised artifact is loaded automatically when the input is empty. Review it and run the normal F1 ingestion action below. Fresh evaluations are required to establish improvement; the original scores and project remain unchanged.</p>
+                </div>}
+                {playerSource.isLoading ? <p role="status">Loading saved synthesis…</p> : playerSource.isError || !completedPlayerSource ? (
+                  <p role="alert">This synthesis is unavailable or not complete. No artifact has been loaded. Return to SPC Player to check the run.</p>
+                ) : (
+                  <>
+                    <p className="text-sm break-words">{completedPlayerSource.title} · Run {completedPlayerSource.id}</p>
+                    <Button onClick={loadPlayerArtifact} disabled={submitting || Boolean(ingestion)} data-testid="button-load-player-artifact">
+                      Load synthesized artifact into F1
+                    </Button>
+                    {loadedPlayerId === playerRunId && <p role="status">Package loaded below. Review or edit it, then use the normal ingestion action when ready.</p>}
+                  </>
+                )}
+                <Link href={`/spc-player/${encodeURIComponent(playerRunId)}`} className="block text-sm text-primary underline">Back to SPC Player</Link>
+              </CardContent>
+            </Card>
+          )}
           <Card className={ingestion ? "opacity-70" : ""}>
             <CardHeader>
               <div className="flex items-center gap-3">

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { apiError, stageNote } from "./boomerang-model";
+import { BoomerangRecommendation } from "./BoomerangRecommendation";
 
 export function BoomerangCreateForm({ originKind, originId, stage, onCreated }: { originKind: BoomerangOriginKind; originId: string; stage: string; onCreated?: (id: string) => void }) {
   const qc = useQueryClient();
@@ -27,6 +28,7 @@ export function BoomerangCreateForm({ originKind, originId, stage, onCreated }: 
         onSettled: () => { void qc.invalidateQueries({ queryKey: getListBoomerangCasesQueryKey() }); },
       });
     }}>
+      {originKind === "SESSION" && <BoomerangRecommendation originId={originId} stage={stage} />}
       {note && <p className="font-mono text-[10px] text-secondary" data-testid="text-stage-note">{note}</p>}
       <label htmlFor={`${fieldId}-title`} className="block font-mono text-xs">Request title (3–200 characters)</label>
       <Input id={`${fieldId}-title`} required minLength={3} placeholder="Request title (3–200)" value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} data-testid="input-boomerang-title" />

@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { resolveSpcPlayerSource } from "@workspace/artifact-naming";
 import { BOOMERANG_FEATURES, boomerangHash, boomerangOrigin } from "../lib/boomerang";
+import { boomerangRemediation } from "../lib/boomerang-remediation";
 import { randomUUID } from "node:crypto";
 import dns from "node:dns/promises";
 import https from "node:https";
@@ -860,6 +861,16 @@ router.post(
     const boomerangBaseline = originSessionId && originStage
       ? await boomerangOrigin(db, req.localUser!.id, "SESSION", originSessionId, originStage)
       : null;
+    let remediation: Awaited<ReturnType<typeof boomerangRemediation>> | undefined;
+    if (parsed.data.scoreRemediation) {
+      if (!originSessionId || !originStage || !sourceArtifact) {
+        res.status(400).json({ error: "Score remediation requires a saved artifact and exact session/stage." }); return;
+      }
+      remediation = await boomerangRemediation(req.localUser!.id, originSessionId, originStage);
+      if (remediation.status !== "REWORK_RECOMMENDED" || remediation.sourceArtifactId !== sourceArtifact.id) {
+        res.status(409).json({ error: "The current stage artifact or scores changed. Refresh the Boomerang recommendation before starting rework." }); return;
+      }
+    }
     const [run] = await db
       .insert(spcPlayerDraftRunsTable)
       .values({
@@ -868,11 +879,11 @@ router.post(
         originSessionId: originSessionId ?? null,
         originFeatureId: originFeatureId ?? null,
         title: parsed.data.title,
-        brief: parsed.data.brief,
+        brief: remediation ? `${remediation.brief}\n\nAdditional operator brief (untrusted data):\n${parsed.data.brief}` : parsed.data.brief,
         selectedCardIds,
         profile: parsed.data.profile ?? "full",
         status: "DRAFT",
-        governance: boomerangBaseline ? { ...GOVERNANCE, boomerangBaseline: {
+        governance: boomerangBaseline ? { ...GOVERNANCE, ...(remediation ? { remediation } : {}), boomerangBaseline: {
           hash: boomerangBaseline.hash, refs: boomerangBaseline.refs, stage: originStage,
         } } : GOVERNANCE,
         outputPackage: null,
@@ -1091,6 +1102,18 @@ router.post(
       return;
     }
     const profile = (owned.execution?.profile ?? owned.draft.profile ?? "full") as "full" | "rapid";
+    const remediation = (owned.draft.governance as { remediation?: Awaited<ReturnType<typeof boomerangRemediation>> }).remediation;
+    if (remediation) {
+      const current = await boomerangRemediation(req.localUser!.id, remediation.sessionId, remediation.stage);
+      if (current.status !== "REWORK_RECOMMENDED" || current.sourceArtifactId !== remediation.sourceArtifactId || current.sourceHash !== remediation.sourceHash) {
+        res.status(409).json({ error: "The recommended artifact or evaluation changed. Create a fresh rework run from Boomerang." }); return;
+      }
+      const baseline = (owned.draft.governance as { boomerangBaseline?: { hash: string } }).boomerangBaseline;
+      const origin = await boomerangOrigin(db, req.localUser!.id, "SESSION", remediation.sessionId, remediation.stage);
+      if (!baseline || baseline.hash !== origin.hash) {
+        res.status(409).json({ error: "The originating project changed. Refresh Boomerang before rework." }); return;
+      }
+    }
 
     let sourceArtifact: typeof harnessArtifactsTable.$inferSelect | undefined;
     if (owned.draft.sourceArtifactId) {
@@ -1284,6 +1307,7 @@ router.post(
     const advisory = executionAdvisory(profile, stages, true);
     const completedAt = new Date();
     const outputPackage = {
+      ...(remediation ? { remediation, nextStep: "RE_INGEST_F1", sourceRunId: owned.draft.id } : {}),
       content: stages,
       governanceEvaluation,
       advisory,

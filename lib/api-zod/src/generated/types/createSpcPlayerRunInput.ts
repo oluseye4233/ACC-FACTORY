@@ -8,6 +8,8 @@
 import type { CreateSpcPlayerRunInputProfile } from './createSpcPlayerRunInputProfile';
 
 export interface CreateSpcPlayerRunInput {
+  /** Bind current server-selected low-score evidence and require re-ingestion after rework. */
+  scoreRemediation?: boolean;
   /**
      * @minLength 1
      * @maxLength 255

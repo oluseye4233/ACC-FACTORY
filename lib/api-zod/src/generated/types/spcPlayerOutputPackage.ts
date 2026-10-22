@@ -5,9 +5,11 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { BoomerangRemediation } from './boomerangRemediation';
 import type { SpcPlayerDistributionPlan } from './spcPlayerDistributionPlan';
 import type { SpcPlayerExecutionAdvisory } from './spcPlayerExecutionAdvisory';
 import type { SpcPlayerGovernanceEvaluation } from './spcPlayerGovernanceEvaluation';
+import type { SpcPlayerOutputPackageNextStep } from './spcPlayerOutputPackageNextStep';
 import type { SpcPlayerScores } from './spcPlayerScores';
 import type { SpcPlayerStageResult } from './spcPlayerStageResult';
 
@@ -15,6 +17,9 @@ import type { SpcPlayerStageResult } from './spcPlayerStageResult';
  * Completed SPC content plus its non-detachable advisory.
  */
 export interface SpcPlayerOutputPackage {
+  remediation?: BoomerangRemediation;
+  nextStep?: SpcPlayerOutputPackageNextStep;
+  sourceRunId?: string;
   content: SpcPlayerStageResult[];
   advisory: SpcPlayerExecutionAdvisory;
   governanceEvaluation: SpcPlayerGovernanceEvaluation;

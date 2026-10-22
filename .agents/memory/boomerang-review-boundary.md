@@ -14,3 +14,16 @@ The source baseline is intentionally conservative: any production artifact chang
 **Why:** Downstream support can rely on upstream artifacts; checking only the visibly selected stage could accept advice after its inputs changed.
 
 **How to apply:** Narrow this rule only with explicit dependency evidence, not by simply ignoring unrelated-looking artifact changes.
+
+Score-driven rework is an explicit user-authorized loop: JCSE <45 or MATHMON
+<70 recommends the latest exact-stage artifact for SPC Player, then requires
+F1 re-ingestion to address the recorded shortcomings.
+
+**Why:** The user requested automatic source selection and recommendations
+linked to internal evaluation, not generic supporting work without correction.
+
+**How to apply:** Retain exact artifact scores and feedback, distinguish absent
+evidence, reject stale sources/evaluations before rework, and prepare completed
+output at F1. Keep normal ingestion confirmation and fresh evaluation; never
+silently spend credits, overwrite entered input, alter old scores or promote
+the recommendation into certification or Boomerang acceptance.

@@ -72,6 +72,46 @@ describe("process-wide Boomerang supporting work", () => {
     return call(`/boomerang/cases/${row.id}/transition`, { action, expectedVersion: row.version, ...input });
   }
 
+  test("auto-picks only the latest exact-stage artifact and retains its evaluation recommendations", async () => {
+    const [artifact] = await db.insert(harnessArtifactsTable).values({ userId: owner, sessionId,
+      featureId: 4, artifactType: "MICRO_PDD", name: "Stage four source", artifactContent: { mission: "Fixture" },
+      jcseScore: 44, mathmonScore: 69, scorecards: [{ metric: "JCSE", actions: ["Clarify input contracts"] }] }).returning();
+    try {
+      const result = await call(`/boomerang/remediation?sessionId=${sessionId}&stage=F4`);
+      expect(result.status).toBe(200);
+      expect(result.body).toMatchObject({ status: "REWORK_RECOMMENDED", sourceArtifactId: artifact!.id,
+        jcseScore: 44, mathmonScore: 69, reingestionRequired: true });
+      expect(result.body.brief).toContain("Clarify input contracts");
+      expect(result.body.brief).toContain("MANDATORY NEXT STEP");
+      const catalog = await call("/spc-player/catalog");
+      const draft = await call("/spc-player/runs", { title: "Score remediation", brief: "Correct the identified shortcomings.",
+        selectedCardIds: [catalog.body[0].id], sourceArtifactId: artifact!.id, originSessionId: sessionId,
+        originFeatureId: 4, scoreRemediation: true });
+      expect(draft.status).toBe(201);
+      expect(draft.body.governance.remediation).toMatchObject({ sourceArtifactId: artifact!.id, reingestionRequired: true });
+      expect(draft.body.brief).toContain("Clarify input contracts");
+      // Any evaluation change invalidates the stored recommendation before
+      // dispatching a provider call.
+      await db.update(harnessArtifactsTable).set({ jcseScore: 45, mathmonScore: 70 }).where(eq(harnessArtifactsTable.id, artifact!.id));
+      const stale = await call(`/spc-player/runs/${draft.body.id}/execute`, {});
+      expect(stale.status).toBe(409);
+      expect(stale.body.error).toContain("changed");
+      expect((await call("/spc-player/runs", { title: "No longer low", brief: "Correct the identified shortcomings.",
+        selectedCardIds: [catalog.body[0].id], sourceArtifactId: artifact!.id, originSessionId: sessionId,
+        originFeatureId: 4, scoreRemediation: true })).status).toBe(409);
+      await db.delete(spcPlayerDraftRunsTable).where(eq(spcPlayerDraftRunsTable.id, draft.body.id));
+      const foreign = await call(`/boomerang/remediation?sessionId=${sessionId}&stage=F4`, undefined, stranger);
+      expect(foreign.status).toBe(404);
+      expect((await call(`/boomerang/remediation?sessionId=${sessionId}&stage=F4`, undefined, "")).status).toBe(401);
+      // A later unscored artifact supersedes the old score; no cherry-picking.
+      const [newer] = await db.insert(harnessArtifactsTable).values({ userId: owner, sessionId, featureId: 4,
+        artifactType: "MICRO_PDD", artifactContent: { revision: "New source" }, createdAt: new Date(Date.now() + 1000) }).returning();
+      const current = await call(`/boomerang/remediation?sessionId=${sessionId}&stage=F4`);
+      expect(current.body).toMatchObject({ status: "NO_LOW_SCORE", sourceArtifactId: newer!.id, jcseScore: null, mathmonScore: null, reingestionRequired: false });
+      await db.delete(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, newer!.id));
+    } finally { await db.delete(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, artifact!.id)); }
+  });
+
   test("supports every F stage and side-step with exact canonical destinations, without advancing anything", async () => {
     for (const stage of BOOMERANG_STAGES) {
       const created = await create(stage);

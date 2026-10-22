@@ -503,6 +503,29 @@ export const GetLearningPortfolioResponse = zod.object({
 })
 
 
+/**
+ * @summary Recommend score-driven rework of the latest owned stage artifact
+ */
+export const GetBoomerangRemediationQueryParams = zod.object({
+  "sessionId": zod.coerce.string().uuid(),
+  "stage": zod.coerce.string()
+})
+
+export const GetBoomerangRemediationResponse = zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+})
+
+
 export const GetBoomerangOriginsResponse = zod.object({
   "origins": zod.array(zod.object({
   "kind": zod.enum(['SESSION', 'F0']),
@@ -5639,6 +5662,19 @@ export const ListSpcPlayerRunsResponseItem = zod.object({
   "canExecute": zod.boolean().describe('Whether a new execution attempt may be claimed now.'),
   "retryAvailableAt": zod.coerce.date().nullable().describe('When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.'),
   "governance": zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
   "specVersion": zod.enum(['v4.0']),
   "source": zod.string(),
   "scorePolicy": zod.object({
@@ -5691,6 +5727,21 @@ export const ListSpcPlayerRunsResponseItem = zod.object({
 })),
   "completedAt": zod.coerce.date().nullable(),
   "outputPackage": zod.union([zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
+  "nextStep": zod.enum(['RE_INGEST_F1']).optional(),
+  "sourceRunId": zod.string().uuid().optional(),
   "content": zod.array(zod.object({
   "stageIndex": zod.number().int().min(listSpcPlayerRunsResponseOutputPackageOneContentItemStageIndexMin),
   "cardId": zod.string().uuid(),
@@ -5754,6 +5805,7 @@ export const createSpcPlayerRunBodyOriginFeatureIdMax = 13;
 export const createSpcPlayerRunBodyProfileDefault = `full`;
 
 export const CreateSpcPlayerRunBody = zod.object({
+  "scoreRemediation": zod.boolean().optional().describe('Bind current server-selected low-score evidence and require re-ingestion after rework.'),
   "title": zod.string().min(1).max(createSpcPlayerRunBodyTitleMax),
   "brief": zod.string().min(1).max(createSpcPlayerRunBodyBriefMax),
   "selectedCardIds": zod.array(zod.string().uuid()).min(1).max(createSpcPlayerRunBodySelectedCardIdsMax),
@@ -5821,6 +5873,19 @@ export const CreateSpcPlayerRunResponse = zod.object({
   "canExecute": zod.boolean().describe('Whether a new execution attempt may be claimed now.'),
   "retryAvailableAt": zod.coerce.date().nullable().describe('When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.'),
   "governance": zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
   "specVersion": zod.enum(['v4.0']),
   "source": zod.string(),
   "scorePolicy": zod.object({
@@ -5873,6 +5938,21 @@ export const CreateSpcPlayerRunResponse = zod.object({
 })),
   "completedAt": zod.coerce.date().nullable(),
   "outputPackage": zod.union([zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
+  "nextStep": zod.enum(['RE_INGEST_F1']).optional(),
+  "sourceRunId": zod.string().uuid().optional(),
   "content": zod.array(zod.object({
   "stageIndex": zod.number().int().min(createSpcPlayerRunResponseOutputPackageOneContentItemStageIndexMin),
   "cardId": zod.string().uuid(),
@@ -5986,6 +6066,19 @@ export const GetSpcPlayerRunResponse = zod.object({
   "canExecute": zod.boolean().describe('Whether a new execution attempt may be claimed now.'),
   "retryAvailableAt": zod.coerce.date().nullable().describe('When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.'),
   "governance": zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
   "specVersion": zod.enum(['v4.0']),
   "source": zod.string(),
   "scorePolicy": zod.object({
@@ -6038,6 +6131,21 @@ export const GetSpcPlayerRunResponse = zod.object({
 })),
   "completedAt": zod.coerce.date().nullable(),
   "outputPackage": zod.union([zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
+  "nextStep": zod.enum(['RE_INGEST_F1']).optional(),
+  "sourceRunId": zod.string().uuid().optional(),
   "content": zod.array(zod.object({
   "stageIndex": zod.number().int().min(getSpcPlayerRunResponseOutputPackageOneContentItemStageIndexMin),
   "cardId": zod.string().uuid(),
@@ -6164,6 +6272,19 @@ export const ReturnSpcPlayerRunToStageResponse = zod.object({
   "canExecute": zod.boolean().describe('Whether a new execution attempt may be claimed now.'),
   "retryAvailableAt": zod.coerce.date().nullable().describe('When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.'),
   "governance": zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
   "specVersion": zod.enum(['v4.0']),
   "source": zod.string(),
   "scorePolicy": zod.object({
@@ -6216,6 +6337,21 @@ export const ReturnSpcPlayerRunToStageResponse = zod.object({
 })),
   "completedAt": zod.coerce.date().nullable(),
   "outputPackage": zod.union([zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
+  "nextStep": zod.enum(['RE_INGEST_F1']).optional(),
+  "sourceRunId": zod.string().uuid().optional(),
   "content": zod.array(zod.object({
   "stageIndex": zod.number().int().min(returnSpcPlayerRunToStageResponseRunOutputPackageOneContentItemStageIndexMin),
   "cardId": zod.string().uuid(),
@@ -6390,6 +6526,19 @@ export const ExecuteSpcPlayerRunResponse = zod.object({
   "canExecute": zod.boolean().describe('Whether a new execution attempt may be claimed now.'),
   "retryAvailableAt": zod.coerce.date().nullable().describe('When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.'),
   "governance": zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
   "specVersion": zod.enum(['v4.0']),
   "source": zod.string(),
   "scorePolicy": zod.object({
@@ -6442,6 +6591,21 @@ export const ExecuteSpcPlayerRunResponse = zod.object({
 })),
   "completedAt": zod.coerce.date().nullable(),
   "outputPackage": zod.union([zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
+  "nextStep": zod.enum(['RE_INGEST_F1']).optional(),
+  "sourceRunId": zod.string().uuid().optional(),
   "content": zod.array(zod.object({
   "stageIndex": zod.number().int().min(executeSpcPlayerRunResponseOutputPackageOneContentItemStageIndexMin),
   "cardId": zod.string().uuid(),
@@ -6576,6 +6740,21 @@ export const downloadSpcPlayerRunResponseScoresDetectabilityMax = 100;
 
 
 export const DownloadSpcPlayerRunResponse = zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
+  "nextStep": zod.enum(['RE_INGEST_F1']).optional(),
+  "sourceRunId": zod.string().uuid().optional(),
   "content": zod.array(zod.object({
   "stageIndex": zod.number().int().min(downloadSpcPlayerRunResponseContentItemStageIndexMin),
   "cardId": zod.string().uuid(),
@@ -6691,6 +6870,19 @@ export const GetSpcPlayerRunManifestResponse = zod.object({
   "canExecute": zod.boolean().describe('Whether a new execution attempt may be claimed now.'),
   "retryAvailableAt": zod.coerce.date().nullable().describe('When an active or expired interrupted attempt becomes retryable; null for immediate legacy recovery and non-running states.'),
   "governance": zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
   "specVersion": zod.enum(['v4.0']),
   "source": zod.string(),
   "scorePolicy": zod.object({
@@ -6743,6 +6935,21 @@ export const GetSpcPlayerRunManifestResponse = zod.object({
 })),
   "completedAt": zod.coerce.date().nullable(),
   "outputPackage": zod.union([zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
+  "nextStep": zod.enum(['RE_INGEST_F1']).optional(),
+  "sourceRunId": zod.string().uuid().optional(),
   "content": zod.array(zod.object({
   "stageIndex": zod.number().int().min(getSpcPlayerRunManifestResponseRunOutputPackageOneContentItemStageIndexMin),
   "cardId": zod.string().uuid(),
@@ -6790,6 +6997,19 @@ export const GetSpcPlayerRunManifestResponse = zod.object({
   "updatedAt": zod.coerce.date()
 }),
   "governance": zod.object({
+  "remediation": zod.object({
+  "status": zod.enum(['REWORK_RECOMMENDED', 'NO_LOW_SCORE', 'NO_STAGE_ARTIFACT']),
+  "sessionId": zod.string().uuid(),
+  "stage": zod.string(),
+  "sourceArtifactId": zod.string().uuid().nullable(),
+  "sourceName": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "jcseScore": zod.number().nullable(),
+  "mathmonScore": zod.number().nullable(),
+  "findings": zod.array(zod.string()),
+  "brief": zod.string(),
+  "reingestionRequired": zod.boolean()
+}).optional(),
   "specVersion": zod.enum(['v4.0']),
   "source": zod.string(),
   "scorePolicy": zod.object({

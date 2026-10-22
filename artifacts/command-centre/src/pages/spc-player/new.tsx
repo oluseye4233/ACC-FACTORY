@@ -13,6 +13,7 @@ import {
   useGetSpcDevKit,
   useGetSpcPlayerCatalog,
   useListArtifacts,
+  useGetBoomerangRemediation,
   type SpcLibraryCard,
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
@@ -79,11 +80,23 @@ export default function SpcPlayerNew() {
   const [brief, setBrief] = useState("");
   const [profile, setProfile] = useState<"full" | "rapid">("full");
   const sourceArtifactId = searchParams.get("sourceArtifactId") || undefined;
+  const scoreRemediation = searchParams.get("scoreRemediation") === "1";
+  const stage = ENGINES.find(engine => engine.id === originFeatureId)?.name ?? "";
+  const remediation = useGetBoomerangRemediation({ sessionId: sourceSessionId ?? "", stage }, { query: {
+    enabled: scoreRemediation && Boolean(sourceSessionId && stage), staleTime: 0,
+  } });
+  useEffect(() => {
+    if (!scoreRemediation || !remediation.data || remediation.data.status !== "REWORK_RECOMMENDED") return;
+    setTitle(`Rework: ${remediation.data.sourceName ?? stage}`.slice(0, 255));
+    setBrief(remediation.data.brief);
+  }, [scoreRemediation, remediation.data?.sourceHash]);
   const { data: sourceArtifacts, isLoading: isSourceLoading, isError: isSourceError } = useListArtifacts();
   const originSource = sourceSessionId && originFeatureId && sourceArtifacts
     ? resolveSpcPlayerSource(sourceArtifacts, { sessionId: sourceSessionId, featureId: originFeatureId, sourceArtifactId })
     : undefined;
-  const sourceBlocked = Boolean(sourceSessionId && (isSourceLoading || isSourceError || !originSource));
+  const sourceBlocked = Boolean(sourceSessionId && (isSourceLoading || isSourceError || !originSource)) ||
+    (scoreRemediation && (remediation.isLoading || remediation.isError || remediation.data?.status !== "REWORK_RECOMMENDED" ||
+      remediation.data?.sourceArtifactId !== sourceArtifactId));
   const retainSource = (id: string | undefined) => {
     const url = new URL(window.location.href);
     if (id) url.searchParams.set("sourceArtifactId", id);
@@ -192,6 +205,7 @@ export default function SpcPlayerNew() {
           brief,
           selectedCardIds: selectedCards,
           profile,
+          ...(scoreRemediation ? { scoreRemediation: true } : {}),
           sourceArtifactId: originSource?.id ?? sourceArtifactId,
           ...(sourceSessionId && originFeatureId
             ? { originSessionId: sourceSessionId, originFeatureId }
@@ -308,6 +322,10 @@ export default function SpcPlayerNew() {
           </div>
         </div>
 
+        {scoreRemediation && <div className="border border-secondary/50 rounded p-3 text-xs" role={sourceBlocked ? "alert" : "status"}>
+          {sourceBlocked ? "Score-driven rework is blocked: refresh the current Boomerang recommendation and its exact artifact."
+            : "Score-driven rework: the selected artifact and evaluator findings are retained. Completed synthesis will open F1 for re-ingestion. Review the brief and choose the supporting SPCs; no stage is advanced automatically."}
+        </div>}
         <form onSubmit={handleSubmit} aria-label="Create SPC Player run" aria-busy={createRun.isPending} className="space-y-8" data-testid="form-create-run">
           <div className="grid lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-7 space-y-6">

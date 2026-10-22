@@ -52,6 +52,7 @@ import type {
   BoomerangCase,
   BoomerangInput,
   BoomerangOrigins,
+  BoomerangRemediation,
   BoomerangTransitionInput,
   CartridgeCheckoutInput,
   CartridgeCreditsSummary,
@@ -129,6 +130,7 @@ import type {
   GenerateF0ReportInput,
   GetArtifactOperationsParams,
   GetArtifactPreparationsParams,
+  GetBoomerangRemediationParams,
   GetShortSprintPreflightParams,
   GetSphinxCatalog200,
   HarnessArtifact,
@@ -944,6 +946,114 @@ export function useGetLearningPortfolio<TData = Awaited<ReturnType<typeof getLea
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetLearningPortfolioQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetBoomerangRemediationUrl = (params: GetBoomerangRemediationParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/boomerang/remediation?${stringifiedParams}` : `/api/boomerang/remediation`
+}
+
+/**
+ * @summary Recommend score-driven rework of the latest owned stage artifact
+ */
+export const getBoomerangRemediation = async (params: GetBoomerangRemediationParams, options?: Parameters<typeof customFetch>[1]): Promise<BoomerangRemediation> => {
+
+  return customFetch<BoomerangRemediation>(getGetBoomerangRemediationUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBoomerangRemediationQueryKey = (params?: GetBoomerangRemediationParams,) => {
+    return [
+    `/api/boomerang/remediation`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetBoomerangRemediationQueryOptions = <TData = Awaited<ReturnType<typeof getBoomerangRemediation>>, TError = ErrorType<void>>(params: GetBoomerangRemediationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBoomerangRemediation>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBoomerangRemediationQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBoomerangRemediation>>> = ({ signal }) => getBoomerangRemediation(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBoomerangRemediation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBoomerangRemediationQueryResult = NonNullable<Awaited<ReturnType<typeof getBoomerangRemediation>>>
+export type GetBoomerangRemediationQueryError = ErrorType<void>
+
+
+export function useGetBoomerangRemediation<TData = Awaited<ReturnType<typeof getBoomerangRemediation>>, TError = ErrorType<void>>(
+ params: GetBoomerangRemediationParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBoomerangRemediation>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBoomerangRemediation>>,
+          TError,
+          Awaited<ReturnType<typeof getBoomerangRemediation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBoomerangRemediation<TData = Awaited<ReturnType<typeof getBoomerangRemediation>>, TError = ErrorType<void>>(
+ params: GetBoomerangRemediationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBoomerangRemediation>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBoomerangRemediation>>,
+          TError,
+          Awaited<ReturnType<typeof getBoomerangRemediation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBoomerangRemediation<TData = Awaited<ReturnType<typeof getBoomerangRemediation>>, TError = ErrorType<void>>(
+ params: GetBoomerangRemediationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBoomerangRemediation>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Recommend score-driven rework of the latest owned stage artifact
+ */
+
+export function useGetBoomerangRemediation<TData = Awaited<ReturnType<typeof getBoomerangRemediation>>, TError = ErrorType<void>>(
+ params: GetBoomerangRemediationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBoomerangRemediation>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBoomerangRemediationQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

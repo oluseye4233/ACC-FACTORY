@@ -4,13 +4,14 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import userEvent from "@testing-library/user-event";
 import SpcPlayerNew from "./new";
 
-const mocks = vi.hoisted(() => ({ mutate: vi.fn(), artifacts: [] as Record<string, unknown>[] }));
+const mocks = vi.hoisted(() => ({ mutate: vi.fn(), artifacts: [] as Record<string, unknown>[], remediation: undefined as Record<string, unknown> | undefined }));
 vi.mock("@/components/layout/TopNav", () => ({ TopNav: () => null }));
 vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast: vi.fn() }) }));
 vi.mock("@/components/ui/scroll-area", () => ({ ScrollArea: ({ children }: { children: unknown }) => children }));
 vi.mock("@workspace/api-client-react", async (importOriginal) => ({
   ...await importOriginal<typeof import("@workspace/api-client-react")>(),
   useListArtifacts: () => ({ data: mocks.artifacts, isLoading: false, isError: false }),
+  useGetBoomerangRemediation: () => ({ data: mocks.remediation, isLoading: false, isError: false }),
   useGetSpcDevKit: () => ({ data: undefined }),
   useGetSpcPlayerCatalog: () => ({ data: [{
     id: "card-a", name: "Planner", slug: "planner",
@@ -20,6 +21,7 @@ vi.mock("@workspace/api-client-react", async (importOriginal) => ({
 }));
 
 beforeEach(() => {
+  mocks.remediation = undefined;
   mocks.mutate.mockClear();
   mocks.artifacts = [{
     id: "departure", sessionId: "project-a", featureId: 5, artifactType: "SPC",
@@ -35,6 +37,18 @@ function completeBrief() {
 }
 
 describe("SPC Player source activation and retention", () => {
+  it("prepares the evidence-based brief and submits the score-remediation requirement with the pinned artifact", async () => {
+    mocks.remediation = { status: "REWORK_RECOMMENDED", sourceArtifactId: "departure", sourceHash: "hash",
+      sourceName: "CODE TWO", brief: "Fix the input contracts. Re-ingest the completed rework at F1." };
+    window.history.replaceState(null, "", "/spc-player/new?sourceSessionId=project-a&originFeatureId=5&sourceArtifactId=departure&scoreRemediation=1");
+    render(<SpcPlayerNew />);
+    expect((screen.getByRole("textbox", { name: /Capability Brief/i }) as HTMLTextAreaElement).value).toContain("Fix the input contracts");
+    fireEvent.click(screen.getByTestId("card-select-card-a"));
+    fireEvent.submit(screen.getByTestId("form-create-run"));
+    expect(mocks.mutate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({
+      sourceArtifactId: "departure", scoreRemediation: true, originFeatureId: 5,
+    }) }), expect.anything());
+  });
   it("supports keyboard deck selection and exposes named deck controls", async () => {
     const user = userEvent.setup();
     window.history.replaceState(null, "", "/spc-player/new");

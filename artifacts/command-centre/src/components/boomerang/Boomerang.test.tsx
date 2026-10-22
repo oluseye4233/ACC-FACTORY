@@ -12,6 +12,7 @@ vi.mock("@workspace/api-client-react", () => ({
   getListBoomerangCasesQueryKey: (p?: unknown) => ["/api/boomerang/cases", ...(p ? [p] : [])],
   useTransitionBoomerangCase: () => ({ mutate, isPending: false }),
   useCreateBoomerangCase: () => ({ mutate: createMutate, isPending: false }),
+  useGetBoomerangRemediation: () => ({ data: undefined, isLoading: false, isError: false }),
 }));
 
 import { BoomerangPanel } from "./BoomerangPanel";

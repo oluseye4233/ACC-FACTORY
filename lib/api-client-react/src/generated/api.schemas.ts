@@ -4977,6 +4977,8 @@ export const CreateSpcPlayerRunInputProfile = {
 } as const;
 
 export interface CreateSpcPlayerRunInput {
+  /** Bind current server-selected low-score evidence and require re-ingestion after rework. */
+  scoreRemediation?: boolean;
   /**
      * @minLength 1
      * @maxLength 255
@@ -5129,10 +5131,48 @@ export interface SpcPlayerDistributionPlan {
   externalSend: false;
 }
 
+export type SpcPlayerOutputPackageNextStep = typeof SpcPlayerOutputPackageNextStep[keyof typeof SpcPlayerOutputPackageNextStep];
+
+
+export const SpcPlayerOutputPackageNextStep = {
+  RE_INGEST_F1: 'RE_INGEST_F1',
+} as const;
+
+export type BoomerangRemediationStatus = typeof BoomerangRemediationStatus[keyof typeof BoomerangRemediationStatus];
+
+
+export const BoomerangRemediationStatus = {
+  REWORK_RECOMMENDED: 'REWORK_RECOMMENDED',
+  NO_LOW_SCORE: 'NO_LOW_SCORE',
+  NO_STAGE_ARTIFACT: 'NO_STAGE_ARTIFACT',
+} as const;
+
+export interface BoomerangRemediation {
+  status: BoomerangRemediationStatus;
+  sessionId: string;
+  stage: string;
+  /** @nullable */
+  sourceArtifactId: string | null;
+  /** @nullable */
+  sourceName: string | null;
+  /** @nullable */
+  sourceHash: string | null;
+  /** @nullable */
+  jcseScore: number | null;
+  /** @nullable */
+  mathmonScore: number | null;
+  findings: string[];
+  brief: string;
+  reingestionRequired: boolean;
+}
+
 /**
  * Completed SPC content plus its non-detachable advisory.
  */
 export interface SpcPlayerOutputPackage {
+  remediation?: BoomerangRemediation;
+  nextStep?: SpcPlayerOutputPackageNextStep;
+  sourceRunId?: string;
   content: SpcPlayerStageResult[];
   advisory: SpcPlayerExecutionAdvisory;
   governanceEvaluation: SpcPlayerGovernanceEvaluation;
@@ -5165,6 +5205,7 @@ export type SpcPlayerGovernanceScorePolicy = {
 };
 
 export interface SpcPlayerGovernance {
+  remediation?: BoomerangRemediation;
   specVersion: SpcPlayerGovernanceSpecVersion;
   source: string;
   scorePolicy: SpcPlayerGovernanceScorePolicy;
@@ -5621,6 +5662,11 @@ export type ReviewLearningAttemptBody = {
      * @maxLength 4000
      */
   feedback: string;
+};
+
+export type GetBoomerangRemediationParams = {
+sessionId: string;
+stage: string;
 };
 
 export type ListBoomerangCasesParams = {

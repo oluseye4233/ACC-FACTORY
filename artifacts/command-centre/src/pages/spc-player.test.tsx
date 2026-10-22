@@ -10,6 +10,7 @@ vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast: vi.fn() }) }));
 import SpcPlayerDetail from "./spc-player/detail";
 
 const RUN_ID = "run-123";
+const navigate = vi.fn();
 
 const MOCK_RUN = {
   id: RUN_ID,
@@ -166,7 +167,7 @@ function renderPage() {
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <Router hook={() => [`/spc-player/${RUN_ID}`, vi.fn()]}>
+      <Router hook={() => [`/spc-player/${RUN_ID}`, navigate]}>
         <Route path="/spc-player/:id" component={SpcPlayerDetail} />
       </Router>
     </QueryClientProvider>,
@@ -174,6 +175,7 @@ function renderPage() {
 }
 
 beforeEach(() => {
+  navigate.mockClear();
   executeCount = 0;
   failFirstExecution = false;
   currentRun = MOCK_RUN;
@@ -185,7 +187,7 @@ beforeEach(() => {
 
       if (url.includes(`${runUrl}/execute`) && method === "POST") {
         executeCount += 1;
-        return jsonResponse(failFirstExecution && executeCount === 1 ? MOCK_FAILED_RUN : MOCK_COMPLETED_RUN);
+        return jsonResponse(failFirstExecution && executeCount === 1 ? MOCK_FAILED_RUN : { ...MOCK_COMPLETED_RUN, governance: currentRun.governance });
       }
       if (url.includes(`${runUrl}/authorize`) && method === "POST") {
         return jsonResponse(MOCK_AUTHORIZATION);
@@ -218,6 +220,12 @@ afterEach(() => {
 });
 
 describe("SpcPlayerDetail", () => {
+  it("automatically opens re-ingestion when a score-remediation synthesis completes", async () => {
+    currentRun = { ...MOCK_RUN, governance: { ...MOCK_RUN.governance, remediation: { reingestionRequired: true } } } as typeof MOCK_RUN;
+    renderPage();
+    fireEvent.click(await screen.findByTestId("button-execute"));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith(`/ingest?spcPlayerRunId=${RUN_ID}&rework=1`, undefined));
+  });
   it("renders execution progress, the final package, and authorized delivery", async () => {
     renderPage();
 
@@ -230,6 +238,7 @@ describe("SpcPlayerDetail", () => {
     expect(screen.queryByText(/draft metadata|not final output/i)).toBeNull();
     expect(screen.queryByText(/composite/i)).toBeNull();
     expect(screen.queryByTestId("button-download-package")).toBeNull();
+    expect(screen.queryByTestId("button-return-to-ingestion")).toBeNull();
 
     fireEvent.click(executeButton);
     await waitFor(() => {
@@ -242,6 +251,8 @@ describe("SpcPlayerDetail", () => {
     expect(screen.getByTestId("stage-result-0")).toBeTruthy();
     expect(screen.getAllByText(/user-authorized REVERB v3 derivation/).length).toBeGreaterThan(0);
     expect(await screen.findByTestId("button-download-package")).toBeTruthy();
+    expect(screen.getByTestId("button-return-to-ingestion").closest("a")?.getAttribute("href"))
+      .toBe(`/ingest?spcPlayerRunId=${RUN_ID}`);
     expect(screen.getByTestId("score-clarity").textContent).toContain("8");
     expect(screen.getByTestId("score-truthfulness").textContent).toContain("9");
     expect(screen.getByTestId("score-detectability").textContent).toContain("7");
