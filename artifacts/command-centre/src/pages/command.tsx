@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { QuestProgress } from "@/components/shared/QuestProgress";
+import { StartNewSessionButton } from "@/components/shared/StartNewSessionButton";
 import {
   Activity,
   AlertTriangle,
@@ -469,6 +470,10 @@ export default function Command() {
                   <span className="font-display text-2xl tracking-[0.12em]">SOMETHING</span>
                   <span className="mt-3 font-mono text-[9px] uppercase tracking-wider opacity-80">New harness session</span>
                 </Link>
+              </div>
+
+              <div className="mt-4 flex justify-center">
+                <StartNewSessionButton />
               </div>
 
               <div className="mt-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">

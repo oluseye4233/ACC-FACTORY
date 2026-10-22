@@ -5,7 +5,8 @@ import { useListSessions } from "@workspace/api-client-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Calendar, Activity, Download } from "lucide-react";
+import { Search, Calendar, Activity, Download } from "lucide-react";
+import { StartNewSessionButton } from "@/components/shared/StartNewSessionButton";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 import { format } from "date-fns";
@@ -127,12 +128,7 @@ export default function Sessions() {
                 <Download className="h-4 w-4 mr-2" /> SPC PDF
               </a>
             </Button>
-            <Button asChild className="font-display tracking-wider gap-2 w-full sm:w-auto">
-              <Link href="/session/new">
-                <Plus className="h-4 w-4" />
-                NEW SESSION
-              </Link>
-            </Button>
+            <StartNewSessionButton />
           </div>
         </div>
 
