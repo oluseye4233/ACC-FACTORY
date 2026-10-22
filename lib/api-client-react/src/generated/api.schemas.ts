@@ -2304,6 +2304,7 @@ export const ArtifactType = {
   VERIFIED_CODEBASE_BUNDLE: 'VERIFIED_CODEBASE_BUNDLE',
   SPC_PLAYER_SUPPORT: 'SPC_PLAYER_SUPPORT',
   PFP_REPORT: 'PFP_REPORT',
+  F8_DRIFT_REMEDIATION: 'F8_DRIFT_REMEDIATION',
   HOSTING_PLAN: 'HOSTING_PLAN',
   ATLAS_360_PLAN_VIEW: 'ATLAS_360_PLAN_VIEW',
   ATLAS_360_SCAN_VIEW: 'ATLAS_360_SCAN_VIEW',
@@ -5129,6 +5130,43 @@ export interface SpcPlayerDistributionPlan {
   status: SpcPlayerDistributionPlanStatus;
   connectorInvoked: false;
   externalSend: false;
+}
+
+export type RemediateF8DriftInputProvider = typeof RemediateF8DriftInputProvider[keyof typeof RemediateF8DriftInputProvider];
+
+
+export const RemediateF8DriftInputProvider = {
+  claude: 'claude',
+  openai: 'openai',
+  gemini: 'gemini',
+  deepseek: 'deepseek',
+  kimi: 'kimi',
+  qwen: 'qwen',
+  glm: 'glm',
+} as const;
+
+export interface RemediateF8DriftInput {
+  sessionId: string;
+  reportArtifactId: string;
+  provider?: RemediateF8DriftInputProvider;
+}
+
+export type F8DriftRemediationResultState = typeof F8DriftRemediationResultState[keyof typeof F8DriftRemediationResultState];
+
+
+export const F8DriftRemediationResultState = {
+  RECHECKED: 'RECHECKED',
+  REVIEW_REQUIRED: 'REVIEW_REQUIRED',
+  RECHECK_FAILED: 'RECHECK_FAILED',
+} as const;
+
+export interface F8DriftRemediationResult {
+  state: F8DriftRemediationResultState;
+  remediationArtifactId: string;
+  boomerangCaseId?: string;
+  summary: string;
+  bundle?: CodebaseBundle;
+  report?: PfpReport;
 }
 
 export type SpcPlayerOutputPackageNextStep = typeof SpcPlayerOutputPackageNextStep[keyof typeof SpcPlayerOutputPackageNextStep];

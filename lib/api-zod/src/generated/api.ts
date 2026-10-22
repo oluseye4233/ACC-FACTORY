@@ -2250,7 +2250,7 @@ export const GetSessionResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -2463,7 +2463,7 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -2612,7 +2612,7 @@ export const GetArtifactResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -2673,7 +2673,7 @@ export const ListArtifactsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -2747,7 +2747,7 @@ export const RenameArtifactResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -3471,6 +3471,18 @@ export const HarnessAtlasCrystalliseResponse = zod.object({
   "routes": zod.array(zod.string()),
   "deployTarget": zod.string()
 })
+
+
+/**
+ * @summary Repair an exact drift-checked bundle and immediately recheck it without changing its certified contract
+ */
+export const RemediateF8DriftBody = zod.object({
+  "sessionId": zod.string().uuid(),
+  "reportArtifactId": zod.string().uuid(),
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional()
+})
+
+export const RemediateF8DriftResponse = zod.unknown()
 
 
 /**
@@ -4546,7 +4558,7 @@ export const ListMyPromptsResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "sessionName": zod.string().nullish(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "certTier": zod.string().nullish(),
   "jcseScore": zod.number().int().nullish(),
   "spcOrigin": zod.union([zod.literal('artisanal'),zod.literal('digitally_evolved'),zod.literal(null)]).nullish(),
@@ -4812,7 +4824,7 @@ export const HarnessEvolveResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -6402,7 +6414,7 @@ export const ReturnSpcPlayerRunToStageResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),

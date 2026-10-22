@@ -6,6 +6,7 @@ import {
   useHarnessF8Hdj,
   useHarnessPfp,
   getListSessionArtifactsQueryKey,
+  getListBoomerangCasesQueryKey,
   getListF8VerificationEvidenceQueryKey,
   useListF8VerificationEvidence,
   useRecordF8VerificationEvidence,
@@ -41,6 +42,7 @@ import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
 import { exportCodeDjBundle, SUPPORTED_IDES } from "@/lib/codeDjExport";
 import { HARDWARE_CONFIGS, getHardwareConfig, type HardwareConfigId } from "@/lib/hardware-configs";
+import { F8DriftRemediation } from "./F8DriftRemediation";
 import { AlertTriangle, Cpu, Download, FileCode, Radar, Rocket, ShieldCheck } from "lucide-react";
 
 const HOST_LABELS: Record<string, string> = {
@@ -86,17 +88,6 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
         .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0],
     [artifacts],
   );
-  const verifiedChild = useMemo(
-    () =>
-      latestArtifact
-        ? artifacts.find(
-            (artifact) =>
-              artifact.artifactType === ArtifactType.VERIFIED_CODEBASE_BUNDLE &&
-              artifact.parentArtifactId === latestArtifact.id,
-          )
-        : undefined,
-    [artifacts, latestArtifact],
-  );
 
   const certifiedMvpSources = useMemo(
     () =>
@@ -127,7 +118,9 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
   const [costCap, setCostCap] = useState(false);
   const [providerOverride, setProviderOverride] =
     useState<OverrideValue>("session");
-  const [pfp, setPfp] = useState<PfpReport | undefined>();
+  const [pfpResult, setPfp] = useState<PfpReport | undefined>();
+  const [pfpContext, setPfpContext] = useState<{ bundleId: string; sourceId: string }>();
+  const [remediating, setRemediating] = useState(false);
   const [pfpError, setPfpError] = useState<string | null>(null);
   const [hostPlan, setHostPlan] = useState<HostingPlan | undefined>();
   const [hostError, setHostError] = useState<string | null>(null);
@@ -146,6 +139,16 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
 
   const mutation = useHarnessF8();
   const bundleArtifactId = result?.artifactId ?? latestArtifact?.id;
+  const verifiedChild = useMemo(() => artifacts.find(a =>
+    a.artifactType === ArtifactType.VERIFIED_CODEBASE_BUNDLE &&
+    a.parentArtifactId === bundleArtifactId), [artifacts, bundleArtifactId]);
+  const storedPfp = useMemo(() => artifacts.filter(a => {
+    const c = a.artifactContent as Record<string, unknown>;
+    return a.artifactType === "PFP_REPORT" && c.sourceCodebaseBundleArtifactId === bundleArtifactId &&
+      c.sourceMvpPddArtifactId === sourceId;
+  }).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0], [artifacts, bundleArtifactId, sourceId]);
+  const pfp = pfpContext?.bundleId === bundleArtifactId && pfpContext.sourceId === sourceId ? pfpResult :
+    storedPfp ? { ...(storedPfp.artifactContent as unknown as PfpReport), artifactId: storedPfp.id } : undefined;
   const evidenceQuery = useListF8VerificationEvidence(
     bundleArtifactId ?? "",
     { query: { enabled: Boolean(bundleArtifactId) } as never } as never,
@@ -174,8 +177,9 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
   });
   const pfpM = useHarnessPfp({
     mutation: {
-      onSuccess: (data) => {
+      onSuccess: (data, variables) => {
         setPfp(data);
+        setPfpContext({ bundleId: variables.data.codebaseBundleArtifactId, sourceId: variables.data.mvpPddArtifactId });
         setPfpError(null);
         qc.invalidateQueries({ queryKey: getListSessionArtifactsQueryKey(sessionId) });
       },
@@ -414,7 +418,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
               <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
                 Source MVP PDD (SPARTAN-certified)
               </label>
-              <Select value={sourceId} onValueChange={setSourceId}>
+              <Select value={sourceId} onValueChange={setSourceId} disabled={remediating || mutation.isPending || pfpM.isPending}>
                 <SelectTrigger
                   data-testid="f8-source"
                   className="font-mono text-xs"
@@ -537,13 +541,13 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
             <ProviderOverride
               value={providerOverride}
               onChange={setProviderOverride}
-              disabled={mutation.isPending}
+              disabled={remediating || mutation.isPending}
               testId="f8-provider"
             />
             <Button
               data-testid="f8-run"
               onClick={run}
-              disabled={mutation.isPending || !artifactClass}
+              disabled={remediating || pfpM.isPending || mutation.isPending || !artifactClass}
               className="font-display tracking-wider gap-2"
             >
               <Cpu className="h-4 w-4" />
@@ -596,15 +600,36 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
               onClick={runPfp}
               size="sm"
               variant="outline"
-              disabled={pfpM.isPending || (!result && !latestArtifact)}
+              disabled={remediating || mutation.isPending || pfpM.isPending || (!result && !latestArtifact)}
               className="font-mono text-xs gap-1.5"
               data-testid="f8-pfp-run"
             >
               <Radar className="h-3.5 w-3.5" />
-              {pfpM.isPending ? "SCANNING..." : "RUN DRIFT CHECK"}
+              {pfpM.isPending ? "SCANNING..." : "RE-DRIFT CHECK"}
             </Button>
           </div>
           {pfpError && <ErrorBanner message={pfpError} />}
+          <F8DriftRemediation sessionId={sessionId} reportArtifactId={pfp && (pfp.findings.length > 0 || pfp.fci < 100) ? pfp.artifactId : undefined}
+            provider={overrideToBody(providerOverride).provider}
+            disabled={mutation.isPending || pfpM.isPending || hostM.isPending || recordEvidence.isPending || finalizeVerification.isPending}
+            onBusyChange={setRemediating}
+            onResult={data => {
+              if (data.bundle) {
+                setResult(data.bundle);
+                setActiveFile(data.bundle.files[0]?.path ?? "");
+                setVerifiedArtifactId(null);
+                setHostPlan(undefined);
+                setPfp(data.report);
+                setPfpContext({ bundleId: data.bundle.artifactId, sourceId });
+              }
+              if (data.report) {
+                setDriftGateBlock(null);
+                setAcknowledgeDrift(false);
+              }
+              setPfpError(data.state === "RECHECK_FAILED" ? data.summary : null);
+              qc.invalidateQueries({ queryKey: getListSessionArtifactsQueryKey(sessionId) });
+              qc.invalidateQueries({ queryKey: getListBoomerangCasesQueryKey() });
+            }} />
           {pfp ? (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-4 font-mono text-xs">
@@ -678,7 +703,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
               onClick={runHostDj}
               size="sm"
               variant="outline"
-              disabled={hostM.isPending}
+              disabled={remediating || hostM.isPending}
               className="font-mono text-xs gap-1.5"
               data-testid="f8-hdj-run"
             >
@@ -1020,7 +1045,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
                     variant="outline"
                     className="font-mono text-[10px] uppercase"
                     onClick={submitVerificationEvidence}
-                    disabled={recordEvidence.isPending}
+                    disabled={remediating || recordEvidence.isPending}
                     data-testid="f8-record-test-evidence"
                   >
                     {recordEvidence.isPending ? "RECORDING…" : "RECORD PASSING TEST EVIDENCE"}
@@ -1029,7 +1054,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
                     type="button"
                     className="font-mono text-[10px] uppercase"
                     onClick={createVerifiedChild}
-                    disabled={evidence.length === 0 || finalizeVerification.isPending}
+                    disabled={remediating || evidence.length === 0 || finalizeVerification.isPending}
                     data-testid="f8-finalize-verification"
                   >
                     {finalizeVerification.isPending ? "CREATING CHILD…" : "CREATE VERIFIED CHILD"}

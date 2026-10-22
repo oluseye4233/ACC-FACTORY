@@ -198,6 +198,7 @@ import type {
   ReaderCodeInput,
   RecordF0DiscoveryInput,
   RedeemLearningInvitationBody,
+  RemediateF8DriftInput,
   RenameArtifactInput,
   ReviewExemplarRequest,
   ReviewLearningAttemptBody,
@@ -8501,6 +8502,94 @@ export const useHarnessAtlasCrystallise = <TError = ErrorType<ForbiddenResponse 
         TContext
       > => {
       return useMutation(getHarnessAtlasCrystalliseMutationOptions(options), queryClient);
+    }
+
+export const getRemediateF8DriftUrl = () => {
+
+
+
+
+  return `/api/harness/f8-remediate`
+}
+
+/**
+ * @summary Repair an exact drift-checked bundle and immediately recheck it without changing its certified contract
+ */
+export const remediateF8Drift = async (remediateF8DriftInput: RemediateF8DriftInput, options?: Parameters<typeof customFetch>[1]): Promise<string> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<string>(getRemediateF8DriftUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(remediateF8DriftInput)
+  }
+);}
+
+
+
+
+
+export const getRemediateF8DriftMutationKey = () => ['remediateF8Drift'] as const;
+
+export const getRemediateF8DriftMutationOptions = <TError = ErrorType<void | ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof remediateF8Drift>>, TError,RemediateF8DriftMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof remediateF8Drift>>, TError,RemediateF8DriftMutationVariables, TContext> => {
+
+const mutationKey = getRemediateF8DriftMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof remediateF8Drift>>, RemediateF8DriftMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  remediateF8Drift(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemediateF8DriftMutationResult = NonNullable<Awaited<ReturnType<typeof remediateF8Drift>>>
+    export type RemediateF8DriftMutationBody = BodyType<RemediateF8DriftInput>
+    export type RemediateF8DriftMutationError = ErrorType<void | ForbiddenResponse | NotFoundResponse>
+    export type RemediateF8DriftMutationVariables = {data: BodyType<RemediateF8DriftInput>}
+
+    /**
+ * @summary Repair an exact drift-checked bundle and immediately recheck it without changing its certified contract
+ */
+export const useRemediateF8Drift = <TError = ErrorType<void | ForbiddenResponse | NotFoundResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof remediateF8Drift>>, TError,RemediateF8DriftMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof remediateF8Drift>>,
+        TError,
+        RemediateF8DriftMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRemediateF8DriftMutationOptions(options), queryClient);
     }
 
 export const getHarnessPfpUrl = () => {

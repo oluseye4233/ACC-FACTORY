@@ -27,3 +27,15 @@ evidence, reject stale sources/evaluations before rework, and prepare completed
 output at F1. Keep normal ingestion confirmation and fresh evaluation; never
 silently spend credits, overwrite entered input, alter old scores or promote
 the recommendation into certification or Boomerang acceptance.
+
+F8 drift remediation should automate the correction attempt and immediately
+run a fresh drift check; a repair description or acknowledgement alone does
+not satisfy the requested recovery loop.
+
+**Why:** The user explicitly required automated remediation with an immediate
+re-drift check, rather than another manual handoff.
+
+**How to apply:** Keep bounded automation against the unchanged certified
+contract. Treat fresh evaluation as separate evidence, retain failed attempts,
+and stop for human review when approved requirements must change. Correcting
+a generated bundle is not permission to alter the live application or publish.

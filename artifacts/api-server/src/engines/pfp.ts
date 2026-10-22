@@ -101,6 +101,24 @@ export async function handlePfp(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  try {
+    res.json(await evaluateAndPersistPfp({ sessionId, userId: guard.userId, provider, mvp, bundle, log: req.log }));
+  } catch (err) {
+    if (sendProviderTierError(res, err)) return;
+    req.log.error({ err }, "PFP engine call failed");
+    res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });
+  }
+}
+
+type Artifact = NonNullable<Awaited<ReturnType<typeof loadArtifact>>>;
+export async function evaluateAndPersistPfp({
+  sessionId, userId, provider, mvp, bundle, log,
+}: {
+  sessionId: string; userId: string;
+  provider: Parameters<typeof callLlmJson>[0];
+  mvp: Artifact; bundle: Artifact; log: Request["log"];
+}) {
+  const mvpPddArtifactId = mvp.id, codebaseBundleArtifactId = bundle.id;
   const userPrompt = [
     "Cross-reference the CERTIFIED MVP PDD against the CODEBASE BUNDLE. Report all drift findings using the fixed taxonomy.",
     "",
@@ -111,19 +129,11 @@ export async function handlePfp(req: Request, res: Response): Promise<void> {
     JSON.stringify(bundle.artifactContent, null, 2),
   ].join("\n");
 
-  let out: PfpReport;
-  try {
-    out = await callLlmJson(provider, PFP_SYSTEM, userPrompt, PfpReportSchema, {
+  const out = await callLlmJson(provider, PFP_SYSTEM, userPrompt, PfpReportSchema, {
       sessionId,
-      userId: guard.userId,
+      userId,
       engineId: 11,
     });
-  } catch (err) {
-    if (sendProviderTierError(res, err)) return;
-    req.log.error({ err }, "PFP engine call failed");
-    res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });
-    return;
-  }
 
   // HARD GATE: never trust the model's self-reported counts. Recompute from
   // findings server-side so a contradictory output (findings list a critical
@@ -142,7 +152,7 @@ export async function handlePfp(req: Request, res: Response): Promise<void> {
 
   const artifact = await persistArtifact({
     sessionId,
-    userId: guard.userId,
+    userId,
     featureId: 8,
     artifactType: "PFP_REPORT",
     artifactContent: {
@@ -160,23 +170,23 @@ export async function handlePfp(req: Request, res: Response): Promise<void> {
   if (mvp.sku) {
     try {
       const rec = await issueF0ReportCode({
-        userId: guard.userId,
+        userId,
         sku: mvp.sku,
         code: "PFP",
         artifactId: artifact.id,
       });
       f0ReportCode = rec.reportCode;
     } catch (err) {
-      req.log.warn({ err }, "F0 report-code issuance failed for PFP report");
+      log.warn({ err }, "F0 report-code issuance failed for PFP report");
     }
   } else {
-    req.log.warn(
+    log.warn(
       { mvpPddArtifactId },
       "PFP report generated for an MVP PDD with no SKU; skipping F0 report code",
     );
   }
 
-  res.json({ artifactId: artifact.id, f0ReportCode, ...out });
+  return { artifactId: artifact.id, f0ReportCode, ...out };
 }
 
 /**

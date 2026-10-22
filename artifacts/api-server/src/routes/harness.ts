@@ -19,6 +19,7 @@ import { handleF8Hdj } from "../engines/f8hdj";
 import { handleEvolve } from "../engines/de";
 import { handleAtlasCrystallise } from "../engines/atlas-crystallise";
 import { handlePfp } from "../engines/pfp";
+import { handleF8Remediation } from "../engines/f8-remediation";
 import { handlePddView } from "../engines/pdd-view";
 import { handleF9Mecha, handleF9Run } from "../engines/f9mecha";
 import f8VerificationRoutes from "./f8-verification";
@@ -120,6 +121,8 @@ router.post(
   "/harness/pfp",
   ...harnessRoute({ featureId: null, tier: "PRACTITIONER", handler: handlePfp }),
 );
+router.post("/harness/f8-remediate",
+  ...harnessRoute({ featureId: 8, tier: "ARCHITECT", handler: handleF8Remediation }));
 // PDD PLAN/SCAN views are persisted read-only side-steps over an existing F6/F7
 // artifact, so this is POST rather than the source PDD's proposed GET.
 router.post(

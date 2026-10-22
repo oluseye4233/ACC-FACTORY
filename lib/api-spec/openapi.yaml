@@ -1343,6 +1343,28 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /harness/f8-remediate:
+    post:
+      operationId: remediateF8Drift
+      tags: [harness]
+      summary: Repair an exact drift-checked bundle and immediately recheck it without changing its certified contract
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RemediateF8DriftInput" }
+      responses:
+        "200":
+          description: SSE progress, then complete (or error). Completed repair is retained if recheck fails.
+          content:
+            text/event-stream:
+              schema: { type: string }
+        "400":
+          description: Invalid input
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Report/source mismatch or no actionable drift
   /harness/pfp:
     post:
       operationId: harnessPfp
@@ -4396,6 +4418,7 @@ components:
         - VERIFIED_CODEBASE_BUNDLE
         - SPC_PLAYER_SUPPORT
         - PFP_REPORT
+        - F8_DRIFT_REMEDIATION
         - HOSTING_PLAN
         - ATLAS_360_PLAN_VIEW
         - ATLAS_360_SCAN_VIEW
@@ -7126,6 +7149,23 @@ components:
         connectorInvoked: { type: boolean, enum: [false] }
         externalSend: { type: boolean, enum: [false] }
 
+    RemediateF8DriftInput:
+      type: object
+      required: [sessionId, reportArtifactId]
+      properties:
+        sessionId: { type: string, format: uuid }
+        reportArtifactId: { type: string, format: uuid }
+        provider: { type: string, enum: [claude, openai, gemini, deepseek, kimi, qwen, glm] }
+    F8DriftRemediationResult:
+      type: object
+      required: [state, remediationArtifactId, summary]
+      properties:
+        state: { type: string, enum: [RECHECKED, REVIEW_REQUIRED, RECHECK_FAILED] }
+        remediationArtifactId: { type: string }
+        boomerangCaseId: { type: string }
+        summary: { type: string }
+        bundle: { $ref: "#/components/schemas/CodebaseBundle" }
+        report: { $ref: "#/components/schemas/PfpReport" }
     SpcPlayerOutputPackage:
       type: object
       additionalProperties: false
