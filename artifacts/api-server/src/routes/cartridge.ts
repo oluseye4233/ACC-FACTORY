@@ -42,6 +42,9 @@ import {
   documentExtractionErrorResponse,
   prepareUploadedDocument,
 } from "../lib/document-extraction";
+import {
+  CartridgeLibraryError, listCartridgeLibrary, parseCartridgeExemplarIds, snapshotCartridgeLibrary,
+} from "../lib/cartridge-library";
 
 const MAX_FILES = 5;
 const MAX_FILE_BYTES = 1 * 1024 * 1024;
@@ -173,6 +176,7 @@ function serializeCartridge(
     targetPlatformHint: pkg.targetPlatformHint,
     seedPrompt: pkg.seedPrompt,
     summary: pkg.summary,
+    librarySources: pkg.librarySources,
     createdAt: pkg.createdAt.toISOString(),
     documents: docs.map((d) => ({
       id: d.id,
@@ -196,6 +200,13 @@ function serializeCartridge(
     })),
   };
 }
+
+router.get("/cartridge/exemplars", requireAuth, async (req, res, next): Promise<void> => {
+  try {
+    res.setHeader("Cache-Control", "no-store");
+    res.json(await listCartridgeLibrary(req.localUser!.id));
+  } catch (error) { next(error); }
+});
 
 router.get(
   "/cartridge-credits",
@@ -310,6 +321,17 @@ router.post(
 
     const spcInputs = parseSpcs(req.body?.spcs);
     const linkInputs = parseLinks(req.body?.links);
+    let librarySources: CartridgePackage["librarySources"];
+    try {
+      const ids = parseCartridgeExemplarIds(req.body?.exemplarIds);
+      librarySources = await snapshotCartridgeLibrary(userId, ids);
+    } catch (error) {
+      if (error instanceof CartridgeLibraryError) {
+        res.status(error.status).json({ error: error.message, code: "CARTRIDGE_LIBRARY_SOURCE_INVALID" });
+        return;
+      }
+      throw error;
+    }
     const files = (req.files as Express.Multer.File[] | undefined) ?? [];
 
     // ── Step 2: claim credit atomically (dormant in internal-staff mode) ──
@@ -427,6 +449,7 @@ router.post(
         `Documents: ${docPlans.length}`,
         `SPCs: ${spcInputs.length}`,
         `Linked artefacts: ${linkInputs.length}`,
+        `Library sources: ${librarySources.length}`,
       ].join(" · ");
 
       const persisted = await db.transaction(async (tx) => {
@@ -440,6 +463,7 @@ router.post(
             targetPlatformHint,
             seedPrompt,
             summary: cartridgeOverview,
+            librarySources,
           })
           .returning();
         const id = pkg!.id;

@@ -6,13 +6,26 @@ import {
   uuid,
   varchar,
   index,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
+import type { ExemplarKind } from "./exemplar-library";
 
 export const CARTRIDGE_CREDIT_STATUSES = ["available", "consumed"] as const;
 export type CartridgeCreditStatus = (typeof CARTRIDGE_CREDIT_STATUSES)[number];
+
+export interface CartridgeLibrarySnapshot {
+  id: string;
+  title: string;
+  kind: ExemplarKind;
+  active: boolean;
+  source: "curated" | "library";
+  characters: number;
+  body: string;
+  contentSha256: string;
+}
 
 export const cartridgePackagesTable = pgTable(
   "cartridge_packages",
@@ -27,6 +40,10 @@ export const cartridgePackagesTable = pgTable(
     targetPlatformHint: text("target_platform_hint"),
     seedPrompt: text("seed_prompt").notNull(),
     summary: text("summary").notNull().default(""),
+    librarySources: jsonb("library_sources")
+      .$type<CartridgeLibrarySnapshot[]>()
+      .notNull()
+      .default([]),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

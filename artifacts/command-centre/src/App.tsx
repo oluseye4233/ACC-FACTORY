@@ -56,6 +56,7 @@ const Guide = lazy(() => import("@/pages/guide"));
 const BoomerangPage = lazy(() => import("@/pages/boomerang"));
 const LearningPage = lazy(() => import("@/pages/learning"));
 const LearningCohortPage = lazy(() => import("@/pages/learning").then(module => ({ default: module.LearningCohortPage })));
+const ConvenerPage = lazy(() => import("@/pages/convener"));
 const Status = lazy(() => import("@/pages/status"));
 const CalculateYourSavings = lazy(() => import("@/pages/calculate-your-savings"));
 const SpcPlayerDashboard = lazy(() => import("@/pages/spc-player/dashboard"));
@@ -105,6 +106,7 @@ function AuthenticatedRoutes() {
       <Route path="/guide" component={Guide} />
       <Route path="/boomerang" component={BoomerangPage} />
       <Route path="/learn" component={LearningPage} />
+      <Route path="/convener" component={ConvenerPage} />
       <Route path="/teach/cohorts/:id" component={LearningCohortPage} />
       <Route path="/sessions" component={Sessions} />
       <Route path="/session/new" component={SessionNew} />
@@ -161,7 +163,7 @@ function Gate() {
   const learningEntry = authenticatedLearningEntry(requestedPath, search, session.authenticated);
   if (learningEntry) return <Redirect to={learningEntry} />;
   const studentLoginPath = requestedPath.startsWith("/learn-login") || requestedPath.startsWith("/learn-register");
-  const studentPath = requestedPath.startsWith("/learn") || requestedPath.startsWith("/teach/");
+  const studentPath = requestedPath.startsWith("/learn") || requestedPath.startsWith("/teach/") || requestedPath === "/convener";
   if (!session.authenticated && studentPath && !identity.isLoaded) return <LoadingScreen />;
   if (!session.authenticated && studentPath && identity.isSignedIn) return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 text-center">
@@ -177,7 +179,7 @@ function Gate() {
   </Switch>;
 
   if (!session.authenticated) {
-    if (requestedPath.startsWith("/learn") || requestedPath.startsWith("/teach/")) {
+    if (studentPath) {
       const invite = new URLSearchParams(search).get("invite");
       return <Redirect to={invite ? `/learn-login?invite=${encodeURIComponent(invite)}` : "/learn-login"} />;
     }

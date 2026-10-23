@@ -1,0 +1,1 @@
+ALTER TABLE "cartridge_packages" ADD COLUMN "library_sources" jsonb DEFAULT '[]'::jsonb NOT NULL;

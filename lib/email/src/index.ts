@@ -12,6 +12,23 @@ type SendArgs = {
 
 const FROM = process.env.EMAIL_FROM ?? "ATANDA Command Centre <no-reply@atanda.local>";
 
+/** Cohort mail must never pretend a dry-run was sent. */
+export function learningEmailConfigured(): boolean {
+  return Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+}
+
+export function sendLearningMessage(args: {
+  to: string; subject: string; body: string; cohortTitle: string; idempotencyKey: string;
+}): Promise<EmailResult> {
+  if (!learningEmailConfigured()) return Promise.resolve({ ok: false, error: "Cohort email service is not configured" });
+  const text = `${args.cohortTitle}\n\n${args.body}\n\nFORGE FIELD ENGINEER · cohort communication`;
+  return send({
+    to: args.to, subject: args.subject, text,
+    html: `<h2>${esc(args.cohortTitle)}</h2><p>${esc(args.body).replace(/\n/g, "<br>")}</p><p>FORGE FIELD ENGINEER · cohort communication</p>`,
+    idempotencyKey: args.idempotencyKey,
+  });
+}
+
 /**
  * HTML-escape a dynamic value before interpolating it into an email body.
  * Every user-controlled or LLM-generated string (session names, org names,

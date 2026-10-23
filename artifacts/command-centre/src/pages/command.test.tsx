@@ -768,7 +768,7 @@ describe("Command Deck", () => {
   it("renders safe empty states when APIs return no data", () => {
     render(<Command />);
 
-    expect(screen.getByText("No sessions yet. Press BUILD SOMETHING to begin.")).toBeTruthy();
+    expect(screen.getByText("No sessions yet. Press NEW SESSION to begin.")).toBeTruthy();
     expect(screen.getByText("SYSTEM")).toBeTruthy();
     // Four existing metric placeholders plus database and AI readiness.
     expect(screen.getAllByText("UNKNOWN")).toHaveLength(6);
@@ -789,7 +789,7 @@ describe("Command Deck", () => {
     expect(screen.getByTestId("button-build-something")).toBeTruthy();
     expect(screen.getByText("RECENT BUILDS")).toBeTruthy();
     expect(screen.getByText("SYSTEM")).toBeTruthy();
-    expect(screen.queryByText("No sessions yet. Press BUILD SOMETHING to begin.")).toBeNull();
+    expect(screen.queryByText("No sessions yet. Press NEW SESSION to begin.")).toBeNull();
     expect(screen.getAllByText("—")).toHaveLength(4);
   });
 
@@ -916,7 +916,7 @@ describe("Command Deck", () => {
     expect(screen.getByText("Recent builds unavailable")).toBeTruthy();
     expect(screen.getByTestId("system-status-error")).toBeTruthy();
     expect(screen.getByText("System status unavailable")).toBeTruthy();
-    expect(screen.queryByText("No sessions yet. Press BUILD SOMETHING to begin.")).toBeNull();
+    expect(screen.queryByText("No sessions yet. Press NEW SESSION to begin.")).toBeNull();
     expect(screen.getAllByText("UNAVAILABLE")).toHaveLength(3);
     expect(screen.queryByTestId("sessions-refreshed")).toBeNull();
     expect(screen.queryByTestId("system-health-refreshed")).toBeNull();

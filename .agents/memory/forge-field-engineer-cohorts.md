@@ -32,3 +32,14 @@ Unfinalised programme reservations remain held until metered settlement or confi
 **Why:** A dead worker or expired reservation is not evidence of zero provider charge. Automatically restoring a lifetime allowance on timeout could repeatedly fund unrecorded calls.
 
 **How to apply:** Keep these holds separate from completed spend and require operator reconciliation for uncertain calls; do not silently recycle them as fresh student funding.
+
+Convener management is cohort-specific: classes and invitations, trainee performance
+feedback and personalized follow-up, cohort communications and meetings, and a
+separate Exemplar collection for each class.
+
+**Why:** The user explicitly requested these responsibilities for FORGE FIELD
+ENGINEER conveners, not a global trainee administration or public marketplace role.
+
+**How to apply:** Keep learner feedback private to the learner and assigned
+teaching staff. Sharing a training reference must not activate Sphinx publication,
+and coaching recommendations must not substitute for existing Quest authority.

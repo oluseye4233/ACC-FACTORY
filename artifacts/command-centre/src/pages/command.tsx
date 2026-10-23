@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { QuestProgress } from "@/components/shared/QuestProgress";
-import { StartNewSessionButton } from "@/components/shared/StartNewSessionButton";
+import { LaunchCarousel } from "@/components/shared/LaunchCarousel";
 import {
   Activity,
   AlertTriangle,
@@ -20,7 +20,6 @@ import {
   BookOpen,
   Briefcase,
   CheckCircle2,
-  CirclePlus,
   Database,
   FileUp,
   Library,
@@ -459,21 +458,8 @@ export default function Command() {
                 </span>
               </div>
 
-              <div className="flex justify-center py-2 md:py-4">
-                <Link
-                  href="/session/new"
-                  data-testid="button-build-something"
-                  className="group flex h-48 w-48 flex-col items-center justify-center rounded-full border-4 border-destructive/30 bg-destructive text-center text-destructive-foreground shadow-[0_0_0_10px_rgba(220,38,38,0.08),0_18px_45px_rgba(220,38,38,0.3)] transition-all hover:scale-[1.03] hover:bg-destructive/90 hover:shadow-[0_0_0_14px_rgba(220,38,38,0.1),0_22px_55px_rgba(220,38,38,0.4)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-destructive/40 focus-visible:ring-offset-4 focus-visible:ring-offset-card md:h-56 md:w-56 progression-glow"
-                >
-                  <CirclePlus className="mb-3 h-7 w-7 transition-transform group-hover:rotate-90" />
-                  <span className="font-display text-2xl tracking-[0.12em]">BUILD</span>
-                  <span className="font-display text-2xl tracking-[0.12em]">SOMETHING</span>
-                  <span className="mt-3 font-mono text-[9px] uppercase tracking-wider opacity-80">New harness session</span>
-                </Link>
-              </div>
-
-              <div className="mt-4 flex justify-center">
-                <StartNewSessionButton />
+              <div className="py-2 md:py-4">
+                <LaunchCarousel />
               </div>
 
               <div className="mt-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -609,7 +595,7 @@ export default function Command() {
                   </div>
                 ) : recentSessions.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border p-8 text-center font-mono text-xs text-muted-foreground">
-                    No sessions yet. Press BUILD SOMETHING to begin.
+                    No sessions yet. Press NEW SESSION to begin.
                   </div>
                 ) : (
                   <div className="divide-y divide-border/50">

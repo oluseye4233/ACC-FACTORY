@@ -123,6 +123,343 @@ export const GetLearningHomeResponse = zod.object({
 })
 
 
+export const GetConvenerDashboardParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const getConvenerDashboardResponseOneFollowupsItemOneTitleMin = 3;
+export const getConvenerDashboardResponseOneFollowupsItemOneTitleMax = 160;
+
+export const getConvenerDashboardResponseOneFollowupsItemOneFeedbackMin = 3;
+export const getConvenerDashboardResponseOneFollowupsItemOneFeedbackMax = 4000;
+
+export const getConvenerDashboardResponseOneFollowupsItemOneActionPlanMin = 3;
+export const getConvenerDashboardResponseOneFollowupsItemOneActionPlanMax = 4000;
+
+export const getConvenerDashboardResponseOneMeetingsItemOneTitleMin = 3;
+export const getConvenerDashboardResponseOneMeetingsItemOneTitleMax = 160;
+
+export const getConvenerDashboardResponseOneMeetingsItemOneAgendaMax = 4000;
+
+export const getConvenerDashboardResponseOneMeetingsItemOneMembershipIdsMax = 500;
+
+
+
+export const GetConvenerDashboardResponse = zod.object({
+  "followups": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "membershipId": zod.string().uuid(),
+  "title": zod.string().min(getConvenerDashboardResponseOneFollowupsItemOneTitleMin).max(getConvenerDashboardResponseOneFollowupsItemOneTitleMax),
+  "feedback": zod.string().min(getConvenerDashboardResponseOneFollowupsItemOneFeedbackMin).max(getConvenerDashboardResponseOneFollowupsItemOneFeedbackMax),
+  "actionPlan": zod.string().min(getConvenerDashboardResponseOneFollowupsItemOneActionPlanMin).max(getConvenerDashboardResponseOneFollowupsItemOneActionPlanMax),
+  "state": zod.enum(['OPEN', 'IN_PROGRESS', 'COMPLETED']),
+  "lessonKey": zod.string().nullish(),
+  "dueAt": zod.coerce.date().nullish()
+}).and(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))),
+  "meetings": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(getConvenerDashboardResponseOneMeetingsItemOneTitleMin).max(getConvenerDashboardResponseOneMeetingsItemOneTitleMax),
+  "agenda": zod.string().max(getConvenerDashboardResponseOneMeetingsItemOneAgendaMax),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "meetingUrl": zod.string().nullish(),
+  "membershipIds": zod.array(zod.string().uuid()).max(getConvenerDashboardResponseOneMeetingsItemOneMembershipIdsMax),
+  "state": zod.enum(['SCHEDULED', 'CANCELLED'])
+}).and(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))),
+  "resources": zod.array(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "sourceId": zod.string(),
+  "title": zod.string(),
+  "kind": zod.string(),
+  "body": zod.string(),
+  "notes": zod.string(),
+  "lessonKey": zod.string().nullish(),
+  "state": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+}).and(zod.object({
+  "learners": zod.array(zod.object({
+  "membershipId": zod.string(),
+  "name": zod.string(),
+  "state": zod.string(),
+  "track": zod.string(),
+  "required": zod.number().int(),
+  "completed": zod.number().int(),
+  "submitted": zod.number().int(),
+  "revisions": zod.number().int(),
+  "progressPercent": zod.number().int(),
+  "recommendation": zod.string(),
+  "recentFeedback": zod.array(zod.string())
+})),
+  "exemplarOptions": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "kind": zod.string()
+})),
+  "messages": zod.array(zod.object({
+  "id": zod.string(),
+  "subject": zod.string(),
+  "body": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "deliveries": zod.array(zod.object({
+  "membershipId": zod.string(),
+  "state": zod.enum(['PENDING', 'SENDING', 'SENT', 'FAILED']),
+  "error": zod.string().nullish()
+}))
+})),
+  "emailConfigured": zod.boolean(),
+  "isOwner": zod.boolean()
+}))
+
+
+export const SaveCohortFollowupParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const saveCohortFollowupBodyTitleMin = 3;
+export const saveCohortFollowupBodyTitleMax = 160;
+
+export const saveCohortFollowupBodyFeedbackMin = 3;
+export const saveCohortFollowupBodyFeedbackMax = 4000;
+
+export const saveCohortFollowupBodyActionPlanMin = 3;
+export const saveCohortFollowupBodyActionPlanMax = 4000;
+
+
+
+export const SaveCohortFollowupBody = zod.object({
+  "id": zod.string().uuid().optional(),
+  "membershipId": zod.string().uuid(),
+  "title": zod.string().min(saveCohortFollowupBodyTitleMin).max(saveCohortFollowupBodyTitleMax),
+  "feedback": zod.string().min(saveCohortFollowupBodyFeedbackMin).max(saveCohortFollowupBodyFeedbackMax),
+  "actionPlan": zod.string().min(saveCohortFollowupBodyActionPlanMin).max(saveCohortFollowupBodyActionPlanMax),
+  "state": zod.enum(['OPEN', 'IN_PROGRESS', 'COMPLETED']),
+  "lessonKey": zod.string().nullish(),
+  "dueAt": zod.coerce.date().nullish()
+})
+
+export const saveCohortFollowupResponseOneTitleMin = 3;
+export const saveCohortFollowupResponseOneTitleMax = 160;
+
+export const saveCohortFollowupResponseOneFeedbackMin = 3;
+export const saveCohortFollowupResponseOneFeedbackMax = 4000;
+
+export const saveCohortFollowupResponseOneActionPlanMin = 3;
+export const saveCohortFollowupResponseOneActionPlanMax = 4000;
+
+
+
+export const SaveCohortFollowupResponse = zod.object({
+  "id": zod.string().uuid(),
+  "membershipId": zod.string().uuid(),
+  "title": zod.string().min(saveCohortFollowupResponseOneTitleMin).max(saveCohortFollowupResponseOneTitleMax),
+  "feedback": zod.string().min(saveCohortFollowupResponseOneFeedbackMin).max(saveCohortFollowupResponseOneFeedbackMax),
+  "actionPlan": zod.string().min(saveCohortFollowupResponseOneActionPlanMin).max(saveCohortFollowupResponseOneActionPlanMax),
+  "state": zod.enum(['OPEN', 'IN_PROGRESS', 'COMPLETED']),
+  "lessonKey": zod.string().nullish(),
+  "dueAt": zod.coerce.date().nullish()
+}).and(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+
+
+export const SaveCohortMeetingParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const saveCohortMeetingBodyTitleMin = 3;
+export const saveCohortMeetingBodyTitleMax = 160;
+
+export const saveCohortMeetingBodyAgendaMax = 4000;
+
+export const saveCohortMeetingBodyMembershipIdsMax = 500;
+
+
+
+export const SaveCohortMeetingBody = zod.object({
+  "id": zod.string().uuid().optional(),
+  "title": zod.string().min(saveCohortMeetingBodyTitleMin).max(saveCohortMeetingBodyTitleMax),
+  "agenda": zod.string().max(saveCohortMeetingBodyAgendaMax),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "meetingUrl": zod.string().nullish(),
+  "membershipIds": zod.array(zod.string().uuid()).max(saveCohortMeetingBodyMembershipIdsMax),
+  "state": zod.enum(['SCHEDULED', 'CANCELLED'])
+})
+
+export const saveCohortMeetingResponseOneTitleMin = 3;
+export const saveCohortMeetingResponseOneTitleMax = 160;
+
+export const saveCohortMeetingResponseOneAgendaMax = 4000;
+
+export const saveCohortMeetingResponseOneMembershipIdsMax = 500;
+
+
+
+export const SaveCohortMeetingResponse = zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(saveCohortMeetingResponseOneTitleMin).max(saveCohortMeetingResponseOneTitleMax),
+  "agenda": zod.string().max(saveCohortMeetingResponseOneAgendaMax),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "meetingUrl": zod.string().nullish(),
+  "membershipIds": zod.array(zod.string().uuid()).max(saveCohortMeetingResponseOneMembershipIdsMax),
+  "state": zod.enum(['SCHEDULED', 'CANCELLED'])
+}).and(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+
+
+export const ManageCohortResourceParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const manageCohortResourceBodyNotesMax = 2000;
+
+
+
+export const ManageCohortResourceBody = zod.object({
+  "action": zod.enum(['SHARE', 'ARCHIVE']),
+  "id": zod.string().uuid().optional(),
+  "sourceId": zod.string().optional(),
+  "notes": zod.string().max(manageCohortResourceBodyNotesMax).optional(),
+  "lessonKey": zod.string().nullish()
+})
+
+export const ManageCohortResourceResponse = zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "sourceId": zod.string(),
+  "title": zod.string(),
+  "kind": zod.string(),
+  "body": zod.string(),
+  "notes": zod.string(),
+  "lessonKey": zod.string().nullish(),
+  "state": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const SendCohortMessageParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const sendCohortMessageBodySubjectMin = 3;
+export const sendCohortMessageBodySubjectMax = 160;
+
+export const sendCohortMessageBodyBodyMin = 3;
+export const sendCohortMessageBodyBodyMax = 10000;
+
+export const sendCohortMessageBodyMembershipIdsMax = 500;
+
+
+
+export const SendCohortMessageBody = zod.object({
+  "requestId": zod.string().uuid(),
+  "subject": zod.string().min(sendCohortMessageBodySubjectMin).max(sendCohortMessageBodySubjectMax),
+  "body": zod.string().min(sendCohortMessageBodyBodyMin).max(sendCohortMessageBodyBodyMax),
+  "membershipIds": zod.array(zod.string().uuid()).max(sendCohortMessageBodyMembershipIdsMax),
+  "meetingId": zod.string().uuid().optional()
+})
+
+export const SendCohortMessageResponse = zod.object({
+  "id": zod.string(),
+  "subject": zod.string(),
+  "body": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "deliveries": zod.array(zod.object({
+  "membershipId": zod.string(),
+  "state": zod.enum(['PENDING', 'SENDING', 'SENT', 'FAILED']),
+  "error": zod.string().nullish()
+}))
+})
+
+
+export const GetTraineeSupportParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const getTraineeSupportResponseFollowupsItemOneTitleMin = 3;
+export const getTraineeSupportResponseFollowupsItemOneTitleMax = 160;
+
+export const getTraineeSupportResponseFollowupsItemOneFeedbackMin = 3;
+export const getTraineeSupportResponseFollowupsItemOneFeedbackMax = 4000;
+
+export const getTraineeSupportResponseFollowupsItemOneActionPlanMin = 3;
+export const getTraineeSupportResponseFollowupsItemOneActionPlanMax = 4000;
+
+export const getTraineeSupportResponseMeetingsItemOneTitleMin = 3;
+export const getTraineeSupportResponseMeetingsItemOneTitleMax = 160;
+
+export const getTraineeSupportResponseMeetingsItemOneAgendaMax = 4000;
+
+export const getTraineeSupportResponseMeetingsItemOneMembershipIdsMax = 500;
+
+
+
+export const GetTraineeSupportResponse = zod.object({
+  "followups": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "membershipId": zod.string().uuid(),
+  "title": zod.string().min(getTraineeSupportResponseFollowupsItemOneTitleMin).max(getTraineeSupportResponseFollowupsItemOneTitleMax),
+  "feedback": zod.string().min(getTraineeSupportResponseFollowupsItemOneFeedbackMin).max(getTraineeSupportResponseFollowupsItemOneFeedbackMax),
+  "actionPlan": zod.string().min(getTraineeSupportResponseFollowupsItemOneActionPlanMin).max(getTraineeSupportResponseFollowupsItemOneActionPlanMax),
+  "state": zod.enum(['OPEN', 'IN_PROGRESS', 'COMPLETED']),
+  "lessonKey": zod.string().nullish(),
+  "dueAt": zod.coerce.date().nullish()
+}).and(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))),
+  "meetings": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "title": zod.string().min(getTraineeSupportResponseMeetingsItemOneTitleMin).max(getTraineeSupportResponseMeetingsItemOneTitleMax),
+  "agenda": zod.string().max(getTraineeSupportResponseMeetingsItemOneAgendaMax),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "meetingUrl": zod.string().nullish(),
+  "membershipIds": zod.array(zod.string().uuid()).max(getTraineeSupportResponseMeetingsItemOneMembershipIdsMax),
+  "state": zod.enum(['SCHEDULED', 'CANCELLED'])
+}).and(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))),
+  "resources": zod.array(zod.object({
+  "id": zod.string(),
+  "cohortId": zod.string(),
+  "sourceId": zod.string(),
+  "title": zod.string(),
+  "kind": zod.string(),
+  "body": zod.string(),
+  "notes": zod.string(),
+  "lessonKey": zod.string().nullish(),
+  "state": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
 export const createLearningCohortBodyTitleMin = 3;
 export const createLearningCohortBodyTitleMax = 160;
 
@@ -3929,11 +4266,36 @@ export const GetCartridgeCreditsResponse = zod.object({
 
 
 /**
+ * @summary Available internal library references and the caller's archived artifacts for Cartridge F1
+ */
+export const ListCartridgeExemplarsResponseItem = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "kind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'F0_REPORT']),
+  "active": zod.boolean(),
+  "source": zod.enum(['curated', 'library']),
+  "characters": zod.number().int()
+})
+export const ListCartridgeExemplarsResponse = zod.array(ListCartridgeExemplarsResponseItem)
+
+
+/**
  * @summary Create a cartridge package (multi-document + SPCs + optional links).
 Atomically claims one available cartridge credit. Scope statement is
 mandatory and validated server-side (code SCOPE_REQUIRED).
 
  */
+export const CreateCartridgeBody = zod.object({
+  "projectName": zod.string(),
+  "outcomeOneLiner": zod.string(),
+  "scopeStatement": zod.string(),
+  "targetPlatformHint": zod.string().optional(),
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n'),
+  "spcs": zod.string().optional().describe('JSON array of pasted SPC label/body pairs'),
+  "links": zod.string().optional().describe('JSON array of linked artifacts'),
+  "exemplarIds": zod.string().optional().describe('JSON array of up to 10 distinct authorized Exemplar IDs')
+}).passthrough().describe('Metadata fields for the custom multipart upload transport, which also accepts up to five binary files parts')
+
 export const CreateCartridgeResponse = zod.object({
   "id": zod.string().uuid(),
   "projectName": zod.string(),
@@ -3962,7 +4324,18 @@ export const CreateCartridgeResponse = zod.object({
   "kind": zod.enum(['git', 'database']),
   "descriptor": zod.string(),
   "note": zod.string().nullable()
-}))
+})),
+  "librarySources": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "kind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'F0_REPORT']),
+  "active": zod.boolean(),
+  "source": zod.enum(['curated', 'library']),
+  "characters": zod.number().int()
+}).and(zod.object({
+  "body": zod.string(),
+  "contentSha256": zod.string()
+}))).optional()
 })
 
 
@@ -3998,7 +4371,18 @@ export const GetCartridgeResponse = zod.object({
   "kind": zod.enum(['git', 'database']),
   "descriptor": zod.string(),
   "note": zod.string().nullable()
-}))
+})),
+  "librarySources": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "kind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'F0_REPORT']),
+  "active": zod.boolean(),
+  "source": zod.enum(['curated', 'library']),
+  "characters": zod.number().int()
+}).and(zod.object({
+  "body": zod.string(),
+  "contentSha256": zod.string()
+}))).optional()
 })
 
 
@@ -4065,7 +4449,18 @@ export const GetSessionCartridgeResponse = zod.object({
   "kind": zod.enum(['git', 'database']),
   "descriptor": zod.string(),
   "note": zod.string().nullable()
-}))
+})),
+  "librarySources": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "kind": zod.enum(['SPC', 'MA', 'MPDD', 'PDD', 'F0_REPORT']),
+  "active": zod.boolean(),
+  "source": zod.enum(['curated', 'library']),
+  "characters": zod.number().int()
+}).and(zod.object({
+  "body": zod.string(),
+  "contentSha256": zod.string()
+}))).optional()
 })
 
 

@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useParams, Link } from "wouter";
 import { BoomerangPanel } from "@/components/boomerang";
+import { SessionCartridgeSources } from "@/components/cartridge/SessionCartridgeSources";
 import { TopNav } from "@/components/layout/TopNav";
 import { 
   useGetSession, 
@@ -385,6 +386,9 @@ export default function SessionDetail() {
                 )}
               </div>
             </details>
+          )}
+          {id && activeEngineId === 1 && (
+            <SessionCartridgeSources sessionId={id} origin={session?.origin} />
           )}
           {(artifacts ?? [])
             .filter(

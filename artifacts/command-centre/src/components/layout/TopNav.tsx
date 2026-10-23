@@ -21,6 +21,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const STAFF_LINKS: Array<{ href: string; label: string }> = [
   { href: "/learn", label: "Training" },
+  { href: "/convener", label: "Convener" },
   { href: "/command", label: "Command" },
   { href: "/guide", label: "Guide" },
   { href: "/boomerang", label: "Boomerang" },
@@ -48,7 +49,7 @@ export function TopNav() {
   const session = useStaffSession();
   const logout = useLogout();
 
-  const allowedStudentLinks = new Set(["/learn", "/guide", "/sessions", "/ascension", "/quests", "/boomerang", "/spc-player", "/ingest", "/cartridge", "/f0"]);
+  const allowedStudentLinks = new Set(["/learn", "/convener", "/guide", "/sessions", "/ascension", "/quests", "/boomerang", "/spc-player", "/ingest", "/cartridge", "/f0"]);
   const authenticated = session.authenticated;
   const staff = authenticated && !session.student;
   const links = !authenticated

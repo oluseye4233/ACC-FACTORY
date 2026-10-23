@@ -16,7 +16,7 @@ copies must still survive deletion of their original sessions/artifacts.
 **How to apply:** Preserve independent library snapshots and authenticated
 internal access. Never automatically commercialize uploads, canonical platform
 references or artifacts merely because they passed review. Only the owner
-opts in, with explicit consent; only active, qualified artifacts can be selected.
+opts in, with explicit consent; only active, qualified artifacts can be selected for Sphinx.
 Archive, withdrawal, revoked review or content changes must remove public
 eligibility. Public launch is explicit and closed by default; selecting before
 launch means queued, not for sale. Internal review is evidence recorded by a
@@ -27,3 +27,13 @@ documentation, basic test evidence and semantic versioning; commercial rights
 and safety must also be reviewed. Keep that baseline explicit rather than
 inventing certification claims. A public metadata catalog does not activate
 checkout, licensing or commercial delivery.
+
+Archived library items are not universally unusable: their owner may reuse them
+as supporting references in Cartridge F1 without restoring or commercializing them.
+Other users' withdrawn sources must not become newly accessible through that picker.
+
+**Why:** The user explicitly requested archived SPCs and other Exemplar artifacts
+as Cartridge F1 inputs; marketplace eligibility is a separate decision.
+
+**How to apply:** Distinguish internal reference reuse from Sphinx supply qualification.
+Preserve the chosen source snapshot instead of changing its library status.

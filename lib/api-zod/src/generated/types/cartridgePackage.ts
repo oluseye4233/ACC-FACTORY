@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CartridgeDocumentSummary } from './cartridgeDocumentSummary';
+import type { CartridgeLibrarySnapshot } from './cartridgeLibrarySnapshot';
 import type { CartridgeLinkSummary } from './cartridgeLinkSummary';
 import type { CartridgeSpcSummary } from './cartridgeSpcSummary';
 
@@ -22,4 +23,5 @@ export interface CartridgePackage {
   documents: CartridgeDocumentSummary[];
   spcs: CartridgeSpcSummary[];
   links: CartridgeLinkSummary[];
+  librarySources?: CartridgeLibrarySnapshot[];
 }

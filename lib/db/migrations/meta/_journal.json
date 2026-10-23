@@ -421,6 +421,20 @@
       "when": 1792678447607,
       "tag": "0059_tan_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1792769223740,
+      "tag": "0060_jazzy_matthew_murdock",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1792777112454,
+      "tag": "0061_cooing_blob",
+      "breakpoints": true
     }
   ]
 }

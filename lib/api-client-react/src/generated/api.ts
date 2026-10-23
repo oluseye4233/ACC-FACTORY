@@ -57,14 +57,25 @@ import type {
   BoomerangTransitionInput,
   CartridgeCheckoutInput,
   CartridgeCreditsSummary,
+  CartridgeInput,
+  CartridgeLibraryOption,
   CartridgePackage,
   CartridgeStartSessionInput,
   CheckoutInput,
   CheckoutSession,
   CodebaseBundle,
+  CohortFollowup,
+  CohortFollowupInput,
+  CohortMeeting,
+  CohortMeetingInput,
+  CohortMessage,
+  CohortMessageInput,
+  CohortResource,
+  CohortResourceInput,
   CompanySpend,
   CompanySpendByUser,
   ContextCraftBadge,
+  ConvenerDashboard,
   CreateF0EngagementInput,
   CreateF0RetainerInput,
   CreateF0RetainerTaskInput,
@@ -226,6 +237,7 @@ import type {
   SphinxMarketplaceActivationRequest,
   SphinxMarketplaceStatus,
   StripeWebhookPayload,
+  TraineeSupport,
   UnauthorizedResponse,
   UpdateF0RetainerTaskInput,
   UpdateProfileInput,
@@ -540,6 +552,528 @@ export function useGetLearningHome<TData = Awaited<ReturnType<typeof getLearning
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetLearningHomeQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetConvenerDashboardUrl = (id: string,) => {
+
+
+
+
+  return `/api/learn/cohorts/${id}/convener`
+}
+
+export const getConvenerDashboard = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<ConvenerDashboard> => {
+
+  return customFetch<ConvenerDashboard>(getGetConvenerDashboardUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetConvenerDashboardQueryKey = (id: string,) => {
+    return [
+    `/api/learn/cohorts/${id}/convener`
+    ] as const;
+    }
+
+
+export const getGetConvenerDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getConvenerDashboard>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConvenerDashboard>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetConvenerDashboardQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConvenerDashboard>>> = ({ signal }) => getConvenerDashboard(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConvenerDashboard>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetConvenerDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getConvenerDashboard>>>
+export type GetConvenerDashboardQueryError = ErrorType<unknown>
+
+
+export function useGetConvenerDashboard<TData = Awaited<ReturnType<typeof getConvenerDashboard>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConvenerDashboard>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConvenerDashboard>>,
+          TError,
+          Awaited<ReturnType<typeof getConvenerDashboard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConvenerDashboard<TData = Awaited<ReturnType<typeof getConvenerDashboard>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConvenerDashboard>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConvenerDashboard>>,
+          TError,
+          Awaited<ReturnType<typeof getConvenerDashboard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConvenerDashboard<TData = Awaited<ReturnType<typeof getConvenerDashboard>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConvenerDashboard>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetConvenerDashboard<TData = Awaited<ReturnType<typeof getConvenerDashboard>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConvenerDashboard>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetConvenerDashboardQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveCohortFollowupUrl = (id: string,) => {
+
+
+
+
+  return `/api/learn/cohorts/${id}/followups`
+}
+
+export const saveCohortFollowup = async (id: string,
+    cohortFollowupInput: CohortFollowupInput, options?: Parameters<typeof customFetch>[1]): Promise<CohortFollowup> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CohortFollowup>(getSaveCohortFollowupUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(cohortFollowupInput)
+  }
+);}
+
+
+
+
+
+export const getSaveCohortFollowupMutationKey = () => ['saveCohortFollowup'] as const;
+
+export const getSaveCohortFollowupMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveCohortFollowup>>, TError,SaveCohortFollowupMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveCohortFollowup>>, TError,SaveCohortFollowupMutationVariables, TContext> => {
+
+const mutationKey = getSaveCohortFollowupMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveCohortFollowup>>, SaveCohortFollowupMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveCohortFollowup(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveCohortFollowupMutationResult = NonNullable<Awaited<ReturnType<typeof saveCohortFollowup>>>
+    export type SaveCohortFollowupMutationBody = BodyType<CohortFollowupInput>
+    export type SaveCohortFollowupMutationError = ErrorType<unknown>
+    export type SaveCohortFollowupMutationVariables = {id: string;data: BodyType<CohortFollowupInput>}
+
+    export const useSaveCohortFollowup = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveCohortFollowup>>, TError,SaveCohortFollowupMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveCohortFollowup>>,
+        TError,
+        SaveCohortFollowupMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveCohortFollowupMutationOptions(options), queryClient);
+    }
+
+export const getSaveCohortMeetingUrl = (id: string,) => {
+
+
+
+
+  return `/api/learn/cohorts/${id}/meetings`
+}
+
+export const saveCohortMeeting = async (id: string,
+    cohortMeetingInput: CohortMeetingInput, options?: Parameters<typeof customFetch>[1]): Promise<CohortMeeting> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CohortMeeting>(getSaveCohortMeetingUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(cohortMeetingInput)
+  }
+);}
+
+
+
+
+
+export const getSaveCohortMeetingMutationKey = () => ['saveCohortMeeting'] as const;
+
+export const getSaveCohortMeetingMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveCohortMeeting>>, TError,SaveCohortMeetingMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveCohortMeeting>>, TError,SaveCohortMeetingMutationVariables, TContext> => {
+
+const mutationKey = getSaveCohortMeetingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveCohortMeeting>>, SaveCohortMeetingMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveCohortMeeting(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveCohortMeetingMutationResult = NonNullable<Awaited<ReturnType<typeof saveCohortMeeting>>>
+    export type SaveCohortMeetingMutationBody = BodyType<CohortMeetingInput>
+    export type SaveCohortMeetingMutationError = ErrorType<unknown>
+    export type SaveCohortMeetingMutationVariables = {id: string;data: BodyType<CohortMeetingInput>}
+
+    export const useSaveCohortMeeting = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveCohortMeeting>>, TError,SaveCohortMeetingMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveCohortMeeting>>,
+        TError,
+        SaveCohortMeetingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveCohortMeetingMutationOptions(options), queryClient);
+    }
+
+export const getManageCohortResourceUrl = (id: string,) => {
+
+
+
+
+  return `/api/learn/cohorts/${id}/resources`
+}
+
+export const manageCohortResource = async (id: string,
+    cohortResourceInput: CohortResourceInput, options?: Parameters<typeof customFetch>[1]): Promise<CohortResource> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CohortResource>(getManageCohortResourceUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(cohortResourceInput)
+  }
+);}
+
+
+
+
+
+export const getManageCohortResourceMutationKey = () => ['manageCohortResource'] as const;
+
+export const getManageCohortResourceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof manageCohortResource>>, TError,ManageCohortResourceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof manageCohortResource>>, TError,ManageCohortResourceMutationVariables, TContext> => {
+
+const mutationKey = getManageCohortResourceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof manageCohortResource>>, ManageCohortResourceMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  manageCohortResource(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ManageCohortResourceMutationResult = NonNullable<Awaited<ReturnType<typeof manageCohortResource>>>
+    export type ManageCohortResourceMutationBody = BodyType<CohortResourceInput>
+    export type ManageCohortResourceMutationError = ErrorType<unknown>
+    export type ManageCohortResourceMutationVariables = {id: string;data: BodyType<CohortResourceInput>}
+
+    export const useManageCohortResource = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof manageCohortResource>>, TError,ManageCohortResourceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof manageCohortResource>>,
+        TError,
+        ManageCohortResourceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getManageCohortResourceMutationOptions(options), queryClient);
+    }
+
+export const getSendCohortMessageUrl = (id: string,) => {
+
+
+
+
+  return `/api/learn/cohorts/${id}/messages`
+}
+
+export const sendCohortMessage = async (id: string,
+    cohortMessageInput: CohortMessageInput, options?: Parameters<typeof customFetch>[1]): Promise<CohortMessage> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CohortMessage>(getSendCohortMessageUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(cohortMessageInput)
+  }
+);}
+
+
+
+
+
+export const getSendCohortMessageMutationKey = () => ['sendCohortMessage'] as const;
+
+export const getSendCohortMessageMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendCohortMessage>>, TError,SendCohortMessageMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendCohortMessage>>, TError,SendCohortMessageMutationVariables, TContext> => {
+
+const mutationKey = getSendCohortMessageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendCohortMessage>>, SendCohortMessageMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  sendCohortMessage(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendCohortMessageMutationResult = NonNullable<Awaited<ReturnType<typeof sendCohortMessage>>>
+    export type SendCohortMessageMutationBody = BodyType<CohortMessageInput>
+    export type SendCohortMessageMutationError = ErrorType<void>
+    export type SendCohortMessageMutationVariables = {id: string;data: BodyType<CohortMessageInput>}
+
+    export const useSendCohortMessage = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendCohortMessage>>, TError,SendCohortMessageMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof sendCohortMessage>>,
+        TError,
+        SendCohortMessageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSendCohortMessageMutationOptions(options), queryClient);
+    }
+
+export const getGetTraineeSupportUrl = (id: string,) => {
+
+
+
+
+  return `/api/learn/memberships/${id}/support`
+}
+
+export const getTraineeSupport = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<TraineeSupport> => {
+
+  return customFetch<TraineeSupport>(getGetTraineeSupportUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTraineeSupportQueryKey = (id: string,) => {
+    return [
+    `/api/learn/memberships/${id}/support`
+    ] as const;
+    }
+
+
+export const getGetTraineeSupportQueryOptions = <TData = Awaited<ReturnType<typeof getTraineeSupport>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraineeSupport>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTraineeSupportQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTraineeSupport>>> = ({ signal }) => getTraineeSupport(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTraineeSupport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTraineeSupportQueryResult = NonNullable<Awaited<ReturnType<typeof getTraineeSupport>>>
+export type GetTraineeSupportQueryError = ErrorType<unknown>
+
+
+export function useGetTraineeSupport<TData = Awaited<ReturnType<typeof getTraineeSupport>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraineeSupport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTraineeSupport>>,
+          TError,
+          Awaited<ReturnType<typeof getTraineeSupport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTraineeSupport<TData = Awaited<ReturnType<typeof getTraineeSupport>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraineeSupport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTraineeSupport>>,
+          TError,
+          Awaited<ReturnType<typeof getTraineeSupport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTraineeSupport<TData = Awaited<ReturnType<typeof getTraineeSupport>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraineeSupport>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTraineeSupport<TData = Awaited<ReturnType<typeof getTraineeSupport>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraineeSupport>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTraineeSupportQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -10176,6 +10710,107 @@ export function useGetCartridgeCredits<TData = Awaited<ReturnType<typeof getCart
 
 
 
+export const getListCartridgeExemplarsUrl = () => {
+
+
+
+
+  return `/api/cartridge/exemplars`
+}
+
+/**
+ * @summary Available internal library references and the caller's archived artifacts for Cartridge F1
+ */
+export const listCartridgeExemplars = async ( options?: Parameters<typeof customFetch>[1]): Promise<CartridgeLibraryOption[]> => {
+
+  return customFetch<CartridgeLibraryOption[]>(getListCartridgeExemplarsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCartridgeExemplarsQueryKey = () => {
+    return [
+    `/api/cartridge/exemplars`
+    ] as const;
+    }
+
+
+export const getListCartridgeExemplarsQueryOptions = <TData = Awaited<ReturnType<typeof listCartridgeExemplars>>, TError = ErrorType<void>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCartridgeExemplars>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCartridgeExemplarsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCartridgeExemplars>>> = ({ signal }) => listCartridgeExemplars({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCartridgeExemplars>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCartridgeExemplarsQueryResult = NonNullable<Awaited<ReturnType<typeof listCartridgeExemplars>>>
+export type ListCartridgeExemplarsQueryError = ErrorType<void>
+
+
+export function useListCartridgeExemplars<TData = Awaited<ReturnType<typeof listCartridgeExemplars>>, TError = ErrorType<void>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCartridgeExemplars>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCartridgeExemplars>>,
+          TError,
+          Awaited<ReturnType<typeof listCartridgeExemplars>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCartridgeExemplars<TData = Awaited<ReturnType<typeof listCartridgeExemplars>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCartridgeExemplars>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCartridgeExemplars>>,
+          TError,
+          Awaited<ReturnType<typeof listCartridgeExemplars>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCartridgeExemplars<TData = Awaited<ReturnType<typeof listCartridgeExemplars>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCartridgeExemplars>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Available internal library references and the caller's archived artifacts for Cartridge F1
+ */
+
+export function useListCartridgeExemplars<TData = Awaited<ReturnType<typeof listCartridgeExemplars>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCartridgeExemplars>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCartridgeExemplarsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getCreateCartridgeUrl = () => {
 
 
@@ -10190,14 +10825,33 @@ Atomically claims one available cartridge credit. Scope statement is
 mandatory and validated server-side (code SCOPE_REQUIRED).
 
  */
-export const createCartridge = async ( options?: Parameters<typeof customFetch>[1]): Promise<CartridgePackage> => {
+export const createCartridge = async (cartridgeInput: CartridgeInput, options?: Parameters<typeof customFetch>[1]): Promise<CartridgePackage> => {
+    const formData = new FormData();
+formData.append(`projectName`, cartridgeInput.projectName);
+formData.append(`outcomeOneLiner`, cartridgeInput.outcomeOneLiner);
+formData.append(`scopeStatement`, cartridgeInput.scopeStatement);
+if(cartridgeInput.targetPlatformHint !== undefined) {
+ formData.append(`targetPlatformHint`, cartridgeInput.targetPlatformHint);
+ }
+if(cartridgeInput.provider !== undefined) {
+ formData.append(`provider`, cartridgeInput.provider);
+ }
+if(cartridgeInput.spcs !== undefined) {
+ formData.append(`spcs`, cartridgeInput.spcs);
+ }
+if(cartridgeInput.links !== undefined) {
+ formData.append(`links`, cartridgeInput.links);
+ }
+if(cartridgeInput.exemplarIds !== undefined) {
+ formData.append(`exemplarIds`, cartridgeInput.exemplarIds);
+ }
 
   return customFetch<CartridgePackage>(getCreateCartridgeUrl(),
   {
     ...options,
     method: 'POST'
-
-
+    ,
+    body: formData
   }
 );}
 
@@ -10208,8 +10862,8 @@ export const createCartridge = async ( options?: Parameters<typeof customFetch>[
 export const getCreateCartridgeMutationKey = () => ['createCartridge'] as const;
 
 export const getCreateCartridgeMutationOptions = <TError = ErrorType<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCartridge>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof createCartridge>>, TError,void, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCartridge>>, TError,CreateCartridgeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCartridge>>, TError,CreateCartridgeMutationVariables, TContext> => {
 
 const mutationKey = getCreateCartridgeMutationKey();
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -10221,10 +10875,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCartridge>>, void> = () => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCartridge>>, CreateCartridgeMutationVariables> = (props) => {
+          const {data} = props ?? {};
 
-
-          return  createCartridge(requestOptions)
+          return  createCartridge(data,requestOptions)
         }
 
 
@@ -10235,9 +10889,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreateCartridgeMutationResult = NonNullable<Awaited<ReturnType<typeof createCartridge>>>
-
+    export type CreateCartridgeMutationBody = BodyType<CartridgeInput>
     export type CreateCartridgeMutationError = ErrorType<ErrorResponse>
-
+    export type CreateCartridgeMutationVariables = {data: BodyType<CartridgeInput>}
 
     /**
  * @summary Create a cartridge package (multi-document + SPCs + optional links).
@@ -10246,11 +10900,11 @@ mandatory and validated server-side (code SCOPE_REQUIRED).
 
  */
 export const useCreateCartridge = <TError = ErrorType<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCartridge>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCartridge>>, TError,CreateCartridgeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createCartridge>>,
         TError,
-        void,
+        CreateCartridgeMutationVariables,
         TContext
       > => {
       return useMutation(getCreateCartridgeMutationOptions(options), queryClient);

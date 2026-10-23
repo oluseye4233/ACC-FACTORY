@@ -1,0 +1,230 @@
+openapi: 3.1.0
+info: { title: Convener, version: 1.0.0 }
+paths:
+  /learn/cohorts/{id}/convener:
+    get:
+      operationId: getConvenerDashboard
+      tags: [learning]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Assigned convener workspace
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConvenerDashboard" }
+  /learn/cohorts/{id}/followups:
+    post:
+      operationId: saveCohortFollowup
+      tags: [learning]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CohortFollowupInput" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CohortFollowup" }
+  /learn/cohorts/{id}/meetings:
+    post:
+      operationId: saveCohortMeeting
+      tags: [learning]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CohortMeetingInput" }
+      responses:
+        "200":
+          description: Saved meeting or cancellation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CohortMeeting" }
+  /learn/cohorts/{id}/resources:
+    post:
+      operationId: manageCohortResource
+      tags: [learning]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CohortResourceInput" }
+      responses:
+        "200":
+          description: Shared snapshot or archived resource
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CohortResource" }
+  /learn/cohorts/{id}/messages:
+    post:
+      operationId: sendCohortMessage
+      tags: [learning]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CohortMessageInput" }
+      responses:
+        "200":
+          description: Provider acceptance or failure per recipient; not inbox delivery
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CohortMessage" }
+        "503": { description: Email service not configured }
+  /learn/memberships/{id}/support:
+    get:
+      operationId: getTraineeSupport
+      tags: [learning]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Own followups, addressed meetings and cohort library
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TraineeSupport" }
+components:
+  schemas:
+    CohortFollowupInput:
+      type: object
+      required: [membershipId, title, feedback, actionPlan, state]
+      properties:
+        id: { type: string, format: uuid }
+        membershipId: { type: string, format: uuid }
+        title: { type: string, minLength: 3, maxLength: 160 }
+        feedback: { type: string, minLength: 3, maxLength: 4000 }
+        actionPlan: { type: string, minLength: 3, maxLength: 4000 }
+        state: { type: string, enum: [OPEN, IN_PROGRESS, COMPLETED] }
+        lessonKey: { type: [string, "null"] }
+        dueAt: { type: [string, "null"], format: date-time }
+    CohortFollowup:
+      allOf:
+        - { $ref: "#/components/schemas/CohortFollowupInput" }
+        - type: object
+          required: [id, cohortId, createdAt, updatedAt]
+          properties:
+            id: { type: string }
+            cohortId: { type: string }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    CohortMeetingInput:
+      type: object
+      required: [title, agenda, startsAt, endsAt, membershipIds, state]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, minLength: 3, maxLength: 160 }
+        agenda: { type: string, maxLength: 4000 }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        meetingUrl: { type: [string, "null"] }
+        membershipIds: { type: array, maxItems: 500, items: { type: string, format: uuid } }
+        state: { type: string, enum: [SCHEDULED, CANCELLED] }
+    CohortMeeting:
+      allOf:
+        - { $ref: "#/components/schemas/CohortMeetingInput" }
+        - type: object
+          required: [id, cohortId, createdAt, updatedAt]
+          properties:
+            id: { type: string }
+            cohortId: { type: string }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    CohortResourceInput:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [SHARE, ARCHIVE] }
+        id: { type: string, format: uuid }
+        sourceId: { type: string }
+        notes: { type: string, maxLength: 2000 }
+        lessonKey: { type: [string, "null"] }
+    CohortResource:
+      type: object
+      required: [id, cohortId, sourceId, title, kind, body, notes, state, createdAt]
+      properties:
+        id: { type: string }
+        cohortId: { type: string }
+        sourceId: { type: string }
+        title: { type: string }
+        kind: { type: string }
+        body: { type: string }
+        notes: { type: string }
+        lessonKey: { type: [string, "null"] }
+        state: { type: string }
+        createdAt: { type: string, format: date-time }
+    CohortMessageInput:
+      type: object
+      required: [requestId, subject, body, membershipIds]
+      properties:
+        requestId: { type: string, format: uuid }
+        subject: { type: string, minLength: 3, maxLength: 160 }
+        body: { type: string, minLength: 3, maxLength: 10000 }
+        membershipIds: { type: array, maxItems: 500, items: { type: string, format: uuid } }
+        meetingId: { type: string, format: uuid }
+    CohortDelivery:
+      type: object
+      required: [membershipId, state]
+      properties:
+        membershipId: { type: string }
+        state: { type: string, enum: [PENDING, SENDING, SENT, FAILED] }
+        error: { type: [string, "null"] }
+    CohortMessage:
+      type: object
+      required: [id, subject, body, createdAt, deliveries]
+      properties:
+        id: { type: string }
+        subject: { type: string }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+        deliveries: { type: array, items: { $ref: "#/components/schemas/CohortDelivery" } }
+    CohortLearner:
+      type: object
+      required: [membershipId, name, state, track, required, completed, submitted, revisions, progressPercent, recommendation, recentFeedback]
+      properties:
+        membershipId: { type: string }
+        name: { type: string }
+        state: { type: string }
+        track: { type: string }
+        required: { type: integer }
+        completed: { type: integer }
+        submitted: { type: integer }
+        revisions: { type: integer }
+        progressPercent: { type: integer }
+        recommendation: { type: string }
+        recentFeedback: { type: array, items: { type: string } }
+    CohortExemplarOption:
+      type: object
+      required: [id, title, kind]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        kind: { type: string }
+    TraineeSupport:
+      type: object
+      required: [followups, meetings, resources]
+      properties:
+        followups: { type: array, items: { $ref: "#/components/schemas/CohortFollowup" } }
+        meetings: { type: array, items: { $ref: "#/components/schemas/CohortMeeting" } }
+        resources: { type: array, items: { $ref: "#/components/schemas/CohortResource" } }
+    ConvenerDashboard:
+      allOf:
+        - { $ref: "#/components/schemas/TraineeSupport" }
+        - type: object
+          required: [learners, exemplarOptions, messages, emailConfigured, isOwner]
+          properties:
+            learners: { type: array, items: { $ref: "#/components/schemas/CohortLearner" } }
+            exemplarOptions: { type: array, items: { $ref: "#/components/schemas/CohortExemplarOption" } }
+            messages: { type: array, items: { $ref: "#/components/schemas/CohortMessage" } }
+            emailConfigured: { type: boolean }
+            isOwner: { type: boolean }

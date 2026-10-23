@@ -17,7 +17,7 @@ export default defineConfig({
   "api-client-react": {
     input: {
       target: path.resolve(root, "lib", "api-spec", "openapi.yaml"),
-      parserOptions: { externalRefs: { allow: ["./learning.yaml"] } },
+      parserOptions: { externalRefs: { allow: ["./learning.yaml", "./convener.yaml"] } },
       override: {
         transformer: titleTransformer,
       },
@@ -45,7 +45,7 @@ export default defineConfig({
   zod: {
     input: {
       target: path.resolve(root, "lib", "api-spec", "openapi.yaml"),
-      parserOptions: { externalRefs: { allow: ["./learning.yaml"] } },
+      parserOptions: { externalRefs: { allow: ["./learning.yaml", "./convener.yaml"] } },
       override: {
         transformer: titleTransformer,
       },

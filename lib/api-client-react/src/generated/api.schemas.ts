@@ -4084,6 +4084,57 @@ export interface CartridgeCreditsSummary {
   total: number;
 }
 
+/**
+ * Metadata fields for the custom multipart upload transport, which also accepts up to five binary files parts
+ */
+export interface CartridgeInput {
+  projectName: string;
+  outcomeOneLiner: string;
+  scopeStatement: string;
+  targetPlatformHint?: string;
+  provider?: LlmProvider;
+  /** JSON array of pasted SPC label/body pairs */
+  spcs?: string;
+  /** JSON array of linked artifacts */
+  links?: string;
+  /** JSON array of up to 10 distinct authorized Exemplar IDs */
+  exemplarIds?: string;
+  [key: string]: unknown;
+ }
+
+export type CartridgeLibraryOptionKind = typeof CartridgeLibraryOptionKind[keyof typeof CartridgeLibraryOptionKind];
+
+
+export const CartridgeLibraryOptionKind = {
+  SPC: 'SPC',
+  MA: 'MA',
+  MPDD: 'MPDD',
+  PDD: 'PDD',
+  F0_REPORT: 'F0_REPORT',
+} as const;
+
+export type CartridgeLibraryOptionSource = typeof CartridgeLibraryOptionSource[keyof typeof CartridgeLibraryOptionSource];
+
+
+export const CartridgeLibraryOptionSource = {
+  curated: 'curated',
+  library: 'library',
+} as const;
+
+export interface CartridgeLibraryOption {
+  id: string;
+  title: string;
+  kind: CartridgeLibraryOptionKind;
+  active: boolean;
+  source: CartridgeLibraryOptionSource;
+  characters: number;
+}
+
+export type CartridgeLibrarySnapshot = CartridgeLibraryOption & {
+  body: string;
+  contentSha256: string;
+};
+
 export type CartridgeLinkKind = typeof CartridgeLinkKind[keyof typeof CartridgeLinkKind];
 
 
@@ -4129,6 +4180,7 @@ export interface CartridgePackage {
   documents: CartridgeDocumentSummary[];
   spcs: CartridgeSpcSummary[];
   links: CartridgeLinkSummary[];
+  librarySources?: CartridgeLibrarySnapshot[];
 }
 
 export interface CartridgeStartSessionInput {
@@ -5644,6 +5696,188 @@ export type LearningCohortDetail = LearningHome & {
   issuedInviteToken?: string;
   invitations: LearningCohortDetailInvitationsItem[];
   audit: LearningCohortDetailAuditItem[];
+};
+
+export type CohortFollowupInputState = typeof CohortFollowupInputState[keyof typeof CohortFollowupInputState];
+
+
+export const CohortFollowupInputState = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+} as const;
+
+export interface CohortFollowupInput {
+  id?: string;
+  membershipId: string;
+  /**
+     * @minLength 3
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minLength 3
+     * @maxLength 4000
+     */
+  feedback: string;
+  /**
+     * @minLength 3
+     * @maxLength 4000
+     */
+  actionPlan: string;
+  state: CohortFollowupInputState;
+  /** @nullable */
+  lessonKey?: string | null;
+  /** @nullable */
+  dueAt?: string | null;
+}
+
+export type CohortFollowup = CohortFollowupInput & {
+  id: string;
+  cohortId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CohortMeetingInputState = typeof CohortMeetingInputState[keyof typeof CohortMeetingInputState];
+
+
+export const CohortMeetingInputState = {
+  SCHEDULED: 'SCHEDULED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export interface CohortMeetingInput {
+  id?: string;
+  /**
+     * @minLength 3
+     * @maxLength 160
+     */
+  title: string;
+  /** @maxLength 4000 */
+  agenda: string;
+  startsAt: string;
+  endsAt: string;
+  /** @nullable */
+  meetingUrl?: string | null;
+  /** @maxItems 500 */
+  membershipIds: string[];
+  state: CohortMeetingInputState;
+}
+
+export type CohortMeeting = CohortMeetingInput & {
+  id: string;
+  cohortId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CohortResourceInputAction = typeof CohortResourceInputAction[keyof typeof CohortResourceInputAction];
+
+
+export const CohortResourceInputAction = {
+  SHARE: 'SHARE',
+  ARCHIVE: 'ARCHIVE',
+} as const;
+
+export interface CohortResourceInput {
+  action: CohortResourceInputAction;
+  id?: string;
+  sourceId?: string;
+  /** @maxLength 2000 */
+  notes?: string;
+  /** @nullable */
+  lessonKey?: string | null;
+}
+
+export interface CohortResource {
+  id: string;
+  cohortId: string;
+  sourceId: string;
+  title: string;
+  kind: string;
+  body: string;
+  notes: string;
+  /** @nullable */
+  lessonKey?: string | null;
+  state: string;
+  createdAt: string;
+}
+
+export interface CohortMessageInput {
+  requestId: string;
+  /**
+     * @minLength 3
+     * @maxLength 160
+     */
+  subject: string;
+  /**
+     * @minLength 3
+     * @maxLength 10000
+     */
+  body: string;
+  /** @maxItems 500 */
+  membershipIds: string[];
+  meetingId?: string;
+}
+
+export type CohortDeliveryState = typeof CohortDeliveryState[keyof typeof CohortDeliveryState];
+
+
+export const CohortDeliveryState = {
+  PENDING: 'PENDING',
+  SENDING: 'SENDING',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+} as const;
+
+export interface CohortDelivery {
+  membershipId: string;
+  state: CohortDeliveryState;
+  /** @nullable */
+  error?: string | null;
+}
+
+export interface CohortMessage {
+  id: string;
+  subject: string;
+  body: string;
+  createdAt: string;
+  deliveries: CohortDelivery[];
+}
+
+export interface CohortLearner {
+  membershipId: string;
+  name: string;
+  state: string;
+  track: string;
+  required: number;
+  completed: number;
+  submitted: number;
+  revisions: number;
+  progressPercent: number;
+  recommendation: string;
+  recentFeedback: string[];
+}
+
+export interface CohortExemplarOption {
+  id: string;
+  title: string;
+  kind: string;
+}
+
+export interface TraineeSupport {
+  followups: CohortFollowup[];
+  meetings: CohortMeeting[];
+  resources: CohortResource[];
+}
+
+export type ConvenerDashboard = TraineeSupport & {
+  learners: CohortLearner[];
+  exemplarOptions: CohortExemplarOption[];
+  messages: CohortMessage[];
+  emailConfigured: boolean;
+  isOwner: boolean;
 };
 
 /**

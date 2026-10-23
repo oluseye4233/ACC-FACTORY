@@ -10,6 +10,8 @@ import { RedeemPanel } from "@/components/learning/RedeemPanel";
 import { CreateCohortForm } from "@/components/learning/CreateCohortForm";
 import { ReviewQueue } from "@/components/learning/ReviewQueue";
 import { CohortManager } from "@/components/learning/CohortManager";
+import { ConvenerWorkspace, type ConvenerTab } from "@/components/convener/ConvenerWorkspace";
+import { TraineeSupport } from "@/components/convener/TraineeSupport";
 import { QUEST_RULES, apiErr, downloadJson, findAssignment, isLessonDone, readInviteToken, requiredDone, trackMatches, usd } from "@/components/learning/learning-model";
 
 const lab = "font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground";
@@ -154,7 +156,7 @@ export default function LearningHomePage() {
 
       {(home.canCreateCohort || teaching.length > 0 || ownedCohorts.length > 0) && (
         <section className="space-y-4" data-testid="section-teach">
-          <h2 className="font-display text-2xl">Teaching</h2>
+          <div className="flex items-center gap-3"><h2 className="font-display text-2xl flex-1">Teaching</h2><Button asChild size="sm" variant="outline"><Link href="/convener" data-testid="link-convener">Convener dashboard</Link></Button></div>
           <div className="grid gap-4 lg:grid-cols-2">
             <ul className="space-y-2">
               {ownedCohorts.length === 0 && <li className="text-xs text-muted-foreground border border-dashed rounded p-4">No cohorts yet.</li>}
@@ -172,15 +174,19 @@ export default function LearningHomePage() {
         </section>
       )}
 
+      {member && <TraineeSupport key={member.id} membershipId={member.id} cohortTitle={currentCohort?.title} lessons={home.lessons} />}
+
       <QuestNote />
     </Shell>
   );
 }
 
+const TABS = [["review", "Review"], ["manage", "People"], ["performance", "Performance"], ["followups", "Follow-ups"], ["meetings", "Meetings"], ["library", "Cohort Library"], ["email", "Email"]] as const;
+
 export function LearningCohortPage() {
   const { id = "" } = useParams<{ id: string }>();
   const q = useGetLearningCohort(id);
-  const [tab, setTab] = useState<"review" | "manage">("review");
+  const [tab, setTab] = useState<"review" | "manage" | ConvenerTab>("review");
   const d = q.data;
   const cohort = d?.cohorts.find((c) => c.id === id) ?? d?.cohorts[0];
 
@@ -200,12 +206,12 @@ export function LearningCohortPage() {
               </div>
             )}
           </header>
-          <div className="flex gap-1 border-b">
-            {(["review", "manage"] as const).map((t) => (
-              <button key={t} type="button" onClick={() => setTab(t)} className={`px-3 py-2 text-sm -mb-px border-b-2 ${tab === t ? "border-primary text-foreground" : "border-transparent text-muted-foreground"}`} data-testid={`tab-${t}`}>{t === "review" ? "Review" : "People"}</button>
+          <div className="flex gap-1 border-b overflow-x-auto scrollbar-hide">
+            {TABS.map(([t, label]) => (
+              <button key={t} type="button" onClick={() => setTab(t)} className={`px-3 py-2 text-sm -mb-px border-b-2 whitespace-nowrap ${tab === t ? "border-primary text-foreground" : "border-transparent text-muted-foreground"}`} data-testid={`tab-${t}`}>{label}</button>
             ))}
           </div>
-          {tab === "review" ? <ReviewQueue assignments={d.assignments} lessons={d.lessons} members={d.memberships} /> : <CohortManager cohortId={id} d={d} />}
+          {tab === "review" ? <ReviewQueue assignments={d.assignments} lessons={d.lessons} members={d.memberships} /> : tab === "manage" ? <CohortManager cohortId={id} d={d} /> : <ConvenerWorkspace cohortId={id} cohortTitle={cohort?.title} cohortEndsAt={cohort?.endsAt} lessons={d.lessons} tab={tab} onTab={setTab} readOnly={!cohort || cohort.state === "COMPLETED" || cohort.state === "ARCHIVED" || new Date(cohort.endsAt).getTime() <= Date.now()} />}
         </>
       )}
     </Shell>

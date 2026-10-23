@@ -67,6 +67,18 @@ paths:
         "404": { description: Owned artifact not found }
   /learn:
     $ref: "./learning.yaml#/paths/~1learn"
+  /learn/cohorts/{id}/convener:
+    $ref: "./convener.yaml#/paths/~1learn~1cohorts~1{id}~1convener"
+  /learn/cohorts/{id}/followups:
+    $ref: "./convener.yaml#/paths/~1learn~1cohorts~1{id}~1followups"
+  /learn/cohorts/{id}/meetings:
+    $ref: "./convener.yaml#/paths/~1learn~1cohorts~1{id}~1meetings"
+  /learn/cohorts/{id}/resources:
+    $ref: "./convener.yaml#/paths/~1learn~1cohorts~1{id}~1resources"
+  /learn/cohorts/{id}/messages:
+    $ref: "./convener.yaml#/paths/~1learn~1cohorts~1{id}~1messages"
+  /learn/memberships/{id}/support:
+    $ref: "./convener.yaml#/paths/~1learn~1memberships~1{id}~1support"
   /learn/cohorts:
     $ref: "./learning.yaml#/paths/~1learn~1cohorts"
   /learn/cohorts/{id}:
@@ -1709,6 +1721,22 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/CartridgeCreditsSummary" }
 
+  /cartridge/exemplars:
+    get:
+      operationId: listCartridgeExemplars
+      tags: [sessions]
+      summary: Available internal library references and the caller's archived artifacts for Cartridge F1
+      responses:
+        "200":
+          description: Authorized library sources with available text
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/CartridgeLibraryOption" }
+        "401":
+          description: Authentication required
+
   /cartridge:
     post:
       operationId: createCartridge
@@ -1717,6 +1745,11 @@ paths:
         Create a cartridge package (multi-document + SPCs + optional links).
         Atomically claims one available cartridge credit. Scope statement is
         mandatory and validated server-side (code SCOPE_REQUIRED).
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: "#/components/schemas/CartridgeInput" }
       responses:
         "201":
           description: Created
@@ -6216,6 +6249,41 @@ components:
         consumed: { type: integer, minimum: 0 }
         total: { type: integer, minimum: 0 }
 
+    CartridgeInput:
+      type: object
+      description: Metadata fields for the custom multipart upload transport, which also accepts up to five binary files parts
+      additionalProperties: true
+      required: [projectName, outcomeOneLiner, scopeStatement]
+      properties:
+        projectName: { type: string }
+        outcomeOneLiner: { type: string }
+        scopeStatement: { type: string }
+        targetPlatformHint: { type: string }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+        spcs: { type: string, description: JSON array of pasted SPC label/body pairs }
+        links: { type: string, description: JSON array of linked artifacts }
+        exemplarIds: { type: string, description: JSON array of up to 10 distinct authorized Exemplar IDs, resolved and snapshotted server-side }
+
+    CartridgeLibraryOption:
+      type: object
+      required: [id, title, kind, active, source, characters]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        kind: { type: string, enum: [SPC, MA, MPDD, PDD, F0_REPORT] }
+        active: { type: boolean }
+        source: { type: string, enum: [curated, library] }
+        characters: { type: integer }
+
+    CartridgeLibrarySnapshot:
+      allOf:
+        - $ref: "#/components/schemas/CartridgeLibraryOption"
+        - type: object
+          required: [body, contentSha256]
+          properties:
+            body: { type: string }
+            contentSha256: { type: string }
+
     CartridgeLinkKind:
       type: string
       enum: [git, database]
@@ -6290,6 +6358,9 @@ components:
         links:
           type: array
           items: { $ref: "#/components/schemas/CartridgeLinkSummary" }
+        librarySources:
+          type: array
+          items: { $ref: "#/components/schemas/CartridgeLibrarySnapshot" }
 
     CartridgeStartSessionInput:
       type: object

@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
 import learningRouter from "./learning";
+import learningConvenerRouter from "./learning-convener";
 import meRouter from "./me";
 import sessionsRouter from "./sessions";
 import artifactsRouter from "./artifacts";
@@ -40,6 +41,7 @@ import { guardSkippedEngine } from "../lib/artifact-operations/engine-guard";
 
 const router: IRouter = Router();
 router.use(learningRouter);
+router.use(learningConvenerRouter);
 router.use(guardSkippedEngine);
 router.use(artifactOperationsRouter);
 router.use(boomerangRouter);

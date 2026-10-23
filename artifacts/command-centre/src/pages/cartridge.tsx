@@ -31,6 +31,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { LibrarySourcePicker } from "@/components/cartridge/LibrarySourcePicker";
+import { RetainedLibrarySources } from "@/components/cartridge/RetainedLibrarySources";
 import {
   ArrowLeft,
   ArrowRight,
@@ -79,6 +81,7 @@ export default function Cartridge() {
   const [files, setFiles] = useState<File[]>([]);
   const [spcs, setSpcs] = useState<SpcDraft[]>([]);
   const [links, setLinks] = useState<LinkDraft[]>([]);
+  const [exemplarIds, setExemplarIds] = useState<string[]>([]);
 
   const [submitting, setSubmitting] = useState(false);
   const [cartridge, setCartridge] = useState<CartridgePackage | null>(null);
@@ -188,6 +191,8 @@ export default function Cartridge() {
       if (validSpcs.length > 0) formData.append("spcs", JSON.stringify(validSpcs));
       if (validLinks.length > 0)
         formData.append("links", JSON.stringify(validLinks));
+      if (exemplarIds.length > 0)
+        formData.append("exemplarIds", JSON.stringify(exemplarIds));
       for (const f of files) formData.append("files", f);
 
       const res = await fetch(`${basePath}/api/cartridge`, {
@@ -691,6 +696,12 @@ export default function Cartridge() {
                 )}
               </div>
 
+              <LibrarySourcePicker
+                selectedIds={exemplarIds}
+                onChange={setExemplarIds}
+                disabled={submitting || Boolean(cartridge)}
+              />
+
               <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button
                   onClick={handleSubmit}
@@ -761,6 +772,14 @@ export default function Cartridge() {
                     <div className="font-bold">{cartridge.links.length}</div>
                   </div>
                 </div>
+                {(cartridge.librarySources?.length ?? 0) > 0 && (
+                  <div className="rounded-md border p-3">
+                    <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                      RETAINED LIBRARY SOURCES · {cartridge.librarySources!.length}
+                    </div>
+                    <RetainedLibrarySources sources={cartridge.librarySources!} />
+                  </div>
+                )}
                 <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs font-serif">
                   <div className="font-mono uppercase text-primary tracking-wider mb-1">
                     SCOPE (PINNED)
@@ -781,6 +800,7 @@ export default function Cartridge() {
                       setFiles([]);
                       setSpcs([]);
                       setLinks([]);
+                      setExemplarIds([]);
                     }}
                     disabled={startSession.isPending}
                     className="font-mono text-xs"
