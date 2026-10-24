@@ -616,3 +616,31 @@ mtime_ms = 1792688156858
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/a0a4ca3f-9e9a-4e94-8041-be72456f73f6/79203ceb-5033-4b57-815e-3bd783aa0f8d"
 storage_version_token = "1792690099804243"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "D3SN_oUA6JRdZ9fYNeP56"
+uri = "file://generated-artifacts/atlas-360-plan/ATLAS_360_PLAN_Living_PDD_2026-10-24.pdf"
+type = "pdf"
+title = "ATLAS 360 PLAN — Living PDD"
+description = "23-page platform PDD dated 24 October 2026: ten parts, 45 atomic work items, implementation waves, current site map and activation register."
+logical_id = "bf0ebc94-c189-4cf3-b4a6-73ce9eff2442"
+content_hash = "sha256:ef85b805f7950e487d5244222859f8d5d18274767c2a9a0563fe47cc155a3ac1"
+size = 71464
+mtime_ms = 1792873883187
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/bf0ebc94-c189-4cf3-b4a6-73ce9eff2442/576cc490-7394-4641-b984-9d43592a35e9"
+storage_version_token = "1792873889392597"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "lwiE6UdGq7VCj5349FzWw"
+uri = "file://generated-artifacts/atlas-360-plan/ATLAS_360_PLAN_Living_PDD_2026-10-24.md"
+type = "text"
+title = "Living PDD — Editable Source"
+description = "Editable Markdown baseline for future evidence-linked revisions. Automatic monitoring is not activated."
+logical_id = "7e34a753-eb83-481a-9124-729c00796a28"
+content_hash = "sha256:99a241a05f6846b669f0fd6e11002a1687f9b956581216f81a7ad0f4c70540e4"
+size = 50311
+mtime_ms = 1792873883187
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/7e34a753-eb83-481a-9124-729c00796a28/48f6fbdb-9284-4682-96ed-2e9083e85f8b"
+storage_version_token = "1792873890163181"
+content_type = "text/markdown"
