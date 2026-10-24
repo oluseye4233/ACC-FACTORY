@@ -38,6 +38,7 @@ import {
   ArrowRight,
   FileText,
   FileUp,
+  Library,
   Loader2,
   Plus,
   Sparkles,
@@ -70,6 +71,7 @@ export default function Cartridge() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const librarySourcesRef = useRef<HTMLDivElement>(null);
 
   // Step 1 — SCOPE (required)
   const [projectName, setProjectName] = useState("");
@@ -521,11 +523,34 @@ export default function Cartridge() {
 
               {/* SPCs */}
               <div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <label className="text-xs font-mono font-bold uppercase text-muted-foreground tracking-wider">
                     EXISTING SPCs
                   </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const target = librarySourcesRef.current;
+                        target?.scrollIntoView({
+                          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                            ? "instant"
+                            : "smooth",
+                          block: "center",
+                        });
+                        target?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
+                      }}
+                      disabled={submitting || Boolean(cartridge)}
+                      className="text-xs"
+                      aria-controls="cartridge-library-sources"
+                      data-testid="button-add-library-source"
+                    >
+                      <Library className="h-3 w-3 mr-1" /> Add from Exemplar Library
+                    </Button>
                   <Button
+                    type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() =>
@@ -537,7 +562,11 @@ export default function Cartridge() {
                   >
                     <Plus className="h-3 w-3 mr-1" /> ADD SPC
                   </Button>
+                  </div>
                 </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Choose saved artifacts from the Exemplar Library, or use Add SPC to paste one manually.
+                </p>
                 {spcs.length === 0 ? (
                   <p className="mt-2 text-xs font-serif text-muted-foreground italic">
                     None added. You can paste up to 10 prior SPCs the HARNESS
@@ -696,11 +725,13 @@ export default function Cartridge() {
                 )}
               </div>
 
-              <LibrarySourcePicker
-                selectedIds={exemplarIds}
-                onChange={setExemplarIds}
-                disabled={submitting || Boolean(cartridge)}
-              />
+              <div id="cartridge-library-sources" ref={librarySourcesRef} className="scroll-mt-24">
+                <LibrarySourcePicker
+                  selectedIds={exemplarIds}
+                  onChange={setExemplarIds}
+                  disabled={submitting || Boolean(cartridge)}
+                />
+              </div>
 
               <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button
