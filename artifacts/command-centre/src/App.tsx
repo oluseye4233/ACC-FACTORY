@@ -30,6 +30,9 @@ import { ThemeProvider } from "next-themes";
 // Keep authentication/providers eager and persistent. Tool code loads only when
 // the existing route gate selects that tool; this does not grant access to it.
 const Verify = lazy(() => import("@/pages/verify"));
+const Landing = lazy(() => import("@/pages/landing"));
+const Pricing = lazy(() => import("@/pages/pricing"));
+const Billing = lazy(() => import("@/pages/billing"));
 const Command = lazy(() => import("@/pages/command"));
 const Sessions = lazy(() => import("@/pages/sessions"));
 const SessionNew = lazy(() => import("@/pages/session-new"));
@@ -76,13 +79,14 @@ function LoadingScreen() {
 }
 
 /**
- * Public verification pages stay reachable without the access code so a
- * certified MVP-PDD's public URL keeps resolving. Everything else sits behind
- * the staff front door.
+ * Marketing and verification are public. Workspace routes retain their existing
+ * staff/named-student access boundaries.
  */
 function PublicRoutes() {
   return (
     <Switch>
+      <Route path="/" component={Landing} />
+      <Route path="/pricing" component={Pricing} />
       <Route path="/verify" component={Verify} />
       <Route path="/test-your-agent" component={TestYourAgent} />
       <Route path="/calculate-your-savings" component={CalculateYourSavings} />
@@ -96,7 +100,9 @@ function PublicRoutes() {
 function AuthenticatedRoutes() {
   return (
     <Switch>
-      <Route path="/" component={() => <Redirect to="/command" />} />
+      <Route path="/" component={Landing} />
+      <Route path="/pricing" component={Pricing} />
+      <Route path="/billing" component={Billing} />
       <Route path="/verify" component={Verify} />
       <Route path="/test-your-agent" component={TestYourAgent} />
       <Route path="/calculate-your-savings" component={CalculateYourSavings} />
@@ -153,8 +159,14 @@ function Gate() {
     return () => window.clearInterval(timer);
   }, [identity.isLoaded, identity.isSignedIn, data?.authenticated, refetch]);
 
-  // Recovery/status must not wait on a session lookup backed by a failing DB.
-  if (requestedPath === "/status" || requestedPath === "/status/") return <PublicRoutes />;
+  // Public pages must remain usable while session lookup is pending or failing.
+  // The pathname comes from Wouter so in-app navigation re-evaluates this gate.
+  const publicPath = requestedPath.replace(/\/+$/, "") || "/";
+  if (["/", "/pricing", "/status", "/verify", "/sphinx", "/test-your-agent", "/calculate-your-savings"].includes(publicPath)) {
+    return <StaffSessionProvider session={data ?? { authenticated: false }}>
+      <PublicRoutes />
+    </StaffSessionProvider>;
+  }
 
   if (isLoading) return <LoadingScreen />;
 

@@ -7,11 +7,12 @@ import { Link } from "wouter";
 const auth = vi.hoisted(() => ({
   session: { authenticated: false, student: false },
   failed: false,
+  loading: false,
   identityMount: vi.fn(),
 }));
 vi.mock("@sentry/react", () => ({ init: vi.fn(), captureException: vi.fn() }));
 vi.mock("@/lib/staff-session", () => ({
-  useStaffSessionQuery: () => ({ data: auth.failed ? undefined : auth.session, isLoading: false, isError: auth.failed, refetch: vi.fn() }),
+  useStaffSessionQuery: () => ({ data: auth.failed ? undefined : auth.session, isLoading: auth.loading, isError: auth.failed, refetch: vi.fn() }),
   StaffSessionProvider: ({ children }: { children: ReactNode }) => children,
 }));
 vi.mock("@/components/learning-auth", () => ({
@@ -25,6 +26,13 @@ vi.mock("@/components/learning-auth", () => ({
 }));
 vi.mock("@/components/AccessGate", () => ({ AccessGate: () => <h1>Staff access</h1> }));
 vi.mock("@/components/ui/toaster", () => ({ Toaster: () => null }));
+vi.mock("@/pages/landing", () => ({
+  default: () => <><h1>ATANDA landing</h1><Link href="/pricing">View plans</Link><Link href="/command">Enter platform</Link></>,
+}));
+vi.mock("@/pages/pricing", () => ({
+  default: () => <><h1>Access tiers</h1><Link href="/">Back home</Link><Link href="/command">Enter platform</Link></>,
+}));
+vi.mock("@/pages/billing", () => ({ default: () => <h1>Billing account</h1> }));
 vi.mock("@/pages/command", () => ({
   default: () => <><h1>Command</h1><Link href="/guide">Open guide</Link></>,
 }));
@@ -54,6 +62,7 @@ afterEach(() => {
   cleanup();
   auth.session = { authenticated: false, student: false };
   auth.failed = false;
+  auth.loading = false;
   auth.identityMount.mockClear();
   window.history.replaceState({}, "", "/");
 });
@@ -64,6 +73,34 @@ function open(path: string) {
 }
 
 describe("on-demand routes retain existing access and identity boundaries", () => {
+  it.each(["/", "/pricing"])("renders public marketing %s without waiting for session lookup", async (path) => {
+    auth.loading = true;
+    open(path);
+    expect(await screen.findByRole("heading", { name: path === "/" ? "ATANDA landing" : "Access tiers" })).toBeTruthy();
+    expect(screen.queryByText("Loading…")).toBeNull();
+  });
+
+  it("navigates from landing to pricing and then to the protected front door", async () => {
+    open("/");
+    fireEvent.click(await screen.findByRole("link", { name: "View plans" }));
+    expect(await screen.findByRole("heading", { name: "Access tiers" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("link", { name: "Enter platform" }));
+    expect(await screen.findByRole("heading", { name: "Staff access" })).toBeTruthy();
+    expect(auth.identityMount).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps marketing public for signed-in users without redirecting them away", async () => {
+    auth.session = { authenticated: true, student: true };
+    open("/");
+    expect(await screen.findByRole("heading", { name: "ATANDA landing" })).toBeTruthy();
+  });
+
+  it("keeps billing account management behind the access gate", async () => {
+    open("/billing");
+    expect(await screen.findByRole("heading", { name: "Staff access" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Billing account" })).toBeNull();
+  });
+
   it("keeps a protected deep link behind staff access", async () => {
     open("/spc-player/new?sourceId=123");
     expect(await screen.findByRole("heading", { name: "Staff access" })).toBeTruthy();
@@ -105,6 +142,8 @@ describe("on-demand routes retain existing access and identity boundaries", () =
   });
 
   it.each([
+    ["/", "ATANDA landing"],
+    ["/pricing", "Access tiers"],
     ["/status", "Platform status"],
     ["/verify?id=example", "Verify credential"],
     ["/sphinx", "Sphinx marketplace"],

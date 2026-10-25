@@ -46,6 +46,8 @@ vi.mock("@workspace/api-client-react", () => ({
   useListFeatureState: () => useListFeatureStateMock(),
   useListSessionArtifacts: () => useListSessionArtifactsMock(),
   useGetSessionIngestion: () => useGetSessionIngestionMock(),
+  useGetSessionCartridge: () => ({ data: undefined, isLoading: false, isError: false }),
+  getGetSessionCartridgeQueryKey: (sessionId: string) => ["/sessions", sessionId, "cartridge"],
 }));
 
 // Chrome / side panels — not relevant to the F0 placement logic.
