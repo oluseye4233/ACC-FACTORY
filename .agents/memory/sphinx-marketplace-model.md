@@ -5,6 +5,16 @@ description: Sphinx commerce remains external while Exemplar supplies a shared l
 
 # Sphinx commerce and the shared supply catalog
 
+The user identifies `https://atanda.ai/marketplace` as the external SPHINX
+marketplace, not `atanda.com`.
+
+**Why:** The two domains are different sites; using the wrong one misdirects
+integration work.
+
+**How to apply:** Inspect the current marketplace and its actual source project
+before changing external behavior. A working upload handoff is not proof of
+catalog synchronization, shared identity or commercial delivery.
+
 Sphinx remains the external single point of sale. Exemplar now supplies the
 shared internal/public discovery catalog for MA, SPC, MPDD and PDD artifacts
 (see exemplar-open-marketplace.md). This supersedes the earlier rule that
