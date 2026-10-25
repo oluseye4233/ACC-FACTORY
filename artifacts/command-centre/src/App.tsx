@@ -215,7 +215,7 @@ function Gate() {
   }
 
   if (session.student) {
-    if (requestedPath === "/command" || requestedPath === "/") return <Redirect to="/learn" />;
+    if (!session.lifetimePractitioner && (requestedPath === "/command" || requestedPath === "/")) return <Redirect to="/learn" />;
     return <StaffSessionProvider session={session}>
       <AuthenticatedRoutes />
     </StaffSessionProvider>;

@@ -13,6 +13,8 @@ import type { LearningMembership } from './learningMembership';
 export interface LearningHome {
   plan: string;
   price: number;
+  /** Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing. */
+  lifetimePractitioner?: boolean;
   curriculumVersion: string;
   lessons: LearningLesson[];
   memberships: LearningMembership[];

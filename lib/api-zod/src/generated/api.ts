@@ -51,6 +51,7 @@ export const InstallArtifactGovernanceResponse = zod.object({
 export const GetLearningHomeResponse = zod.object({
   "plan": zod.string(),
   "price": zod.number(),
+  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing.'),
   "curriculumVersion": zod.string(),
   "lessons": zod.array(zod.object({
   "key": zod.string(),
@@ -504,6 +505,7 @@ export const GetLearningCohortParams = zod.object({
 export const GetLearningCohortResponse = zod.object({
   "plan": zod.string(),
   "price": zod.number(),
+  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing.'),
   "curriculumVersion": zod.string(),
   "lessons": zod.array(zod.object({
   "key": zod.string(),
@@ -608,6 +610,7 @@ export const ManageLearningCohortBody = zod.object({
 export const ManageLearningCohortResponse = zod.object({
   "plan": zod.string(),
   "price": zod.number(),
+  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing.'),
   "curriculumVersion": zod.string(),
   "lessons": zod.array(zod.object({
   "key": zod.string(),
@@ -808,6 +811,7 @@ export const GetLearningPortfolioParams = zod.object({
 export const GetLearningPortfolioResponse = zod.object({
   "plan": zod.string(),
   "price": zod.number(),
+  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing.'),
   "curriculumVersion": zod.string(),
   "lessons": zod.array(zod.object({
   "key": zod.string(),

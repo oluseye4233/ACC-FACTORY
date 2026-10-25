@@ -9,11 +9,17 @@ FORGE FIELD ENGINEER is the requested subscription name for free, invite-only In
 
 **How to apply:** Keep admission and course assessment separate from Quest eligibility. Do not add instructor approval, cohort completion, originality assessments or a new prerequisite badge chain to existing Quest rules. Do not weaken those rules for free students or grant credentials merely for joining. Individual course progress can differ from authoritative Quest status. The design document does not itself activate the service.
 
-Individual students use a parallel verified identity, not the shared staff login. Keep free education capabilities separate from commercial tier elevation; cohort funding is a lifetime allowance, while the existing company cap remains monthly.
+Individual students use a parallel verified identity, not the shared staff login. Accepted trainee invitations also confer a free-for-life Practitioner entitlement; course-funded educational capabilities remain separate from that entitlement.
 
-**Why:** The shared staff entrance grants administrator access. Reusing it for students would expose protected operations, and treating education as a paid tier would accidentally grant unrelated commercial privileges.
+**Why:** The shared staff entrance grants administrator access. On 2026-10-24 the user explicitly extended FORGE to give all invited course trainees free Practitioner for life. This is not permission to grant administration, Architect privileges or unlimited inference.
 
-**How to apply:** Validate named invitations against server-verified primary email. Recheck owned active membership and cohort state before reserving funded inference. Retain separate spent/reserved totals and existing global limits. Expired training access must not become a new prerequisite for ordinary earned Quest claims.
+**How to apply:** Activate the benefit on verified invitation acceptance, including historical accepted trainee invitations, with no completion requirement, charge, card or renewal. Preserve it after course expiry, completion, suspension or membership revocation; account security still applies. Resolve at least Practitioner without downgrading higher plans or overwriting payment records. Existing paid subscriptions are separate and must not be silently cancelled or refunded. Recheck owned active membership and cohort state before reserving funded course inference; retain separate spent/reserved totals and existing company limits. Expired training access must not become a new prerequisite for ordinary earned Quest claims.
+
+Accepted trainee invitations are the permanent grant evidence, not disposable enrollment metadata.
+
+**Why:** A lifetime benefit must survive administrative course changes and payment-provider cancellations without a new purchase or manual backfill.
+
+**How to apply:** Do not purge accepted invitation history as routine cleanup. If invitation retention ever changes, preserve or migrate permanent grants before deleting that evidence. Never infer a grant from an email match, client flag, unaccepted invitation or course attendance alone.
 
 The student identity provider must persist across public entry, sign-in and authenticated routing, rather than mounting only after the existing server-cookie gate recognizes a student.
 

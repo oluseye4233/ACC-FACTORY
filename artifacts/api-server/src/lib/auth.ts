@@ -28,6 +28,7 @@ declare global {
       memberships?: MembershipRow[];
       studentVerifiedEmail?: string;
       education?: { cohortId: string; membershipId: string };
+      lifetimePractitioner?: boolean;
     }
   }
 }
@@ -55,13 +56,16 @@ export async function requireAuth(
       req.clerkUserId = identity.user.clerkUserId; req.studentVerifiedEmail = identity.email;
       req.effectiveTier = identity.subscriber.tier;
       req.memberships = [];
+      req.lifetimePractitioner = identity.lifetimePractitioner;
       const hint = req.get("x-learning-membership");
       if (hint && !/^[a-f0-9-]{36}$/i.test(hint)) { res.status(400).json({ error: "Invalid training membership" }); return; }
       const enrolled = await activeLearningMembership(identity.user.id, hint);
-      if (!learningRouteAllowed(req.method, req.path, Boolean(enrolled))) {
+      if (!learningRouteAllowed(req.method, req.path, Boolean(enrolled), identity.lifetimePractitioner)) {
         res.status(403).json({ error: "This action is outside your active training subscription" }); return;
       }
-      if (enrolled) {
+      // Course funding/elevated teaching capabilities apply only to the existing
+      // curriculum route policy, never to newly available commercial operations.
+      if (enrolled && learningRouteAllowed(req.method, req.path, true)) {
         req.education = { cohortId: enrolled.cohort.id, membershipId: enrolled.member.id };
         learningCallContext.run({ userId: identity.user.id, ...req.education }, () => next());
       } else next();

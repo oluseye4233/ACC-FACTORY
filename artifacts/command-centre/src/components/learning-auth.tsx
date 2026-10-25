@@ -79,7 +79,7 @@ export function StudentLogin() {
       <div className="absolute right-5 top-5"><ThemeToggle /></div>
       <header className="max-w-md text-center">
         <h1 className="font-display text-3xl">FORGE FIELD ENGINEER</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Free, invite-only Architect and Engineer training. Use your own verified identity, never the shared staff code. Signing up does not grant cohort admission or a badge.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Free, invite-only Architect and Engineer training. Accepting a trainee invitation with your verified email activates Practitioner free for life, with no card or course-completion requirement. Standard usage limits apply. Use your own verified identity, never the shared staff code. Signing up alone does not grant the benefit, cohort admission or a badge.</p>
       </header>
       {register
         ? <SignUp routing="path" path={`${basePath}/learn-register`} signInUrl={`${basePath}/learn-login`} />

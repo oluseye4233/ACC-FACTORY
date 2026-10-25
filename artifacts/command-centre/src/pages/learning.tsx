@@ -101,6 +101,14 @@ export default function LearningHomePage() {
   return (
     <Shell>
       <Hero home={home} />
+      <section className="border rounded-md p-4 bg-primary/5 space-y-2" data-testid="panel-lifetime-practitioner">
+        <h2 className="font-display text-xl">{home.lifetimePractitioner ? "Practitioner · Free for life · Active" : "Your pathway to free-for-life Practitioner"}</h2>
+        <p className="text-sm">{home.lifetimePractitioner
+          ? "Your accepted FORGE trainee invitation gives you $0 Practitioner access with no expiry. It stays with your account after training ends; completing the course is not required."
+          : "Receive a trainee invitation, sign in with the invited verified email, and accept the free terms. Your Practitioner benefit activates immediately—no card, checkout or course completion required."}</p>
+        <p className="text-xs text-muted-foreground">Standard Practitioner usage limits and account security apply. Course funding is separate and bounded. Higher-tier features and Quest credentials are not automatically awarded. Existing paid subscriptions are not automatically cancelled.</p>
+        {home.lifetimePractitioner && <Button asChild size="sm"><Link href="/command" data-testid="button-lifetime-workspace">Open Practitioner workspace</Link></Button>}
+      </section>
       {(students.length === 0 || hasInvite) && <RedeemPanel terms={home.terms} compact={students.length > 0} />}
 
       {member && (

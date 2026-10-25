@@ -10,6 +10,7 @@ export type StaffSession = {
   tier?: string;
   student?: boolean;
   trainingActive?: boolean;
+  lifetimePractitioner?: boolean;
 };
 
 const SESSION_KEY = ["staff-session"] as const;

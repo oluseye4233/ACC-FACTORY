@@ -102,8 +102,12 @@ describe("Exemplar → Sphinx supply catalog", () => {
     const row = await item();
     const own = await (await api(`/exemplars/${row.id}`)).json();
     expect(own).toMatchObject({ isOwner: true, artifactMode: "LIBRARY_ARTIFACT", active: true, eligibility: { eligible: false } });
-    expect(await (await api(`/exemplars/${row.id}`, "GET", undefined, "other")).json())
-      .toMatchObject({ isOwner: false, canReview: false });
+    // Newly admitted Practitioner identities must not read another owner's
+    // private library artifacts merely by knowing their IDs.
+    expect((await api(`/exemplars/${row.id}`, "GET", undefined, "other")).status).toBe(404);
+    const othersLibrary = await (await api("/exemplars", "GET", undefined, "other")).json();
+    expect(othersLibrary.some((entry: { id: string }) => entry.id === row.id)).toBe(false);
+    expect((await api(`/exemplars/${row.id}`, "GET", undefined, "admin")).status).toBe(200);
     expect((await api(`/exemplars/${row.id}/visibility`, "PATCH", { active: false }, "other")).status).toBe(404);
     expect((await api(`/exemplars/${row.id}/visibility`, "PATCH", { active: false }, "admin")).status).toBe(404);
     expect((await api("/exemplars/sphinx-ultra-si/visibility", "PATCH", { artifactMode: "SPHINX_ARTIFACT" })).status).toBe(400);

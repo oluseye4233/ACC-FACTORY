@@ -8,6 +8,7 @@ import {
 } from "@workspace/db";
 import { boomerangHash } from "./boomerang";
 import { CURRICULUM_VERSION, LEARNING_LESSONS } from "./learning-curriculum";
+import { hasForgeLifetimePractitioner } from "./forge-lifetime";
 
 export type LearningReader = Pick<typeof db, "select">;
 export class LearningError extends Error {
@@ -102,12 +103,13 @@ export async function homeView(userId: string, isAdmin: boolean, cohortId?: stri
   const userByMembership = new Map(memberships.map((m) => [m.id, m.userId]));
   const result = {
     plan: "FORGE FIELD ENGINEER", price: 0, curriculumVersion: CURRICULUM_VERSION,
+    lifetimePractitioner: await hasForgeLifetimePractitioner(userId),
     lessons: LEARNING_LESSONS,
     memberships: await Promise.all(memberships.map((m) => memberView(db, m))),
     cohorts: await Promise.all(cRows.map((c) => cohortView(db, c))),
     assignments: await Promise.all(aRows.map((a) => assignmentView(db, a, userByMembership.get(a.membershipId)!))),
     canCreateCohort: isAdmin,
-    terms: "Free, invite-only training. No card, checkout or automatic paid conversion. Inference is programme-funded and bounded. Course assessment does not award, withhold or override existing Quest badges. Use synthetic data. Only explicitly submitted work is shared with assigned instructors.",
+    terms: "Free, invite-only training. Accepting a trainee invitation with your verified email also grants free-for-life Practitioner access: $0 subscription fee, no card, checkout, expiry, course-completion requirement or automatic paid conversion. Existing accepted trainee invitations qualify too. The benefit survives course expiry, completion, suspension or membership revocation; account security rules still apply. Standard Practitioner features and usage/spend limits apply; higher-tier features are not included. Course-funded inference remains separately bounded and may end with the course. Any existing paid subscription is separate and is not automatically cancelled or refunded. Course assessment does not award, withhold or override existing Quest badges. Use synthetic data. Only explicitly submitted work is shared with assigned instructors.",
   };
   if (!cohortId) return result;
   return {

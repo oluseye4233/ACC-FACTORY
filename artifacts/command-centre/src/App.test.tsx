@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Link } from "wouter";
 
 const auth = vi.hoisted(() => ({
-  session: { authenticated: false, student: false },
+  session: { authenticated: false, student: false } as { authenticated: boolean; student: boolean; lifetimePractitioner?: boolean },
   failed: false,
   loading: false,
   identityMount: vi.fn(),
@@ -60,7 +60,7 @@ Object.defineProperty(window, "matchMedia", {
 
 afterEach(() => {
   cleanup();
-  auth.session = { authenticated: false, student: false };
+  auth.session = { authenticated: false, student: false, lifetimePractitioner: false };
   auth.failed = false;
   auth.loading = false;
   auth.identityMount.mockClear();
@@ -132,6 +132,14 @@ describe("on-demand routes retain existing access and identity boundaries", () =
     auth.session = { authenticated: true, student: true };
     open("/command");
     expect(await screen.findByRole("heading", { name: "Training" })).toBeTruthy();
+  });
+
+  it("opens the Practitioner workspace for a verified lifetime trainee", async () => {
+    auth.session = { authenticated: true, student: true, lifetimePractitioner: true };
+    open("/command");
+    expect(await screen.findByRole("heading", { name: "Command" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Staff access" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Training" })).toBeNull();
   });
 
   it("retains invitations when authenticated enrollment redirects to training", async () => {

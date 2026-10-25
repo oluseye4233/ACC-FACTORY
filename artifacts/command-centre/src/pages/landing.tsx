@@ -38,8 +38,9 @@ export default function Landing() {
         <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(hsl(var(--foreground))_1px,transparent_1px),linear-gradient(90deg,hsl(var(--foreground))_1px,transparent_1px)] [background-size:48px_48px]" />
         <div className="relative mx-auto max-w-7xl px-4 md:px-6 py-20 md:py-28">
           <p className="font-mono text-xs uppercase tracking-[0.25em] text-primary">ATANDA / ARK Harness / private preview</p>
-          <h1 className="mt-6 font-display text-[clamp(3.5rem,11vw,9rem)] leading-[0.88]">
-            Prompts built<br />like <span className="text-primary">engineering.</span>
+          <h1 className="mt-6 max-w-6xl font-display text-[clamp(2.25rem,6.5vw,5.75rem)] leading-[1.02] [overflow-wrap:anywhere]" data-testid="text-landing-headline">
+            WELCOME TO OUR GOVERNED SPECIFICATION DRIVEN AI DESIGN LIFE CYCLE FACTORY{" "}
+            <span className="text-primary">(GS AI DLC)</span>
           </h1>
           <p className="mt-8 max-w-xl text-lg text-muted-foreground">The Command Centre walks a brief through staged, gated engines, keeps your references in scope, and sends weak work back for remediation instead of waving it through.</p>
           <div className="mt-10 flex flex-wrap gap-3">
@@ -98,7 +99,7 @@ export default function Landing() {
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-secondary">Free / invite-only</p>
             <h2 className="mt-2 font-display text-4xl">FORGE Field Engineer</h2>
-            <p className="mt-2 max-w-2xl text-muted-foreground">A convener-led learning programme. You need an existing invitation; contact your convener if you have not received one.</p>
+            <p className="mt-2 max-w-2xl text-muted-foreground">A free, convener-led learning programme with free-for-life Practitioner access for invited trainees. Verify your invited email and accept your invitation to activate it—no card or course-completion requirement. Standard usage limits apply. Contact your convener for an invitation.</p>
           </div>
           <Link href="/learn-register" className="inline-flex h-11 items-center justify-center border border-secondary px-6 font-display text-lg tracking-wider hover:bg-secondary/10" data-testid="link-landing-forge">Register with invite</Link>
         </div>

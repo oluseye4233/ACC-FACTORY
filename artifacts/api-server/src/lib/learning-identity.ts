@@ -3,6 +3,7 @@ import type { Request } from "express";
 import { db, usersTable, commandCentreSubscribersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { computeCreatorHash } from "./sku";
+import { applyForgePractitioner, hasForgeLifetimePractitioner } from "./forge-lifetime";
 
 /** Independent verified identities only. Never uses or elevates staff handles. */
 export async function learningIdentity(req: Request) {
@@ -27,5 +28,9 @@ export async function learningIdentity(req: Request) {
   }).onConflictDoNothing({ target: commandCentreSubscribersTable.userId });
   const [subscriber] = await db.select().from(commandCentreSubscribersTable)
     .where(eq(commandCentreSubscribersTable.userId, user!.id));
-  return { user: user!, subscriber: subscriber!, email };
+  const lifetimePractitioner = await hasForgeLifetimePractitioner(user!.id);
+  return {
+    user: user!, email, lifetimePractitioner,
+    subscriber: applyForgePractitioner(subscriber!, lifetimePractitioner),
+  };
 }

@@ -53,6 +53,12 @@ describe("public pricing", () => {
 });
 
 describe("landing", () => {
+  it("shows the governed specification-driven factory welcome", () => {
+    wrap(<Landing />);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+      "WELCOME TO OUR GOVERNED SPECIFICATION DRIVEN AI DESIGN LIFE CYCLE FACTORY (GS AI DLC)",
+    );
+  });
   it.each(["how", "workflow"])("scrolls to #%s after a cross-page lazy mount", (section) => {
     const descriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollIntoView");
     const scroll = vi.fn();

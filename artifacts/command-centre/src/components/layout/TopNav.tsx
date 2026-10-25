@@ -57,7 +57,8 @@ export function TopNav() {
         { href: "/verify", label: "Verify a certificate" },
         { href: "/status", label: "Service status" },
       ]
-    : session.student ? STAFF_LINKS.filter((l) => allowedStudentLinks.has(l.href)) :
+    : session.student ? STAFF_LINKS.filter((l) => allowedStudentLinks.has(l.href) ||
+      (session.lifetimePractitioner && ["/command", "/exemplars"].includes(l.href))) :
     session.role === "ADMIN"
       ? [
           ...STAFF_LINKS,

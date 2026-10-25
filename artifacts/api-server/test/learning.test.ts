@@ -14,6 +14,7 @@ import { LEARNING_LESSONS } from "../src/lib/learning-curriculum";
 import { learningCallContext, learningRouteAllowed } from "../src/lib/learning-access";
 import { reserveCostBudget, releaseCostBudgetReservation } from "../src/lib/cost-budget";
 import { computeBadgeProgress } from "../src/lib/badges";
+import { hasForgeLifetimePractitioner } from "../src/lib/forge-lifetime";
 
 vi.mock("../src/lib/auth", async () => {
   const { db, usersTable } = await import("@workspace/db");
@@ -106,13 +107,17 @@ describe("FORGE FIELD ENGINEER existing-Quest-compatible pilot", () => {
   });
   test("invitations bind verified recipients, accept terms and are idempotent without leaking token hashes", async () => {
     const token = await invite(emails[1]!);
+    expect(await hasForgeLifetimePractitioner(alice)).toBe(false);
     expect((await call("/learn/redeem", { token, acceptFreeTerms: true }, bob)).status).toBe(404);
+    expect(await hasForgeLifetimePractitioner(alice)).toBe(false);
     expect((await call("/learn/redeem", { token, acceptFreeTerms: false }, alice)).status).toBe(400);
     const joined = await call("/learn/redeem", { token, acceptFreeTerms: true }, alice);
     expect(joined.status).toBe(200); membershipId = joined.body.id;
     expect((await call("/learn/redeem", { token, acceptFreeTerms: true }, alice)).body.id).toBe(membershipId);
     const home = await call("/learn", undefined, alice);
     expect(home.body).toMatchObject({ plan: "FORGE FIELD ENGINEER", price: 0, canCreateCohort: false });
+    expect(home.body.lifetimePractitioner).toBe(true);
+    expect(home.body.terms).toContain("free-for-life Practitioner");
     expect(home.body.memberships).toHaveLength(1);
     const detail = await call(`/learn/cohorts/${cohortId}`);
     expect(JSON.stringify(detail.body)).not.toContain(token);
@@ -199,5 +204,14 @@ describe("FORGE FIELD ENGINEER existing-Quest-compatible pilot", () => {
     const stages = new Set(LEARNING_LESSONS.map((l) => l.stage));
     for (const stage of ["F0", "F1", "F2", "F3", "F4", "F5", "F6", "F6-VDJ", "MM", "F7", "F8", "F8-HDJ", "F9", "F9.5", "F10", "F11", "F12"]) expect(stages.has(stage)).toBe(true);
     expect(LEARNING_LESSONS.find((l) => l.stage === "F12")?.mode).toBe("SIMULATION");
+  });
+  test("lifetime grant survives training revocation and cohort expiry without granting credentials", async () => {
+    await db.update(members).set({ state: "REVOKED" }).where(eq(members.id, membershipId));
+    await db.update(cohorts).set({ state: "ARCHIVED", endsAt: new Date(0) }).where(eq(cohorts.id, cohortId));
+    expect(await hasForgeLifetimePractitioner(alice)).toBe(true);
+    expect(await hasForgeLifetimePractitioner(owner)).toBe(false);
+    const home = await call("/learn", undefined, alice);
+    expect(home.body.lifetimePractitioner).toBe(true);
+    expect(home.body.memberships.find((m: any) => m.id === membershipId).state).toBe("REVOKED");
   });
 });

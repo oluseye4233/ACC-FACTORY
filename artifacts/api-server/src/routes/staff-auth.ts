@@ -136,7 +136,8 @@ router.get("/auth/session", async (req, res): Promise<void> => {
       if (!identity) { res.json({ authenticated: false }); return; }
       const enrolled = await activeLearningMembership(identity.user.id);
       res.json({ authenticated: true, name: identity.user.displayName, handle: identity.user.id,
-        role: "USER", tier: identity.subscriber.tier, student: true, trainingActive: Boolean(enrolled) });
+        role: "USER", tier: identity.subscriber.tier, student: true, trainingActive: Boolean(enrolled),
+        lifetimePractitioner: identity.lifetimePractitioner });
     } catch {
       res.status(503).json({ error: "Student identity service unavailable" });
     }

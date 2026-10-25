@@ -66,6 +66,7 @@ router.get("/exemplars", requireAuth, async (req, res): Promise<void> => {
   const contributed = await db
     .select()
     .from(exemplarLibraryItemsTable)
+    .where(req.localUser!.role === "ADMIN" ? undefined : eq(exemplarLibraryItemsTable.ownerUserId, req.localUser!.id))
     .orderBy(desc(exemplarLibraryItemsTable.createdAt));
   res.json([
     ...listExemplars().map((item) => ({ ...item, marketplace: "curated", spcPlayer: null, active: true,
@@ -87,7 +88,10 @@ router.get("/exemplars/:id", requireAuth, async (req, res): Promise<void> => {
   const [row] = await db
     .select()
     .from(exemplarLibraryItemsTable)
-    .where(eq(exemplarLibraryItemsTable.id, String(req.params.id)))
+    .where(and(
+      eq(exemplarLibraryItemsTable.id, String(req.params.id)),
+      req.localUser!.role === "ADMIN" ? undefined : eq(exemplarLibraryItemsTable.ownerUserId, req.localUser!.id),
+    ))
     .limit(1);
   if (!row) {
     res.status(404).json({ error: "Exemplar not found" });

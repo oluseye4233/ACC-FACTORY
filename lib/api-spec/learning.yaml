@@ -239,6 +239,9 @@ components:
       properties:
         plan: { type: string }
         price: { type: number }
+        lifetimePractitioner:
+          type: boolean
+          description: Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing.
         curriculumVersion: { type: string }
         lessons: { type: array, items: { $ref: "#/components/schemas/LearningLesson" } }
         memberships: { type: array, items: { $ref: "#/components/schemas/LearningMembership" } }
