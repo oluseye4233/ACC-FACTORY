@@ -5,8 +5,11 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { LearningMembershipCertification } from './learningMembershipCertification';
 
 export interface LearningMembership {
+  /** @nullable */
+  certification?: LearningMembershipCertification;
   id: string;
   cohortId: string;
   userId: string;

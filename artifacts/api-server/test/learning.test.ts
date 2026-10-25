@@ -15,6 +15,7 @@ import { learningCallContext, learningRouteAllowed } from "../src/lib/learning-a
 import { reserveCostBudget, releaseCostBudgetReservation } from "../src/lib/cost-budget";
 import { computeBadgeProgress } from "../src/lib/badges";
 import { hasForgeLifetimePractitioner } from "../src/lib/forge-lifetime";
+import { evidenceHash } from "../src/lib/learning-service";
 
 vi.mock("../src/lib/auth", async () => {
   const { db, usersTable } = await import("@workspace/db");
@@ -116,8 +117,8 @@ describe("FORGE FIELD ENGINEER existing-Quest-compatible pilot", () => {
     expect((await call("/learn/redeem", { token, acceptFreeTerms: true }, alice)).body.id).toBe(membershipId);
     const home = await call("/learn", undefined, alice);
     expect(home.body).toMatchObject({ plan: "FORGE FIELD ENGINEER", price: 0, canCreateCohort: false });
-    expect(home.body.lifetimePractitioner).toBe(true);
-    expect(home.body.terms).toContain("free-for-life Practitioner");
+    expect(home.body.lifetimePractitioner).toBe(false);
+    expect(home.body.terms).toContain("Free-for-life Practitioner");
     expect(home.body.memberships).toHaveLength(1);
     const detail = await call(`/learn/cohorts/${cohortId}`);
     expect(JSON.stringify(detail.body)).not.toContain(token);
@@ -205,13 +206,68 @@ describe("FORGE FIELD ENGINEER existing-Quest-compatible pilot", () => {
     for (const stage of ["F0", "F1", "F2", "F3", "F4", "F5", "F6", "F6-VDJ", "MM", "F7", "F8", "F8-HDJ", "F9", "F9.5", "F10", "F11", "F12"]) expect(stages.has(stage)).toBe(true);
     expect(LEARNING_LESSONS.find((l) => l.stage === "F12")?.mode).toBe("SIMULATION");
   });
-  test("lifetime grant survives training revocation and cohort expiry without granting credentials", async () => {
-    await db.update(members).set({ state: "REVOKED" }).where(eq(members.id, membershipId));
+  test("requires completion AND issued certification, not acceptance or an unreviewed completion flag", async () => {
+    expect(await hasForgeLifetimePractitioner(alice)).toBe(false);
+    expect((await manage({ action: "CERTIFY", subjectId: membershipId })).status).toBe(409);
+    await db.update(members).set({ state: "COMPLETED", completedAt: new Date() }).where(eq(members.id, membershipId));
+    expect(await hasForgeLifetimePractitioner(alice)).toBe(false);
+    expect((await manage({ action: "CERTIFY", subjectId: membershipId })).status).toBe(409);
+    await db.update(members).set({ state: "ACTIVE", completedAt: null }).where(eq(members.id, membershipId));
+
+    // Owned synthetic evidence and independent instructor reviews for each
+    // required lesson; no LLM call and no grant/certificate row is seeded.
+    for (const lesson of LEARNING_LESSONS.filter((l) => l.required)) {
+      const previous = (await db.select().from(assignments).where(eq(assignments.membershipId, membershipId)))
+        .find((a) => a.lessonKey === lesson.key);
+      const version = (previous?.version ?? 0) + 1;
+      const [a] = await db.insert(assignments).values({
+        membershipId, lessonKey: lesson.key, state: "LEARNING_COMPLETE", version,
+      }).onConflictDoUpdate({
+        target: [assignments.membershipId, assignments.lessonKey],
+        set: { state: "LEARNING_COMPLETE", version },
+      }).returning();
+      const rows = lesson.mode === "ACTUAL_PLATFORM" ? await db.insert(harnessArtifactsTable).values({
+        sessionId, userId: alice, featureId: 1, artifactType: (lesson.artifactType || "PROMPT_DIAGNOSTIC") as any,
+        artifactContent: { syntheticTrainingEvidence: lesson.key },
+      }).returning() : [];
+      const text = `Reviewed synthetic coursework evidence for ${lesson.key}.`;
+      const [s] = await db.insert(submissions).values({
+        assignmentId: a!.id, version, mode: lesson.mode, text, artifactIds: rows.map((r) => r.id),
+        sourceHash: evidenceHash(text, lesson.mode, rows),
+      }).returning();
+      await db.insert(reviews).values({
+        submissionId: s!.id, reviewerId: owner, decision: "LEARNING_COMPLETE",
+        feedback: "Reviewed owned synthetic evidence for this required lesson.",
+      });
+    }
+    expect((await manage({ action: "COMPLETE", subjectId: membershipId })).status).toBe(200);
+    expect(await hasForgeLifetimePractitioner(alice)).toBe(false);
+    expect((await call(`/learn/cohorts/${cohortId}/manage`, { action: "CERTIFY", subjectId: membershipId }, alice)).status).toBe(404);
+    expect((await call(`/learn/cohorts/${cohortId}/manage`, { action: "CERTIFY", subjectId: membershipId }, otherOwner)).status).toBe(404);
+
+    // Stale evidence must not be certified even after course completion.
+    const actual = (await db.select().from(submissions).where(eq(submissions.assignmentId,
+      (await db.select().from(assignments).where(eq(assignments.membershipId, membershipId))).find((a) => a.lessonKey === "f1")!.id)))
+      .sort((a, b) => b.version - a.version)[0]!;
+    const [bound] = await db.select().from(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, actual.artifactIds[0]!));
+    await db.update(harnessArtifactsTable).set({ artifactContent: { stale: true } }).where(eq(harnessArtifactsTable.id, bound!.id));
+    expect((await manage({ action: "CERTIFY", subjectId: membershipId })).status).toBe(409);
+    expect(await hasForgeLifetimePractitioner(alice)).toBe(false);
+    await db.update(harnessArtifactsTable).set({ artifactContent: bound!.artifactContent }).where(eq(harnessArtifactsTable.id, bound!.id));
+    const issued = await manage({ action: "CERTIFY", subjectId: membershipId });
+    expect(issued.status).toBe(200);
+    const certificate = issued.body.memberships.find((m: any) => m.id === membershipId).certification;
+    expect(certificate).toMatchObject({ title: "FORGE FIELD ENGINEER Certification", membershipId, issuedBy: owner });
+    expect(await hasForgeLifetimePractitioner(alice)).toBe(true);
+    const again = await manage({ action: "CERTIFY", subjectId: membershipId });
+    expect(again.body.memberships.find((m: any) => m.id === membershipId).certification.id).toBe(certificate.id);
+  });
+  test("issued certification retains lifetime access after cohort expiry without awarding Quest badges", async () => {
     await db.update(cohorts).set({ state: "ARCHIVED", endsAt: new Date(0) }).where(eq(cohorts.id, cohortId));
     expect(await hasForgeLifetimePractitioner(alice)).toBe(true);
     expect(await hasForgeLifetimePractitioner(owner)).toBe(false);
     const home = await call("/learn", undefined, alice);
     expect(home.body.lifetimePractitioner).toBe(true);
-    expect(home.body.memberships.find((m: any) => m.id === membershipId).state).toBe("REVOKED");
+    expect(home.body.memberships.find((m: any) => m.id === membershipId).certification).toBeTruthy();
   });
 });

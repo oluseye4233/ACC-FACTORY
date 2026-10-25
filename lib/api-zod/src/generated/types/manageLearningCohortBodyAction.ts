@@ -15,4 +15,5 @@ export const ManageLearningCohortBodyAction = {
   REVOKE_INVITE: 'REVOKE_INVITE',
   MEMBERSHIP: 'MEMBERSHIP',
   COMPLETE: 'COMPLETE',
+  CERTIFY: 'CERTIFY',
 } as const;

@@ -10,6 +10,7 @@ import {
 } from "@workspace/db";
 import { requireAuth, requireAdmin } from "../lib/auth";
 import { LEARNING_LESSONS, CURRICULUM_VERSION } from "../lib/learning-curriculum";
+import { FORGE_CERTIFICATION_ACTION, getForgeCertification } from "../lib/forge-lifetime";
 import {
   fail, LearningError, homeView, teachingScope, cohortOpen, ownedMembership,
   artifactSnapshot, evidenceHash, assignmentView, submissionChanged, memberView, lessonsFor,
@@ -47,7 +48,7 @@ router.get("/learn/cohorts/:id", requireAuth, wrap(async (req, res) => {
   res.json(await homeView(req.localUser.id, req.localUser.role === "ADMIN", uuid.parse(req.params.id)));
 }));
 const Manage = z.object({
-  action: z.enum(["STATE", "INVITE", "REVOKE_INVITE", "MEMBERSHIP", "COMPLETE"]),
+  action: z.enum(["STATE", "INVITE", "REVOKE_INVITE", "MEMBERSHIP", "COMPLETE", "CERTIFY"]),
   state: z.string().optional(), email: z.email().max(320).optional(),
   role: z.enum(["STUDENT", "INSTRUCTOR"]).optional(), subjectId: uuid.optional(),
   track: z.enum(["BOTH", "ARCHITECT", "ENGINEER"]).optional(),
@@ -90,16 +91,36 @@ router.post("/learn/cohorts/:id/manage", requireAuth, wrap(async (req, res) => {
       const [m] = await tx.select().from(members).where(and(eq(members.id, b.subjectId), eq(members.cohortId, id))).for("update");
       if (!m) fail(404, "Membership not found");
       subjectId = m.id;
-      if (b.action === "COMPLETE") {
-        if (m.role !== "STUDENT" || m.state !== "ACTIVE" || !cohortOpen(c)) fail(409, "Completion requires an active student in an active cohort");
+      if (b.action === "COMPLETE" || b.action === "CERTIFY") {
+        if (b.action === "COMPLETE" && (m.role !== "STUDENT" || m.state !== "ACTIVE" || !cohortOpen(c))) fail(409, "Completion requires an active student in an active cohort");
+        if (b.action === "CERTIFY") {
+          if (m.role !== "STUDENT" || m.state !== "COMPLETED" || !m.completedAt) fail(409, "Complete the course before issuing FORGE certification");
+          const [accepted] = await tx.select({ id: invites.id }).from(invites).where(and(
+            eq(invites.cohortId, c.id), eq(invites.acceptedUserId, m.userId),
+            eq(invites.state, "ACCEPTED"), eq(invites.role, "STUDENT"),
+          )).limit(1);
+          if (!accepted) fail(409, "Certification requires an accepted trainee invitation");
+          // Cohort/member locks serialize issuance; repeated requests return the
+          // same durable certificate rather than issuing duplicate credentials.
+          if (await getForgeCertification(m.userId, tx, m.id)) return;
+        }
         const a = await tx.select().from(assignments).where(eq(assignments.membershipId, m.id));
         for (const lesson of lessonsFor(m.track).filter((l) => l.required)) {
           const attempt = a.find((item) => item.lessonKey === lesson.key);
           if (!attempt || attempt.state !== "LEARNING_COMPLETE") fail(409, `Learning review still required: ${lesson.title}`);
           const [s] = await tx.select().from(submissions).where(eq(submissions.assignmentId, attempt.id)).orderBy(desc(submissions.version)).limit(1);
           if (!s || await submissionChanged(tx, m.userId, s)) fail(409, `Evidence changed: ${lesson.title}`);
+          const [review] = await tx.select().from(reviews).where(eq(reviews.submissionId, s.id)).orderBy(desc(reviews.createdAt)).limit(1);
+          if (!review || review.decision !== "LEARNING_COMPLETE") fail(409, `Accepted review required: ${lesson.title}`);
         }
-        await tx.update(members).set({ state: "COMPLETED", completedAt: new Date() }).where(eq(members.id, m.id));
+        if (b.action === "COMPLETE") {
+          await tx.update(members).set({ state: "COMPLETED", completedAt: new Date() }).where(eq(members.id, m.id));
+        } else {
+          await tx.insert(audit).values({
+            cohortId: id, actorId: req.localUser.id,
+            action: FORGE_CERTIFICATION_ACTION, subjectId: m.id,
+          });
+        }
       } else {
         if (!["ACTIVE", "SUSPENDED", "REVOKED"].includes(b.state || "")) fail(400, "Valid membership state required");
         if (m.state === "REVOKED" || m.state === "COMPLETED" || c.state === "ARCHIVED") fail(409, "Terminal membership/cohort is read-only");

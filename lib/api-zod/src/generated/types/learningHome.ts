@@ -13,7 +13,7 @@ import type { LearningMembership } from './learningMembership';
 export interface LearningHome {
   plan: string;
   price: number;
-  /** Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing. */
+  /** Free-for-life Practitioner entitlement unlocked only by course completion and an issued FORGE FIELD ENGINEER Certification; independent of paid billing and later cohort expiry. */
   lifetimePractitioner?: boolean;
   curriculumVersion: string;
   lessons: LearningLesson[];

@@ -153,7 +153,7 @@ export function invalidateLearning(qc: QueryClient) {
   });
 }
 
-export function downloadJson(name: string, data: LearningHome) {
+export function downloadJson(name: string, data: unknown) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

@@ -9,17 +9,17 @@ FORGE FIELD ENGINEER is the requested subscription name for free, invite-only In
 
 **How to apply:** Keep admission and course assessment separate from Quest eligibility. Do not add instructor approval, cohort completion, originality assessments or a new prerequisite badge chain to existing Quest rules. Do not weaken those rules for free students or grant credentials merely for joining. Individual course progress can differ from authoritative Quest status. The design document does not itself activate the service.
 
-Individual students use a parallel verified identity, not the shared staff login. Accepted trainee invitations also confer a free-for-life Practitioner entitlement; course-funded educational capabilities remain separate from that entitlement.
+Individual students use a parallel verified identity, not the shared staff login. Completing the FORGE course AND receiving FORGE FIELD ENGINEER Certification unlocks a free-for-life Practitioner entitlement; invitation acceptance alone does not.
 
-**Why:** The shared staff entrance grants administrator access. On 2026-10-24 the user explicitly extended FORGE to give all invited course trainees free Practitioner for life. This is not permission to grant administration, Architect privileges or unlimited inference.
+**Why:** The user clarified that certification is the unlock, contingent on course completion. This supersedes the earlier invitation-based interpretation. The shared staff entrance grants administrator access; free Practitioner is not permission to grant administration, Architect privileges or unlimited inference.
 
-**How to apply:** Activate the benefit on verified invitation acceptance, including historical accepted trainee invitations, with no completion requirement, charge, card or renewal. Preserve it after course expiry, completion, suspension or membership revocation; account security still applies. Resolve at least Practitioner without downgrading higher plans or overwriting payment records. Existing paid subscriptions are separate and must not be silently cancelled or refunded. Recheck owned active membership and cohort state before reserving funded course inference; retain separate spent/reserved totals and existing company limits. Expired training access must not become a new prerequisite for ordinary earned Quest claims.
+**How to apply:** Invitation acceptance starts training only. Require completed coursework and an explicitly issued, durable FORGE course certification before granting lifetime Practitioner. Do not infer certification from a membership completion flag or award it retroactively to invited users. The convener issues it after the required current evidence and accepted reviews are checked; the student can receive/download the record. Once certified, preserve lifetime access after cohort expiry/archive; retain account security and standard usage limits. Resolve at least Practitioner without downgrading higher plans or overwriting payment records. Existing paid subscriptions are separate and must not be silently cancelled or refunded. Course funding still requires active eligible training and separate spending limits. FORGE course certification must not award or change existing Quest credentials.
 
-Accepted trainee invitations are the permanent grant evidence, not disposable enrollment metadata.
+Accepted invitations, completed coursework and issued certification records are permanent grant evidence, not disposable enrollment metadata.
 
 **Why:** A lifetime benefit must survive administrative course changes and payment-provider cancellations without a new purchase or manual backfill.
 
-**How to apply:** Do not purge accepted invitation history as routine cleanup. If invitation retention ever changes, preserve or migrate permanent grants before deleting that evidence. Never infer a grant from an email match, client flag, unaccepted invitation or course attendance alone.
+**How to apply:** Do not purge certification issuance or its bound enrollment evidence as routine cleanup. If retention ever changes, preserve or migrate earned permanent grants first. Never infer a grant from an email match, client flag, invitation acceptance, attendance or an uncertified completion flag.
 
 The student identity provider must persist across public entry, sign-in and authenticated routing, rather than mounting only after the existing server-cookie gate recognizes a student.
 

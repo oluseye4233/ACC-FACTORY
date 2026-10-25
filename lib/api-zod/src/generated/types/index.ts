@@ -430,6 +430,7 @@ export * from './learningCohortDetailInvitationsItem';
 export * from './learningHome';
 export * from './learningLesson';
 export * from './learningMembership';
+export * from './learningMembershipCertification';
 export * from './learningReview';
 export * from './learningSubmission';
 export * from './listBoomerangCasesOriginKind';

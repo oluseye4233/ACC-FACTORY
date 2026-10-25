@@ -85,7 +85,7 @@ export default function Pricing() {
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-secondary" data-testid="status-forge">Free / invite-only programme</p>
             <h2 className="mt-2 font-display text-4xl">FORGE Field Engineer</h2>
-            <p className="mt-2 max-w-2xl text-muted-foreground">Invited trainees receive Practitioner free for life: $0 subscription fee, no expiry, no card and no course-completion requirement. Sign in with your invited verified email and accept the invitation to activate it. Existing accepted trainees qualify too. Standard Practitioner usage limits apply; higher-tier features and course funding remain separate.</p>
+            <p className="mt-2 max-w-2xl text-muted-foreground">Complete the FORGE FIELD ENGINEER course and receive its certification to unlock Practitioner free for life: $0 subscription fee, no expiry and no card. Invitation acceptance or course completion without certification does not unlock the benefit. Standard Practitioner usage limits apply; higher-tier features and course funding remain separate.</p>
           </div>
           <Link href="/learn-register" className="inline-flex h-11 items-center justify-center border border-secondary px-6 font-display text-lg tracking-wider hover:bg-secondary/10" data-testid="link-forge-register">Register with invite</Link>
         </div>

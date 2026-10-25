@@ -5622,7 +5622,20 @@ export interface LearningCohort {
   createdAt: string;
 }
 
+/**
+ * @nullable
+ */
+export type LearningMembershipCertification = {
+  id: string;
+  title: string;
+  membershipId: string;
+  issuedAt: string;
+  issuedBy: string;
+} | null;
+
 export interface LearningMembership {
+  /** @nullable */
+  certification?: LearningMembershipCertification;
   id: string;
   cohortId: string;
   userId: string;
@@ -5667,7 +5680,7 @@ export interface LearningAssignment {
 export interface LearningHome {
   plan: string;
   price: number;
-  /** Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing. */
+  /** Free-for-life Practitioner entitlement unlocked only by course completion and an issued FORGE FIELD ENGINEER Certification; independent of paid billing and later cohort expiry. */
   lifetimePractitioner?: boolean;
   curriculumVersion: string;
   lessons: LearningLesson[];
@@ -5935,6 +5948,7 @@ export const ManageLearningCohortBodyAction = {
   REVOKE_INVITE: 'REVOKE_INVITE',
   MEMBERSHIP: 'MEMBERSHIP',
   COMPLETE: 'COMPLETE',
+  CERTIFY: 'CERTIFY',
 } as const;
 
 export type ManageLearningCohortBodyRole = typeof ManageLearningCohortBodyRole[keyof typeof ManageLearningCohortBodyRole];

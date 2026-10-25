@@ -8,7 +8,7 @@ import {
 } from "@workspace/db";
 import { boomerangHash } from "./boomerang";
 import { CURRICULUM_VERSION, LEARNING_LESSONS } from "./learning-curriculum";
-import { hasForgeLifetimePractitioner } from "./forge-lifetime";
+import { getForgeCertification, hasForgeLifetimePractitioner } from "./forge-lifetime";
 
 export type LearningReader = Pick<typeof db, "select">;
 export class LearningError extends Error {
@@ -77,7 +77,9 @@ export async function usage(reader: LearningReader, cohortId: string, userId?: s
 }
 export async function memberView(reader: LearningReader, m: typeof members.$inferSelect) {
   const [u] = await reader.select({ name: usersTable.displayName }).from(usersTable).where(eq(usersTable.id, m.userId));
-  return { ...m, name: u?.name || "Student", ...await usage(reader, m.cohortId, m.userId) };
+  return { ...m, name: u?.name || "Student",
+    certification: await getForgeCertification(m.userId, reader, m.id),
+    ...await usage(reader, m.cohortId, m.userId) };
 }
 async function cohortView(reader: LearningReader, c: typeof cohorts.$inferSelect) {
   return { ...c, budgetUsd: Number(c.budgetUsd), studentBudgetUsd: Number(c.studentBudgetUsd), ...await usage(reader, c.id) };
@@ -109,7 +111,7 @@ export async function homeView(userId: string, isAdmin: boolean, cohortId?: stri
     cohorts: await Promise.all(cRows.map((c) => cohortView(db, c))),
     assignments: await Promise.all(aRows.map((a) => assignmentView(db, a, userByMembership.get(a.membershipId)!))),
     canCreateCohort: isAdmin,
-    terms: "Free, invite-only training. Accepting a trainee invitation with your verified email also grants free-for-life Practitioner access: $0 subscription fee, no card, checkout, expiry, course-completion requirement or automatic paid conversion. Existing accepted trainee invitations qualify too. The benefit survives course expiry, completion, suspension or membership revocation; account security rules still apply. Standard Practitioner features and usage/spend limits apply; higher-tier features are not included. Course-funded inference remains separately bounded and may end with the course. Any existing paid subscription is separate and is not automatically cancelled or refunded. Course assessment does not award, withhold or override existing Quest badges. Use synthetic data. Only explicitly submitted work is shared with assigned instructors.",
+    terms: "Free, invite-only training. Free-for-life Practitioner access unlocks only after you complete the FORGE FIELD ENGINEER course and receive its recorded FORGE FIELD ENGINEER Certification from the convener. Accepting an invitation, attending lessons or course completion alone does not unlock it. Once certified, the Practitioner subscription fee is $0 for life, with no card, expiry or automatic paid conversion; the benefit survives cohort expiry or archive. Standard Practitioner usage/spend limits and account security apply; higher-tier features are not included. Course-funded inference is separate, bounded and may end with the course. Existing paid subscriptions are not automatically cancelled or refunded. FORGE course certification does not award, withhold or override existing Quest badges or external artifact certification. Use synthetic data. Only explicitly submitted work is shared with assigned instructors.",
   };
   if (!cohortId) return result;
   return {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "wouter";
-import { getLearningPortfolio, useGetLearningCohort, useGetLearningHome, type LearningHome } from "@workspace/api-client-react";
+import { getGetMeQueryKey, getLearningPortfolio, useGetLearningCohort, useGetLearningHome, type LearningHome } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Download, GraduationCap } from "lucide-react";
 import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
@@ -68,8 +69,15 @@ function QuestNote() {
 }
 
 export default function LearningHomePage() {
-  const q = useGetLearningHome();
+  const qc = useQueryClient();
+  const q = useGetLearningHome({ query: { refetchInterval: 60_000, refetchOnWindowFocus: true } });
   const home = q.data;
+  useEffect(() => {
+    if (home?.lifetimePractitioner !== undefined) {
+      void qc.invalidateQueries({ queryKey: ["staff-session"] });
+      void qc.invalidateQueries({ queryKey: getGetMeQueryKey() });
+    }
+  }, [home?.lifetimePractitioner, qc]);
   const [memberId, setMemberId] = useState<string | null>(null);
   const [lessonKey, setLessonKey] = useState<string | null>(null);
   const [dlErr, setDlErr] = useState<string | null>(null);
@@ -104,8 +112,8 @@ export default function LearningHomePage() {
       <section className="border rounded-md p-4 bg-primary/5 space-y-2" data-testid="panel-lifetime-practitioner">
         <h2 className="font-display text-xl">{home.lifetimePractitioner ? "Practitioner · Free for life · Active" : "Your pathway to free-for-life Practitioner"}</h2>
         <p className="text-sm">{home.lifetimePractitioner
-          ? "Your accepted FORGE trainee invitation gives you $0 Practitioner access with no expiry. It stays with your account after training ends; completing the course is not required."
-          : "Receive a trainee invitation, sign in with the invited verified email, and accept the free terms. Your Practitioner benefit activates immediately—no card, checkout or course completion required."}</p>
+          ? "You have completed the course and received your FORGE FIELD ENGINEER Certification. Your $0 Practitioner access is unlocked for life and remains after the cohort ends."
+          : "Join with your verified trainee invitation, complete the required course work, and receive your FORGE FIELD ENGINEER Certification from your convener. That certification—not joining or completion alone—unlocks Practitioner free for life."}</p>
         <p className="text-xs text-muted-foreground">Standard Practitioner usage limits and account security apply. Course funding is separate and bounded. Higher-tier features and Quest credentials are not automatically awarded. Existing paid subscriptions are not automatically cancelled.</p>
         {home.lifetimePractitioner && <Button asChild size="sm"><Link href="/command" data-testid="button-lifetime-workspace">Open Practitioner workspace</Link></Button>}
       </section>
@@ -126,7 +134,16 @@ export default function LearningHomePage() {
               <p className="text-muted-foreground">Cohort: {currentCohort?.state ?? "unavailable"} · Funded allowance: {usd(currentCohort?.studentBudgetUsd ?? 0)}</p>
               {!learningOpen && <p>New training work is paused. Your records, portfolio export and existing Quest eligibility remain available.</p>}
               {(() => { const p = requiredDone(home.lessons, home.assignments, member); return <div className="font-display text-2xl" data-testid="text-progress">{p.done}<span className="text-muted-foreground text-base"> / {p.total} required</span></div>; })()}
-              {member.completedAt && <p className="text-primary">Course completed. This is a learning record, not a credential.</p>}
+              {member.completedAt && <p className="text-primary">{member.certification ? "Course completed and FORGE certified." : "Course completed. Awaiting FORGE certification; lifetime Practitioner is not yet unlocked."}</p>}
+              {member.certification && <div className="space-y-1 border-t pt-2" data-testid="panel-forge-certification">
+                <p className="font-bold">{member.certification.title}</p>
+                <p className="break-all font-mono text-[10px]">Certificate {member.certification.id}</p>
+                <p>Issued {new Date(member.certification.issuedAt).toLocaleDateString()}. Course certification is separate from Quest badges and external artifact certification.</p>
+                <Button size="sm" variant="outline" onClick={() => downloadJson(`forge-certification-${member.certification!.id}.json`, {
+                  ...member.certification, student: member.name, cohort: currentCohort?.title,
+                  curriculumVersion: home.curriculumVersion, track: member.track,
+                })} data-testid="button-download-forge-certification">Download certification record</Button>
+              </div>}
               <div className="flex gap-3 text-muted-foreground font-mono text-[10px]"><span>spent {usd(member.spentUsd)}</span><span>reserved {usd(member.reservedUsd)}</span></div>
               <Button size="sm" variant="ghost" className="h-7 px-1" onClick={() => portfolio(member.id)} data-testid="button-portfolio"><Download className="h-3 w-3 mr-1" /> Portfolio JSON</Button>
               {dlErr && <p className="text-destructive">{dlErr}</p>}

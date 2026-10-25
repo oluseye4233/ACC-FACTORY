@@ -60,7 +60,7 @@ paths:
               type: object
               required: [action]
               properties:
-                action: { type: string, enum: [STATE, INVITE, REVOKE_INVITE, MEMBERSHIP, COMPLETE] }
+                action: { type: string, enum: [STATE, INVITE, REVOKE_INVITE, MEMBERSHIP, COMPLETE, CERTIFY] }
                 state: { type: string }
                 email: { type: string, format: email }
                 role: { type: string, enum: [STUDENT, INSTRUCTOR] }
@@ -192,6 +192,16 @@ components:
       type: object
       required: [id, cohortId, userId, name, role, state, track, completedAt, spentUsd, reservedUsd]
       properties:
+        certification:
+          type: object
+          nullable: true
+          required: [id, title, membershipId, issuedAt, issuedBy]
+          properties:
+            id: { type: string }
+            title: { type: string }
+            membershipId: { type: string }
+            issuedAt: { type: string, format: date-time }
+            issuedBy: { type: string }
         id: { type: string }
         cohortId: { type: string }
         userId: { type: string }
@@ -241,7 +251,7 @@ components:
         price: { type: number }
         lifetimePractitioner:
           type: boolean
-          description: Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing.
+          description: Free-for-life Practitioner entitlement unlocked only by course completion and an issued FORGE FIELD ENGINEER Certification; independent of paid billing and later cohort expiry.
         curriculumVersion: { type: string }
         lessons: { type: array, items: { $ref: "#/components/schemas/LearningLesson" } }
         memberships: { type: array, items: { $ref: "#/components/schemas/LearningMembership" } }

@@ -99,7 +99,7 @@ export default function Landing() {
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-secondary">Free / invite-only</p>
             <h2 className="mt-2 font-display text-4xl">FORGE Field Engineer</h2>
-            <p className="mt-2 max-w-2xl text-muted-foreground">A free, convener-led learning programme with free-for-life Practitioner access for invited trainees. Verify your invited email and accept your invitation to activate it—no card or course-completion requirement. Standard usage limits apply. Contact your convener for an invitation.</p>
+            <p className="mt-2 max-w-2xl text-muted-foreground">A free, invite-only learning programme. Complete the course and receive your FORGE FIELD ENGINEER Certification to unlock Practitioner free for life—no subscription fee or card. Joining alone does not unlock it. Standard usage limits apply. Contact your convener for an invitation.</p>
           </div>
           <Link href="/learn-register" className="inline-flex h-11 items-center justify-center border border-secondary px-6 font-display text-lg tracking-wider hover:bg-secondary/10" data-testid="link-landing-forge">Register with invite</Link>
         </div>

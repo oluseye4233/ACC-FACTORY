@@ -119,8 +119,14 @@ export function CohortManager({ cohortId, d }: { cohortId: string; d: LearningCo
                         </select>
                       )}
                       {m.role === "STUDENT" && m.state === "ACTIVE" && !m.completedAt && (
-                        <Button size="sm" className="h-6" disabled={!prog.all || manage.isPending} title={prog.all ? "" : "All required lesson reviews must be complete"} onClick={() => act({ action: "COMPLETE", subjectId: m.id })} data-testid={`button-complete-member-${m.id}`}>Mark course complete</Button>
+                      <Button size="sm" className="h-6" disabled={!prog.all || manage.isPending} title={prog.all ? "" : "All required lesson reviews must be complete"} onClick={() => act({ action: "COMPLETE", subjectId: m.id })} data-testid={`button-complete-member-${m.id}`}>Mark course complete</Button>
                       )}
+                      {m.role === "STUDENT" && m.state === "COMPLETED" && !m.certification && (
+                        <Button size="sm" className="h-6" disabled={manage.isPending}
+                          onClick={() => act({ action: "CERTIFY", subjectId: m.id })}
+                          data-testid={`button-certify-member-${m.id}`}>Issue FORGE certification</Button>
+                      )}
+                      {m.certification && <span className="text-xs text-primary" data-testid={`text-certified-member-${m.id}`}>FORGE certified · Lifetime Practitioner unlocked</span>}
                     </div>
                   )}
                 </li>

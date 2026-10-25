@@ -51,7 +51,7 @@ export const InstallArtifactGovernanceResponse = zod.object({
 export const GetLearningHomeResponse = zod.object({
   "plan": zod.string(),
   "price": zod.number(),
-  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing.'),
+  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement unlocked only by course completion and an issued FORGE FIELD ENGINEER Certification; independent of paid billing and later cohort expiry.'),
   "curriculumVersion": zod.string(),
   "lessons": zod.array(zod.object({
   "key": zod.string(),
@@ -71,6 +71,13 @@ export const GetLearningHomeResponse = zod.object({
   "artifactType": zod.string().nullable()
 })),
   "memberships": zod.array(zod.object({
+  "certification": zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "membershipId": zod.string(),
+  "issuedAt": zod.coerce.date(),
+  "issuedBy": zod.string()
+}).nullish(),
   "id": zod.string(),
   "cohortId": zod.string(),
   "userId": zod.string(),
@@ -505,7 +512,7 @@ export const GetLearningCohortParams = zod.object({
 export const GetLearningCohortResponse = zod.object({
   "plan": zod.string(),
   "price": zod.number(),
-  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing.'),
+  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement unlocked only by course completion and an issued FORGE FIELD ENGINEER Certification; independent of paid billing and later cohort expiry.'),
   "curriculumVersion": zod.string(),
   "lessons": zod.array(zod.object({
   "key": zod.string(),
@@ -525,6 +532,13 @@ export const GetLearningCohortResponse = zod.object({
   "artifactType": zod.string().nullable()
 })),
   "memberships": zod.array(zod.object({
+  "certification": zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "membershipId": zod.string(),
+  "issuedAt": zod.coerce.date(),
+  "issuedBy": zod.string()
+}).nullish(),
   "id": zod.string(),
   "cohortId": zod.string(),
   "userId": zod.string(),
@@ -599,7 +613,7 @@ export const ManageLearningCohortParams = zod.object({
 })
 
 export const ManageLearningCohortBody = zod.object({
-  "action": zod.enum(['STATE', 'INVITE', 'REVOKE_INVITE', 'MEMBERSHIP', 'COMPLETE']),
+  "action": zod.enum(['STATE', 'INVITE', 'REVOKE_INVITE', 'MEMBERSHIP', 'COMPLETE', 'CERTIFY']),
   "state": zod.string().optional(),
   "email": zod.string().email().optional(),
   "role": zod.enum(['STUDENT', 'INSTRUCTOR']).optional(),
@@ -610,7 +624,7 @@ export const ManageLearningCohortBody = zod.object({
 export const ManageLearningCohortResponse = zod.object({
   "plan": zod.string(),
   "price": zod.number(),
-  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing.'),
+  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement unlocked only by course completion and an issued FORGE FIELD ENGINEER Certification; independent of paid billing and later cohort expiry.'),
   "curriculumVersion": zod.string(),
   "lessons": zod.array(zod.object({
   "key": zod.string(),
@@ -630,6 +644,13 @@ export const ManageLearningCohortResponse = zod.object({
   "artifactType": zod.string().nullable()
 })),
   "memberships": zod.array(zod.object({
+  "certification": zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "membershipId": zod.string(),
+  "issuedAt": zod.coerce.date(),
+  "issuedBy": zod.string()
+}).nullish(),
   "id": zod.string(),
   "cohortId": zod.string(),
   "userId": zod.string(),
@@ -710,6 +731,13 @@ export const RedeemLearningInvitationBody = zod.object({
 })
 
 export const RedeemLearningInvitationResponse = zod.object({
+  "certification": zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "membershipId": zod.string(),
+  "issuedAt": zod.coerce.date(),
+  "issuedBy": zod.string()
+}).nullish(),
   "id": zod.string(),
   "cohortId": zod.string(),
   "userId": zod.string(),
@@ -811,7 +839,7 @@ export const GetLearningPortfolioParams = zod.object({
 export const GetLearningPortfolioResponse = zod.object({
   "plan": zod.string(),
   "price": zod.number(),
-  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement earned by accepting a verified trainee invitation; independent of course state and paid billing.'),
+  "lifetimePractitioner": zod.boolean().optional().describe('Free-for-life Practitioner entitlement unlocked only by course completion and an issued FORGE FIELD ENGINEER Certification; independent of paid billing and later cohort expiry.'),
   "curriculumVersion": zod.string(),
   "lessons": zod.array(zod.object({
   "key": zod.string(),
@@ -831,6 +859,13 @@ export const GetLearningPortfolioResponse = zod.object({
   "artifactType": zod.string().nullable()
 })),
   "memberships": zod.array(zod.object({
+  "certification": zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "membershipId": zod.string(),
+  "issuedAt": zod.coerce.date(),
+  "issuedBy": zod.string()
+}).nullish(),
   "id": zod.string(),
   "cohortId": zod.string(),
   "userId": zod.string(),

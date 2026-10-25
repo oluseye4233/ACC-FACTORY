@@ -26,7 +26,8 @@ export function useStaffSessionQuery() {
   return useQuery<StaffSession>({
     queryKey: SESSION_KEY,
     queryFn: () => api.get<StaffSession>("/api/auth/session"),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
   });
 }
 
