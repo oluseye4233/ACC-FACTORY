@@ -6,7 +6,7 @@ import pymupdf as fitz
 
 root = Path(__file__).resolve().parents[1]
 folder = root / "generated-artifacts" / "atlas-360-plan"
-pdf = folder / "ATLAS_360_PLAN_Living_PDD_2026-10-24.pdf"
+pdf = folder / "ATLAS_360_PLAN_Living_PDD_2026-10-25.pdf"
 source_pdf = root / "attached_assets" / "ATLAS_360_PLAN_v3_0_0_ALBERT_Integration_1788458927280.pdf"
 source = fitz.open(source_pdf)
 source[0].get_pixmap(matrix=fitz.Matrix(1, 1)).save(folder / "methodology-cover.png")
@@ -18,6 +18,10 @@ assert not missing_parts, missing_parts
 assert not missing_prompts, missing_prompts
 assert len(re.findall(r"ATL-\d{3} / P\d", text)) == 45
 assert "NOT SEARCHED" in text and "not yet certified" in text
+assert "FORGE FIELD ENGINEER Certification" in text
+assert "https://atanda.ai/marketplace" in text
+assert "publicOpen=false" in text
+assert "Edition: 1.1" in text
 overflow = []
 blank = []
 for index, page in enumerate(doc):

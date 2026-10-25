@@ -11,12 +11,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const require = createRequire(path.join(root, "lib/export/package.json"));
 const PDFDocument = require("pdfkit");
 const sourcePath = "docs/ATLAS_360_PLAN_Living_PDD_2026-10-24.md";
-const name = "ATLAS_360_PLAN_Living_PDD_2026-10-24";
+const name = "ATLAS_360_PLAN_Living_PDD_2026-10-25";
 const out = path.join(root, "generated-artifacts/atlas-360-plan");
 fs.mkdirSync(out, { recursive: true });
 const text = fs.readFileSync(path.join(root, sourcePath), "utf8");
 const title = "ATLAS 360 PLAN | ATANDA Command Centre";
-const productionId = "JNGL-PDD-ATANDA-2026-1024-PLAN";
+const productionId = "JNGL-PDD-ATANDA-2026-1025-PLAN";
 const assembled = new Date();
 const localStamp = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/Chicago", dateStyle: "long", timeStyle: "long",
@@ -32,7 +32,15 @@ const files = [
   "docs/convener-dashboard.md",
   "artifacts/api-server/src/lib/launch-readiness.ts",
   "artifacts/api-server/src/routes/artifact-operations.ts",
+  "artifacts/api-server/src/lib/forge-lifetime.ts",
+  "artifacts/api-server/src/routes/learning.ts",
+  "artifacts/api-server/src/routes/exemplar-marketplace.ts",
+  "artifacts/api-server/src/routes/integrations.ts",
+  "artifacts/command-centre/src/pages/landing.tsx",
+  "artifacts/command-centre/src/components/exemplars/UploadBar.tsx",
   "scripts/src/lib/atlas-pdf-theme.mjs",
+  ...(fs.existsSync(path.join(out, "marketplace-observed-2026-10-25.png"))
+    ? ["generated-artifacts/atlas-360-plan/marketplace-observed-2026-10-25.png"] : []),
 ];
 const hashes = files.map((file) => ({
   file,
@@ -44,7 +52,7 @@ if (!base || !/^https:\/\/[^/]+\/?$/.test(base)) {
   throw new Error("Pass the confirmed HTTPS production origin as the first argument.");
 }
 const probes = [];
-for (const route of ["/api/healthz", "/api/readyz", "/guide", "/cartridge", "/convener"]) {
+for (const route of ["/api/healthz", "/api/readyz", "/api/sphinx/catalog", "/", "/pricing", "/guide", "/cartridge", "/convener"]) {
   const checkedAt = new Date().toISOString();
   try {
     const response = await fetch(new URL(route, base), { signal: AbortSignal.timeout(15000) });
@@ -54,6 +62,19 @@ for (const route of ["/api/healthz", "/api/readyz", "/guide", "/cartridge", "/co
   } catch (error) {
     probes.push({ route, checkedAt, error: error.name, scope: "probe failed; no successful result inferred" });
   }
+}
+const marketplaceUrl = "https://atanda.ai/marketplace";
+const checkedAt = new Date().toISOString();
+try {
+  const response = await fetch(marketplaceUrl, { signal: AbortSignal.timeout(15000) });
+  const html = await response.text();
+  probes.push({
+    route: marketplaceUrl, checkedAt, status: response.status,
+    rawHtmlUploadDestinationPresent: /https:\/\/command-center\.atanda\.ai\/exemplars/.test(html),
+    scope: "raw HTML only, not client-rendered DOM; see document's separate rendered-page observations and available screenshot evidence; no authenticated upload or synchronization tested",
+  });
+} catch (error) {
+  probes.push({ route: marketplaceUrl, checkedAt, error: error.name, scope: "probe failed; no integration result inferred" });
 }
 const manifest = {
   documentId: productionId, assembledAt: assembled.toISOString(), localStamp,

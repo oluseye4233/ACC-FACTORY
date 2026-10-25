@@ -644,3 +644,31 @@ mtime_ms = 1792873883187
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/7e34a753-eb83-481a-9124-729c00796a28/48f6fbdb-9284-4682-96ed-2e9083e85f8b"
 storage_version_token = "1792873890163181"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "yqcLfiDrOiVW6Za17dd3d"
+uri = "file://generated-artifacts/atlas-360-plan/ATLAS_360_PLAN_Living_PDD_2026-10-25.pdf"
+type = "pdf"
+title = "ATLAS 360 PLAN — Living PDD, Edition 1.1"
+description = "Updated 25 October 2026. 26 pages covering the certification-gated FORGE lifetime Practitioner pathway, Exemplar–SPHINX integration, current site map, activation boundaries and 45 atomic prompts."
+logical_id = "086e2fc7-50ff-4aa0-ae77-b9f75bb895ea"
+content_hash = "sha256:fbc6278a14add1a33db1781fd2738ba5d823d1dde0891034762a30c626c2c62c"
+size = 78874
+mtime_ms = 1792968678045
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/086e2fc7-50ff-4aa0-ae77-b9f75bb895ea/9ec61676-295f-4043-8e71-c3fd9fdfa353"
+storage_version_token = "1792968686559692"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "tdS_aa37wQ7MusnWxXFPH"
+uri = "file://generated-artifacts/atlas-360-plan/ATLAS_360_PLAN_Living_PDD_2026-10-25.md"
+type = "text"
+title = "ATLAS 360 PLAN — Editable source"
+description = "Editable Markdown companion to the updated Living PDD, with evidence labels, implementation priorities and remaining activation gates."
+logical_id = "331289a4-9102-4338-a8fe-cb539582e3c9"
+content_hash = "sha256:7edd7599a78972ce05109c86669f6b91e52426c082d39fa328c7ca23d8c23032"
+size = 56062
+mtime_ms = 1792968678049
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/331289a4-9102-4338-a8fe-cb539582e3c9/756d86a4-4167-4f8f-8f9e-57400aa6fe13"
+storage_version_token = "1792968687361607"
+content_type = "text/markdown"

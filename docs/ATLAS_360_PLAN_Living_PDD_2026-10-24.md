@@ -1,9 +1,10 @@
 # ATLAS 360 PLAN
 ## ATANDA Command Centre — Living PromptWare Design Document
 
-Production ID: JNGL-PDD-ATANDA-2026-1024-PLAN
-Edition: 1.0 — evidence-bounded planning baseline
-Evidence date: 24 October 2026, America/Chicago
+Production ID: JNGL-PDD-ATANDA-2026-1025-PLAN
+Edition: 1.1 — certification pathway and Exemplar–SPHINX bridge update
+Evidence date: 25 October 2026, America/Chicago
+Original baseline: 24 October 2026; original source filename retained for continuity
 Human principal: Oluseye Shay Amusa — source attribution; document approval pending
 Prepared by: Replit Agent, applying the supplied ATLAS 360 PLAN methodology
 Methodology: ATLAS 360 PLAN v3.0.0, JNGL-SPC-ATLAS360-2026-001
@@ -71,12 +72,14 @@ The desired outcome is one coherent ARK Harness journey from intake through gove
 | R07 | MUST keep protected IMPRIMA / SHORT SPRINTS fail-closed | Reviewed production role, privileges and RLS evidence; no bypass |
 | R08 | MUST account for model usage and uncertain provider outcomes | Budget gates, recorded costs and no blind redispatch |
 | R09 | MUST qualify F10–F12 per target, not by screen presence | Authorized handoff, signed receipt and actual target evidence |
-| R10 | MUST preserve existing Quest eligibility | Course assessment cannot grant or revoke production credentials |
+| R10 | MUST preserve existing Quest eligibility | FORGE course certification must not automatically award Quest credentials |
 | R11 | MUST keep Sphinx public opening explicit | Owner opt-in, qualified active supply, withdrawal and privacy tests |
 | R12 | MUST keep the PDD evidence bounded | Every status maps to dated evidence or an explicit unknown |
 | R13 | SHOULD make the platform usable on mobile and both themes | Readable controls, visible focus and reduced-motion behavior |
 | R14 | SHOULD provide safe convener communication | Configured provider, truthful delivery states and duplicate-safe recovery |
 | R15 | SHOULD maintain a clear current site map | Route, access class, implementation state and live-proof limitation |
+| R16 | MUST unlock lifetime Practitioner only after FORGE certification | Accepted invitation, reviewed course completion and explicit convener issuance; invitation or completion alone grants nothing |
+| R17 | MUST distinguish the cross-site handoff from full marketplace integration | Live upload destination, closed source feed and unverified synchronization identified separately |
 
 ## 1.4 Non-goals and protected invariants
 
@@ -93,7 +96,7 @@ The desired outcome is one coherent ARK Harness journey from intake through gove
 
 The platform's value is the controlled conversion of requirements and artifacts into reusable, reviewable outputs. The Exemplar Library reduces repeated intake work; Cartridge carries chosen reference snapshots into F1; Boomerang and SPC Player support remediation; internal editorial review helps owners improve private drafts without pretending to satisfy external approval.
 
-FORGE FIELD ENGINEER supports acquisition and training through an invite-only programme. The Convener Dashboard adds class-level oversight, meetings, performance-informed follow-up and cohort reference sharing. A future qualified Sphinx supply catalog can reuse Exemplar records instead of requiring a separate artifact-upload system.
+FORGE FIELD ENGINEER supports acquisition and training through a free invite-only programme. Completion followed by explicit FORGE FIELD ENGINEER Certification unlocks lifetime Practitioner access at $0. An invitation, attendance or completion alone does not unlock it. The Convener Dashboard adds class-level oversight, meetings, performance-informed follow-up and cohort reference sharing. SPHINX at atanda.ai/marketplace now links to the Command Centre's Exemplar Library; end-to-end catalog synchronization is not yet verified.
 
 These are product hypotheses supported by implementation and stated requirements, not measured market demand or guaranteed commercial outcomes.
 
@@ -227,15 +230,25 @@ The observed production readiness response still lists SHORT SPRINTS and IMPRIMA
 
 ## 4.5 Cohorts, Quest and communications
 
-FORGE FIELD ENGINEER remains free and invite-only. Guide/Ascension-based lessons, source-backed work, teaching review and follow-up support training. Existing Quest criteria retain authority; course completion does not grant or revoke production badges or certification. F9–F12 training exercises are simulations unless separately supported by real governed evidence.
+FORGE FIELD ENGINEER remains free and invite-only. Guide/Ascension-based lessons, source-backed work, teaching review and follow-up support training. Existing Quest criteria retain authority; neither course completion nor the separate FORGE course certification automatically awards Quest badges, independent credentials or artifact certification. F9–F12 training exercises are simulations unless separately supported by real governed evidence.
 
 The Convener Dashboard supports class creation under the existing permissions, invitations, performance views, targeted follow-up, meetings, cohort Exemplar snapshots and bulk communication. The trainee sees their addressed follow-up, meetings and allowed cohort library. Closed/expired cohorts are read-only for new mutations.
+
+Certification pathway [IMPLEMENTED; authenticated development journey tested, production issuance not sampled]: accept a named student invitation; complete required Guide/Ascension coursework with accepted reviews bound to current owned evidence; have the convener mark the course complete; have the convener explicitly issue FORGE FIELD ENGINEER Certification. Only recorded certification bound to the completed membership and accepted invitation unlocks lifetime Practitioner.
+
+Completion and certification are separate actions. Issuance rechecks current evidence and accepted reviews; retries return the existing certificate rather than issuing duplicates. The student can download a JSON certification record. This is not a signed public certificate or proof of independent expertise. Earned lifetime access survives cohort expiry/archive; ordinary funding, usage, security and authorization limits remain. Existing paid subscriptions are not silently cancelled or refunded, and higher tiers are not downgraded.
 
 Email requires a configured provider and sender in the relevant environment. This report does not freshly inspect secret presence. Acceptance by the provider is not proof of inbox delivery. An uncertain send must not be automatically retried. Meeting scheduling records details and calendar exports; it does not itself provision a video-meeting service.
 
 ## 4.6 Exemplar to Sphinx and governance portability
 
-The library is the supply source for a future public Sphinx catalog. Owner opt-in applies only to qualified active MA, SPC, MPDD and PDD artifacts. Archived reuse in Cartridge does not imply commercial eligibility. F0 advisory reports do not become marketplace-certified supply.
+The Command Centre Exemplar Library is the source catalog for SPHINX at https://atanda.ai/marketplace, not atanda.com. Owner opt-in applies only to qualified active MA, SPC, MPDD and PDD artifacts. Archived reuse in Cartridge does not imply commercial eligibility. F0 advisory reports do not become marketplace-certified supply.
+
+LIVE-OBSERVED on 25 October 2026: the external marketplace displays an Upload SPC link to https://command-center.atanda.ai/exemplars, identifies the Command Centre as its source and states that upload does not publish. The three previously visible listing cards and their prices were absent from the inspected public page. This establishes a visible-page change, not deletion of underlying records.
+
+A browser screenshot also shows SOURCE CATALOG CLOSED on the external marketplace, consistent with the Command Centre API's closed state. This confirms the rendered message, not the mechanism behind it. The raw HTML probe does not contain the upload destination; rendered-page inspection supplies that observation. Do not interpret raw HTML absence as an absent browser link.
+
+LIVE-OBSERVED production source API: GET /api/sphinx/catalog returned publicOpen=false and items=[]. No private artifact content was requested or exposed. The upload navigation bridge is live; source-feed consumption, refresh, withdrawal propagation, shared identity, cross-site authorization, external publishing, payment, licensing and purchased-artifact delivery are not verified end to end. The external marketplace source is maintained outside this workspace; its page claims do not independently prove synchronization.
 
 Public launch, rights, qualification, external commerce and withdrawal controls require explicit acceptance. This report does not declare Sphinx open. GRO, ZPOS and Honesty Gate safeguards cannot be removed to fit Azure or another target. SAVANT may adapt full or fragmented packaging, not mandatory ethical controls; partial exports do not prove distributed enforcement.
 
@@ -308,7 +321,7 @@ Context for all rows: act only within ATANDA Command Centre; use owner-scoped ev
 | ATL-034 / P1 | Plan F10 subscription-provider pilot acceptance | One-target authorized handoff plan; depends: 015,033 |
 | ATL-035 / P1 | Plan F11 target provisioning evidence | Provider/account/receipt acceptance plan; depends: 034 |
 | ATL-036 / P0 | Plan F12 controlled rollout evidence | Health/promotion/rollback acceptance plan; depends: 035 |
-| ATL-037 / P2 | Plan Sphinx opening qualification from the active catalog contract | Rights/qualification/withdrawal launch checklist; depends: 013,033 |
+| ATL-037 / P2 | Define the SPHINX source-feed acceptance contract from the Exemplar API | Contract covering closed launch, qualification, withdrawal, privacy and freshness; depends: 013,033 |
 | ATL-038 / P2 | Schedule the dependency-ordered implementation waves | Eight-wave exit-gate plan; depends: 030,036,037 |
 
 ## Phase 5 — Evidence and living delivery: ATL-039 to ATL-045
@@ -363,7 +376,7 @@ Proposed ownership covers architecture, product, security, data, runtime, verifi
 | 5 — Teaching operations | Convener/trainee pilot and communications | Correct visibility; no duplicate uncertain email |
 | 6 — Qualified handoff | One authorized F10 then F11 target | Real provider receipt and artifact binding |
 | 7 — Controlled operation | F12 health/promotion/rollback pilot | Demonstrated target behavior and safe rollback |
-| 8 — Public readiness | Qualified Sphinx opt-in and approved launch decision | Rights, withdrawal, privacy and operating evidence |
+| 8 — Public readiness | Validate atanda.ai source-feed consumption before a separate launch decision | Closed-state handling, owner consent, qualification, withdrawal, privacy and operating evidence |
 
 Wave numbers express order, not calendar promises. Duration and capacity require accountable owner confirmation. A blocked external activation must not prevent useful private preparation/training work that already satisfies its own controls.
 
@@ -389,6 +402,8 @@ No drift percentage or GREEN verdict is assigned today because no matched certif
 - Retain a rollback reference and the acceptance evidence with the PDD revision.
 
 # Part 7 — Summary of sources
+
+Revision evidence: current source inspection confirms the certification-gated entitlement and convener issuance actions. Earlier authenticated development verification passed the invitation/completion negative cases, issuance, retry, download and post-cohort retention journey; those results are carried forward, not represented as newly rerun or production tests. Fresh public probes are captured in this edition's evidence manifest. Unchanged capabilities retain earlier documentary support and are not newly certified.
 
 ## 7.1 Source ledger
 
@@ -469,12 +484,15 @@ For Attorney/Agent Review Required. This inventory is not a legal opinion, trade
 
 | Route | Purpose / access | Status supported here |
 | --- | --- | --- |
-| / | Entry routing | Implemented; identity determines destination |
-| /learn-login, /learn-register | Named student identity entry | Implemented; fresh invitation acceptance not sampled |
+| / | Public landing and workspace entry | Restored in source; named identity still controls protected access |
+| /pricing | Original subscription plans and FORGE pathway | Implemented; paid checkout remains dormant; certification is required for lifetime Practitioner |
+| /learn-login, /learn-register | Named student identity entry | Implemented; certification pathway tested in development, not freshly sampled in production |
 | /verify | Public certificate lookup | Implemented; individual certificate validity not sampled |
 | /test-your-agent | Public agent-evaluation entry | Implemented; no live evaluation executed |
 | /calculate-your-savings | Public calculator | Implemented; projections are not measured savings |
-| /sphinx | Public marketplace surface | Implemented; public commerce/opening not established |
+| /sphinx | Command Centre public metadata catalog | Source API observed closed with no public items; not a checkout |
+| https://atanda.ai/marketplace | External SPHINX discovery surface | LIVE-OBSERVED Upload SPC handoff to Exemplar; source synchronization unverified |
+| /api/sphinx/catalog | Public Exemplar supply metadata API | LIVE-OBSERVED publicOpen=false, items=[] |
 | /status | Public status surface | Implemented; not a substitute for target-specific acceptance |
 | /guide | Platform guide | HTTP 200 observed; content/journey not fully audited |
 
@@ -517,6 +535,9 @@ F11 and F12 may be reached through stage/workflow surfaces rather than a separat
 | Full F12 | PENDING | Production readiness explicitly says incomplete |
 | Azure Key Vault migration | DEFERRED | Agreed B-stage follow-on, not an MVP launch requirement |
 | Sphinx public commerce | PENDING / EXPLICIT LAUNCH REQUIRED | Qualification, rights and launch evidence not established |
+| Exemplar → atanda.ai upload handoff | LIVE-OBSERVED | Upload SPC links directly to Command Centre Exemplar; does not prove upload completion or shared login |
+| Cross-site catalog synchronization | UNVERIFIED | External page names Command Centre source, but live source feed is closed; refresh and withdrawal not tested |
+| FORGE certification → lifetime Practitioner | IMPLEMENTED / DEVELOPMENT-VERIFIED | Invitation and completion alone do not qualify; production issuance not sampled |
 | Convener bulk email | CONFIGURATION-DEPENDENT | No fresh secret/configuration inspection or delivery pilot in this report |
 | Automatic living PDD monitoring | NOT ACTIVATED | Cadence approval and monitoring implementation remain separate |
 
@@ -529,6 +550,8 @@ F11 and F12 may be reached through stage/workflow surfaces rather than a separat
 - Confirm target/provider priority for F10–F12 rather than attempting universal activation.
 - Confirm production protected-workflow evidence through the supported reviewed installation/verification path.
 - Confirm whether and when Sphinx should open; library availability is not launch consent.
+- Validate the external marketplace's source-feed contract, closed-state handling and withdrawal propagation before asserting a working catalog integration.
+- Publish and verify the corrected FORGE certification entitlement pathway before promising it is active for production students.
 - Provide finance and pilot measurements before publishing revenue, savings or outcome claims.
 
 ## B.2 Next revision procedure
@@ -536,5 +559,9 @@ F11 and F12 may be reached through stage/workflow surfaces rather than a separat
 Update the Markdown source rather than editing the PDF. Recollect the bounded evidence; retain the old revision and document its evidence date. Update capability rows only when their acceptance evidence changes. Regenerate the PDF and manifest, inspect page layout and revalidate the ten parts and 45 prompt IDs.
 
 The current baseline intentionally has no overall completion percentage. The denominator of all remaining platform fixes was not audited, and reporting an invented percentage would conceal critical external gates. Report per-capability acceptance instead.
+
+## B.3 Revision record — 25 October 2026
+
+Edition 1.1 supersedes invitation-only lifetime access with completion plus explicit FORGE FIELD ENGINEER Certification. It records the restored public landing/pricing surfaces, retained original plan structure and dormant checkout. It adds the atanda.ai marketplace to the site map, distinguishes its observed Upload SPC handoff from unverified source synchronization, and records the closed production source catalog. The ten-part structure and 45 atomic worksheet entries remain intact. No new production approval, independent evaluation, marketplace launch, shared identity integration or commerce activation is claimed.
 
 End of PDD — no certification, deployment, marketplace opening or recurring monitoring is authorized by this document.
