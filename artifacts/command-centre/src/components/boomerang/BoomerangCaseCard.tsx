@@ -67,6 +67,9 @@ export function BoomerangCaseCard({ c, defaultOpen = false }: { c: BoomerangCase
           <div><div className={lab}>Brief</div><p className="whitespace-pre-wrap font-sans text-xs mt-1" data-testid={`text-brief-${c.id}`}>{c.brief}</p></div>
           {(c.resultText || c.spcPlayerRunId) && (
             <div className="border rounded p-2 bg-muted/30" data-testid={`panel-result-${c.id}`}>
+              {c.returnedArtifactHref && <Link href={c.returnedArtifactHref} className="mb-2 block font-bold text-primary underline" data-testid={`link-upgraded-${c.id}`}>
+                Open {c.upgradeLabel || "returned artifact"} at {c.stage}
+              </Link>}
               <div className={lab}>Returned work · hash {shortHash(c.resultHash)}</div>
               {c.spcPlayerRunId && <div className="mt-1">SPC Player run <span className="break-all" data-testid={`text-run-id-${c.id}`}>{c.spcPlayerRunId}</span></div>}
               {c.resultText && <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap text-[10px]">{c.resultText}</pre>}

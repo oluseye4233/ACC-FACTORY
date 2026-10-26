@@ -72,6 +72,79 @@ describe("process-wide Boomerang supporting work", () => {
     return call(`/boomerang/cases/${row.id}/transition`, { action, expectedVersion: row.version, ...input });
   }
 
+  test("serializes corrected bundle numbering and retains source identity across branches", async () => {
+    const { persistArtifact } = await import("../src/engines/shared");
+    const [source] = await db.insert(harnessArtifactsTable).values({
+      userId: owner, sessionId, featureId: 8, artifactType: "CODEBASE_BUNDLE",
+      name: "Governed console", artifactContent: { files: [] }, scorecards: [],
+    }).returning();
+    const input = {
+      userId: owner, sessionId, featureId: 8, artifactType: "CODEBASE_BUNDLE" as const,
+      artifactContent: { files: [], sourceCodebaseBundleArtifactId: source!.id },
+      upgradeFromArtifactId: source!.id, upgradeOriginFeatureId: 9,
+    };
+    const branches = await Promise.all([persistArtifact(input), persistArtifact(input)]);
+    expect(branches.map(a => a.name).sort()).toEqual(["Governed console · Upgraded 1", "Governed console · Upgraded 2"]);
+    const next = await persistArtifact({ ...input, upgradeFromArtifactId: branches[0]!.id });
+    expect(next.name).toBe("Governed console · Upgraded 3");
+    expect(next.parentArtifactId).toBe(branches[0]!.id);
+    expect(next.jcseScore).toBeNull();
+    expect(next.forgeVerified).toBe(false);
+    expect(next.artifactContent).toMatchObject({ boomerangUpgrade: {
+      rootArtifactId: source!.id, originFeatureId: 9, number: 3, gateState: "NOT_EVALUATED",
+    } });
+    await db.delete(harnessArtifactsTable).where(inArray(harnessArtifactsTable.id, [
+      next.id, ...branches.map(a => a.id), source!.id,
+    ]));
+  });
+
+  test("returns numbered immutable upgrades with exact stage links and supports reworking Upgraded 1", async () => {
+    const [source] = await db.insert(harnessArtifactsTable).values({
+      userId: owner, sessionId, featureId: 5, artifactType: "SPC", name: "Evidence mapper",
+      artifactContent: { purpose: "Original governed source" }, scorecards: [],
+    }).returning();
+    const firstCase = await create("F5");
+    const first = await action(firstCase.body, "RETURN", { resultText: "Complete revised artifact with the missing constraints included." });
+    expect(first.status).toBe(200);
+    expect(first.body.upgradeLabel).toBe("Upgraded 1");
+    expect(first.body.returnedArtifactHref).toContain(`featureId=5&artifactId=${first.body.returnedArtifactId}`);
+    const [upgraded] = await db.select().from(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, first.body.returnedArtifactId));
+    expect(upgraded?.parentArtifactId).toBe(source!.id);
+    expect(upgraded?.name).toBe("Evidence mapper · Upgraded 1");
+    expect(upgraded?.verificationStatus).not.toBe("PASS");
+    expect((await action(first.body, "ACCEPT")).status).toBe(200);
+
+    const catalog = await call("/spc-player/catalog");
+    const draft = await call("/spc-player/runs", {
+      title: "Improve the returned version", brief: "Address the remaining shortcomings in this exact returned candidate.",
+      selectedCardIds: [catalog.body[0].id], originSessionId: sessionId, originFeatureId: 5,
+      sourceArtifactId: upgraded!.id,
+    });
+    expect(draft.status).toBe(201);
+    expect(draft.body.sourceArtifactId).toBe(upgraded!.id);
+    await db.insert(spcPlayerRunsTable).values({
+      id: draft.body.id, userId: owner, selectedExemplar: {}, structuredBrief: {}, status: "completed",
+      profile: "full", outputPackage: { planOnly: true, content: "Second corrected version, still requiring evaluation." },
+      executionAdvisory: {}, distributionPlan: {},
+    });
+    const body = { confirmReturn: true, originSessionId: sessionId, originFeatureId: 5 };
+    const second = await call(`/spc-player/runs/${draft.body.id}/return`, body);
+    expect(second.status).toBe(200);
+    expect(second.body.artifact.name).toBe("Evidence mapper · Upgraded 2");
+    expect(second.body.artifact.parentArtifactId).toBe(upgraded!.id);
+    expect(second.body.artifact.artifactContent.boomerangUpgrade).toMatchObject({
+      number: 2, rootArtifactId: source!.id, parentArtifactId: upgraded!.id, gateState: "NOT_EVALUATED",
+    });
+    const replay = await call(`/spc-player/runs/${draft.body.id}/return`, body);
+    expect(replay.body.artifact.id).toBe(second.body.artifact.id);
+    const [original] = await db.select().from(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, source!.id));
+    expect(original!.artifactContent).toEqual(source!.artifactContent);
+    expect((await call(`/spc-player/runs/${draft.body.id}/return`, body, stranger)).status).toBe(404);
+    await db.delete(harnessArtifactsTable).where(inArray(harnessArtifactsTable.id, [
+      second.body.artifact.id, upgraded!.id, source!.id,
+    ]));
+  });
+
   test("auto-picks only the latest exact-stage artifact and retains its evaluation recommendations", async () => {
     const [artifact] = await db.insert(harnessArtifactsTable).values({ userId: owner, sessionId,
       featureId: 4, artifactType: "MICRO_PDD", name: "Stage four source", artifactContent: { mission: "Fixture" },

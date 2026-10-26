@@ -3329,6 +3329,9 @@ components:
         sourceChanged: { type: boolean }
         originAvailable: { type: boolean }
         originHref: { type: string }
+        returnedArtifactId: { type: ["string", "null"], format: uuid }
+        upgradeLabel: { type: ["string", "null"] }
+        returnedArtifactHref: { type: ["string", "null"] }
         advisoryOnly: { type: boolean }
         releaseAllowed: { type: boolean }
     ArtifactPreparationInput:

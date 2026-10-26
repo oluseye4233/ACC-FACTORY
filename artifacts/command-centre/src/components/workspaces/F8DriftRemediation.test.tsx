@@ -64,6 +64,32 @@ describe("F8 automatic remediation control", () => {
     expect(mock.stream).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("status").textContent).toContain("RECHECK FAILED");
   });
+  it("retains a failed verdict and explicitly starts the next repair against the fresh report", async () => {
+    mock.stream.mockImplementation(async (_url, _body, emit) => emit({ event: "complete", data: {
+      state: "RECHECKED", summary: "Some drift remains", remediationArtifactId: "record",
+      bundle: { artifactId: "upgraded-one" }, report: { artifactId: "fresh-failed-report", verdict: "fail" },
+    } }));
+    setup();
+    fireEvent.click(screen.getByTestId("f8-remediate"));
+    await waitFor(() => expect(screen.getByTestId("f8-upgrade-still-failed")).toBeTruthy());
+    expect(mock.stream).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("link", { name: "Open corrected artifact at F8" }).getAttribute("href"))
+      .toContain("artifactId=upgraded-one#artifact-upgraded-one");
+    fireEvent.click(screen.getByRole("button", { name: "REMEDIATE AGAIN + RE-DRIFT CHECK" }));
+    await waitFor(() => expect(mock.stream).toHaveBeenCalledTimes(2));
+    expect(mock.stream.mock.calls[1][1].reportArtifactId).toBe("fresh-failed-report");
+    expect(screen.getByTestId("f8-upgrade-still-failed").textContent).toContain("not a pass");
+  });
+  it("labels a passing fresh drift check without calling it release approval", async () => {
+    mock.stream.mockImplementation(async (_url, _body, emit) => emit({ event: "complete", data: {
+      state: "RECHECKED", summary: "Drift resolved", remediationArtifactId: "record",
+      bundle: { artifactId: "upgraded" }, report: { artifactId: "fresh-pass", verdict: "pass" },
+    } }));
+    setup();
+    fireEvent.click(screen.getByTestId("f8-remediate"));
+    await waitFor(() => expect(screen.getByText(/Fresh drift result: PASS/)).toBeTruthy());
+    expect(screen.queryByTestId("f8-upgrade-still-failed")).toBeNull();
+  });
   it("restores completed work without calling the paid endpoint", () => {
     const result = { state: "RECHECKED", summary: "Saved correction", remediationArtifactId: "record", bundle: { artifactId: "saved" } };
     mock.recovery = { attempt: { phase: "COMPLETE", reportArtifactId: "report", result } };

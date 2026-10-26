@@ -21,6 +21,7 @@ vi.mock("@/lib/api", () => ({
 // wouter — fixed session id + a passthrough Link so the F0 CTA anchor is real.
 vi.mock("wouter", () => ({
   useParams: () => ({ id: "session-1" }),
+  useSearch: () => window.location.search.slice(1),
   Link: ({ href, children, ...rest }: Record<string, unknown>) => (
     <a href={href as string} {...rest}>
       {children as React.ReactNode}

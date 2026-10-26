@@ -39,3 +39,17 @@ re-drift check, rather than another manual handoff.
 contract. Treat fresh evaluation as separate evidence, retain failed attempts,
 and stop for human review when approved requirements must change. Correcting
 a generated bundle is not permission to alter the live application or publish.
+
+The user requires returned revisions to link to the exact originating F-stage
+artifact and retain a source-lineage sequence named Upgraded 1, Upgraded 2 and
+so on. Recommencing remediation should address the remaining shortcomings on
+the returned version rather than silently substituting the original.
+
+**Why:** A generic support attachment and session link did not make the revised
+artifact or repeated failed-gate recovery clear.
+
+**How to apply:** Preserve originals and failed evaluations. Numbered candidates
+do not inherit a gate pass. Re-run F8 drift checks immediately after each
+authorized correction; offer another bounded attempt against the fresh failed
+report. Never promise that the first revision will pass or repeatedly spend
+credits without authorization.

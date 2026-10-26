@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link } from "wouter";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearch } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessF8,
@@ -78,15 +78,16 @@ interface Props {
 }
 
 export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
+  const requestedArtifactId = new URLSearchParams(useSearch()).get("artifactId");
   const qc = useQueryClient();
   const { toast } = useToast();
 
   const latestArtifact = useMemo(
     () =>
-      artifacts
+      artifacts.find(a => a.id === requestedArtifactId && a.artifactType === ArtifactType.CODEBASE_BUNDLE) ?? artifacts
         .filter((a) => a.artifactType === ArtifactType.CODEBASE_BUNDLE)
         .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0],
-    [artifacts],
+    [artifacts, requestedArtifactId],
   );
 
   const certifiedMvpSources = useMemo(
@@ -103,7 +104,8 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
   );
 
   const [sourceId, setSourceId] = useState<string>(
-    certifiedMvpSources[0]?.id ?? "",
+    String((latestArtifact?.artifactContent as Record<string, unknown> | undefined)?.sourceMvpPddArtifactId ??
+      certifiedMvpSources[0]?.id ?? ""),
   );
   const [platform, setPlatform] = useState<CodeDjPlatform>(
     CodeDjPlatform["nextjs-vercel"],
@@ -120,6 +122,17 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
     useState<OverrideValue>("session");
   const [pfpResult, setPfp] = useState<PfpReport | undefined>();
   const [pfpContext, setPfpContext] = useState<{ bundleId: string; sourceId: string }>();
+  useEffect(() => {
+    if (!requestedArtifactId) return;
+    const selected = artifacts.find(a => a.id === requestedArtifactId && a.artifactType === ArtifactType.CODEBASE_BUNDLE);
+    if (!selected) return;
+    const boundSource = (selected.artifactContent as Record<string, unknown>)?.sourceMvpPddArtifactId;
+    if (typeof boundSource === "string") setSourceId(boundSource);
+    setResult(undefined); setPfp(undefined); setPfpContext(undefined);
+    setVerifiedArtifactId(null); setHostPlan(undefined);
+    // Navigation selects exact immutable evidence; subsequent list refreshes
+    // must not discard a newly completed repair while this URL stays the same.
+  }, [requestedArtifactId]);
   const [remediating, setRemediating] = useState(false);
   const [pfpError, setPfpError] = useState<string | null>(null);
   const [hostPlan, setHostPlan] = useState<HostingPlan | undefined>();

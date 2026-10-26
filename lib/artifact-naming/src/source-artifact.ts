@@ -5,6 +5,7 @@ type SourceArtifact = {
   artifactType: string;
   name?: string | null;
   artifactContent?: unknown;
+  parentArtifactId?: string | null;
   createdAt: string | Date;
 };
 
@@ -40,6 +41,17 @@ export function resolveSpcPlayerSource<T extends SourceArtifact>(
   // Canonical cockpit IDs are not F-stage numbers: F6-VDJ (8) precedes F7 (7).
   const stages = [1, 2, 3, 4, 5, 6, 8, 7, 9, 10, 11, 12, 13];
   const originIndex = stages.indexOf(origin.featureId);
+  // Explicitly selected returned candidates may be reworked again. They never
+  // become the implicit "latest production artifact" or gain certification.
+  if (origin.sourceArtifactId) {
+    const returned = artifacts.find(a => a.id === origin.sourceArtifactId &&
+      a.sessionId === origin.sessionId && a.featureId === origin.featureId &&
+      a.artifactType === "SPC_PLAYER_SUPPORT");
+    const content = returned?.artifactContent as Record<string, unknown> | undefined;
+    const upgrade = content?.boomerangUpgrade as Record<string, unknown> | undefined;
+    if (returned?.parentArtifactId && upgrade?.parentArtifactId === returned.parentArtifactId &&
+        content?.advisoryOnly === true && content?.planOnly === true) return returned;
+  }
   const eligible = artifacts.filter(a => a.sessionId === origin.sessionId &&
     stages.indexOf(a.featureId) >= 0 && stages.indexOf(a.featureId) <= originIndex &&
     !a.artifactType.includes("SUPPORT"));

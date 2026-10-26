@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { maybeAwardContextCraftBadges } from "../lib/badges";
+import { nextBoomerangUpgrade } from "../lib/boomerang-upgrades";
 import { learningCallContext } from "../lib/learning-access";
 import { z } from "zod/v4";
 import { randomUUID } from "node:crypto";
@@ -136,6 +137,9 @@ export interface PersistArtifactInput {
   mathmonScore?: number | null;
   forgeVerified?: boolean;
   parentArtifactId?: string;
+  /** Immutable candidate derived from an owned source; never transfers certification. */
+  upgradeFromArtifactId?: string;
+  upgradeOriginFeatureId?: number;
 }
 
 export async function persistArtifact(
@@ -154,6 +158,20 @@ export async function persistArtifact(
   // catalog error can never lose completed, paid-for engine work.
   const sku = await tryIssueSku(input.userId, input.artifactType);
   const row = await db.transaction(async (tx) => {
+    let upgrade: Awaited<ReturnType<typeof nextBoomerangUpgrade>> | undefined;
+    if (input.upgradeFromArtifactId) {
+      const [session] = await tx.select({ id: harnessSessionsTable.id }).from(harnessSessionsTable)
+        .where(and(eq(harnessSessionsTable.id, input.sessionId), eq(harnessSessionsTable.userId, input.userId)))
+        .for("update").limit(1);
+      if (!session) throw new Error("Upgrade origin is unavailable");
+      const [source] = await tx.select().from(harnessArtifactsTable).where(and(
+        eq(harnessArtifactsTable.id, input.upgradeFromArtifactId),
+        eq(harnessArtifactsTable.sessionId, input.sessionId),
+        eq(harnessArtifactsTable.userId, input.userId),
+      )).limit(1);
+      if (!source) throw new Error("Owned upgrade source is unavailable");
+      upgrade = await nextBoomerangUpgrade(tx, source);
+    }
     const [saved] = await tx
     .insert(harnessArtifactsTable)
     .values({
@@ -161,9 +179,11 @@ export async function persistArtifact(
       userId: input.userId,
       featureId: input.featureId,
       artifactType: input.artifactType,
-      name: input.name ?? null,
-      artifactContent,
-      parentArtifactId: input.parentArtifactId,
+      name: upgrade ? `${upgrade.rootName} · ${upgrade.label}` : input.name ?? null,
+      artifactContent: upgrade ? { ...artifactContent, boomerangUpgrade: {
+        ...upgrade, originFeatureId: input.upgradeOriginFeatureId ?? input.featureId,
+      } } : artifactContent,
+      parentArtifactId: upgrade?.parentArtifactId ?? input.parentArtifactId,
       contentHash: governed ? governanceHash(artifactContent) : undefined,
       scorecards: input.scorecards ?? [],
       sku,

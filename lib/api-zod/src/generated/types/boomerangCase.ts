@@ -31,6 +31,12 @@ export interface BoomerangCase {
   sourceChanged: boolean;
   originAvailable: boolean;
   originHref: string;
+  /** @nullable */
+  returnedArtifactId?: string | null;
+  /** @nullable */
+  upgradeLabel?: string | null;
+  /** @nullable */
+  returnedArtifactHref?: string | null;
   advisoryOnly: boolean;
   releaseAllowed: boolean;
 }

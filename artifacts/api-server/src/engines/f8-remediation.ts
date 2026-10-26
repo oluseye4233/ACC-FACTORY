@@ -201,6 +201,8 @@ export async function handleF8Remediation(req: Request, res: Response): Promise<
     const artifactClass = original.artifactClass === "SOFTWARE" ? "SOFTWARE" : "FIRMWARE";
     const next = retained.bundle ?? await persistArtifact({
       sessionId, userId: guard.userId, featureId: 8, artifactType: "CODEBASE_BUNDLE",
+      upgradeFromArtifactId: bundle.id,
+      upgradeOriginFeatureId: 9,
       artifactContent: { ...corrected, artifactClass, repairAttemptId: attemptId,
         ...(original.hardwareConfigId ? { hardwareConfigId: original.hardwareConfigId } : {}),
         sourceMvpPddArtifactId: mvp.id, sourceCertId: original.sourceCertId,

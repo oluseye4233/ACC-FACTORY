@@ -990,6 +990,9 @@ export const ListBoomerangCasesResponseItem = zod.object({
   "sourceChanged": zod.boolean(),
   "originAvailable": zod.boolean(),
   "originHref": zod.string(),
+  "returnedArtifactId": zod.string().uuid().nullish(),
+  "upgradeLabel": zod.string().nullish(),
+  "returnedArtifactHref": zod.string().nullish(),
   "advisoryOnly": zod.boolean(),
   "releaseAllowed": zod.boolean()
 })
@@ -1038,6 +1041,9 @@ export const CreateBoomerangCaseResponse = zod.object({
   "sourceChanged": zod.boolean(),
   "originAvailable": zod.boolean(),
   "originHref": zod.string(),
+  "returnedArtifactId": zod.string().uuid().nullish(),
+  "upgradeLabel": zod.string().nullish(),
+  "returnedArtifactHref": zod.string().nullish(),
   "advisoryOnly": zod.boolean(),
   "releaseAllowed": zod.boolean()
 })
@@ -1089,6 +1095,9 @@ export const TransitionBoomerangCaseResponse = zod.object({
   "sourceChanged": zod.boolean(),
   "originAvailable": zod.boolean(),
   "originHref": zod.string(),
+  "returnedArtifactId": zod.string().uuid().nullish(),
+  "upgradeLabel": zod.string().nullish(),
+  "returnedArtifactHref": zod.string().nullish(),
   "advisoryOnly": zod.boolean(),
   "releaseAllowed": zod.boolean()
 })

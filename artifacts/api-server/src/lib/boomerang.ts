@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { returnedArtifactHref } from "./boomerang-upgrades";
 import {
   db, f0EngagementsTable, f0ReportsTable, harnessArtifactsTable,
   harnessSessionsTable, type BoomerangCaseRow,
@@ -81,17 +82,33 @@ export async function boomerangOrigin(reader: DbReader, userId: string, kind: st
   };
 }
 
-export async function boomerangResponse(row: BoomerangCaseRow, origin?: Awaited<ReturnType<typeof boomerangOrigin>> | null) {
+export async function boomerangResponse(row: BoomerangCaseRow, origin?: Awaited<ReturnType<typeof boomerangOrigin>> | null, reader: DbReader = db) {
   const current = origin === undefined
     ? await boomerangOrigin(db, row.userId, row.originKind, row.originId, row.stage).catch((error) => {
       if (error instanceof BoomerangError && error.status === 404) return null;
       throw error;
     }) : origin;
   const { userId: _owner, sourceRefs: _refs, ...data } = row;
+  let correctedId: string | undefined;
+  try {
+    const refs = JSON.parse(row.resultText ?? "{}");
+    if (typeof refs.correctedBundleArtifactId === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(refs.correctedBundleArtifactId)) correctedId = refs.correctedBundleArtifactId;
+  } catch { /* Manual supporting text is not necessarily JSON. */ }
+  const [returned] = row.originKind === "SESSION" ? await reader.select().from(harnessArtifactsTable).where(and(
+    eq(harnessArtifactsTable.userId, row.userId), eq(harnessArtifactsTable.sessionId, row.originId),
+    correctedId ? eq(harnessArtifactsTable.id, correctedId) :
+      sql`${harnessArtifactsTable.artifactContent}->>'boomerangCaseId' = ${row.id}`,
+  )).orderBy(desc(harnessArtifactsTable.createdAt), desc(harnessArtifactsTable.id)).limit(1) : [];
+  const upgrade = (returned?.artifactContent as Record<string, unknown> | undefined)?.boomerangUpgrade as { label?: string } | undefined;
+  const featureId = BOOMERANG_FEATURES[row.stage];
   return {
     ...data, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
     originAvailable: Boolean(current), sourceChanged: !current || current.hash !== row.sourceHash,
     originHref: current?.href ?? "/boomerang", advisoryOnly: true, releaseAllowed: false,
+    returnedArtifactId: returned?.id ?? null,
+    upgradeLabel: upgrade?.label ?? null,
+    returnedArtifactHref: returned && featureId ? returnedArtifactHref(row.originId, featureId, returned.id) : null,
   };
 }
 

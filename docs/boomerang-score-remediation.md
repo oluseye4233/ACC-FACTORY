@@ -1,5 +1,38 @@
 # Score-driven Boomerang rework and re-ingestion
 
+## Numbered returns to the originating stage
+
+An artifact-bound Boomerang return now retains an immutable candidate named
+`<source name> · Upgraded 1`, followed by `Upgraded 2`, `Upgraded 3` and so on
+within that source lineage. The return links to the exact artifact at the
+original session and cockpit stage, not just a generic session page. Refreshing
+the page retains its identity. A repeated delivery request reuses its existing
+receipt rather than allocating another version.
+
+The original artifact and its evaluations are not overwritten. SPC Player
+returns remain reviewed, plan-only candidates; their numbered label does not
+turn them into certified production artifacts. The returned card lets the owner
+explicitly select that candidate for another SPC Player rework without silently
+substituting the original production source. Normal source/ownership, review,
+re-ingestion and stage-evaluation requirements still apply.
+
+For a failed F8 drift gate, use **AUTO REMEDIATE + RE-DRIFT CHECK**. The corrected
+bundle receives its numbered lineage and is checked against the bound certified
+MVP PDD immediately. A completed check with verdict FAIL is still a failed
+check, even though the repair procedure itself completed. The interface offers
+**REMEDIATE AGAIN + RE-DRIFT CHECK**, bound to that fresh failed report, to
+authorize the next attempt. A passing internal drift result is displayed
+separately from release or independent-verification approval.
+
+Each attempt is bounded and may consume model credits. There is no unattended
+infinite retry loop or guarantee that the first correction will pass. Uncertain
+provider outcomes, unavailable budget and required changes to approved
+requirements stop for review rather than trigger repeated charges or weakened
+checks. Historical support-only runs without a retained departure baseline are
+not retroactively assigned invented source evidence.
+
+## Score-driven re-ingestion remains a separate path
+
 1. Open Boomerang at a session's F-stage (embedded panel or workspace).
 2. The server selects the latest saved production artifact at that **exact**
    stage, owned by that user. It never cherry-picks an older low score,

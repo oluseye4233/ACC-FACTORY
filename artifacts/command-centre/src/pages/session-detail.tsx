@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { useParams, Link } from "wouter";
+import { useParams, useSearch, Link } from "wouter";
 import { BoomerangPanel } from "@/components/boomerang";
+import { ReturnedUpgrade } from "@/components/boomerang/ReturnedUpgrade";
 import { SessionCartridgeSources } from "@/components/cartridge/SessionCartridgeSources";
 import { TopNav } from "@/components/layout/TopNav";
 import { 
@@ -50,6 +51,7 @@ const F11HostConnector = lazy(() => import("@/components/workspaces/F11HostConne
 
 export default function SessionDetail() {
   const { id } = useParams<{ id: string }>();
+  const search = useSearch();
   
   const { data: sessionData, isLoading: isLoadingSession, isError } = useGetSession(id || "");
   const { data: featureStates, isLoading: isLoadingFeatures } = useListFeatureState(id || "");
@@ -65,6 +67,16 @@ export default function SessionDetail() {
       ? requested
       : 1;
   });
+  useEffect(() => {
+    const feature = Number(new URLSearchParams(search).get("featureId"));
+    if (Number.isInteger(feature) && feature >= 1 && feature <= 13) setActiveEngineId(feature);
+  }, [search]);
+  useEffect(() => {
+    const artifactId = new URLSearchParams(window.location.search).get("artifactId");
+    if (!artifactId || !artifacts?.some(artifact => artifact.id === artifactId)) return;
+    document.getElementById(`artifact-${artifactId}`)?.focus();
+    document.getElementById(`artifact-${artifactId}`)?.scrollIntoView?.({ block: "start" });
+  }, [artifacts, activeEngineId, search]);
   const [sequenceOpen, setSequenceOpen] = useState(false);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [hasEmittedF9, setHasEmittedF9] = useState(false);
@@ -393,33 +405,11 @@ export default function SessionDetail() {
           {(artifacts ?? [])
             .filter(
               (artifact) =>
-                artifact.featureId === activeEngineId &&
-                artifact.artifactType === "SPC_PLAYER_SUPPORT",
+                (Number((artifact.artifactContent?.boomerangUpgrade as Record<string, unknown> | undefined)?.originFeatureId) || artifact.featureId) === activeEngineId &&
+                (artifact.artifactType === "SPC_PLAYER_SUPPORT" || Boolean(artifact.artifactContent?.boomerangUpgrade)),
             )
             .map((artifact) => (
-              <div
-                key={artifact.id}
-                className="mx-4 mt-4 rounded-lg border border-primary/35 bg-primary/5 p-4"
-                data-testid={`boomerang-return-${artifact.id}`}
-              >
-                <div className="font-mono text-xs font-bold uppercase tracking-wider text-primary">
-                  Returned SPC Player support · {ENGINES.find((engine) => engine.id === activeEngineId)?.name}
-                </div>
-                <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-                  {artifact.name || "Plan-only package"} — supporting input only; this does not certify or advance the stage.
-                </p>
-                <Link href={`/boomerang?originKind=SESSION&originId=${encodeURIComponent(id!)}&stage=${encodeURIComponent(ENGINES.find((engine) => engine.id === activeEngineId)?.name ?? "F1")}`} className="mt-2 inline-block text-xs text-primary underline">
-                  Review Boomerang requests for this stage
-                </Link>
-                <details className="mt-2">
-                  <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-wider">
-                    View returned package
-                  </summary>
-                  <pre className="mt-2 max-h-80 overflow-auto whitespace-pre-wrap break-words rounded bg-background/70 p-3 font-mono text-[10px]">
-                    {JSON.stringify(artifact.artifactContent, null, 2).slice(0, 24_000)}
-                  </pre>
-                </details>
-              </div>
+              <ReturnedUpgrade key={artifact.id} artifact={artifact} featureId={activeEngineId} />
             ))}
           {id && (
             <Suspense fallback={<p role="status" aria-live="polite" className="p-6 text-sm text-muted-foreground">Loading stage workspace…</p>}>

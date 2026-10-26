@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { ENGINES } from "@/lib/constants";
+import { returnedUpgradeHref } from "@/components/boomerang/ReturnedUpgrade";
 import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   useGetSpcPlayerRun,
+  useGetArtifact,
   useGetSpcDevKit,
   useGetSpcPlayerCatalog,
   useGetSpcPlayerWebhookAuthorization,
@@ -50,6 +52,9 @@ export default function SpcPlayerDetail() {
   const [authorizationMessage, setAuthorizationMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [deliveryMessage, setDeliveryMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const run = executionResult ?? loadedRun;
+  const { data: returnedArtifact } = useGetArtifact(run?.returnedArtifactId ?? "", {
+    query: { enabled: Boolean(run?.returnedArtifactId), staleTime: 0 },
+  });
   const authorizedEndpoint = sessionAuthorizedEndpoint ?? webhookAuthorization?.endpoint ?? null;
   const retryAvailableAt = run?.retryAvailableAt
     ? new Date(run.retryAvailableAt).getTime()
@@ -486,18 +491,21 @@ export default function SpcPlayerDetail() {
                   <p className="mt-1 font-mono text-[10px] text-muted-foreground">
                     The package remains plan-only. New origin-bound runs enter Boomerang review when returned. Historical runs without a departure baseline remain legacy supporting attachments. No return certifies or advances the stage.
                   </p>
+                  {returnedArtifact && <p className="mt-2 break-words text-sm font-bold text-primary">
+                    {returnedArtifact.name || "Returned candidate"} · awaiting fresh stage evaluation
+                  </p>}
                   {run.returnedArtifactId ? (
                     <Button
                       className="mt-3 font-mono text-[10px] uppercase tracking-wider"
                       variant="outline"
                       onClick={() =>
                         setLocation(
-                          `/session/${encodeURIComponent(run.originSessionId!)}?featureId=${run.originFeatureId}`,
+                          returnedUpgradeHref(run.originSessionId!, run.originFeatureId!, run.returnedArtifactId!),
                         )
                       }
                       data-testid="button-open-returned-stage"
                     >
-                      VIEW RETURNED INPUT <ArrowRight className="ml-2 h-3 w-3" />
+                      OPEN UPGRADED ARTIFACT AT ORIGIN <ArrowRight className="ml-2 h-3 w-3" />
                     </Button>
                   ) : (
                     <Button

@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { z } from "zod";
 import { and, desc, eq } from "drizzle-orm";
+import { resolveSpcPlayerSource } from "@workspace/artifact-naming";
+import { nextBoomerangUpgrade } from "../lib/boomerang-upgrades";
+import { captureArtifactPersisted } from "../lib/command-deck-capture";
 import {
   boomerangCasesTable, db, f0EngagementsTable, harnessArtifactsTable, harnessSessionsTable,
   spcPlayerDraftRunsTable, spcPlayerRunsTable,
@@ -118,6 +121,12 @@ router.post("/boomerang/cases/:id/transition", requireAuth, async (req, res) => 
         throw new BoomerangError(400, "UNEXPECTED_RESULT", "A review decision cannot replace returned evidence");
       }
       if (input.action === "RETURN") {
+        if (row.originKind === "SESSION") {
+          // Serialize returned candidates with Player and F8 repair numbering.
+          await tx.select({ id: harnessSessionsTable.id }).from(harnessSessionsTable).where(and(
+            eq(harnessSessionsTable.id, row.originId), eq(harnessSessionsTable.userId, owner),
+          )).for("update");
+        }
         if (Boolean(input.resultText?.trim()) === Boolean(input.spcPlayerRunId)) {
           throw new BoomerangError(400, "RESULT_REQUIRED", "Return either supporting text or one completed owned SPC Player run");
         }
@@ -155,6 +164,27 @@ router.post("/boomerang/cases/:id/transition", requireAuth, async (req, res) => 
           if (resultText.length < 10) throw new BoomerangError(400, "RESULT_REQUIRED", "Return at least 10 characters of supporting work");
         }
         resultHash = boomerangHash({ resultText, runId, sourceHash: row.sourceHash });
+        const featureId = BOOMERANG_FEATURES[row.stage];
+        if (row.originKind === "SESSION" && featureId) {
+          const candidates = await tx.select().from(harnessArtifactsTable).where(and(
+            eq(harnessArtifactsTable.sessionId, row.originId), eq(harnessArtifactsTable.userId, owner),
+          ));
+          const source = resolveSpcPlayerSource(candidates, { sessionId: row.originId, featureId });
+          if (source) {
+            const upgrade = await nextBoomerangUpgrade(tx, source);
+            const [artifact] = await tx.insert(harnessArtifactsTable).values({
+              sessionId: row.originId, userId: owner, featureId, artifactType: "SPC_PLAYER_SUPPORT",
+              name: `${upgrade.rootName} · ${upgrade.label}`, parentArtifactId: source.id,
+              artifactContent: {
+                boomerangCaseId: row.id, sourceArtifactId: source.id, spcPlayerRunId: runId,
+                boomerangUpgrade: { ...upgrade, originFeatureId: featureId },
+                resultText, advisoryOnly: true, planOnly: true, reviewRequired: true,
+                certifies: false, advancesStage: false,
+              }, scorecards: [],
+            }).returning();
+            await captureArtifactPersisted(tx, artifact!);
+          }
+        }
       }
       const states: Record<string, string> = {
         RETURN: "RETURNED", ACCEPT: "ACCEPTED", REQUEST_REVISION: "REVISION_REQUESTED",
@@ -170,7 +200,7 @@ router.post("/boomerang/cases/:id/transition", requireAuth, async (req, res) => 
         history: [...history, { action: input.action, at: new Date().toISOString(), note: input.note?.trim() ?? "",
           resultHash, resultText: input.action === "RETURN" ? resultText : null, spcPlayerRunId: runId }],
       }).where(eq(boomerangCasesTable.id, row.id)).returning();
-      return boomerangResponse(updated!, origin);
+      return boomerangResponse(updated!, origin, tx);
     });
     res.json(result);
   } catch (error) {
