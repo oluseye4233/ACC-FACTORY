@@ -110,7 +110,7 @@ describe("buildExportFiles", () => {
   it("includes the universal AGENTS.md", () => {
     const files = buildExportFiles(makeBundle(), makeSource(), makePfp());
     expect(files["AGENTS.md"]).toBeDefined();
-    expect(files["AGENTS.md"]).toContain("# CODE ORACLE — Agent Operating Brief");
+    expect(files["AGENTS.md"]).toContain("# CODE ONE + — Agent Operating Brief");
   });
 
   it("includes every per-IDE adapter file declared in SUPPORTED_IDES", () => {

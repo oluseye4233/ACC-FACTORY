@@ -204,12 +204,19 @@ export async function handleF8Remediation(req: Request, res: Response): Promise<
       upgradeFromArtifactId: bundle.id,
       upgradeOriginFeatureId: 9,
       artifactContent: { ...corrected, artifactClass, repairAttemptId: attemptId,
+        ...(original.implementationPath ? { implementationPath: original.implementationPath } : {}),
+        ...(original.colonizationTarget ? { colonizationTarget: original.colonizationTarget } : {}),
+        ...(original.sourcePddArtifactId ? { sourcePddArtifactId: original.sourcePddArtifactId } : {}),
+        ...(original.sourceMicroPddArtifactId ? { sourceMicroPddArtifactId: original.sourceMicroPddArtifactId } : {}),
+        ...(original.sourceHostingPlanArtifactId ? { sourceHostingPlanArtifactId: original.sourceHostingPlanArtifactId } : {}),
+        ...(original.conversionProtocol ? { conversionProtocol: original.conversionProtocol } : {}),
         ...(original.hardwareConfigId ? { hardwareConfigId: original.hardwareConfigId } : {}),
         sourceMvpPddArtifactId: mvp.id, sourceCertId: original.sourceCertId,
         sourceCodebaseBundleArtifactId: bundle.id, remediationArtifactId: record.id,
         sourceDriftReportArtifactId: report.id }, provider,
     });
     const resultBundle = { ...corrected, artifactId: next.id, artifactClass,
+      ...(original.implementationPath ? { implementationPath: original.implementationPath } : {}),
       ...(original.hardwareConfigId ? { hardwareConfigId: original.hardwareConfigId } : {}) };
     emit("progress", { message: "Corrected bundle saved. Running a fresh PFP re-drift check…", artifactId: next.id });
     let recheck: Awaited<ReturnType<typeof evaluateAndPersistPfp>>;

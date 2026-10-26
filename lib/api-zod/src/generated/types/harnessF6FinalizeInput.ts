@@ -5,6 +5,7 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+import type { ColonizationTarget } from './colonizationTarget';
 import type { HarnessF6FinalizeInputMode } from './harnessF6FinalizeInputMode';
 import type { LlmProvider } from './llmProvider';
 
@@ -15,5 +16,6 @@ export interface HarnessF6FinalizeInput {
   sourceArtifactId?: string | null;
   /** @nullable */
   brief?: string | null;
+  colonizationTarget?: ColonizationTarget;
   provider?: LlmProvider;
 }

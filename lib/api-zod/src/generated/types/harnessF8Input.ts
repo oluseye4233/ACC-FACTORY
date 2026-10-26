@@ -13,7 +13,9 @@ import type { LlmProvider } from './llmProvider';
 export interface HarnessF8Input {
   sessionId: string;
   mvpPddArtifactId: string;
-  platform: CodeDjPlatform;
+  platform?: CodeDjPlatform;
+  microPddArtifactId?: string;
+  hostingPlanArtifactId?: string;
   /** Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software). */
   artifactClass: HarnessF8InputArtifactClass;
   /** Optional firmware hardware profile used to tailor Code DJ scaffolding. */

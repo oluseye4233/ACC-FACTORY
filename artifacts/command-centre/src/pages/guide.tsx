@@ -188,7 +188,7 @@ const WALKTHROUGHS: readonly Walkthrough[] = [
       "The linear track guides you F1 → F7. The left column shows where you came from, the center what you are doing now, and the right where you are going next.",
       "Advance engine by engine. Each workspace streams its output live; completed results are persisted and waiting in the session artifacts tray.",
       "At F7, the SPARTAN compressor certifies the MVP PDD and stamps a public verification URL.",
-      "After eligible F7 certification, use F8 CODE ORACLE / CODE DJ for a codebase or IDE bundle. GitHub delivery is handled through F10 and its authorization gates."
+      "After eligible F7 certification, use F8 CODE ONE + for an integrated VIBE DJ recommendation, source-bound HOST DJ plan and codebase/IDE bundle. GitHub delivery is handled through F10 and its authorization gates."
     ],
     shot: shotSessions,
     gif: gifSessions,
@@ -532,10 +532,10 @@ const SYSTEM_STAGES: StageDetail[] = [
   },
   {
     id: "F8",
-    title: "CODE ORACLE / CODE DJ",
+    title: "CODE ONE +",
     purpose: "Codebase/IDE handoff and implementation generation.",
     input: "SPARTAN-certified MVP PDD / PWDD.",
-    process: "Scaffolds a complete codebase against a chosen platform.",
+    process: "Uses the source-bound HOST DJ plan and VIBE DJ instructions to recommend an implementation path and generate an unverified scaffold. Optional Micro PDD context is retained.",
     output: "CODEBASE_BUNDLE (up to 12 files + manifest).",
     gate: "Refuses uncertified input. Architect-tier only.",
     handoff: "Software uses code/IDE export and eligible F10 handoff; firmware and legacy bundles retain F9.",
@@ -577,11 +577,6 @@ const SYSTEM_STAGES: StageDetail[] = [
 ];
 
 const SIDE_STEPS = [
-  {
-    id: "F6-VDJ",
-    title: "VIBE ORACLE",
-    desc: "Recommends IDE + coding vibe for your ATLAS PDD."
-  },
   {
     id: "ATLAS 360",
     title: "PLAN / SCAN",

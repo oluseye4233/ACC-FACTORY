@@ -200,6 +200,11 @@ describe("FORGE FIELD ENGINEER existing-Quest-compatible pilot", () => {
     }
     expect(learningRouteAllowed("POST", "/harness/f8", true)).toBe(true);
     expect(learningRouteAllowed("POST", "/harness/f8", false)).toBe(false);
+    expect(learningRouteAllowed("GET", "/f10/catalog", true)).toBe(true);
+    expect(learningRouteAllowed("GET", "/f10/catalog", false, true)).toBe(true);
+    expect(learningRouteAllowed("GET", "/f10/catalog", false)).toBe(false);
+    expect(learningRouteAllowed("POST", "/f10/catalog", true)).toBe(false);
+    expect(learningRouteAllowed("POST", "/f10/releases", true)).toBe(false);
     expect(learningRouteAllowed("POST", "/me/badges/aise/claim", false)).toBe(true);
     expect(learningRouteAllowed("POST", "/me/badges/engineer", false)).toBe(true);
     const stages = new Set(LEARNING_LESSONS.map((l) => l.stage));

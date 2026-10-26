@@ -13,6 +13,9 @@ export async function activeLearningMembership(userId: string, membershipId?: st
 }
 /** All non-staff routes are denied unless explicitly part of student learning. */
 export function learningRouteAllowed(method: string, path: string, active: boolean, lifetimePractitioner = false) {
+  // Non-secret planning metadata only. This does not authorize any F10 write,
+  // provider connection, release or delivery for a training account.
+  if (method === "GET" && path === "/f10/catalog" && (active || lifetimePractitioner)) return true;
   if (/^\/learn(?:\/|$)/.test(path) || path === "/me" || path === "/me/profile") return true;
   if (method === "GET" && /^\/(?:sessions|artifacts|me\/(?:badges|context-craft-badges|ascension|jst|activity|cost-summary)|boomerang|spc-player)(?:\/|$)/.test(path)) return true;
   // Normal credential claims must not gain a new "active course" prerequisite.

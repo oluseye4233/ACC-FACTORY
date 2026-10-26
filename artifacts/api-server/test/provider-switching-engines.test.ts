@@ -563,6 +563,11 @@ describe("provider switching end-to-end across remaining engines", () => {
         const mvpId = await insertArtifact(fx, "MVP_PDD", 7, SAMPLE_MVP_PDD, {
           spartanCert: SAMPLE_SPARTAN_CERT,
         });
+        const hostingId = await insertArtifact(fx, "HOSTING_PLAN", 9, {
+          sourceMvpPddArtifactId: mvpId,
+          primary: { platform: "cloudflare-pages" },
+          advisoryOnly: true,
+        });
         const app = buildApp(fx.user, fx.subscriber, "/api/harness/f8", rateLimit(8), handleF8CodeDj);
         const srv = await startServer(app);
         try {
@@ -572,6 +577,7 @@ describe("provider switching end-to-end across remaining engines", () => {
             body: JSON.stringify({
               sessionId: fx.sessionId,
               mvpPddArtifactId: mvpId,
+              hostingPlanArtifactId: hostingId,
               platform: "react-vite-static",
               artifactClass: "SOFTWARE",
               provider,

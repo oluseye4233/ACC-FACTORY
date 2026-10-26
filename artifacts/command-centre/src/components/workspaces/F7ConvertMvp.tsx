@@ -38,6 +38,7 @@ import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarL
 
 import { Atlas360ViewPanel } from "./Atlas360ViewPanel";
 import { buildArtifactFilename } from "@workspace/artifact-naming";
+import { ColonizationTargetSelect, type ColonizationTarget } from "./ColonizationTargetSelect";
 
 const SPARTAN_STEPS = [
   "SCAN",
@@ -78,6 +79,9 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
   );
 
   const [sourceId, setSourceId] = useState<string>(pddSources[0]?.id || "");
+  const inheritedTarget = (pddSources.find(a => a.id === sourceId)?.artifactContent as { colonizationTarget?: ColonizationTarget } | undefined)?.colonizationTarget;
+  const [targetOverride, setTargetOverride] = useState<ColonizationTarget | null>(null);
+  const colonizationTarget = targetOverride ?? inheritedTarget ?? "UNDECIDED";
   const [stepIdx, setStepIdx] = useState(-1);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<MvpPdd | undefined>();
@@ -121,6 +125,7 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
         {
           sessionId,
           pddArtifactId: sourceId,
+          colonizationTarget,
           ...overrideToBody(providerOverride),
         },
         (e) => {
@@ -214,7 +219,7 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
               <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
                 Source ATLAS PDD
               </label>
-              <Select value={sourceId} onValueChange={setSourceId}>
+              <Select value={sourceId} onValueChange={v => { setSourceId(v); setTargetOverride(null); }}>
                 <SelectTrigger data-testid="f7-source" className="font-mono text-xs">
                   <SelectValue />
                 </SelectTrigger>
@@ -227,6 +232,7 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
                 </SelectContent>
               </Select>
             </div>
+            <ColonizationTargetSelect value={colonizationTarget} onChange={setTargetOverride} disabled={running} testId="f7-colonization-target" />
             <div className="flex items-end gap-2">
               <ProviderOverride
                 value={providerOverride}

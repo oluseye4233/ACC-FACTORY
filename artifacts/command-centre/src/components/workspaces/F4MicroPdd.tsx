@@ -9,7 +9,7 @@ import {
   ArtifactType,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ColonizationTargetSelect, type ColonizationTarget } from "./ColonizationTargetSelect";
 import { Card } from "@/components/ui/card";
 import {
   Select,
@@ -65,7 +65,7 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
   );
 
   const [sourceId, setSourceId] = useState<string>(sources[0]?.id || "");
-  const [vibe, setVibe] = useState("");
+  const [colonizationTarget, setColonizationTarget] = useState<ColonizationTarget>("UNDECIDED");
   const [result, setResult] = useState<MicroPdd | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [providerOverride, setProviderOverride] =
@@ -101,16 +101,12 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
       setError("Select a source artifact");
       return;
     }
-    if (!vibe.trim()) {
-      setError("Target VIBE required");
-      return;
-    }
     setError(null);
     m.mutate({
       data: {
         sessionId,
         sourceArtifactId: sourceId,
-        targetVibe: vibe,
+        colonizationTarget,
         ...overrideToBody(providerOverride),
       },
     });
@@ -156,16 +152,7 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
               </Select>
             </div>
             <div>
-              <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
-                Target VIBE
-              </label>
-              <Input
-                data-testid="f4-vibe"
-                value={vibe}
-                onChange={(e) => setVibe(e.target.value)}
-                placeholder="e.g. Cursor + Next.js + Supabase"
-                className="font-mono text-xs"
-              />
+              <ColonizationTargetSelect value={colonizationTarget} onChange={setColonizationTarget} testId="f4-colonization-target" disabled={m.isPending} />
             </div>
             <div className="flex items-center gap-2">
               <ProviderOverride
@@ -241,7 +228,7 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
           <EmptyState
             icon={<Workflow className="h-12 w-12" />}
             title="MICRO PDD STAGED"
-            body="Select a source MA Birth Package and target VIBE, then CONVERT."
+            body="Select a source MA Birth Package and a future F10 target, then CONVERT. F8 will recommend the coding environment."
           />
         )}
       </div>

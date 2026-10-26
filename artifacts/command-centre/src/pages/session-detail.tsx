@@ -42,7 +42,6 @@ const F4MicroPdd = lazy(() => import("@/components/workspaces/F4MicroPdd").then(
 const F5BuildSpc = lazy(() => import("@/components/workspaces/F5BuildSpc").then(m => ({ default: m.F5BuildSpc })));
 const F6DraftPdd = lazy(() => import("@/components/workspaces/F6DraftPdd").then(m => ({ default: m.F6DraftPdd })));
 const F7ConvertMvp = lazy(() => import("@/components/workspaces/F7ConvertMvp").then(m => ({ default: m.F7ConvertMvp })));
-const F6VdjBuild = lazy(() => import("@/components/workspaces/F6VdjBuild").then(m => ({ default: m.F6VdjBuild })));
 const F8CodeDj = lazy(() => import("@/components/workspaces/F8CodeDj").then(m => ({ default: m.F8CodeDj })));
 const MathmonLayer = lazy(() => import("@/components/workspaces/MathmonLayer").then(m => ({ default: m.MathmonLayer })));
 const F9MachineFloor = lazy(() => import("@/components/workspaces/F9MachineFloor").then(m => ({ default: m.F9MachineFloor })));
@@ -64,12 +63,12 @@ export default function SessionDetail() {
   const [activeEngineId, setActiveEngineId] = useState<number>(() => {
     const requested = Number(new URLSearchParams(window.location.search).get("featureId"));
     return Number.isInteger(requested) && requested >= 1 && requested <= 13
-      ? requested
+      ? requested === 8 ? 9 : requested
       : 1;
   });
   useEffect(() => {
     const feature = Number(new URLSearchParams(search).get("featureId"));
-    if (Number.isInteger(feature) && feature >= 1 && feature <= 13) setActiveEngineId(feature);
+    if (Number.isInteger(feature) && feature >= 1 && feature <= 13) setActiveEngineId(feature === 8 ? 9 : feature);
   }, [search]);
   useEffect(() => {
     const artifactId = new URLSearchParams(window.location.search).get("artifactId");
@@ -184,7 +183,7 @@ export default function SessionDetail() {
 
   // The "next" engine to attract attention to is the lowest-id stage in the
   // linear F1→F7 pipeline that is AVAILABLE (not yet COMPLETE and not LOCKED).
-  // Side-step engines (F6-VDJ and MM) are never marked NEXT. F8, F9, and F10
+  // MM is an advisory side-step. F8, F9, and F10
   // remain on the production line and are gated by their upstream artifacts.
   const nextEngineId = ENGINES.filter((e) => e.id <= 7)
     .find((e) => getFeatureStatus(e.id) === FeatureStatus.AVAILABLE)?.id;
@@ -193,7 +192,7 @@ export default function SessionDetail() {
     isLoadingFeatures ? (
       Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-12 w-full mb-1" />)
     ) : (
-      ENGINES.map((engine) => (
+      ENGINES.filter(engine => engine.id !== 8).map((engine) => (
         <FeatureNavItem
           key={engine.id}
           {...engine}
@@ -420,7 +419,6 @@ export default function SessionDetail() {
               {activeEngineId === 5 && <F5BuildSpc sessionId={id} artifacts={artifacts || []} />}
               {activeEngineId === 6 && <F6DraftPdd sessionId={id} sessionOrigin={session?.origin} artifacts={artifacts || []} />}
               {activeEngineId === 7 && <F7ConvertMvp sessionId={id} sessionOrigin={session?.origin} artifacts={artifacts || []} />}
-              {activeEngineId === 8 && <F6VdjBuild sessionId={id} artifacts={artifacts || []} />}
               {activeEngineId === 9 && (
                 <F8CodeDj
                   sessionId={id}

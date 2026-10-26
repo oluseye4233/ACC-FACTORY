@@ -3485,10 +3485,14 @@ export const HarnessF3StreamResponse = zod.unknown()
 /**
  * @summary Micro PDD converter
  */
+export const harnessF4BodyColonizationTargetMax = 240;
+
+
+
 export const HarnessF4Body = zod.object({
   "sessionId": zod.string().uuid(),
   "sourceArtifactId": zod.string().uuid(),
-  "targetVibe": zod.string(),
+  "colonizationTarget": zod.string().max(harnessF4BodyColonizationTargetMax).optional().describe('UNDECIDED or an exact FAMILY::target pair from the authenticated F10 catalog. Planning preference only, never deployment consent.'),
   "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
@@ -3555,11 +3559,16 @@ export const HarnessF5FinalizeStreamResponse = zod.unknown()
 /**
  * @summary ATLAS PDD Drafter
  */
+export const harnessF6BodyColonizationTargetMax = 240;
+
+
+
 export const HarnessF6Body = zod.object({
   "sessionId": zod.string().uuid(),
   "mode": zod.enum(['FROM_SPC', 'FRESH']),
   "sourceArtifactId": zod.string().uuid().nullish(),
   "brief": zod.string().nullish(),
+  "colonizationTarget": zod.string().max(harnessF6BodyColonizationTargetMax).optional().describe('UNDECIDED or an exact FAMILY::target pair from the authenticated F10 catalog. Planning preference only, never deployment consent.'),
   "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
@@ -3575,11 +3584,16 @@ export const HarnessF6Response = zod.object({
 /**
  * @summary ATLAS PDD Drafter (SSE stream)
  */
+export const harnessF6DraftStreamBodyColonizationTargetMax = 240;
+
+
+
 export const HarnessF6DraftStreamBody = zod.object({
   "sessionId": zod.string().uuid(),
   "mode": zod.enum(['FROM_SPC', 'FRESH']),
   "sourceArtifactId": zod.string().uuid().nullish(),
   "brief": zod.string().nullish(),
+  "colonizationTarget": zod.string().max(harnessF6DraftStreamBodyColonizationTargetMax).optional().describe('UNDECIDED or an exact FAMILY::target pair from the authenticated F10 catalog. Planning preference only, never deployment consent.'),
   "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
@@ -3655,9 +3669,14 @@ export const HarnessMapStreamResponse = zod.unknown()
 /**
  * @summary SPARTAN Compressor (SSE stream)
  */
+export const harnessF7StreamBodyColonizationTargetMax = 240;
+
+
+
 export const HarnessF7StreamBody = zod.object({
   "sessionId": zod.string().uuid(),
   "pddArtifactId": zod.string().uuid(),
+  "colonizationTarget": zod.string().max(harnessF7StreamBodyColonizationTargetMax).optional().describe('UNDECIDED or an exact FAMILY::target pair from the authenticated F10 catalog. Planning preference only, never deployment consent.'),
   "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
 })
 
@@ -3674,7 +3693,9 @@ export const harnessF8BodyNotesMax = 2000;
 export const HarnessF8Body = zod.object({
   "sessionId": zod.string().uuid(),
   "mvpPddArtifactId": zod.string().uuid(),
-  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).optional().describe('Deployment / framework target for the Code DJ scaffold.'),
+  "microPddArtifactId": zod.string().uuid().optional(),
+  "hostingPlanArtifactId": zod.string().uuid().optional(),
   "artifactClass": zod.enum(['SOFTWARE', 'FIRMWARE']).describe('Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software).'),
   "hardwareConfigId": zod.enum(['INDUSTRIAL_MCU', 'ROBOTICS_RTCL', 'APPLIANCE_FLEET']).optional().describe('Optional firmware hardware profile used to tailor Code DJ scaffolding.'),
   "notes": zod.string().max(harnessF8BodyNotesMax).optional().describe('Optional operator hints for the Code DJ (preferred libs, naming, etc.).'),
@@ -3685,6 +3706,16 @@ export const HarnessF8Body = zod.object({
 export const HarnessF8Response = zod.object({
   "artifactId": zod.string().uuid(),
   "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "implementationPath": zod.object({
+  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "recommendedHost": zod.string(),
+  "recommendedIde": zod.string(),
+  "recommendedVibe": zod.string(),
+  "rationale": zod.string(),
+  "hostingRationale": zod.string(),
+  "requirementTrace": zod.array(zod.string()),
+  "advisoryOnly": zod.boolean()
+}).optional(),
   "artifactClass": zod.enum(['SOFTWARE', 'FIRMWARE']),
   "hardwareConfigId": zod.enum(['INDUSTRIAL_MCU', 'ROBOTICS_RTCL', 'APPLIANCE_FLEET']).optional().describe('Reference hardware profile for a firmware-specific Code DJ and MECHA run.'),
   "manifest": zod.object({
@@ -3946,6 +3977,16 @@ export const GetF8RemediationProgressResponse = zod.object({
   "bundle": zod.object({
   "artifactId": zod.string().uuid(),
   "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "implementationPath": zod.object({
+  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "recommendedHost": zod.string(),
+  "recommendedIde": zod.string(),
+  "recommendedVibe": zod.string(),
+  "rationale": zod.string(),
+  "hostingRationale": zod.string(),
+  "requirementTrace": zod.array(zod.string()),
+  "advisoryOnly": zod.boolean()
+}).optional(),
   "artifactClass": zod.enum(['SOFTWARE', 'FIRMWARE']),
   "hardwareConfigId": zod.enum(['INDUSTRIAL_MCU', 'ROBOTICS_RTCL', 'APPLIANCE_FLEET']).optional().describe('Reference hardware profile for a firmware-specific Code DJ and MECHA run.'),
   "manifest": zod.object({

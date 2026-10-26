@@ -40,6 +40,7 @@ import {
 } from "@/components/shared/ProviderOverride";
 import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
+import { pfpContextMatches } from "@/lib/f8-context";
 import { exportCodeDjBundle, SUPPORTED_IDES } from "@/lib/codeDjExport";
 import { HARDWARE_CONFIGS, getHardwareConfig, type HardwareConfigId } from "@/lib/hardware-configs";
 import { F8DriftRemediation } from "./F8DriftRemediation";
@@ -96,7 +97,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
         .filter(
           (a) =>
             a.artifactType === ArtifactType.MVP_PDD &&
-            // Only SPARTAN-certified MVP PDDs are valid Code ORACLE sources.
+            // Only SPARTAN-certified MVP PDDs are valid CODE ONE + sources.
             !!(a as HarnessArtifact & { spartanCert?: unknown }).spartanCert,
         )
         .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)),
@@ -110,10 +111,23 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
   const [platform, setPlatform] = useState<CodeDjPlatform>(
     CodeDjPlatform["nextjs-vercel"],
   );
+  const [automaticPlatform, setAutomaticPlatform] = useState(true);
+  const [microPddArtifactId, setMicroPddArtifactId] = useState<string>("");
   const [artifactClass, setArtifactClass] = useState<ArtifactClass | "">("");
   const [hardwareConfigId, setHardwareConfigId] = useState<HardwareConfigId | "">("");
   const [notes, setNotes] = useState("");
-  const [result, setResult] = useState<CodebaseBundle | undefined>();
+  const [generatedResult, setResult] = useState<CodebaseBundle | undefined>();
+  const storedBundle = latestArtifact?.artifactContent as unknown as CodebaseBundle | undefined;
+  const result = generatedResult ?? (storedBundle &&
+    (latestArtifact?.artifactContent as { sourceMvpPddArtifactId?: string })?.sourceMvpPddArtifactId === sourceId
+    ? { ...storedBundle, artifactId: latestArtifact!.id } : undefined);
+  useEffect(() => {
+    if (!sourceId) {
+      const savedSource = (latestArtifact?.artifactContent as { sourceMvpPddArtifactId?: string } | undefined)?.sourceMvpPddArtifactId;
+      setSourceId(savedSource ?? certifiedMvpSources[0]?.id ?? "");
+    }
+  }, [sourceId, latestArtifact, certifiedMvpSources]);
+  const implementationPath = result?.implementationPath;
   const [activeFile, setActiveFile] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
@@ -136,6 +150,14 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
   const [remediating, setRemediating] = useState(false);
   const [pfpError, setPfpError] = useState<string | null>(null);
   const [hostPlan, setHostPlan] = useState<HostingPlan | undefined>();
+  useEffect(() => {
+    const content = latestArtifact?.artifactContent as { sourceMicroPddArtifactId?: string } | undefined;
+    setMicroPddArtifactId(content?.sourceMicroPddArtifactId ?? "");
+  }, [latestArtifact?.id]);
+  const storedHosting = useMemo(() => artifacts.filter(a =>
+    a.artifactType === "HOSTING_PLAN" &&
+    (a.artifactContent as { sourceMvpPddArtifactId?: string })?.sourceMvpPddArtifactId === sourceId
+  ).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0], [artifacts, sourceId]);
   const [hostError, setHostError] = useState<string | null>(null);
   const [acknowledgeDrift, setAcknowledgeDrift] = useState(false);
   const [driftGateBlock, setDriftGateBlock] = useState<{
@@ -160,7 +182,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
     return a.artifactType === "PFP_REPORT" && c.sourceCodebaseBundleArtifactId === bundleArtifactId &&
       c.sourceMvpPddArtifactId === sourceId;
   }).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0], [artifacts, bundleArtifactId, sourceId]);
-  const pfp = pfpContext?.bundleId === bundleArtifactId && pfpContext.sourceId === sourceId ? pfpResult :
+  const pfp = pfpContextMatches(pfpContext, bundleArtifactId, sourceId) ? pfpResult :
     storedPfp ? { ...(storedPfp.artifactContent as unknown as PfpReport), artifactId: storedPfp.id } : undefined;
   const evidenceQuery = useListF8VerificationEvidence(
     bundleArtifactId ?? "",
@@ -281,7 +303,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
         <EmptyState
           icon={<ShieldCheck className="h-12 w-12" />}
           title="CERTIFIED MVP PDD REQUIRED"
-          body="Code ORACLE creates an unverified starter codebase from a SPARTAN-certified MVP PDD / PWDD. Record passing CI or IDE test evidence before downstream use."
+          body="CODE ONE + recommends an implementation path and creates an unverified starter codebase from a SPARTAN-certified MVP PDD / PWDD. Record passing CI or IDE test evidence before downstream use."
           hint="F8 is Architect tier only — upgrade if your run is gated."
         />
       </WorkspaceShell>
@@ -305,11 +327,24 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
     setDriftGateBlock(null);
     setResult(undefined);
     try {
+      // Reuse the persisted, exact-source HOST DJ assessment across reloads.
+      // Firmware remains human/F9-gated and does not invoke hosting planning.
+      let hostingPlanArtifactId = artifactClass === "SOFTWARE" ? storedHosting?.id : undefined;
+      if (artifactClass === "SOFTWARE" && !hostingPlanArtifactId) {
+        const plan = await hostM.mutateAsync({ data: {
+          sessionId, mvpPddArtifactId: sourceId,
+          ...(notes.trim() ? { notes: notes.trim() } : {}),
+          ...overrideToBody(providerOverride),
+        } });
+        hostingPlanArtifactId = plan.artifactId;
+      }
       const out = (await mutation.mutateAsync({
         data: {
           sessionId,
           mvpPddArtifactId: sourceId,
-          platform,
+          ...(automaticPlatform ? {} : { platform }),
+          ...(microPddArtifactId ? { microPddArtifactId } : {}),
+          ...(hostingPlanArtifactId ? { hostingPlanArtifactId } : {}),
           artifactClass,
           ...(hardwareConfigId ? { hardwareConfigId } : {}),
           ...(notes.trim() ? { notes: notes.trim() } : {}),
@@ -323,7 +358,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
         queryKey: getListSessionArtifactsQueryKey(sessionId),
       });
       toast({
-        title: "CODE ORACLE COMPLETE",
+        title: "CODE ONE + CONVERSION COMPLETE",
         description: `${out.files.length} files scaffolded for ${PLATFORM_LABELS[out.platform]}`,
       });
     } catch (err) {
@@ -355,7 +390,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
     }
     const bundleId = result?.artifactId ?? latestArtifact?.id;
     if (!bundleId) {
-      setPfpError("Run Code ORACLE first to produce a codebase bundle");
+      setPfpError("Run CODE ONE + first to produce a codebase bundle");
       return;
     }
     pfpM.mutate({
@@ -401,7 +436,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
   const downloadBundle = async () => {
     if (!result) return;
     // Starter project ZIP: scaffold files at their real paths plus a
-    // CODE ORACLE operating brief (AGENTS.md) and per-IDE adapter files, so the
+    // CODE ONE + operating brief (AGENTS.md) and per-IDE adapter files, so the
     // bundle drops straight into Cursor / Replit / Codex / Claude Code / etc.
     // and the IDE's agent keeps building in fidelity to the certified spec.
     const source = certifiedMvpSources.find((s) => s.id === sourceId);
@@ -431,7 +466,10 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
               <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
                 Source MVP PDD (SPARTAN-certified)
               </label>
-              <Select value={sourceId} onValueChange={setSourceId} disabled={remediating || mutation.isPending || pfpM.isPending}>
+              <Select value={sourceId} onValueChange={value => {
+                setSourceId(value); setResult(undefined); setHostPlan(undefined);
+                setPfp(undefined); setPfpContext(undefined); setAcknowledgeDrift(false);
+              }} disabled={remediating || mutation.isPending || hostM.isPending || pfpM.isPending}>
                 <SelectTrigger
                   data-testid="f8-source"
                   className="font-mono text-xs"
@@ -445,7 +483,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
                       value={s.id}
                       className="font-mono text-xs"
                     >
-                      {s.id.slice(0, 8)} ·{" "}
+                      {s.name || "MVP PDD"} · {s.id.slice(0, 8)} ·{" "}
                       {new Date(s.createdAt).toLocaleTimeString()}
                     </SelectItem>
                   ))}
@@ -458,6 +496,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
               </label>
               <Select
                 value={artifactClass}
+                disabled={mutation.isPending || hostM.isPending || remediating}
                 onValueChange={(value) => {
                   const nextClass = value as ArtifactClass;
                   setArtifactClass(nextClass);
@@ -479,6 +518,19 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
               <p className="mt-1 font-mono text-[9px] text-muted-foreground">
                 Software skips F9 and continues to F10/F11. Firmware requires F9.
               </p>
+            </div>
+            <div>
+              <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
+                Micro PDD context (optional)
+              </label>
+              <Select value={microPddArtifactId || "none"} onValueChange={v => setMicroPddArtifactId(v === "none" ? "" : v)} disabled={mutation.isPending || hostM.isPending || remediating}>
+                <SelectTrigger data-testid="f8-micro-source" className="font-mono text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Micro PDD</SelectItem>
+                  {artifacts.filter(a => a.artifactType === ArtifactType.MICRO_PDD).map(a =>
+                    <SelectItem key={a.id} value={a.id}>{a.name || "Micro PDD"} · {a.id.slice(0, 8)}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             {artifactClass === "FIRMWARE" && (
               <div>
@@ -502,18 +554,23 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
                 </Select>
                 {hardwareConfigId && (
                   <p className="mt-1 font-mono text-[9px] text-muted-foreground">
-                    {getHardwareConfig(hardwareConfigId)?.standards} · Code DJ will customize for {getHardwareConfig(hardwareConfigId)?.targetProfile}.
+                    {getHardwareConfig(hardwareConfigId)?.standards} · CODE ONE + will customize for {getHardwareConfig(hardwareConfigId)?.targetProfile}.
                   </p>
                 )}
               </div>
             )}
             <div>
               <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
-                Target platform
+                Implementation platform
+              </label>
+              <label className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                <input type="checkbox" checked={automaticPlatform} onChange={e => setAutomaticPlatform(e.target.checked)} data-testid="f8-auto-platform" />
+                Recommend the best path from the PDD
               </label>
               <Select
                 value={platform}
                 onValueChange={(v) => setPlatform(v as CodeDjPlatform)}
+                disabled={automaticPlatform}
               >
                 <SelectTrigger
                   data-testid="f8-platform"
@@ -538,6 +595,9 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
             </div>
           </div>
 
+          <p className="text-xs text-muted-foreground mb-3">
+            Software conversion first reuses or creates a source-bound HOST DJ plan, then creates the VIBE DJ recommendation and matching scaffold. Each new engine call uses the existing model budget. CODE ONE + v0.2 is a draft instruction specification; this is not independent certification.
+          </p>
           <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
             Operator notes (optional)
           </label>
@@ -560,11 +620,11 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
             <Button
               data-testid="f8-run"
               onClick={run}
-              disabled={remediating || pfpM.isPending || mutation.isPending || !artifactClass}
+              disabled={remediating || pfpM.isPending || mutation.isPending || hostM.isPending || !artifactClass}
               className="font-display tracking-wider gap-2"
             >
               <Cpu className="h-4 w-4" />
-              {mutation.isPending ? "SCAFFOLDING..." : "RUN CODE ORACLE"}
+              {hostM.isPending ? "PLANNING HOST..." : mutation.isPending ? "CONVERTING..." : "RUN CODE ONE +"}
             </Button>
           </div>
 
@@ -600,6 +660,17 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
           )}
         </Card>
 
+        {implementationPath && (
+          <Card className="p-5 bg-card/50" data-testid="f8-implementation-path">
+            <h4 className="font-mono text-sm font-bold mb-2">IMPLEMENTATION PATH · ADVISORY</h4>
+            <p className="text-sm mb-2">{implementationPath.rationale}</p>
+            <p className="text-xs">Platform: {PLATFORM_LABELS[implementationPath.platform]} · IDE: {implementationPath.recommendedIde} · Host: {hostLabel(implementationPath.recommendedHost)}</p>
+            <p className="text-xs mt-2">VIBE DJ: {implementationPath.recommendedVibe}</p>
+            <p className="text-xs mt-2">HOST DJ: {implementationPath.hostingRationale}</p>
+            <ul className="text-xs list-disc ml-5 mt-2">{implementationPath.requirementTrace.map((trace, i) => <li key={i}>{trace}</li>)}</ul>
+            <p className="text-xs text-muted-foreground mt-3">Software uses the source-bound HOST DJ ranking before conversion. Recommendations are advisory, not CODE ONE + certification. Run the PFP drift check, record real test evidence and satisfy F10/F11 safeguards before deployment.</p>
+          </Card>
+        )}
         {/* PFP — BUGMXT Layer 4 drift detection */}
         <Card className="p-5 bg-card/50">
           <div className="flex items-center justify-between mb-3">
@@ -702,7 +773,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
             <p className="font-mono text-xs text-muted-foreground">
               {result || latestArtifact
                 ? "Cross-references the certified MVP PDD against the scaffolded codebase bundle. Critical findings hard-block further F8 runs until acknowledged."
-                : "Run Code ORACLE once to produce a bundle, then drift-check it against the MVP PDD."}
+                : "Run CODE ONE + once to produce a bundle, then drift-check it against the MVP PDD."}
             </p>
           )}
         </Card>
@@ -964,7 +1035,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
             <div>
               <Cpu className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="font-mono text-xs text-muted-foreground">
-                Code ORACLE idle — pick a certified MVP PDD, choose a platform, and
+                CODE ONE + idle — pick a certified MVP PDD, recommend a platform, and
                 spin.
               </p>
             </div>
@@ -981,7 +1052,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
                     : "UNVERIFIED — CI/IDE TEST PASS REQUIRED"}
                 </p>
                 <p className="mt-1 max-w-3xl font-mono text-[10px] text-muted-foreground">
-                  Code ORACLE creates a scaffold, not a tested product. Add operator-submitted passing CI or IDE evidence, then create a separate immutable verified child. This UI does not run or independently validate external tests; the source bundle remains unverified.
+                  CODE ONE + creates a scaffold, not a tested product. Add operator-submitted passing CI or IDE evidence, then create a separate immutable verified child. This UI does not run or independently validate external tests; the source bundle remains unverified.
                 </p>
                 {(verifiedChild?.id || verifiedArtifactId) && (
                   <p className="mt-2 font-mono text-[10px]" data-testid="f8-verified-child-id">
@@ -1086,7 +1157,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
         open={upgrade}
         onOpenChange={setUpgrade}
         costCap={costCap}
-        message="F8 Code ORACLE requires Architect tier — upgrade to scaffold a full codebase from your certified MVP PDD."
+        message="F8 CODE ONE + requires Architect tier — upgrade to convert your certified MVP PDD into a codebase."
       />
     </WorkspaceShell>
   );

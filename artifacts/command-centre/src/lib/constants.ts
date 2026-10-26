@@ -163,10 +163,10 @@ export const ENGINES = [
   {
     id: 9,
     name: "F8",
-    title: "CODE ORACLE",
-    description: "Architect-only — scaffold a complete codebase from a certified MVP PDD / PWDD",
+    title: "CODE ONE +",
+    description: "Architect-only — recommend the implementation path and create a codebase from a certified MVP PDD / PWDD",
     explainer:
-      "Architect-tier only. Consumes a SPARTAN-certified MVP PDD / PWDD and emits a CODEBASE_BUNDLE — up to 12 files plus a manifest, scaffolded against your chosen platform. Refuses any uncertified input.",
+      "F6-VDJ selection now happens in F8. CODE ONE + uses VIBE DJ and HOST DJ advisory principles to recommend an IDE, stack and hosting path alongside an unverified CODEBASE_BUNDLE. It still requires a SPARTAN-certified source and separate drift and test gates.",
   },
   {
     id: 10,

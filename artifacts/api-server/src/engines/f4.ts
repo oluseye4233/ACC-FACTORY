@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import type { Request, Response } from "express";
 import { HarnessF4Body } from "@workspace/api-zod";
 import { F4_SYSTEM } from "./prompts";
+import { ColonizationTargetSchema, colonizationContext } from "./colonization-target";
 import { assertGovernance } from "../lib/artifact-governance";
 import {
   advanceFeatureState,
@@ -26,7 +27,13 @@ export async function handleF4(req: Request, res: Response): Promise<void> {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { sessionId, sourceArtifactId, targetVibe, provider: bodyProvider } = parsed.data;
+  const { sessionId, sourceArtifactId, provider: bodyProvider } = parsed.data;
+  const targetResult = ColonizationTargetSchema.safeParse(parsed.data.colonizationTarget ?? "UNDECIDED");
+  if (!targetResult.success) {
+    res.status(400).json({ error: "Choose a colonization target from the F10 catalog" });
+    return;
+  }
+  const target = targetResult.data;
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
@@ -50,7 +57,7 @@ export async function handleF4(req: Request, res: Response): Promise<void> {
       return;
     }
   }
-  const userPrompt = `Source artifact (${source.artifactType}):\n${JSON.stringify(source.artifactContent, null, 2)}\n\nTarget VIBE: ${targetVibe}`;
+  const userPrompt = `Source artifact (${source.artifactType}):\n${JSON.stringify(source.artifactContent, null, 2)}\n\n${colonizationContext(target)}\nDo not lock the implementation stack or IDE at F4.`;
   let out: z.infer<typeof F4OutputSchema>;
   try {
     out = await callLlmJson(provider, F4_SYSTEM, userPrompt, F4OutputSchema, {
@@ -69,7 +76,7 @@ export async function handleF4(req: Request, res: Response): Promise<void> {
     userId: guard.userId,
     featureId: 4,
     artifactType: "MICRO_PDD",
-    artifactContent: out,
+    artifactContent: { ...out, colonizationTarget: target, sourceArtifactId },
     provider,
   });
   await advanceFeatureState(sessionId, 4);

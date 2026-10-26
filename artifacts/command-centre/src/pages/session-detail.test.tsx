@@ -198,7 +198,6 @@ describe("SessionDetail — F0 advisory placement", () => {
     ["f4", "F4MicroPdd"],
     ["f5", "F5BuildSpc"],
     ["f6", "F6DraftPdd"],
-    ["f6-vdj", "F6VdjBuild"],
     ["mm", "MathmonLayer"],
   ])(
     "does NOT show the advisory nudge at the %s stage",
@@ -327,7 +326,8 @@ describe("SessionDetail — NEXT attention marker", () => {
       screen.getByTestId("feature-nav-f3").getAttribute("data-next"),
     ).toBe("true");
     // No other stage carries the marker, including the later AVAILABLE F4.
-    for (const name of ["f1", "f2", "f4", "f5", "f6", "f7", "f6-vdj", "f8", "mm"]) {
+    expect(screen.queryByTestId("feature-nav-f6-vdj")).toBeNull();
+    for (const name of ["f1", "f2", "f4", "f5", "f6", "f7", "f8", "mm"]) {
       expect(
         screen.getByTestId(`feature-nav-${name}`).getAttribute("data-next"),
       ).toBeNull();
@@ -350,14 +350,14 @@ describe("SessionDetail — NEXT attention marker", () => {
     ).toBeNull();
   });
 
-  it("never marks a side-step engine (F6-VDJ, F8, MM) as NEXT", () => {
+  it("never marks advisory MM or the gated F8 branch as NEXT", () => {
     // Lock the whole linear pipeline so no F1→F7 stage qualifies as NEXT.
     setFeatureStates(
       [1, 2, 3, 4, 5, 6, 7].map((id) => ({ featureId: id, status: "LOCKED" })),
     );
     render(<SessionDetail />);
 
-    for (const name of ["f6-vdj", "f8", "mm"]) {
+    for (const name of ["f8", "mm"]) {
       expect(
         screen.getByTestId(`feature-nav-${name}`).getAttribute("data-next"),
       ).toBeNull();
@@ -367,7 +367,6 @@ describe("SessionDetail — NEXT attention marker", () => {
 
 describe("SessionDetail — side-step engines stay navigable", () => {
   it.each([
-    ["f6-vdj", "F6VdjBuild"],
     ["mm", "MathmonLayer"],
   ])(
     "navigates to %s regardless of feature_states",
@@ -386,12 +385,10 @@ describe("SessionDetail — side-step engines stay navigable", () => {
     },
   );
 
-  it("keeps F6-VDJ and Mathmon navigable even with no feature_states at all", async () => {
+  it("keeps Mathmon navigable even with no feature_states at all", async () => {
     useListFeatureStateMock.mockReturnValue({ data: [], isLoading: false });
     render(<SessionDetail />);
 
-    gotoStage("f6-vdj");
-    expect(await screen.findByTestId("workspace-F6VdjBuild")).toBeTruthy();
     gotoStage("mm");
     expect(await screen.findByTestId("workspace-MathmonLayer")).toBeTruthy();
   });
@@ -534,7 +531,7 @@ describe("SessionDetail — IngestionBanner wiring", () => {
     render(<SessionDetail />);
 
     // Non-F7 stages keep isF7 false (linear + side-step stages).
-    for (const nav of ["f2", "f5", "f6", "f6-vdj", "f8", "mm"]) {
+    for (const nav of ["f2", "f5", "f6", "f8", "mm"]) {
       gotoStage(nav);
       expect(screen.getByTestId(BANNER).getAttribute("data-is-f7")).toBe(
         "false",

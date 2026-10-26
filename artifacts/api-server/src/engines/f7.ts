@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db, harnessSessionsTable } from "@workspace/db";
 import { sendCertIssued } from "@workspace/email";
 import { F7_SYSTEM } from "./prompts";
+import { ColonizationTargetSchema, colonizationContext } from "./colonization-target";
 import {
   advanceFeatureState,
   callLlmJson,
@@ -68,6 +69,16 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
     res.status(404).json({ error: "ATLAS PDD artifact not found in this session" });
     return;
   }
+  const inheritedTarget = ColonizationTargetSchema.safeParse(
+    (pdd.artifactContent as Record<string, unknown>).colonizationTarget,
+  );
+  const targetResult = ColonizationTargetSchema.safeParse(
+    parsed.data.colonizationTarget ?? (inheritedTarget.success ? inheritedTarget.data : "UNDECIDED"),
+  );
+  if (!targetResult.success) {
+    res.status(400).json({ error: "Choose a colonization target from the F10 catalog" }); return;
+  }
+  const colonizationTarget = targetResult.data;
 
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
@@ -85,7 +96,8 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
   };
 
   const llmPromise = (async () => {
-    const userPrompt = `Compress this ATLAS PDD via the 7-step SPARTAN SCM:\n${JSON.stringify(pdd.artifactContent, null, 2)}`;
+    const userPrompt = `Compress this ATLAS PDD via the 7-step SPARTAN SCM:\n${JSON.stringify(pdd.artifactContent, null, 2)}` +
+      (colonizationTarget !== "UNDECIDED" ? `\n\n${colonizationContext(colonizationTarget)}` : "");
     return callLlmJson(provider, F7_SYSTEM, userPrompt, F7OutputSchema, {
       sessionId,
       userId: guard.userId,
@@ -173,7 +185,10 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
     userId: guard.userId,
     featureId: 7,
     artifactType: "MVP_PDD",
-    artifactContent: { sections: out.sections, donut: out.donut },
+    artifactContent: {
+      sections: out.sections, donut: out.donut,
+      sourcePddArtifactId: pddArtifactId, colonizationTarget,
+    },
     scorecards,
     jcseScore: sessionJcse,
     spartanCert: cert,

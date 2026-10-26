@@ -1,14 +1,12 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  useHarnessF6Vdj,
   useHarnessAtlasCrystallise,
   getHarnessF6DraftStreamUrl,
   getListSessionArtifactsQueryKey,
   getListFeatureStateQueryKey,
   AtlasPdd,
   AtlasPddJson,
-  VdjRecommendation,
   HarnessArtifact,
   ArtifactType,
   HarnessF6InputMode,
@@ -40,6 +38,7 @@ import { Download, Layers, Sparkles } from "lucide-react";
 
 import { Atlas360ViewPanel } from "./Atlas360ViewPanel";
 import { buildArtifactFilename } from "@workspace/artifact-naming";
+import { ColonizationTargetSelect, type ColonizationTarget } from "./ColonizationTargetSelect";
 
 const PHASES = ["AUDIT", "TRIANGULATE", "LAYOUT", "ASSEMBLE", "STAMP"] as const;
 
@@ -86,9 +85,9 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
   );
   const [sourceId, setSourceId] = useState<string>(spcSources[0]?.id || "");
   const [brief, setBrief] = useState("");
+  const [colonizationTarget, setColonizationTarget] = useState<ColonizationTarget>("UNDECIDED");
   const [pdd, setPdd] = useState<AtlasPdd | undefined>();
   const [pddArtifactId, setPddArtifactId] = useState<string | null>(null);
-  const [vdj, setVdj] = useState<VdjRecommendation | undefined>();
   const [atlasJson, setAtlasJson] = useState<AtlasPddJson | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState(false);
@@ -97,18 +96,10 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
   const [draftPhase, setDraftPhase] = useState(-1);
   const [providerOverride, setProviderOverride] =
     useState<OverrideValue>("session");
-  const [vdjProviderOverride, setVdjProviderOverride] =
-    useState<OverrideValue>("session");
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  const vdjM = useHarnessF6Vdj({
-    mutation: {
-      onSuccess: (data) => setVdj(data),
-      onError: (e) => setError(extractApiError(e).message),
-    },
-  });
 
   const crystallise = useHarnessAtlasCrystallise({
     mutation: {
@@ -140,13 +131,13 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
         setError("Pick an SPC source");
         return;
       }
-      body = { sessionId, mode, sourceArtifactId: sourceId, ...overrideToBody(providerOverride) };
+      body = { sessionId, mode, sourceArtifactId: sourceId, colonizationTarget, ...overrideToBody(providerOverride) };
     } else {
       if (!brief.trim()) {
         setError("Brief required for FRESH mode");
         return;
       }
-      body = { sessionId, mode, brief, ...overrideToBody(providerOverride) };
+      body = { sessionId, mode, brief, colonizationTarget, ...overrideToBody(providerOverride) };
     }
 
     // The 4-part draft is the heavy LLM call; stream it over SSE so the proxy
@@ -155,7 +146,6 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
     setPdd(undefined);
     setPddArtifactId(null);
     setAtlasJson(undefined);
-    setVdj(undefined);
     setDrafting(true);
     setDraftPhase(-1);
     const ac = new AbortController();
@@ -195,19 +185,6 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
     }
   };
 
-  const recommendVdj = () => {
-    const id =
-      pddArtifactId ||
-      pddArtifacts.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0]?.id;
-    if (!id) {
-      setError("No PDD artifact available");
-      return;
-    }
-    vdjM.mutate({
-      data: { sessionId, pddArtifactId: id, ...overrideToBody(vdjProviderOverride) },
-    });
-  };
-
   const exportZip = async () => {
     if (!pdd) return;
     const files: Record<string, string> = {
@@ -216,10 +193,6 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
       "worksheet.md": pdd.worksheet,
       "implementation.md": pdd.implementation,
     };
-    if (vdj) {
-      files["vdj-recommendation.md"] =
-        `# VDJ Recommendation\n\n**IDE:** ${vdj.recommendedIde}\n**VIBE:** ${vdj.recommendedVibe}\n\n${vdj.rationale}\n\n## Alternatives\n\n${(vdj.alternatives || []).map((a) => `- ${a.name} (${Math.round(a.fit * 100)}%)`).join("\n")}`;
-    }
     const artifactId = pddArtifactId ?? latestPddArtifact?.id ?? sessionId;
     const filename = buildArtifactFilename({
       type: "ATLAS_PDD",
@@ -281,6 +254,9 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
                 />
               </div>
             )}
+            <div className="min-w-[180px]">
+              <ColonizationTargetSelect value={colonizationTarget} onChange={setColonizationTarget} disabled={drafting} testId="f6-colonization-target" />
+            </div>
             <ProviderOverride
               value={providerOverride}
               onChange={setProviderOverride}
@@ -328,7 +304,7 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
           </div>
         </Card>
 
-        <div className="grid lg:grid-cols-[1.6fr_1fr] gap-4 flex-1 min-h-0">
+        <div className="grid gap-4 flex-1 min-h-0">
           <Card className="p-5 bg-card/50 flex flex-col min-h-[400px]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3 flex-wrap">
@@ -437,78 +413,6 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
             )}
           </Card>
 
-          <Card className="p-5 bg-card/50 flex flex-col">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                VIBE ORACLE
-              </h4>
-              <div className="flex items-center gap-2">
-                <ProviderOverride
-                  value={vdjProviderOverride}
-                  onChange={setVdjProviderOverride}
-                  disabled={vdjM.isPending}
-                  testId="f6vdj-provider"
-                />
-                <Button
-                  onClick={recommendVdj}
-                  size="sm"
-                  variant="outline"
-                  disabled={vdjM.isPending || (!pddArtifactId && !pddArtifacts.length)}
-                  className="font-mono text-xs"
-                  data-testid="f6-vdj"
-                >
-                  {vdjM.isPending ? "MIXING..." : "RECOMMEND"}
-                </Button>
-              </div>
-            </div>
-            {vdj ? (
-              <div className="space-y-3">
-                <div>
-                  <div className="font-mono text-[10px] uppercase text-muted-foreground">
-                    Recommended IDE
-                  </div>
-                  <div className="font-display text-xl tracking-wider text-primary">
-                    {vdj.recommendedIde}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-mono text-[10px] uppercase text-muted-foreground">
-                    Recommended VIBE
-                  </div>
-                  <div className="font-display text-xl tracking-wider text-secondary">
-                    {vdj.recommendedVibe}
-                  </div>
-                </div>
-                <p className="font-mono text-xs text-foreground/80 leading-relaxed">
-                  {vdj.rationale}
-                </p>
-                {vdj.alternatives?.length ? (
-                  <div className="pt-2 border-t border-border/40">
-                    <div className="font-mono text-[10px] uppercase text-muted-foreground mb-2">
-                      Alternatives
-                    </div>
-                    <div className="space-y-1">
-                      {vdj.alternatives.map((a) => (
-                        <div
-                          key={a.name}
-                          className="flex items-center justify-between font-mono text-xs"
-                        >
-                          <span>{a.name}</span>
-                          <span className="text-muted-foreground">
-                            {Math.round(a.fit * 100)}%
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-center font-mono text-xs text-muted-foreground">
-                Draft a PDD then request a VIBE recommendation.
-              </div>
-            )}
-          </Card>
         </div>
 
         {(pddArtifactId || latestPddArtifact?.id) && (

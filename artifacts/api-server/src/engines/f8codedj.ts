@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import type { Request, Response } from "express";
 import { HarnessF8Body } from "@workspace/api-zod";
 import { F8_CODE_DJ_SYSTEM } from "./prompts";
+import { ColonizationTargetSchema, colonizationContext } from "./colonization-target";
 import {
   callLlmJson,
   loadArtifact,
@@ -22,9 +23,35 @@ const PLATFORMS = [
 ] as const;
 
 const GENERATED_NOTES_MAX = 800;
+const DEFAULT_HOST: Record<typeof PLATFORMS[number], string> = {
+  "nextjs-vercel": "vercel",
+  "react-vite-static": "cloudflare-pages",
+  "express-replit": "replit-deployments",
+  "expo-mobile": "expo-eas",
+  "pnpm-monorepo": "replit-deployments",
+};
+
+export function validateImplementationBundle(bundle: z.infer<typeof CodebaseOutputSchema>, host?: string): string | null {
+  const paths = bundle.files.map(f => f.path);
+  if (new Set(paths).size !== paths.length) return "Generated file paths must be unique";
+  if (!paths.includes(bundle.manifest.entrypoint)) return "Generated entrypoint must exist in the file bundle";
+  if (host && bundle.manifest.deployTarget !== host) return "Generated deployment manifest must follow the source-bound HOST DJ recommendation";
+  if (host === "expo-eas" && bundle.platform !== "expo-mobile") return "Expo EAS requires an Expo implementation";
+  if (bundle.platform === "expo-mobile" && host && host !== "expo-eas") return "Expo implementation requires an Expo-compatible hosting plan";
+  if (["cloudflare-pages", "netlify"].includes(host ?? "") &&
+    !["react-vite-static", "nextjs-vercel"].includes(bundle.platform)) return "The recommended static host is incompatible with this server implementation";
+  return null;
+}
 
 export const CodebaseOutputSchema = z.object({
   platform: z.enum(PLATFORMS),
+  implementationPath: z.object({
+    rationale: z.string().min(1).max(1200),
+    recommendedIde: z.string().min(1).max(120),
+    recommendedVibe: z.string().min(1).max(240),
+    hostingRationale: z.string().min(1).max(600),
+    requirementTrace: z.array(z.string().max(250)).min(1).max(12),
+  }).optional(),
   framework: z.string().min(1),
   language: z.enum(["typescript", "javascript"]),
   files: z
@@ -74,6 +101,8 @@ export async function handleF8CodeDj(
     sessionId,
     mvpPddArtifactId,
     platform,
+    microPddArtifactId,
+    hostingPlanArtifactId,
     artifactClass,
     hardwareConfigId,
     notes,
@@ -118,6 +147,29 @@ export async function handleF8CodeDj(
     });
     return;
   }
+  const micro = microPddArtifactId ? await loadArtifact(microPddArtifactId, guard.userId) : null;
+  if (microPddArtifactId && (!micro || micro.sessionId !== sessionId || micro.artifactType !== "MICRO_PDD")) {
+    res.status(404).json({ error: "Micro PDD source not found in this session" });
+    return;
+  }
+  const mvpContent = mvp.artifactContent as Record<string, unknown>;
+  const sourcePddId = mvpContent.sourcePddArtifactId;
+  const pdd = typeof sourcePddId === "string" ? await loadArtifact(sourcePddId, guard.userId) : null;
+  const colonizationTarget = ColonizationTargetSchema.safeParse(mvpContent.colonizationTarget);
+  const hosting = hostingPlanArtifactId ? await loadArtifact(hostingPlanArtifactId, guard.userId) : null;
+  const hostingContent = hosting?.artifactContent as {
+    sourceMvpPddArtifactId?: string;
+    primary?: { platform?: string };
+  } | undefined;
+  if (hostingPlanArtifactId && (!hosting || hosting.sessionId !== sessionId ||
+    hosting.artifactType !== "HOSTING_PLAN" || hostingContent?.sourceMvpPddArtifactId !== mvp.id)) {
+    res.status(409).json({ error: "Hosting recommendation does not belong to this MVP PDD", code: "HOST_PLAN_SOURCE_MISMATCH" });
+    return;
+  }
+  if (artifactClass === "SOFTWARE" && !hostingPlanArtifactId) {
+    res.status(409).json({ error: "Create or select the source-bound HOST DJ recommendation before code generation", code: "HOST_PLAN_REQUIRED" });
+    return;
+  }
 
   // BUGMXT Layer 4 drift gate: if a PFP report exists for this MVP PDD and
   // it found critical drift, refuse to scaffold further until the operator
@@ -143,12 +195,18 @@ export async function handleF8CodeDj(
   }
 
   const userPrompt = [
-    `TARGET PLATFORM: ${platform}`,
+    platform ? `OPERATOR-REQUESTED PLATFORM: ${platform} (must use this compatible platform)` :
+      `Recommend the best implementation platform from: ${PLATFORMS.join(", ")}. Select it in the platform field.`,
     hardwareConfig
       ? `FIRMWARE HARDWARE CONFIGURATION:\n${JSON.stringify(hardwareConfig, null, 2)}`
       : null,
     notes ? `OPERATOR NOTES: ${notes}` : null,
+    hosting ? `HOST DJ SOURCE-BOUND RECOMMENDATION (server-ranked primary and fallback; do not replace with a different host). manifest.deployTarget MUST exactly equal "${hostingContent?.primary?.platform}". The platform, manifest and generated files must be compatible with that host:\n${JSON.stringify(hosting.artifactContent, null, 2)}` : null,
+    colonizationContext(colonizationTarget.success ? colonizationTarget.data : "UNDECIDED"),
     "",
+    pdd?.sessionId === sessionId && pdd.artifactType === "ATLAS_PDD"
+      ? `ORIGINAL ATLAS PDD (requirements context):\n${JSON.stringify(pdd.artifactContent, null, 2)}` : null,
+    micro ? `MICRO PDD (additional source contract):\n${JSON.stringify(micro.artifactContent, null, 2)}` : null,
     "CERTIFIED MVP PDD (source contract):",
     JSON.stringify(mvp.artifactContent, null, 2),
   ]
@@ -169,7 +227,7 @@ export async function handleF8CodeDj(
     );
   } catch (err) {
     if (sendProviderTierError(res, err)) return;
-    req.log.error({ err }, "F8 Code ORACLE engine call failed");
+    req.log.error({ err }, "F8 CODE ONE + engine call failed");
     res.status(502).json({
       error: "Engine call failed",
       detail: (err as Error).message,
@@ -177,13 +235,29 @@ export async function handleF8CodeDj(
     return;
   }
 
-  if (out.platform !== platform) {
+  if (platform && out.platform !== platform) {
     req.log.warn(
       { requested: platform, returned: out.platform },
-      "F8 returned a different platform than requested — pinning to request",
+      "F8 returned a different platform than requested",
     );
-    out.platform = platform;
+    res.status(502).json({ error: "Generated platform does not match the requested platform", code: "IMPLEMENTATION_PATH_MISMATCH" });
+    return;
   }
+  if (!out.implementationPath) {
+    res.status(502).json({ error: "CODE ONE + did not return a traceable implementation recommendation" });
+    return;
+  }
+  const bundleError = validateImplementationBundle(out, hostingContent?.primary?.platform);
+  if (bundleError) {
+    res.status(502).json({ error: bundleError, code: "IMPLEMENTATION_PATH_MISMATCH" });
+    return;
+  }
+  const implementationPath = {
+    ...out.implementationPath,
+    platform: out.platform,
+    recommendedHost: hostingContent?.primary?.platform ?? DEFAULT_HOST[out.platform],
+    advisoryOnly: true,
+  };
 
   // Persist the bundle as a CODEBASE_BUNDLE artifact (no SPARTAN cert — it is
   // downstream of one; the source MVP PDD's cert is the lineage anchor).
@@ -199,6 +273,21 @@ export async function handleF8CodeDj(
       manifest: out.manifest,
       files: out.files,
       notes: out.notes,
+      implementationPath,
+      conversionProtocol: {
+        agent: "CODE ONE +", sourceVersion: "v0.2-DRAFT",
+        instructionLayerOnly: true, independentCertification: false,
+        humanReviewRequired: artifactClass === "FIRMWARE",
+        limitations: [
+          "Single conversion using VIBE DJ instructions and a source-bound HOST DJ plan; not the complete multi-stage CODE ONE + runtime.",
+          "Independent ATHENA, CODON, MATHMON and BUGMXT executions are not attested by this bundle.",
+          "PFP, CI/IDE evidence, F9 where applicable and F10/F11 remain separate gates.",
+        ],
+      },
+      colonizationTarget: colonizationTarget.success ? colonizationTarget.data : "UNDECIDED",
+      ...(micro ? { sourceMicroPddArtifactId: micro.id } : {}),
+      ...(hosting ? { sourceHostingPlanArtifactId: hosting.id } : {}),
+      ...(pdd?.sessionId === sessionId ? { sourcePddArtifactId: pdd.id } : {}),
       sourceMvpPddArtifactId: mvpPddArtifactId,
       sourceCertId:
         (mvp.spartanCert as { certId?: string } | null)?.certId ?? null,
@@ -214,5 +303,6 @@ export async function handleF8CodeDj(
     manifest: out.manifest,
     files: out.files,
     notes: out.notes,
+    implementationPath,
   });
 }

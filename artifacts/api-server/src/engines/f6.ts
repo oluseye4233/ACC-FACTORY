@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { HarnessF6Body, HarnessF6DraftStreamBody } from "@workspace/api-zod";
 import type { LlmProvider } from "@workspace/db";
 import { F6_SYSTEM } from "./prompts";
+import { ColonizationTargetSchema, colonizationContext, type ColonizationTarget } from "./colonization-target";
 import { assertGovernance } from "../lib/artifact-governance";
 import {
   advanceFeatureState,
@@ -83,13 +84,14 @@ async function persistAtlasPdd(
   sessionId: string,
   userId: string,
   provider: LlmProvider,
+  colonizationTarget: ColonizationTarget,
 ) {
   const artifact = await persistArtifact({
     sessionId,
     userId,
     featureId: 6,
     artifactType: "ATLAS_PDD",
-    artifactContent: out,
+    artifactContent: { ...out, colonizationTarget },
     provider,
   });
   await advanceFeatureState(sessionId, 6);
@@ -103,6 +105,11 @@ export async function handleF6(req: Request, res: Response): Promise<void> {
     return;
   }
   const { sessionId, mode, sourceArtifactId, brief, provider: bodyProvider } = parsed.data;
+  const targetResult = ColonizationTargetSchema.safeParse(parsed.data.colonizationTarget ?? "UNDECIDED");
+  if (!targetResult.success) {
+    res.status(400).json({ error: "Choose a colonization target from the F10 catalog" }); return;
+  }
+  const colonizationTarget = targetResult.data;
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
@@ -119,6 +126,7 @@ export async function handleF6(req: Request, res: Response): Promise<void> {
   let userPrompt: string;
   try {
     userPrompt = await buildF6Prompt(mode, sessionId, guard.userId, sourceArtifactId, brief);
+    if (colonizationTarget !== "UNDECIDED") userPrompt += `\n\n${colonizationContext(colonizationTarget)}`;
   } catch (err) {
     if (err instanceof MissingSourceError) {
       res.status(err.status).json({ error: err.message });
@@ -136,7 +144,7 @@ export async function handleF6(req: Request, res: Response): Promise<void> {
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });
     return;
   }
-  const artifact = await persistAtlasPdd(out, sessionId, guard.userId, provider);
+  const artifact = await persistAtlasPdd(out, sessionId, guard.userId, provider, colonizationTarget);
   res.json({ ...out, artifactId: artifact.id });
 }
 
@@ -161,6 +169,11 @@ export async function handleF6DraftStream(req: Request, res: Response): Promise<
     return;
   }
   const { sessionId, mode, sourceArtifactId, brief, provider: bodyProvider } = parsed.data;
+  const targetResult = ColonizationTargetSchema.safeParse(parsed.data.colonizationTarget ?? "UNDECIDED");
+  if (!targetResult.success) {
+    res.status(400).json({ error: "Choose a colonization target from the F10 catalog" }); return;
+  }
+  const colonizationTarget = targetResult.data;
   const guard = await ownedSessionOr404(req, sessionId);
   if (!guard.ok) {
     res.status(guard.status).json({ error: guard.error });
@@ -177,6 +190,7 @@ export async function handleF6DraftStream(req: Request, res: Response): Promise<
   let userPrompt: string;
   try {
     userPrompt = await buildF6Prompt(mode, sessionId, guard.userId, sourceArtifactId, brief);
+    if (colonizationTarget !== "UNDECIDED") userPrompt += `\n\n${colonizationContext(colonizationTarget)}`;
   } catch (err) {
     if (err instanceof MissingSourceError) {
       res.status(err.status).json({ error: err.message });
@@ -234,7 +248,7 @@ export async function handleF6DraftStream(req: Request, res: Response): Promise<
   }
 
   // Persist regardless of client connection — the work is done and paid for.
-  const artifact = await persistAtlasPdd(out, sessionId, guard.userId, provider);
+  const artifact = await persistAtlasPdd(out, sessionId, guard.userId, provider, colonizationTarget);
 
   if (clientClosed) return;
   send("complete", { ...out, artifactId: artifact.id });

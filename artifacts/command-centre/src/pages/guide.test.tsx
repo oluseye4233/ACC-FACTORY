@@ -61,7 +61,7 @@ describe("Guide Page - ATANDA Site Map", () => {
     expect(screen.getByText("3. Native Provider Deployment")).toBeTruthy();
 
     // Check side-steps
-    expect(screen.getByText("VIBE ORACLE")).toBeTruthy();
+    expect(screen.getByText("CODE ONE +")).toBeTruthy();
     expect(screen.getByText("PLAN / SCAN")).toBeTruthy();
     expect(screen.getByText("HOST ORACLE")).toBeTruthy();
     expect(screen.getByText("ASSURANCE OVERLAYS")).toBeTruthy();

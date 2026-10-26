@@ -4599,11 +4599,13 @@ components:
 
     HarnessF8Input:
       type: object
-      required: [sessionId, mvpPddArtifactId, platform, artifactClass]
+      required: [sessionId, mvpPddArtifactId, artifactClass]
       properties:
         sessionId: { type: string, format: uuid }
         mvpPddArtifactId: { type: string, format: uuid }
         platform: { $ref: "#/components/schemas/CodeDjPlatform" }
+        microPddArtifactId: { type: string, format: uuid }
+        hostingPlanArtifactId: { type: string, format: uuid }
         artifactClass:
           type: string
           enum: [SOFTWARE, FIRMWARE]
@@ -5143,6 +5145,18 @@ components:
       properties:
         artifactId: { type: string, format: uuid }
         platform: { $ref: "#/components/schemas/CodeDjPlatform" }
+        implementationPath:
+          type: object
+          required: [platform, recommendedHost, recommendedIde, recommendedVibe, rationale, hostingRationale, requirementTrace, advisoryOnly]
+          properties:
+            platform: { $ref: "#/components/schemas/CodeDjPlatform" }
+            recommendedHost: { type: string }
+            recommendedIde: { type: string }
+            recommendedVibe: { type: string }
+            rationale: { type: string }
+            hostingRationale: { type: string }
+            requirementTrace: { type: array, items: { type: string } }
+            advisoryOnly: { type: boolean }
         artifactClass:
           type: string
           enum: [SOFTWARE, FIRMWARE]
@@ -5898,12 +5912,17 @@ components:
 
     HarnessF4Input:
       type: object
-      required: [sessionId, sourceArtifactId, targetVibe]
+      required: [sessionId, sourceArtifactId]
       properties:
         sessionId: { type: string, format: uuid }
         sourceArtifactId: { type: string, format: uuid }
-        targetVibe: { type: string }
+        colonizationTarget: { $ref: "#/components/schemas/ColonizationTarget" }
         provider: { $ref: "#/components/schemas/LlmProvider" }
+
+    ColonizationTarget:
+      type: string
+      maxLength: 240
+      description: UNDECIDED or an exact FAMILY::target pair from the authenticated F10 catalog. Planning preference only, never deployment consent.
 
     MicroPdd:
       type: object
@@ -5987,6 +6006,7 @@ components:
         mode: { type: string, enum: [FROM_SPC, FRESH] }
         sourceArtifactId: { type: ["string", "null"], format: uuid }
         brief: { type: ["string", "null"] }
+        colonizationTarget: { $ref: "#/components/schemas/ColonizationTarget" }
         provider: { $ref: "#/components/schemas/LlmProvider" }
 
     HarnessF6FinalizeInput:
@@ -5997,6 +6017,7 @@ components:
         mode: { type: string, enum: [FROM_SPC, FRESH] }
         sourceArtifactId: { type: ["string", "null"], format: uuid }
         brief: { type: ["string", "null"] }
+        colonizationTarget: { $ref: "#/components/schemas/ColonizationTarget" }
         provider: { $ref: "#/components/schemas/LlmProvider" }
 
     AtlasPdd:
@@ -6039,6 +6060,7 @@ components:
       properties:
         sessionId: { type: string, format: uuid }
         pddArtifactId: { type: string, format: uuid }
+        colonizationTarget: { $ref: "#/components/schemas/ColonizationTarget" }
         provider: { $ref: "#/components/schemas/LlmProvider" }
 
     SpartanCert:

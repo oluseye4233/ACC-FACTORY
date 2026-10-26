@@ -2443,7 +2443,9 @@ export const HardwareConfigId = {
 export interface HarnessF8Input {
   sessionId: string;
   mvpPddArtifactId: string;
-  platform: CodeDjPlatform;
+  platform?: CodeDjPlatform;
+  microPddArtifactId?: string;
+  hostingPlanArtifactId?: string;
   /** Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software). */
   artifactClass: HarnessF8InputArtifactClass;
   /** Optional firmware hardware profile used to tailor Code DJ scaffolding. */
@@ -3042,6 +3044,17 @@ export interface PfpReport {
   counts: PfpReportCounts;
 }
 
+export type CodebaseBundleImplementationPath = {
+  platform: CodeDjPlatform;
+  recommendedHost: string;
+  recommendedIde: string;
+  recommendedVibe: string;
+  rationale: string;
+  hostingRationale: string;
+  requirementTrace: string[];
+  advisoryOnly: boolean;
+};
+
 export type CodebaseBundleArtifactClass = typeof CodebaseBundleArtifactClass[keyof typeof CodebaseBundleArtifactClass];
 
 
@@ -3053,6 +3066,7 @@ export const CodebaseBundleArtifactClass = {
 export interface CodebaseBundle {
   artifactId: string;
   platform: CodeDjPlatform;
+  implementationPath?: CodebaseBundleImplementationPath;
   artifactClass: CodebaseBundleArtifactClass;
   hardwareConfigId?: HardwareConfigId;
   manifest: CodebaseManifest;
@@ -3740,10 +3754,16 @@ export interface MaBirthPackage {
   artifactId?: string | null;
 }
 
+/**
+ * UNDECIDED or an exact FAMILY::target pair from the authenticated F10 catalog. Planning preference only, never deployment consent.
+ * @maxLength 240
+ */
+export type ColonizationTarget = string;
+
 export interface HarnessF4Input {
   sessionId: string;
   sourceArtifactId: string;
-  targetVibe: string;
+  colonizationTarget?: ColonizationTarget;
   provider?: LlmProvider;
 }
 
@@ -3843,6 +3863,7 @@ export interface HarnessF6Input {
   sourceArtifactId?: string | null;
   /** @nullable */
   brief?: string | null;
+  colonizationTarget?: ColonizationTarget;
   provider?: LlmProvider;
 }
 
@@ -3861,6 +3882,7 @@ export interface HarnessF6FinalizeInput {
   sourceArtifactId?: string | null;
   /** @nullable */
   brief?: string | null;
+  colonizationTarget?: ColonizationTarget;
   provider?: LlmProvider;
 }
 
@@ -3894,6 +3916,7 @@ export interface VdjRecommendation {
 export interface HarnessF7Input {
   sessionId: string;
   pddArtifactId: string;
+  colonizationTarget?: ColonizationTarget;
   provider?: LlmProvider;
 }
 

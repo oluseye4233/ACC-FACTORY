@@ -59,3 +59,4 @@
 - [Development workflow ownership](development-workflow-ownership.md) — an address-in-use workflow failure can coexist with a healthy older listener; verify ownership before targeted cleanup.
 - [Unpatched dependency boundaries](dependency-advisory-boundaries.md) — keep unresolved upstream advisories visible; reachability tests are not vulnerability fixes.
 - [Model recovery uncertainty](model-recovery-uncertainty.md) — replay completed paid calls; uncertain provider outcomes stop redispatch rather than risk duplicate charges.
+- [Integrated F8 conversion](f8-conversion-doctrine.md) — VIBE guidance belongs inside F8; F4 stays platform-neutral; colonization preferences never establish release consent or qualification.

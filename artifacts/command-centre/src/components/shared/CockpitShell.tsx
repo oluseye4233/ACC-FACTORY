@@ -29,6 +29,7 @@ export function CockpitShell({
   onNavigate,
   children,
 }: CockpitShellProps) {
+  const visibleEngines = ENGINES.filter(engine => engine.id !== 8);
   const activeEngine = ENGINES.find((e) => e.id === activeEngineId);
   
   // A software bundle deliberately skips F9. Filtering locked stages keeps
@@ -81,7 +82,7 @@ export function CockpitShell({
         className="flex items-center gap-1.5 p-2 overflow-x-auto border-b bg-card scrollbar-hide"
         aria-label="ATOMIC UI stage progress"
       >
-        {ENGINES.map((engine, idx) => {
+        {visibleEngines.map((engine, idx) => {
           const status = getFeatureStatus(engine.id);
           const isActive = engine.id === activeEngineId;
           const isSkipped = status === FeatureStatus.SKIPPED_BY_SC;
@@ -117,7 +118,7 @@ export function CockpitShell({
                    <p className="text-[11px] text-muted-foreground leading-relaxed">{engine.description}</p>
                 </HoverCardContent>
               </HoverCard>
-              {idx < ENGINES.length - 1 && (
+              {idx < visibleEngines.length - 1 && (
                 <div className="w-3 h-px bg-border/40 mx-1 hidden sm:block" />
               )}
             </div>
