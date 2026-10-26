@@ -700,3 +700,17 @@ mtime_ms = 1793023099744
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/976be66e-6e95-41fe-95c4-a8ed5e53ece0/f32b46aa-a8fc-4d35-b05c-1d296aa42d5a"
 storage_version_token = "1793023123036958"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "-TWASl9xbOrQStwCTHnBa"
+uri = "file://generated-artifacts/ATANDA_Completion_and_Production_Audit_2026-10-26.pdf"
+type = "pdf"
+title = "Platform Completion and Production Audit — Combined PDF"
+description = "Both 26 October reports in one 14-page document; the later read-only audit is identified as the current evidence."
+logical_id = "7829ad35-d92d-4e90-83ed-a79ddf61970d"
+content_hash = "sha256:049931781e8b0ebd8b3a1df06de385f7e6beb829a67e6fd27120402b4887275c"
+size = 43437
+mtime_ms = 1793029513942
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/7829ad35-d92d-4e90-83ed-a79ddf61970d/744fe1ee-7f45-4022-9a27-085dd16bc73c"
+storage_version_token = "1793029522719445"
+content_type = "application/pdf"
