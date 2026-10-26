@@ -4,11 +4,26 @@ import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
 import { cp, rm, stat } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
 
 // Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
 globalThis.require = createRequire(import.meta.url);
 
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
+
+// The exact source revision this bundle was built from, so the published
+// service can be matched to a commit (production audit 2026-10-26, R1).
+// "-dirty" marks uncommitted tracked changes; never guess a revision.
+function servingRevision() {
+  if (process.env.ATANDA_BUILD_REVISION) return process.env.ATANDA_BUILD_REVISION;
+  try {
+    const git = (...args) => execFileSync("git", args, { cwd: artifactDir, encoding: "utf8" }).trim();
+    const sha = git("rev-parse", "HEAD");
+    return git("status", "--porcelain", "--untracked-files=no") ? `${sha}-dirty` : sha;
+  } catch {
+    return "unknown";
+  }
+}
 
 async function buildAll() {
   const distDir = path.resolve(artifactDir, "dist");
@@ -106,6 +121,7 @@ async function buildAll() {
       "mammoth",
     ],
     sourcemap: "linked",
+    define: { "process.env.ATANDA_BUILD_REVISION": JSON.stringify(servingRevision()) },
     plugins: [
       // pino relies on workers to handle logging, instead of externalizing it we use a plugin to handle it
       esbuildPluginPino({ transports: ["pino-pretty"] })

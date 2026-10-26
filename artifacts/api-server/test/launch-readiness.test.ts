@@ -68,4 +68,11 @@ describe("public health endpoint contracts", () => {
     readiness.mockResolvedValue({ database: "available", ai: "configured", buildReady: true });
     expect((await fetch(`${base}/readyz`)).status).toBe(200);
   });
+  it("names the serving revision instead of implying one", async () => {
+    // Unbundled test runs have no build stamp; they must not claim a commit.
+    readiness.mockResolvedValue({ database: "available", ai: "configured", buildReady: true });
+    for (const path of ["readyz", "launch-readiness"]) {
+      expect((await fetch(`${base}/${path}`)).headers.get("x-serving-revision")).toBe("unbuilt");
+    }
+  });
 });
