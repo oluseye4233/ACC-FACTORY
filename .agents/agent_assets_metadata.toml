@@ -672,3 +672,31 @@ mtime_ms = 1792968678049
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/331289a4-9102-4338-a8fe-cb539582e3c9/756d86a4-4167-4f8f-8f9e-57400aa6fe13"
 storage_version_token = "1792968687361607"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "JicUy7hXGK32_msrv7DK1"
+uri = "file://docs/Platform_Completion_Gates_and_Pending_Fixes_2026-10-26.md"
+type = "text"
+title = "Platform Completion, Closed Gates and Pending Fixes"
+description = "Markdown report covering live observations, closed and conditional gates, pending fixes, and the recommended completion order."
+logical_id = "015b6965-1a79-4e6d-873b-72c854310308"
+content_hash = "sha256:0256dae05b4c042bbd74b356df67ead22dbf3e7a683a3949bdb205534fe7e87e"
+size = 14336
+mtime_ms = 1793022684684
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/015b6965-1a79-4e6d-873b-72c854310308/ec916f28-f480-4b8a-bda8-a082fb9ee560"
+storage_version_token = "1793022692603813"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "RpauenuFRZW2u6DoHcJWT"
+uri = "file://docs/Production_Read_Only_Audit_and_Remaining_Fixes_2026-10-26.md"
+type = "text"
+title = "Production Read-Only Audit and Remaining-Fixes Checklist"
+description = "26 October 2026 evidence matrix, protected-gate ruling, release-parity limits and prioritized R1–R12 exit checklist with accepted follow-ups."
+logical_id = "976be66e-6e95-41fe-95c4-a8ed5e53ece0"
+content_hash = "sha256:905ff62dcf6177a7aa50026d510b36dd1455add47d148833d2bc38ddf46a09a5"
+size = 20388
+mtime_ms = 1793023099744
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/976be66e-6e95-41fe-95c4-a8ed5e53ece0/f32b46aa-a8fc-4d35-b05c-1d296aa42d5a"
+storage_version_token = "1793023123036958"
+content_type = "text/markdown"
