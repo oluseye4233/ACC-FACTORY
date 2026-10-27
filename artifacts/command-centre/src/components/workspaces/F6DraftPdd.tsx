@@ -12,7 +12,6 @@ import {
   HarnessF6InputMode,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import {
   Select,
@@ -62,7 +61,8 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
   const spcSources = useMemo(
     () =>
       artifacts
-        .filter((a) => a.artifactType === ArtifactType.SPC)
+        .filter((a) => a.featureId === 5 &&
+          (a.artifactType === ArtifactType.SPC || a.artifactType === ArtifactType.ATLAS_360_SCAN_VIEW))
         .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)),
     [artifacts],
   );
@@ -80,11 +80,8 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
     [pddArtifacts],
   );
 
-  const [mode, setMode] = useState<HarnessF6InputMode>(
-    spcSources.length ? HarnessF6InputMode.FROM_SPC : HarnessF6InputMode.FRESH,
-  );
+  const mode = HarnessF6InputMode.FROM_F5;
   const [sourceId, setSourceId] = useState<string>(spcSources[0]?.id || "");
-  const [brief, setBrief] = useState("");
   const [colonizationTarget, setColonizationTarget] = useState<ColonizationTarget>("UNDECIDED");
   const [pdd, setPdd] = useState<AtlasPdd | undefined>();
   const [pddArtifactId, setPddArtifactId] = useState<string | null>(null);
@@ -126,18 +123,14 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
   const draft = async () => {
     setError(null);
     let body: Record<string, unknown>;
-    if (mode === HarnessF6InputMode.FROM_SPC) {
+    if (mode === HarnessF6InputMode.FROM_F5) {
       if (!sourceId) {
-        setError("Pick an SPC source");
+        setError("Select an F5 SPC or ATLAS 360 SCAN artifact");
         return;
       }
       body = { sessionId, mode, sourceArtifactId: sourceId, colonizationTarget, ...overrideToBody(providerOverride) };
     } else {
-      if (!brief.trim()) {
-        setError("Brief required for FRESH mode");
-        return;
-      }
-      body = { sessionId, mode, brief, colonizationTarget, ...overrideToBody(providerOverride) };
+      return;
     }
 
     // The 4-part draft is the heavy LLM call; stream it over SSE so the proxy
@@ -212,46 +205,32 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
               <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
                 Mode
               </label>
-              <Select value={mode} onValueChange={(v) => setMode(v as HarnessF6InputMode)}>
+              <Select value={mode} disabled>
                 <SelectTrigger data-testid="f6-mode" className="font-mono text-xs w-48">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={HarnessF6InputMode.FROM_SPC}>FROM SPC</SelectItem>
-                  <SelectItem value={HarnessF6InputMode.FRESH}>FRESH</SelectItem>
+                  <SelectItem value={HarnessF6InputMode.FROM_F5}>FROM F5 ARTIFACT</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {mode === HarnessF6InputMode.FROM_SPC ? (
+            {(
               <div className="flex-1 min-w-[240px]">
                 <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
-                  Source SPC
+                  Source F5 artifact
                 </label>
                 <Select value={sourceId} onValueChange={setSourceId}>
                   <SelectTrigger className="font-mono text-xs" data-testid="f6-source">
-                    <SelectValue placeholder={spcSources.length ? "Pick SPC" : "No SPC yet"} />
+                    <SelectValue placeholder={spcSources.length ? "Choose F5 SPC or SCAN" : "Create an F5 SPC or SCAN first"} />
                   </SelectTrigger>
                   <SelectContent>
                     {spcSources.map((s) => (
                       <SelectItem key={s.id} value={s.id} className="font-mono text-xs">
-                        {s.id.slice(0, 8)} · {new Date(s.createdAt).toLocaleTimeString()}
+                        {s.name || String(s.artifactContent?.title || s.artifactContent?.name || (s.artifactType === ArtifactType.SPC ? "F5 SPC" : "ATLAS 360 SCAN"))} · {s.artifactType} · {s.id.slice(0, 8)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            ) : (
-              <div className="flex-1 min-w-[240px]">
-                <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
-                  Fresh Brief
-                </label>
-                <Textarea
-                  data-testid="f6-brief"
-                  value={brief}
-                  onChange={(e) => setBrief(e.target.value)}
-                  placeholder="Describe the product to be drafted into an ATLAS PDD..."
-                  className="font-mono text-xs min-h-[80px] bg-background/50"
-                />
               </div>
             )}
             <div className="min-w-[180px]">
@@ -266,7 +245,7 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
             <Button
               data-testid="f6-draft"
               onClick={draft}
-              disabled={drafting}
+              disabled={drafting || !spcSources.some(source => source.id === sourceId)}
               className="font-display tracking-wider"
             >
               {drafting ? "DRAFTING..." : "DRAFT PDD"}

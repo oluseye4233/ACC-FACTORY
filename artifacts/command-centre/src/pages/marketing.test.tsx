@@ -53,11 +53,17 @@ describe("public pricing", () => {
 });
 
 describe("landing", () => {
-  it("shows the governed specification-driven factory welcome", () => {
+  it("leads with the subscriber story and retains the governed factory identity", () => {
     wrap(<Landing />);
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
-      "WELCOME TO OUR GOVERNED SPECIFICATION DRIVEN AI DESIGN LIFE CYCLE FACTORY (GS AI DLC)",
+      "Your idea matters. Build it with a clearer way forward.",
     );
+    expect(screen.getByText("WELCOME TO OUR GOVERNED SPECIFICATION DRIVEN AI DESIGN LIFE CYCLE FACTORY (GS AI DLC)")).toBeTruthy();
+    expect(screen.getByLabelText("ATANDA home")).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/Koncentric Labs/i);
+    expect([...document.querySelectorAll("[data-snap]")].map(section => section.getAttribute("data-snap"))).toEqual(["story", "need", "answer", "proof"]);
+    expect(screen.getByTestId("link-landing-proof").getAttribute("href")).toContain("/guide");
+    expect(screen.getByTestId("link-landing-plans").getAttribute("href")).toContain("/pricing");
   });
   it.each(["how", "workflow"])("scrolls to #%s after a cross-page lazy mount", (section) => {
     const descriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollIntoView");

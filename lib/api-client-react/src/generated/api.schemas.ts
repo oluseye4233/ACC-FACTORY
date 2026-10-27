@@ -3848,16 +3848,35 @@ export interface F5StepOutcome {
   spc?: Spc | null;
 }
 
+export interface F5ScanInput {
+  sessionId: string;
+  /**
+     * @minItems 1
+     * @maxItems 3
+     * @items.minLength 1
+     * @items.maxLength 2000
+     */
+  links: string[];
+  /** @maxLength 4000 */
+  context?: string;
+  provider?: LlmProvider;
+}
+
+/**
+ * FROM_SPC is a legacy alias for a saved F5 SPC. FRESH is retained for client compatibility but rejected by the server.
+ */
 export type HarnessF6InputMode = typeof HarnessF6InputMode[keyof typeof HarnessF6InputMode];
 
 
 export const HarnessF6InputMode = {
+  FROM_F5: 'FROM_F5',
   FROM_SPC: 'FROM_SPC',
   FRESH: 'FRESH',
 } as const;
 
 export interface HarnessF6Input {
   sessionId: string;
+  /** FROM_SPC is a legacy alias for a saved F5 SPC. FRESH is retained for client compatibility but rejected by the server. */
   mode: HarnessF6InputMode;
   /** @nullable */
   sourceArtifactId?: string | null;

@@ -203,6 +203,7 @@ export * from './f0RetainerStatus';
 export * from './f0RetainerTask';
 export * from './f0RetainerTaskStatus';
 export * from './f0Service';
+export * from './f5ScanInput';
 export * from './f5StepOutcome';
 export * from './f8DriftRemediationResult';
 export * from './f8DriftRemediationResultState';

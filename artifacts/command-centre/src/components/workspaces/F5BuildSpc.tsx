@@ -33,6 +33,7 @@ import { SuggestSpcPanel } from "@/components/shared/SuggestSpcPanel";
 import { downloadZip } from "@/lib/zipExport";
 import { SpcPlayerAdvisoryPrompt } from "@/components/shared/SpcPlayerAdvisoryPrompt";
 import { buildArtifactFilename } from "@workspace/artifact-naming";
+import { F5ScanLinks } from "./F5ScanLinks";
 
 const FORGE_STEPS = [
   "CHARTER",
@@ -284,6 +285,7 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
   return (
     <WorkspaceShell>
       <div className="flex flex-col gap-4 h-full">
+        <F5ScanLinks sessionId={sessionId} artifacts={artifacts ?? []} />
         <SpcPlayerAdvisoryPrompt dismissKey={sessionId} sessionId={sessionId} sourceArtifactId={latestArtifact?.id} />
         <Card className="p-5 bg-card/50">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-3">

@@ -152,7 +152,7 @@ function normalizePlan(out: Atlas360PlanView): Atlas360PlanView {
   };
 }
 
-function normalizeScan(out: Atlas360ScanView): Atlas360ScanView {
+export function normalizeScan(out: Atlas360ScanView): Atlas360ScanView {
   const names = [
     "Freeze-stage Evidence Manifest",
     "Baseline and Scope",

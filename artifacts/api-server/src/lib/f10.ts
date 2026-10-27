@@ -154,7 +154,7 @@ const expandV6 = (ip: string): string[] | undefined => {
 export async function validateHttpsDestination(raw: string, resolve: (host: string) => Promise<string[]> = async (h) => (await lookup(h, { all: true })).map(x => x.address)): Promise<URL> {
   return (await resolveHttpsDestination(raw, resolve)).url;
 }
-async function resolveHttpsDestination(raw: string, resolve: (host: string) => Promise<string[]> = async (h) => (await lookup(h, { all: true })).map(x => x.address)): Promise<{url: URL; address: string; family: 4 | 6}> {
+export async function resolveHttpsDestination(raw: string, resolve: (host: string) => Promise<string[]> = async (h) => (await lookup(h, { all: true })).map(x => x.address)): Promise<{url: URL; address: string; family: 4 | 6}> {
   let u: URL;
   try { u = new URL(raw); } catch { throw new Error("destination must be a valid HTTPS URL"); }
   if (u.protocol !== "https:" || u.username || u.password || u.hostname === "localhost" || u.hostname.endsWith(".localhost")) throw new Error("destination must be HTTPS without credentials");

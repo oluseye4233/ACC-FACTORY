@@ -33,9 +33,10 @@ export function MarketingShell({ children }: { children: ReactNode }) {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:bg-card focus:px-3 focus:py-2">Skip to content</a>
       <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
         <nav aria-label="Primary" className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2" data-testid="link-home">
+          <Link href="/" className="flex items-center gap-2" aria-label="ATANDA home" data-testid="link-home">
             <img src={`${import.meta.env.BASE_URL}atanda-logo.png`} alt="ATANDA" className="h-8 w-auto" />
-            <span className="hidden sm:inline font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">ARK Harness</span>
+            <span className="font-display text-xl tracking-widest">ATANDA</span>
+            <span className="hidden xl:inline font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">ARK Harness</span>
           </Link>
           <ul className="ml-auto hidden md:flex items-center gap-6 font-mono text-xs uppercase tracking-wider">
             {NAV.map((n) => (
@@ -61,7 +62,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
       <main id="main" className="flex-1">{children}</main>
       <footer className="border-t">
         <div className="mx-auto max-w-7xl px-4 md:px-6 py-10 grid gap-6 md:grid-cols-[1fr_auto] text-sm text-muted-foreground">
-          <p className="max-w-xl">ATANDA Command Centre runs the ARK Harness in private preview. Outputs support your own review and are not independent certification.</p>
+          <p className="max-w-xl">ATANDA is the corporate identity behind the ARK Harness and Command Centre. The platform is in private preview. Outputs support your own review and are not independent certification.</p>
           <div className="flex flex-wrap gap-5 font-mono text-xs uppercase tracking-wider">
             <Link href="/" data-testid="link-footer-home">Home</Link>
             <Link href="/pricing" data-testid="link-footer-pricing">Pricing</Link>

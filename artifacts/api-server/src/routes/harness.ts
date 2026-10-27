@@ -9,6 +9,7 @@ import { handleF2 } from "../engines/f2";
 import { handleF3Stream } from "../engines/f3";
 import { handleF4 } from "../engines/f4";
 import { handleF5, handleF5FinalizeStream } from "../engines/f5";
+import { handleF5Scan } from "../engines/f5-scan";
 import { handleF6, handleF6DraftStream } from "../engines/f6";
 import { handleF6Vdj } from "../engines/f6vdj";
 import { handleF05 } from "../engines/f05";
@@ -68,6 +69,7 @@ function harnessRoute(opts: {
 
 router.post("/harness/f1", ...harnessRoute({ featureId: 1, handler: handleF1 }));
 router.post("/harness/f2", ...harnessRoute({ featureId: 2, handler: handleF2 }));
+router.post("/harness/f5-scan", ...harnessRoute({ featureId: 5, handler: handleF5Scan }));
 router.post("/harness/f3", ...harnessRoute({ featureId: 3, handler: handleF3Stream }));
 router.post("/harness/f4", ...harnessRoute({ featureId: 4, handler: handleF4 }));
 router.post(

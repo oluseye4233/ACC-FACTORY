@@ -3565,7 +3565,7 @@ export const harnessF6BodyColonizationTargetMax = 240;
 
 export const HarnessF6Body = zod.object({
   "sessionId": zod.string().uuid(),
-  "mode": zod.enum(['FROM_SPC', 'FRESH']),
+  "mode": zod.enum(['FROM_F5', 'FROM_SPC', 'FRESH']).describe('FROM_SPC is a legacy alias for a saved F5 SPC. FRESH is retained for client compatibility but rejected by the server.'),
   "sourceArtifactId": zod.string().uuid().nullish(),
   "brief": zod.string().nullish(),
   "colonizationTarget": zod.string().max(harnessF6BodyColonizationTargetMax).optional().describe('UNDECIDED or an exact FAMILY::target pair from the authenticated F10 catalog. Planning preference only, never deployment consent.'),
@@ -3919,6 +3919,82 @@ export const HarnessF8HdjResponse = zod.object({
 }),
   "jcse": zod.number().describe('Journey Confidence / Self-deploy Estimate 0..100, derived server-side from the winning weighted score.'),
   "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Create an F5 ATLAS 360 SCAN from website, repository or local-server references
+ */
+export const harnessF5ScanBodyLinksItemMax = 2000;
+
+export const harnessF5ScanBodyLinksMax = 3;
+
+export const harnessF5ScanBodyContextMax = 4000;
+
+
+
+export const HarnessF5ScanBody = zod.object({
+  "sessionId": zod.string().uuid(),
+  "links": zod.array(zod.string().min(1).max(harnessF5ScanBodyLinksItemMax)).min(1).max(harnessF5ScanBodyLinksMax),
+  "context": zod.string().max(harnessF5ScanBodyContextMax).optional(),
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).optional().describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n')
+})
+
+export const HarnessF5ScanResponse = zod.object({
+  "id": zod.string().uuid(),
+  "sessionId": zod.string().uuid(),
+  "featureId": zod.number().int(),
+  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "parentArtifactId": zod.string().uuid().nullish(),
+  "contentHash": zod.string().nullish(),
+  "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
+  "verificationEvidenceHash": zod.string().nullish(),
+  "name": zod.string().nullish(),
+  "artifactContent": zod.record(zod.string(), zod.unknown()),
+  "scorecards": zod.array(zod.object({
+  "kind": zod.enum(['JCSE', 'MATHMON']),
+  "score": zod.number().int(),
+  "maxScore": zod.number().int(),
+  "summary": zod.string(),
+  "calculation": zod.string(),
+  "dimensions": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number().int(),
+  "maxScore": zod.number().int(),
+  "weightPercent": zod.number().nullable(),
+  "weightedContribution": zod.number().nullable(),
+  "explanation": zod.string(),
+  "gaps": zod.array(zod.string()),
+  "actions": zod.array(zod.string())
+})),
+  "strengths": zod.array(zod.string()),
+  "gaps": zod.array(zod.string()),
+  "advisoryReport": zod.object({
+  "summary": zod.string(),
+  "steps": zod.array(zod.object({
+  "priority": zod.enum(['HIGH', 'MEDIUM', 'LOW']),
+  "title": zod.string(),
+  "why": zod.string(),
+  "action": zod.string(),
+  "expectedImpact": zod.string()
+}))
+})
+})),
+  "sku": zod.string().nullish(),
+  "jcseScore": zod.number().int().nullish(),
+  "certTier": zod.string().nullish(),
+  "groState": zod.string().optional(),
+  "spartanCert": zod.record(zod.string(), zod.unknown()).nullish(),
+  "mathmonScore": zod.number().int().nullish(),
+  "forgeVerified": zod.boolean().optional(),
+  "provider": zod.union([zod.literal('claude'),zod.literal('openai'),zod.literal('gemini'),zod.literal('deepseek'),zod.literal('kimi'),zod.literal('qwen'),zod.literal('glm'),zod.literal(null)]).nullish(),
+  "modelId": zod.string().nullish(),
+  "runDurationMs": zod.number().int().nullish(),
+  "runInputTokens": zod.number().int().nullish(),
+  "runOutputTokens": zod.number().int().nullish(),
+  "runAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
 })
 
 

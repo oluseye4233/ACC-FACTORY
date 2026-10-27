@@ -1372,6 +1372,30 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
 
+  /harness/f5-scan:
+    post:
+      operationId: harnessF5Scan
+      tags: [harness]
+      summary: Create an F5 ATLAS 360 SCAN from website, repository or local-server references
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/F5ScanInput" }
+      responses:
+        "200":
+          description: Saved F5 SCAN artifact with bounded public-page evidence and explicit inaccessible-source status
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HarnessArtifact" }
+        "400":
+          description: Invalid scan links or input
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /harness/atlas-crystallise:
     post:
       operationId: harnessAtlasCrystallise
@@ -5998,12 +6022,25 @@ components:
             - { $ref: "#/components/schemas/Spc" }
             - { type: "null" }
 
+    F5ScanInput:
+      type: object
+      required: [sessionId, links]
+      properties:
+        sessionId: { type: string, format: uuid }
+        links:
+          type: array
+          minItems: 1
+          maxItems: 3
+          items: { type: string, minLength: 1, maxLength: 2000 }
+        context: { type: string, maxLength: 4000 }
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+
     HarnessF6Input:
       type: object
       required: [sessionId, mode]
       properties:
         sessionId: { type: string, format: uuid }
-        mode: { type: string, enum: [FROM_SPC, FRESH] }
+        mode: { type: string, enum: [FROM_F5, FROM_SPC, FRESH], description: FROM_SPC is a legacy alias for a saved F5 SPC. FRESH is retained for client compatibility but rejected by the server. }
         sourceArtifactId: { type: ["string", "null"], format: uuid }
         brief: { type: ["string", "null"] }
         colonizationTarget: { $ref: "#/components/schemas/ColonizationTarget" }

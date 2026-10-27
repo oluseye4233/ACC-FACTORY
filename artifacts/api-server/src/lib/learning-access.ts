@@ -13,6 +13,7 @@ export async function activeLearningMembership(userId: string, membershipId?: st
 }
 /** All non-staff routes are denied unless explicitly part of student learning. */
 export function learningRouteAllowed(method: string, path: string, active: boolean, lifetimePractitioner = false) {
+  if (method === "POST" && path === "/harness/f5-scan" && (active || lifetimePractitioner)) return true;
   // Non-secret planning metadata only. This does not authorize any F10 write,
   // provider connection, release or delivery for a training account.
   if (method === "GET" && path === "/f10/catalog" && (active || lifetimePractitioner)) return true;

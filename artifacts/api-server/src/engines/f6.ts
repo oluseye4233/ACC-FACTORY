@@ -36,34 +36,32 @@ class MissingSourceError extends Error {
 }
 
 /**
- * Build the F6 user prompt from either a source SPC or a fresh brief. Throws
+ * Build the F6 prompt exclusively from an owned, same-session F5 source. Throws
  * MissingSourceError (with a status) so both the JSON and SSE callers can map it
  * to the right response shape.
  */
-async function buildF6Prompt(
+export async function buildF6Prompt(
   mode: string,
   sessionId: string,
   userId: string,
   sourceArtifactId: string | null | undefined,
   brief: string | null | undefined,
 ): Promise<string> {
-  if (mode === "FROM_SPC") {
+  if (mode === "FROM_F5" || mode === "FROM_SPC") {
     if (!sourceArtifactId) {
-      throw new MissingSourceError("sourceArtifactId required when mode=FROM_SPC", 400);
+      throw new MissingSourceError("Select a saved F5 artifact before drafting F6", 400);
     }
     const source = await loadArtifact(sourceArtifactId, userId);
-    if (!source || source.sessionId !== sessionId || source.artifactType !== "SPC") {
-      throw new MissingSourceError("Source SPC not found in this session", 404);
+    if (!source || source.sessionId !== sessionId || source.featureId !== 5 ||
+      !["SPC", "ATLAS_360_SCAN_VIEW"].includes(source.artifactType)) {
+      throw new MissingSourceError("Source must be an F5 SPC or ATLAS 360 SCAN artifact in this session", 404);
     }
     try { assertGovernance(source.artifactContent); } catch (error) {
       throw new MissingSourceError(error instanceof Error ? error.message : "Governance review required", 409);
     }
-    return `Mode: FROM_SPC\n\nSource SPC:\n${JSON.stringify(source.artifactContent, null, 2)}`;
+    return `Mode: ${mode}\n\nSource F5 ${source.artifactType} (artifact ${source.id}):\n${JSON.stringify(source.artifactContent, null, 2)}\n\nPreserve all source coverage limits and missing evidence; transforming a SCAN into a PDD is not a verification or certification.`;
   }
-  if (!brief) {
-    throw new MissingSourceError("brief required when mode=FRESH", 400);
-  }
-  return `Mode: FRESH\n\nBrief:\n${brief}`;
+  throw new MissingSourceError("F6 only accepts saved F5 artifacts. Create an SPC or ATLAS 360 SCAN at F5 first; free-form briefs are no longer accepted.", 400);
 }
 
 async function synthesiseAtlasPdd(
@@ -85,13 +83,14 @@ async function persistAtlasPdd(
   userId: string,
   provider: LlmProvider,
   colonizationTarget: ColonizationTarget,
+  sourceArtifactId: string,
 ) {
   const artifact = await persistArtifact({
     sessionId,
     userId,
     featureId: 6,
     artifactType: "ATLAS_PDD",
-    artifactContent: { ...out, colonizationTarget },
+    artifactContent: { ...out, colonizationTarget, sourceArtifactId, sourceFeatureId: 5 },
     provider,
   });
   await advanceFeatureState(sessionId, 6);
@@ -144,13 +143,13 @@ export async function handleF6(req: Request, res: Response): Promise<void> {
     res.status(502).json({ error: "Engine call failed", detail: (err as Error).message });
     return;
   }
-  const artifact = await persistAtlasPdd(out, sessionId, guard.userId, provider, colonizationTarget);
+  const artifact = await persistAtlasPdd(out, sessionId, guard.userId, provider, colonizationTarget, sourceArtifactId!);
   res.json({ ...out, artifactId: artifact.id });
 }
 
 // Deterministic UI checkpoints streamed while the LLM drafts the 4-Part PDD.
 const DRAFT_STEPS = [
-  { id: "AUDIT", label: "AUDIT — read the source SPC / brief" },
+  { id: "AUDIT", label: "AUDIT — read the selected F5 artifact" },
   { id: "TRIANGULATE", label: "TRIANGULATE — reconcile the 4 ATLAS parts" },
   { id: "LAYOUT", label: "LAYOUT — structure cheat-sheet + exec + worksheet" },
   { id: "ASSEMBLE", label: "ASSEMBLE — write the implementation guide" },
@@ -248,7 +247,7 @@ export async function handleF6DraftStream(req: Request, res: Response): Promise<
   }
 
   // Persist regardless of client connection — the work is done and paid for.
-  const artifact = await persistAtlasPdd(out, sessionId, guard.userId, provider, colonizationTarget);
+  const artifact = await persistAtlasPdd(out, sessionId, guard.userId, provider, colonizationTarget, sourceArtifactId!);
 
   if (clientClosed) return;
   send("complete", { ...out, artifactId: artifact.id });
