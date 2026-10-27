@@ -62,3 +62,4 @@
 - [Integrated F8 conversion](f8-conversion-doctrine.md) — VIBE guidance belongs inside F8; F4 stays platform-neutral; colonization preferences never establish release consent or qualification.
 - [Pinned DNS and Node](pinned-dns-node.md) — single-address HTTPS pinning needs an explicit family or an all-address callback; keep SSRF and TLS checks intact.
 - [ATANDA landing identity](atanda-landing-identity.md) — ATANDA is the corporate brand; ARK is the product. Use SNAP subscriber copy with factual proof and real eligibility terms.
+- [Project-first artifact titles](artifact-title-prefix.md) — every newly produced project artifact title starts with its project name; preserve stage and Upgraded N suffixes.

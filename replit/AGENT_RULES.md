@@ -1,5 +1,19 @@
 # Rules for Replit Agent in this Repl
 
+## Artifact production invariant
+
+Every newly created project artifact title must start with the owning project
+name: `<Project name> — <Artifact description>`. Preserve stage, type and
+Boomerang upgrade numbering after the prefix; do not duplicate an existing
+prefix. Resolve the real project name rather than inventing one. Do not
+retroactively rename immutable or signed artifacts.
+
+See `docs/upgrade-program/artifact-title-invariant.md` (ART-TITLE-001) for scope
+and verification criteria. Recording this rule is not evidence of runtime or
+live-platform enforcement.
+
+## Database security rules
+
 1. Never edit, replace, rename or delete existing migration files in `db/rls/`. To change the security layer, add a new, uniquely numbered file (e.g. `030_...sql`) and obtain human review before applying or publishing it. Never reset the ARK migration ledger, change a recorded checksum or mark an unexecuted migration as applied to bypass a failure.
 2. Never run `drizzle-kit push`, `drizzle-kit drop` or raw `DROP`/`ALTER ... DISABLE`/`NO FORCE` against the `imprima`, `short_sprints`, `app` or `ark_meta` schemas. Keep `schemaFilter: ["public"]` in `lib/db/drizzle.config.ts` and retain its existing `out: "./migrations"` history. The filter limits schema introspection; it does not sandbox arbitrary SQL in migration files.
 3. Application requests reach the protected ARK schemas only through `withContext()` in `server/db/withContext.ts`, using the restricted `APP_DATABASE_URL` connection. Derive organization, user and role context from verified authentication, never from caller-supplied identity fields. Never use `DATABASE_URL`, a database-owner connection or a superuser fallback for request access to those schemas. The owner connection is reserved for the authorized ARK migration step; the verifier uses `APP_DATABASE_URL`. Existing `public`-schema application access and its separate artifact-operation role/context remain separate: do not claim they are protected by the new ARK wrapper or silently replace their data model.

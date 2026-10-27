@@ -1,5 +1,12 @@
 # ARK upgrade integration control
 
+## Additional production invariants
+
+- [ART-TITLE-001 — Project-first artifact titles](artifact-title-invariant.md):
+  every artifact title created during production must start with the owning
+  project name. This is a mandatory specified rule; runtime enforcement and
+  live verification must be evidenced separately.
+
 ## Current checkpoint
 
 Initial source indexing and dependency sequencing are complete. Supplemental
