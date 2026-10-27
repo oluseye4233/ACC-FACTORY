@@ -714,3 +714,17 @@ mtime_ms = 1793029513942
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/7829ad35-d92d-4e90-83ed-a79ddf61970d/744fe1ee-7f45-4022-9a27-085dd16bc73c"
 storage_version_token = "1793029522719445"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "XoCc60fvuFvjBsKJIlqou"
+uri = "file://generated-artifacts/atlas-360-scan-2026-10-27/ATANDA_Command_Centre_ATLAS_360_SCAN_Living_PDD_2026-10-27.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — ATLAS 360 SCAN Living PDD"
+description = "Updated 27 October 2026. A 20-page PDF covering eight SCAN stages, current feature and gate status, 45 atomic work items, site map, new title invariant and dated public evidence."
+logical_id = "4fa35ad0-139a-465a-9653-2fc4b065236f"
+content_hash = "sha256:e57527d74b01592a9dfd6bf773e0ec1f8d5969f0dbeb43dc550ea51c67ba5683"
+size = 58154
+mtime_ms = 1793083363841
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/4fa35ad0-139a-465a-9653-2fc4b065236f/7be333bf-77e6-494a-8e9c-e23dc6777931"
+storage_version_token = "1793083388106773"
+content_type = "application/pdf"
