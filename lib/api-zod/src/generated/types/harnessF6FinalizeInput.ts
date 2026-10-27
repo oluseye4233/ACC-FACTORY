@@ -11,6 +11,7 @@ import type { LlmProvider } from './llmProvider';
 
 export interface HarnessF6FinalizeInput {
   sessionId: string;
+  /** FROM_SPC is a legacy alias for a saved F5 SPC. FRESH is retained for client compatibility but rejected by the server. */
   mode: HarnessF6FinalizeInputMode;
   /** @nullable */
   sourceArtifactId?: string | null;

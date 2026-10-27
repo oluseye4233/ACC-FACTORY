@@ -1,6 +1,7 @@
 import express, { type Express, type RequestHandler } from "express";
 import { describe, test, expect, beforeEach, vi } from "vitest";
 import { and, eq } from "drizzle-orm";
+import { installGovernance } from "../src/lib/artifact-governance";
 import {
   db,
   usersTable,
@@ -23,7 +24,10 @@ import {
 // suite is the regression net for those five branches: it opens the real SSE
 // stream against a real Express server, aborts the fetch mid-run, and polls
 // the database until the durable row lands.
-const llm = vi.hoisted(() => ({ responseText: "", delayMs: 2000 }));
+const llm = vi.hoisted(() => ({
+  responseText: "", delayMs: 2000, callsStarted: 0, callsCompleted: 0,
+  responseGate: null as Promise<void> | null,
+}));
 
 // Keep the canned LLM response pending until after the client has aborted, so
 // the disconnect genuinely happens mid-run (before the handler awaits the LLM
@@ -53,7 +57,10 @@ vi.mock("@workspace/integrations-anthropic-ai", async (importOriginal) => {
     getAnthropic: () => ({
       messages: {
         create: async () => {
+          llm.callsStarted++;
           await new Promise((r) => setTimeout(r, llm.delayMs));
+          if (llm.responseGate) await llm.responseGate;
+          llm.callsCompleted++;
           return {
             content: [{ type: "text", text: llm.responseText }],
             usage: { input_tokens: 50, output_tokens: 40 },
@@ -210,7 +217,8 @@ async function openStreamThenAbortAfterFirstProgress(
     body: JSON.stringify(body),
     signal: controller.signal,
   });
-  expect(res.status, `POST ${path} should open a 200 SSE stream`).toBe(200);
+  const failureBody = res.status === 200 ? "" : await res.text();
+  expect(res.status, `POST ${path} should open a 200 SSE stream: ${failureBody}`).toBe(200);
   if (!res.body) throw new Error("SSE response had no body stream");
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -323,6 +331,9 @@ describe("streaming engines — client disconnect mid-stream must not lose the o
   beforeEach(() => {
     llm.responseText = "";
     llm.delayMs = LLM_DELAY_MS;
+    llm.callsStarted = 0;
+    llm.callsCompleted = 0;
+    llm.responseGate = null;
   });
 
   test(
@@ -489,26 +500,49 @@ describe("streaming engines — client disconnect mid-stream must not lose the o
     }
   }, TEST_TIMEOUT_MS);
 
-  test(
-    "F6 draft: a mid-stream disconnect still persists the ATLAS PDD artifact",
-    async () => {
+  test.each(["SPC", "ATLAS_360_SCAN_VIEW"] as const)(
+    "F6 draft from F5 %s: a mid-stream disconnect still persists the ATLAS PDD and source lineage",
+    async (sourceType) => {
       llm.responseText = JSON.stringify(F6_RESPONSE);
+      // Keep generation blocked until after the socket has been aborted.
+      // This proves persistence of work completed after disconnection, not a
+      // race where a fast mocked response was already saved before abort.
+      llm.delayMs = 0;
+      let finishGeneration!: () => void;
+      llm.responseGate = new Promise<void>((resolve) => { finishGeneration = resolve; });
       const fx = await seed();
       const srv = await startServer(
         buildApp(fx.user, fx.subscriber, "/api/harness/f6/draft", handleF6DraftStream),
       );
       try {
+        const sourceArtifactId = await insertArtifact(fx, sourceType, 5,
+          installGovernance(sourceType === "SPC" ? F5_RESPONSE : {
+            ...GOVERNANCE_ASSESSMENT,
+            title: "Dinner planner — F5 SCAN",
+            scanOrigin: "F5_LINK_INTAKE",
+            coverage: "REFERENCE_ONLY",
+            missingEvidence: ["No external website content fetched in this test"],
+          }));
         await openStreamThenAbortAfterFirstProgress(
           srv.url,
           "/api/harness/f6/draft",
           {
             sessionId: fx.sessionId,
-            mode: "FRESH",
-            brief: "A weekly family dinner planner under a $120 budget.",
+            mode: "FROM_F5",
+            sourceArtifactId,
             provider: "claude",
           },
           "step",
         );
+        // Progress can be emitted while budget reservation is still awaiting
+        // the database. Wait for the actual mocked provider invocation, without
+        // releasing its result, before asserting post-abort persistence.
+        await waitFor(async () => llm.callsStarted === 1 ? true : null,
+          "provider invocation after the stream opened");
+        expect(llm.callsStarted).toBe(1);
+        expect(llm.callsCompleted).toBe(0);
+        expect(await latestArtifact(fx.sessionId, "ATLAS_PDD")).toBeNull();
+        finishGeneration();
 
         const artifact = await waitFor(
           () => latestArtifact(fx.sessionId, "ATLAS_PDD"),
@@ -519,14 +553,72 @@ describe("streaming engines — client disconnect mid-stream must not lose the o
         expect(artifact.artifactContent).toMatchObject({
           cheatSheet: SAMPLE_ATLAS_PDD.cheatSheet,
           implementation: SAMPLE_ATLAS_PDD.implementation,
+          sourceArtifactId,
+          sourceFeatureId: 5,
         });
+        expect(llm.callsCompleted).toBe(1);
+        const saved = await db.select().from(harnessArtifactsTable).where(and(
+          eq(harnessArtifactsTable.sessionId, fx.sessionId),
+          eq(harnessArtifactsTable.artifactType, "ATLAS_PDD"),
+        ));
+        expect(saved).toHaveLength(1);
       } finally {
+        finishGeneration();
         await srv.close();
         await cleanup(fx.user.id);
       }
     },
     TEST_TIMEOUT_MS,
   );
+
+  test("F6 stream rejects invalid sources before opening SSE or calling a model", async () => {
+    const fx = await seed();
+    const foreign = await seed();
+    const srv = await startServer(
+      buildApp(fx.user, fx.subscriber, "/api/harness/f6/draft", handleF6DraftStream),
+    );
+    try {
+      const governed = installGovernance(F5_RESPONSE);
+      const wrongStage = await insertArtifact(fx, "SPC", 4, governed);
+      const wrongType = await insertArtifact(fx, "ATLAS_PDD", 5, governed);
+      const ungoverned = await insertArtifact(fx, "SPC", 5, F5_RESPONSE);
+      const foreignOwner = await insertArtifact(foreign, "SPC", 5, governed);
+      const [otherSession] = await db.insert(harnessSessionsTable).values({
+        userId: fx.user.id, sessionName: "Another owned session",
+      }).returning();
+      const otherSessionSource = await insertArtifact(
+        { ...fx, sessionId: otherSession!.id }, "SPC", 5, governed,
+      );
+      const cases = [
+        { mode: "FRESH", brief: "A weekly family dinner planner under a $120 budget.", status: 400 },
+        { mode: "FROM_F5", status: 400 },
+        { mode: "FROM_F5", sourceArtifactId: wrongStage, status: 404 },
+        { mode: "FROM_F5", sourceArtifactId: wrongType, status: 404 },
+        { mode: "FROM_F5", sourceArtifactId: foreignOwner, status: 404 },
+        { mode: "FROM_F5", sourceArtifactId: otherSessionSource, status: 404 },
+        { mode: "FROM_F5", sourceArtifactId: ungoverned, status: 409 },
+      ];
+      for (const { status, ...input } of cases) {
+        const response = await fetch(`${srv.url}/api/harness/f6/draft`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId: fx.sessionId, provider: "claude", ...input }),
+        });
+        expect(response.status, JSON.stringify(input)).toBe(status);
+        expect(response.headers.get("content-type")).toContain("application/json");
+        expect(await response.json()).toHaveProperty("error");
+      }
+      expect(llm.callsStarted).toBe(0);
+      const saved = await db.select().from(harnessArtifactsTable).where(and(
+        eq(harnessArtifactsTable.sessionId, fx.sessionId),
+        eq(harnessArtifactsTable.featureId, 6),
+      ));
+      expect(saved).toHaveLength(0);
+    } finally {
+      await srv.close();
+      await cleanup(fx.user.id);
+      await cleanup(foreign.user.id);
+    }
+  }, TEST_TIMEOUT_MS);
 
   test(
     "F7: a mid-stream disconnect still persists the MVP PDD artifact with its SPARTAN cert",

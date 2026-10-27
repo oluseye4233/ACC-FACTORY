@@ -6051,7 +6051,7 @@ components:
       required: [sessionId, mode]
       properties:
         sessionId: { type: string, format: uuid }
-        mode: { type: string, enum: [FROM_SPC, FRESH] }
+        mode: { type: string, enum: [FROM_F5, FROM_SPC, FRESH], description: FROM_SPC is a legacy alias for a saved F5 SPC. FRESH is retained for client compatibility but rejected by the server. }
         sourceArtifactId: { type: ["string", "null"], format: uuid }
         brief: { type: ["string", "null"] }
         colonizationTarget: { $ref: "#/components/schemas/ColonizationTarget" }

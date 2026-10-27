@@ -3590,7 +3590,7 @@ export const harnessF6DraftStreamBodyColonizationTargetMax = 240;
 
 export const HarnessF6DraftStreamBody = zod.object({
   "sessionId": zod.string().uuid(),
-  "mode": zod.enum(['FROM_SPC', 'FRESH']),
+  "mode": zod.enum(['FROM_F5', 'FROM_SPC', 'FRESH']).describe('FROM_SPC is a legacy alias for a saved F5 SPC. FRESH is retained for client compatibility but rejected by the server.'),
   "sourceArtifactId": zod.string().uuid().nullish(),
   "brief": zod.string().nullish(),
   "colonizationTarget": zod.string().max(harnessF6DraftStreamBodyColonizationTargetMax).optional().describe('UNDECIDED or an exact FAMILY::target pair from the authenticated F10 catalog. Planning preference only, never deployment consent.'),
