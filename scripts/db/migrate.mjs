@@ -17,23 +17,29 @@
 // =============================================================================
 import { readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { join, dirname } from "node:path";
+import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
+import { withStartupLock } from "./startup-lock.mjs";
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "db", "rls");
 const CHECK_ONLY = process.argv.includes("--check");
-const url = process.env.DATABASE_URL;
-if (!url) { console.error("DATABASE_URL is not set"); process.exit(2); }
-
-const ssl = process.env.PGSSLMODE === "disable" || /sslmode=disable/.test(url)
-  ? false : (process.env.DB_SSL === "true" ? { rejectUnauthorized: true } : undefined);
-const client = new pg.Client({ connectionString: url, ssl });
 
 const sha256 = (s) => createHash("sha256").update(s).digest("hex");
+const stop = (message, exitCode) => {
+  throw Object.assign(new Error(message), { exitCode });
+};
 
-async function main() {
-  await client.connect();
+export async function runMigrations(
+  client,
+  { checkOnly = CHECK_ONLY, password = process.env.APP_DB_PASSWORD, dir = DIR } = {},
+) {
+  // Cover ledger bootstrap/read, checksums, all file transactions, grants AND
+  // role password update. A lock just around ALTER ROLE would leave other races.
+  return withStartupLock(client, () => applyMigrations(client, { checkOnly, password, dir }));
+}
+
+async function applyMigrations(client, { checkOnly, password, dir }) {
   await client.query(`
     CREATE SCHEMA IF NOT EXISTS ark_meta;
     CREATE TABLE IF NOT EXISTS ark_meta.schema_migrations (
@@ -43,7 +49,7 @@ async function main() {
       applied_by text NOT NULL DEFAULT current_user
     );`);
 
-  const files = readdirSync(DIR).filter((f) => /^\d{3}_.+\.sql$/.test(f)).sort();
+  const files = readdirSync(dir).filter((f) => /^\d{3}_.+\.sql$/.test(f)).sort();
   const { rows } = await client.query("SELECT filename, sha256 FROM ark_meta.schema_migrations");
   const applied = new Map(rows.map((r) => [r.filename, r.sha256]));
 
@@ -57,24 +63,24 @@ async function main() {
       console.error("STOP: ARK tables exist but no migration has been recorded:");
       stray.forEach((r) => console.error("  " + r.t));
       console.error("They may lack RLS and triggers. A human must inspect them (see PDD Part 4.6).");
-      process.exit(3);
+      stop("Unrecorded ARK tables require human review.", 3);
     }
   }
 
   let pending = 0;
   for (const f of files) {
-    const sql = readFileSync(join(DIR, f), "utf8");
+    const sql = readFileSync(join(dir, f), "utf8");
     const sum = sha256(sql);
     if (applied.has(f)) {
       if (applied.get(f) !== sum) {
         console.error(`STOP: ${f} was applied with a different checksum. Migrations are immutable.`);
-        process.exit(4);
+        stop("Applied migration checksum mismatch.", 4);
       }
       console.log(`ok       ${f}`);
       continue;
     }
     pending++;
-    if (CHECK_ONLY) { console.log(`pending  ${f}`); continue; }
+    if (checkOnly) { console.log(`pending  ${f}`); continue; }
     try {
       await client.query("BEGIN");
       await client.query(sql);
@@ -84,24 +90,48 @@ async function main() {
       console.log(`applied  ${f}`);
     } catch (e) {
       await client.query("ROLLBACK").catch(() => {});
-      console.error(`FAILED   ${f}: ${e.message}`);
-      process.exit(1);
+      console.error(`FAILED   ${f}; transaction rolled back. Startup must stop.`);
+      throw e;
     }
   }
 
   // Let the verifier (connected as ark_app_login) read the ledger.
-  if (!CHECK_ONLY) {
+  if (!checkOnly) {
     await client.query(`
       GRANT USAGE ON SCHEMA ark_meta TO ark_app;
       GRANT SELECT ON ark_meta.schema_migrations TO ark_app;`);
-    if (process.env.APP_DB_PASSWORD) {
+    if (password) {
       await client.query(
-        `ALTER ROLE ark_app_login PASSWORD ${client.escapeLiteral(process.env.APP_DB_PASSWORD)}`);
+        `ALTER ROLE ark_app_login PASSWORD ${client.escapeLiteral(password)}`);
       console.log("set      ark_app_login password from APP_DB_PASSWORD");
     }
   }
-  await client.end();
-  if (CHECK_ONLY && pending) process.exit(1);
+  if (checkOnly && pending) stop("Pending ARK migrations.", 1);
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+async function main() {
+  const url = process.env.DATABASE_URL;
+  if (!url) stop("DATABASE_URL is not set", 2);
+  const ssl = process.env.PGSSLMODE === "disable" || /sslmode=disable/.test(url)
+    ? false : (process.env.DB_SSL === "true" ? { rejectUnauthorized: true } : undefined);
+  const client = new pg.Client({
+    connectionString: url, ssl, connectionTimeoutMillis: 10000,
+  });
+  try {
+    await client.connect();
+    await runMigrations(client);
+  } finally {
+    // Session termination also releases advisory locks if explicit unlock fails.
+    await client.end();
+  }
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+  main().catch((e) => {
+    // Never dump a driver Error object: it may contain connection/query details.
+    const code = e?.code === "ARK_STARTUP_LOCK_TIMEOUT" ? e.code
+      : typeof e?.code === "string" && /^[0-9A-Z]{5}$/.test(e.code) ? e.code : "UNKNOWN";
+    console.error(`ARK migration failed (code ${code}). Startup must stop.`);
+    process.exitCode = e.exitCode ?? 1;
+  });
+}

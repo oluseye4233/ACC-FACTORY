@@ -1,4 +1,18 @@
 import { probeDatabaseConnection } from "@workspace/db";
+import { logger } from "./logger";
+
+// Only known diagnostic codes may enter logs. Never log the raw error, message,
+// stack, host, query or connection string.
+const SAFE_DATABASE_CODES = new Set([
+  "ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "ENOTFOUND", "EAI_AGAIN",
+  "28P01", "28000", "3D000", "53300", "57P01", "57P02", "57P03",
+  "08000", "08001", "08003", "08004", "08006", "08007", "57014",
+]);
+
+function readinessFailureCode(error: unknown): string {
+  const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
+  return typeof code === "string" && SAFE_DATABASE_CODES.has(code) ? code : "UNKNOWN";
+}
 
 export function hasConfiguredAi(env: NodeJS.ProcessEnv = process.env): boolean {
   return Boolean(env.ANTHROPIC_API_KEY || env.OPENAI_API_KEY || env.GEMINI_API_KEY ||
@@ -19,7 +33,14 @@ export function createReadinessProbe(
     if (pending) return pending;
     pending = (async () => {
       let database: "available" | "unavailable" = "available";
-      try { await query(); } catch { database = "unavailable"; }
+      try { await query(); } catch (error) {
+        database = "unavailable";
+        logger.warn({
+          event: "database_readiness_failed",
+          failureCode: readinessFailureCode(error),
+          checkedAt: new Date(now()).toISOString(),
+        }, "Database readiness query failed");
+      }
       cached = { database, checkedAt: new Date(now()).toISOString() };
       expires = now() + 5000;
       return cached;

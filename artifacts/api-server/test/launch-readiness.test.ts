@@ -1,6 +1,9 @@
 import express from "express";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createReadinessProbe, hasConfiguredAi } from "../src/lib/launch-readiness";
+import { logger } from "../src/lib/logger";
+vi.mock("@workspace/db", () => ({ probeDatabaseConnection: vi.fn().mockRejectedValue(new Error("unexpected real probe")) }));
+vi.mock("../src/lib/logger", () => ({ logger: { warn: vi.fn() } }));
 const readiness = vi.hoisted(() => vi.fn());
 vi.mock("../src/lib/launch-readiness", async (original) => ({
   ...await original<typeof import("../src/lib/launch-readiness")>(),
@@ -9,6 +12,27 @@ vi.mock("../src/lib/launch-readiness", async (original) => ({
 import healthRouter from "../src/routes/health";
 
 describe("MVP dependency assessment", () => {
+  it("logs only allowlisted error codes once per cached failure", async () => {
+    vi.mocked(logger.warn).mockClear();
+    let clock = 10000;
+    const query = vi.fn().mockRejectedValue(Object.assign(
+      new Error("postgres://secret:password@private-host/database"),
+      { code: "28P01", detail: "sensitive" },
+    ));
+    const probe = createReadinessProbe(query, () => clock);
+    await Promise.all([probe(), probe()]);
+    await probe();
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith({
+      event: "database_readiness_failed", failureCode: "28P01",
+      checkedAt: new Date(clock).toISOString(),
+    }, "Database readiness query failed");
+    expect(JSON.stringify(vi.mocked(logger.warn).mock.calls)).not.toMatch(/secret|password|private-host|sensitive/);
+    clock += 5001;
+    query.mockRejectedValueOnce({ code: "postgres://sensitive", message: "private" });
+    await probe();
+    expect(logger.warn).toHaveBeenLastCalledWith(expect.objectContaining({ failureCode: "UNKNOWN" }), expect.any(String));
+  });
   it("reports query failures without exposing provider details", async () => {
     const probe = createReadinessProbe(async () => { throw new Error("private connection detail"); });
     const result = await probe();
