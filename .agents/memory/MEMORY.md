@@ -66,3 +66,4 @@
 - [ARK startup concurrency](startup-concurrency.md) — serialize the full existing startup runner; database-scoped locks do not coordinate old builds or cluster-wide manual password changes.
 - [Streaming test lifecycle](streaming-test-lifecycle.md) — SSE progress can precede provider invocation; synchronize generation, disconnect and durable persistence before cleanup.
 - [IMPRIMA Portal scope](imprima-portal-scope.md) — centralized subscriber-coded publication, ATANDA.IMPRIMA timestamps, accountable authorship and automatic control-email copies.
+- [Agent Creator scope](agent-creator-scope.md) — replace Short Sprints for new subscribers with governed MA/SPC agent creation and F10–F12 fast-track; preserve sprint history.
