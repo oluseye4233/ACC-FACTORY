@@ -20,3 +20,8 @@ fast-track is orchestration of real checks, not a bypass: inherited scores,
 governance content, connector receipt, provider execution and independently
 verified release are separate facts. Do not claim F12 operation or a published
 download until its actual infrastructure and IMPRIMA controls work.
+
+The user selected **both where eligible** for initial agent operation: an
+ARK-run agent and a connected third-party target when each actually qualifies.
+Do not silently prefer one destination or label a delivery receipt as a running
+agent.

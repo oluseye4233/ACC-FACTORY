@@ -44,6 +44,7 @@ import { pfpContextMatches } from "@/lib/f8-context";
 import { exportCodeDjBundle, SUPPORTED_IDES } from "@/lib/codeDjExport";
 import { HARDWARE_CONFIGS, getHardwareConfig, type HardwareConfigId } from "@/lib/hardware-configs";
 import { F8DriftRemediation } from "./F8DriftRemediation";
+import { F8ConversionTeam } from "./F8ConversionTeam";
 import { AlertTriangle, Cpu, Download, FileCode, Radar, Rocket, ShieldCheck } from "lucide-react";
 
 const HOST_LABELS: Record<string, string> = {
@@ -660,6 +661,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
           )}
         </Card>
 
+        <F8ConversionTeam review={result?.collaboration} hasBundle={Boolean(result)} />
         {implementationPath && (
           <Card className="p-5 bg-card/50" data-testid="f8-implementation-path">
             <h4 className="font-mono text-sm font-bold mb-2">IMPLEMENTATION PATH · ADVISORY</h4>

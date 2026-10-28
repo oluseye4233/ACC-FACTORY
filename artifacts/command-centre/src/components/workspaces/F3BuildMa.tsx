@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getHarnessF3StreamUrl,
+  useHarnessF4,
   getListSessionArtifactsQueryKey,
   getListFeatureStateQueryKey,
   AtomicPromptTuple,
@@ -113,6 +114,9 @@ function HexCell({
 
 export function F3BuildMa({ sessionId, artifacts }: Props) {
   const qc = useQueryClient();
+  const pairedMicro = useHarnessF4();
+  const [pairWithMicro, setPairWithMicro] = useState(false);
+  const [pairedMicroId, setPairedMicroId] = useState<string | null>(null);
 
   const apSource = useMemo(
     () =>
@@ -159,9 +163,12 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
     setClassification(undefined);
     setEscalated(false);
     setPkg(undefined);
+    setPairedMicroId(null);
 
     const ac = new AbortController();
     abortRef.current = ac;
+    let completedMaId: string | null = null;
+    let streamFailed = false;
     try {
       await streamSse(
         getHarnessF3StreamUrl(),
@@ -186,6 +193,8 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
             setEscalated(true);
           } else if (e.event === "complete") {
             setPkg(e.data as MaBirthPackage);
+            const candidateId = (e.data as { artifactId?: unknown }).artifactId;
+            completedMaId = typeof candidateId === "string" ? candidateId : null;
             qc.invalidateQueries({
               queryKey: getListSessionArtifactsQueryKey(sessionId),
             });
@@ -194,14 +203,33 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
             });
           } else if (e.event === "error") {
             const d = e.data as { error?: string };
+            streamFailed = true;
             setError(d.error || "Stream error");
           }
         },
         ac.signal,
       );
+      if (pairWithMicro && !ac.signal.aborted && !streamFailed && !completedMaId) {
+        throw new Error("The MA did not return a saved artifact ID. F4 was not started; check the F3 result before retrying.");
+      }
+      if (pairWithMicro && completedMaId && !ac.signal.aborted) {
+        // A new MA's governance block is checked again by the real F4 engine.
+        // No synthetic Micro PDD, inherited pass or silent fallback is permitted.
+        const micro = await pairedMicro.mutateAsync({ data: {
+          sessionId, sourceArtifactId: completedMaId, colonizationTarget: "UNDECIDED",
+          ...overrideToBody(providerOverride),
+        } });
+        if (!micro.artifactId) throw new Error("F4 returned no saved Micro PDD ID. Check saved artifacts before retrying.");
+        setPairedMicroId(micro.artifactId);
+        qc.invalidateQueries({ queryKey: getListSessionArtifactsQueryKey(sessionId) });
+        qc.invalidateQueries({ queryKey: getListFeatureStateQueryKey(sessionId) });
+      }
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
-        setError(extractApiError(err).message);
+        const detail = extractApiError(err).message;
+        setError(pairWithMicro && completedMaId
+          ? `MA saved as ${completedMaId}, but F4 did not confirm the paired Micro PDD. Check saved F4 artifacts before retrying F4 with this MA. Do not activate F3 again unless you intend to create and pay for another MA. ${detail}`
+          : detail);
       }
     } finally {
       setRunning(false);
@@ -226,6 +254,16 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
   return (
     <WorkspaceShell>
       <div className="flex flex-col gap-4 h-full">
+        <label className="flex items-start gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3 font-mono text-xs">
+          <input type="checkbox" checked={pairWithMicro} disabled={running}
+            onChange={(event) => setPairWithMicro(event.target.checked)} aria-label="Build Micro PDD with the MA" />
+          <span><strong>AGENT CREATOR · MA + Micro PDD</strong><br />
+            After the MA is saved, run the governed F4 conversion immediately. This is a second model call and may incur usage.
+            An agent is not launched or released until its remaining checks and target are eligible.</span>
+        </label>
+        {pairedMicroId && <p className="font-mono text-xs text-primary" role="status">
+          Paired Micro PDD saved. Continue in F4 to review it before agent activation. Artifact ID: {pairedMicroId}
+        </p>}
         <Card className="p-5 bg-card/50">
           <div className="flex items-center gap-3 flex-wrap">
             <Radio className={`h-4 w-4 ${running ? "text-secondary animate-pulse" : "text-muted-foreground"}`} />

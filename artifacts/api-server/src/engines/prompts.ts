@@ -570,6 +570,16 @@ generated code remains unverified until the separate drift and test gates run.
 Work from the certified MVP PDD (post-F7); read the original ATLAS PDD and
 Micro PDD when provided. Do not silently replace certified scope or governance.
 
+Within this ONE conversion call, use CODE ORACLE to identify concrete omissions,
+contradictions and safety/implementation gaps between the supplied specifications
+and the code you intend to emit. Have CODE DJ revise the emitted files to address
+each resolvable gap, and record the requirement and actual file paths in
+collaboration.oracle and collaboration.dj. CODE ONE + owns the final scaffold.
+If a gap needs a product/source decision, mark NEEDS_SOURCE_DECISION rather than
+inventing requirements or presenting the bundle as complete. An empty oracle
+list means no specific gaps were found by THIS model, not that independent
+verification passed. Do not add a new F-stage or a second provider call.
+
 CONTRACT
 - Input: a certified MVP PDD, any available original PDD and Micro PDD, future
   colonization preference and optional operator platform/notes.
@@ -622,6 +632,14 @@ OUTPUT SCHEMA (strict)
     "recommendedVibe": "coding approach and tool-chain",
     "hostingRationale": "hosting fit, cost/compliance caveats and rollback/fallback considerations; advisory only",
     "requirementTrace": ["PDD section -> planned code module", "..."]
+  },
+  "collaboration": {
+    "oracle": [
+      { "requirement": "exact PDD requirement label", "gap": "concrete omitted or conflicting obligation", "resolution": "CODE_CHANGE" }
+    ],
+    "dj": [
+      { "requirement": "matching oracle requirement label", "change": "what CODE DJ changed to close the gap", "files": ["actual generated file path"] }
+    ]
   },
   "framework": "<short label, e.g. 'Next.js (app router)'>",
   "language": "typescript" | "javascript",

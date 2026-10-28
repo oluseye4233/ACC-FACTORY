@@ -3856,6 +3856,19 @@ export const HarnessF8Response = zod.object({
   "requirementTrace": zod.array(zod.string()),
   "advisoryOnly": zod.boolean()
 }).optional(),
+  "collaboration": zod.object({
+  "reviewStatus": zod.enum(['MODEL_REVIEW_NOT_INDEPENDENT', 'NOT_RECORDED']),
+  "oracle": zod.array(zod.object({
+  "requirement": zod.string(),
+  "gap": zod.string(),
+  "resolution": zod.enum(['CODE_CHANGE', 'NEEDS_SOURCE_DECISION'])
+})),
+  "dj": zod.array(zod.object({
+  "requirement": zod.string(),
+  "change": zod.string(),
+  "files": zod.array(zod.string())
+}))
+}).optional(),
   "artifactClass": zod.enum(['SOFTWARE', 'FIRMWARE']),
   "hardwareConfigId": zod.enum(['INDUSTRIAL_MCU', 'ROBOTICS_RTCL', 'APPLIANCE_FLEET']).optional().describe('Reference hardware profile for a firmware-specific Code DJ and MECHA run.'),
   "manifest": zod.object({
@@ -4202,6 +4215,19 @@ export const GetF8RemediationProgressResponse = zod.object({
   "hostingRationale": zod.string(),
   "requirementTrace": zod.array(zod.string()),
   "advisoryOnly": zod.boolean()
+}).optional(),
+  "collaboration": zod.object({
+  "reviewStatus": zod.enum(['MODEL_REVIEW_NOT_INDEPENDENT', 'NOT_RECORDED']),
+  "oracle": zod.array(zod.object({
+  "requirement": zod.string(),
+  "gap": zod.string(),
+  "resolution": zod.enum(['CODE_CHANGE', 'NEEDS_SOURCE_DECISION'])
+})),
+  "dj": zod.array(zod.object({
+  "requirement": zod.string(),
+  "change": zod.string(),
+  "files": zod.array(zod.string())
+}))
 }).optional(),
   "artifactClass": zod.enum(['SOFTWARE', 'FIRMWARE']),
   "hardwareConfigId": zod.enum(['INDUSTRIAL_MCU', 'ROBOTICS_RTCL', 'APPLIANCE_FLEET']).optional().describe('Reference hardware profile for a firmware-specific Code DJ and MECHA run.'),

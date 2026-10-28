@@ -34,6 +34,18 @@ difficult to use; reducing technical debt and simplifying progression are goals.
 AWS Kiro is a UI/process design reference only, not a fixed template or hosting
 requirement.
 
+CODE ORACLE and CODE DJ should assist CODE ONE + rather than replace it or
+reintroduce separate user-facing conversion stages. CODE ORACLE identifies
+specification-to-code gaps; CODE DJ maps proposed fixes to emitted code; CODE
+ONE + retains responsibility for the final editable scaffold.
+
+**Why:** The user explicitly requested the three work together to fill gaps in
+code creation while retaining the simplified production floor.
+
+**How to apply:** A model playing these roles in one conversion must be labelled
+model self-review, never independent agent execution, drift clearance or release
+approval. Missing or unresolved source decisions must remain visible.
+
 **How to apply:** Prefer consolidated interactions, reused authoritative
 artifacts and automatic applicable checks over new duplicate workflows or
 manual approvals. Distinguish necessary safeguards from redundant friction;

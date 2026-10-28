@@ -5373,6 +5373,8 @@ components:
             hostingRationale: { type: string }
             requirementTrace: { type: array, items: { type: string } }
             advisoryOnly: { type: boolean }
+        collaboration:
+          $ref: "#/components/schemas/CodebaseCollaboration"
         artifactClass:
           type: string
           enum: [SOFTWARE, FIRMWARE]
@@ -5383,6 +5385,32 @@ components:
           type: array
           items: { $ref: "#/components/schemas/CodebaseFile" }
         notes: { type: string }
+
+    CodebaseCollaboration:
+      type: object
+      required: [oracle, dj, reviewStatus]
+      properties:
+        reviewStatus:
+          type: string
+          enum: [MODEL_REVIEW_NOT_INDEPENDENT, NOT_RECORDED]
+        oracle:
+          type: array
+          items:
+            type: object
+            required: [requirement, gap, resolution]
+            properties:
+              requirement: { type: string }
+              gap: { type: string }
+              resolution: { type: string, enum: [CODE_CHANGE, NEEDS_SOURCE_DECISION] }
+        dj:
+          type: array
+          items:
+            type: object
+            required: [requirement, change, files]
+            properties:
+              requirement: { type: string }
+              change: { type: string }
+              files: { type: array, items: { type: string } }
 
     Subscriber:
       type: object

@@ -35,6 +35,27 @@ export function validateImplementationBundle(bundle: z.infer<typeof CodebaseOutp
   const paths = bundle.files.map(f => f.path);
   if (new Set(paths).size !== paths.length) return "Generated file paths must be unique";
   if (!paths.includes(bundle.manifest.entrypoint)) return "Generated entrypoint must exist in the file bundle";
+  if (bundle.collaboration) {
+    const { oracle, dj } = bundle.collaboration;
+    const requirements = oracle.map(finding => finding.requirement);
+    if (new Set(requirements).size !== requirements.length) return "CODE ORACLE requirements must be unique in the review";
+    const djRequirements = dj.map(change => change.requirement);
+    if (new Set(djRequirements).size !== djRequirements.length) return "CODE DJ changes must not duplicate a requirement";
+    for (const finding of oracle) {
+      if (finding.resolution === "NEEDS_SOURCE_DECISION") continue;
+      const change = dj.find(item => item.requirement === finding.requirement);
+      if (!change || !change.files.length || !change.files.every(path => paths.includes(path))) {
+        return `CODE DJ must link the CODE ORACLE finding "${finding.requirement}" to generated files`;
+      }
+    }
+    if (dj.some(change => !change.files.length || change.files.some(path => !paths.includes(path)))) {
+      return "CODE DJ referenced a file not present in the generated bundle";
+    }
+    if (dj.some(change => !oracle.some(finding =>
+      finding.requirement === change.requirement && finding.resolution === "CODE_CHANGE"))) {
+      return "CODE DJ changes must correspond to a CODE ORACLE finding";
+    }
+  }
   if (host && bundle.manifest.deployTarget !== host) return "Generated deployment manifest must follow the source-bound HOST DJ recommendation";
   if (host === "expo-eas" && bundle.platform !== "expo-mobile") return "Expo EAS requires an Expo implementation";
   if (bundle.platform === "expo-mobile" && host && host !== "expo-eas") return "Expo implementation requires an Expo-compatible hosting plan";
@@ -51,6 +72,18 @@ export const CodebaseOutputSchema = z.object({
     recommendedVibe: z.string().min(1).max(240),
     hostingRationale: z.string().min(1).max(600),
     requirementTrace: z.array(z.string().max(250)).min(1).max(12),
+  }).optional(),
+  collaboration: z.object({
+    oracle: z.array(z.object({
+      requirement: z.string().min(1).max(240),
+      gap: z.string().min(1).max(500),
+      resolution: z.enum(["CODE_CHANGE", "NEEDS_SOURCE_DECISION"]),
+    })).max(12),
+    dj: z.array(z.object({
+      requirement: z.string().min(1).max(240),
+      change: z.string().min(1).max(500),
+      files: z.array(z.string().min(1).max(200)).min(1).max(12),
+    })).max(12),
   }).optional(),
   framework: z.string().min(1),
   language: z.enum(["typescript", "javascript"]),
@@ -252,6 +285,15 @@ export async function handleF8CodeDj(
     res.status(502).json({ error: bundleError, code: "IMPLEMENTATION_PATH_MISMATCH" });
     return;
   }
+  const unresolved = out.collaboration?.oracle.filter(item => item.resolution === "NEEDS_SOURCE_DECISION") ?? [];
+  if (unresolved.length) {
+    res.status(409).json({
+      error: `CODE ORACLE requires source decisions before code can be saved: ${unresolved.map(item => `${item.requirement}: ${item.gap}`).join("; ")}`,
+      code: "CODE_ORACLE_SOURCE_DECISION_REQUIRED",
+      gaps: unresolved.map(item => ({ requirement: item.requirement, gap: item.gap })),
+    });
+    return;
+  }
   const implementationPath = {
     ...out.implementationPath,
     platform: out.platform,
@@ -274,12 +316,15 @@ export async function handleF8CodeDj(
       files: out.files,
       notes: out.notes,
       implementationPath,
+      collaboration: out.collaboration
+        ? { ...out.collaboration, reviewStatus: "MODEL_REVIEW_NOT_INDEPENDENT" }
+        : { oracle: [], dj: [], reviewStatus: "NOT_RECORDED" },
       conversionProtocol: {
         agent: "CODE ONE +", sourceVersion: "v0.2-DRAFT",
         instructionLayerOnly: true, independentCertification: false,
         humanReviewRequired: artifactClass === "FIRMWARE",
         limitations: [
-          "Single conversion using VIBE DJ instructions and a source-bound HOST DJ plan; not the complete multi-stage CODE ONE + runtime.",
+          "Single conversion with CODE ORACLE gap review and CODE DJ code decisions when recorded, VIBE DJ instructions and a source-bound HOST DJ plan. Model self-review is not independent verification.",
           "Independent ATHENA, CODON, MATHMON and BUGMXT executions are not attested by this bundle.",
           "PFP, CI/IDE evidence, F9 where applicable and F10/F11 remain separate gates.",
         ],
@@ -304,5 +349,8 @@ export async function handleF8CodeDj(
     files: out.files,
     notes: out.notes,
     implementationPath,
+    collaboration: out.collaboration
+      ? { ...out.collaboration, reviewStatus: "MODEL_REVIEW_NOT_INDEPENDENT" }
+      : { oracle: [], dj: [], reviewStatus: "NOT_RECORDED" },
   });
 }

@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import type { Request, Response } from "express";
 import { HarnessF3StreamBody } from "@workspace/api-zod";
 import { F3_SYSTEM } from "./prompts";
-import { GeneratedGovernanceSchema } from "../lib/artifact-governance";
+import { GeneratedGovernanceSchema, installGovernance } from "../lib/artifact-governance";
 import {
   advanceFeatureState,
   callLlmJson,
@@ -149,7 +149,9 @@ export async function handleF3Stream(req: Request, res: Response): Promise<void>
     userId: guard.userId,
     featureId: 3,
     artifactType: "MA_BIRTH_PACKAGE",
-    artifactContent: out,
+    // F4 requires a source-bound governance block on MA birth packages.
+    // Install criteria on new output only; never silently rewrite legacy MAs.
+    artifactContent: installGovernance(out),
     provider,
   });
   await advanceFeatureState(sessionId, 3);

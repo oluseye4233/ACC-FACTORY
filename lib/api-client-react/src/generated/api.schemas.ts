@@ -3247,10 +3247,45 @@ export const CodebaseBundleArtifactClass = {
   FIRMWARE: 'FIRMWARE',
 } as const;
 
+export type CodebaseCollaborationReviewStatus = typeof CodebaseCollaborationReviewStatus[keyof typeof CodebaseCollaborationReviewStatus];
+
+
+export const CodebaseCollaborationReviewStatus = {
+  MODEL_REVIEW_NOT_INDEPENDENT: 'MODEL_REVIEW_NOT_INDEPENDENT',
+  NOT_RECORDED: 'NOT_RECORDED',
+} as const;
+
+export type CodebaseCollaborationOracleItemResolution = typeof CodebaseCollaborationOracleItemResolution[keyof typeof CodebaseCollaborationOracleItemResolution];
+
+
+export const CodebaseCollaborationOracleItemResolution = {
+  CODE_CHANGE: 'CODE_CHANGE',
+  NEEDS_SOURCE_DECISION: 'NEEDS_SOURCE_DECISION',
+} as const;
+
+export type CodebaseCollaborationOracleItem = {
+  requirement: string;
+  gap: string;
+  resolution: CodebaseCollaborationOracleItemResolution;
+};
+
+export type CodebaseCollaborationDjItem = {
+  requirement: string;
+  change: string;
+  files: string[];
+};
+
+export interface CodebaseCollaboration {
+  reviewStatus: CodebaseCollaborationReviewStatus;
+  oracle: CodebaseCollaborationOracleItem[];
+  dj: CodebaseCollaborationDjItem[];
+}
+
 export interface CodebaseBundle {
   artifactId: string;
   platform: CodeDjPlatform;
   implementationPath?: CodebaseBundleImplementationPath;
+  collaboration?: CodebaseCollaboration;
   artifactClass: CodebaseBundleArtifactClass;
   hardwareConfigId?: HardwareConfigId;
   manifest: CodebaseManifest;

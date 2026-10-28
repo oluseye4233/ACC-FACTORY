@@ -7,6 +7,7 @@
  */
 import type { CodebaseBundleArtifactClass } from './codebaseBundleArtifactClass';
 import type { CodebaseBundleImplementationPath } from './codebaseBundleImplementationPath';
+import type { CodebaseCollaboration } from './codebaseCollaboration';
 import type { CodebaseFile } from './codebaseFile';
 import type { CodebaseManifest } from './codebaseManifest';
 import type { CodeDjPlatform } from './codeDjPlatform';
@@ -16,6 +17,7 @@ export interface CodebaseBundle {
   artifactId: string;
   platform: CodeDjPlatform;
   implementationPath?: CodebaseBundleImplementationPath;
+  collaboration?: CodebaseCollaboration;
   artifactClass: CodebaseBundleArtifactClass;
   hardwareConfigId?: HardwareConfigId;
   manifest: CodebaseManifest;

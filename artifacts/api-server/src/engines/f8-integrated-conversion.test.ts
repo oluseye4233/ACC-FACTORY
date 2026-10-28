@@ -30,6 +30,10 @@ const output = () => ({
   implementationPath: { rationale: "Fits the supplied reporting scope", recommendedIde: "VS Code",
     recommendedVibe: "Specification-first React", hostingRationale: "Use the supplied static hosting plan",
     requirementTrace: ["Reporting -> src/main.tsx"] }, notes: "Synthetic unit-test scaffold; not live engine evidence",
+  collaboration: {
+    oracle: [{ requirement: "Reporting", gap: "The scaffold needs a reporting entrypoint", resolution: "CODE_CHANGE" }],
+    dj: [{ requirement: "Reporting", change: "Included the reporting entrypoint", files: ["src/main.tsx"] }],
+  },
 });
 function request(data: Record<string, unknown>) {
   const req = { body: data, log: { warn: vi.fn(), error: vi.fn() } } as unknown as Request;
@@ -68,6 +72,7 @@ describe("integrated F8 conversion contract (offline mocks, no provider calls)",
       sourceMicroPddArtifactId: microId, sourceHostingPlanArtifactId: hostId,
       conversionProtocol: { independentCertification: false },
       implementationPath: { recommendedHost: "cloudflare-pages", advisoryOnly: true },
+      collaboration: { reviewStatus: "MODEL_REVIEW_NOT_INDEPENDENT", dj: [{ requirement: "Reporting", files: ["src/main.tsx"] }] },
     });
     expect(saved.spartanCert).toBeUndefined();
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ artifactId: "saved-bundle" }));
@@ -103,6 +108,45 @@ describe("integrated F8 conversion contract (offline mocks, no provider calls)",
     const { req, res, response } = request({ ...body(), platform: "express-replit" });
     await handleF8CodeDj(req, response);
     expect(res.status).toHaveBeenCalledWith(502);
+    expect(mocks.persistArtifact).not.toHaveBeenCalled();
+  });
+  it("uses collaborating roles in the single existing provider call, not independent executions", async () => {
+    const { req, response } = request(body());
+    await handleF8CodeDj(req, response);
+    expect(mocks.callLlmJson).toHaveBeenCalledOnce();
+    expect(mocks.callLlmJson.mock.calls[0]![1]).toContain("use CODE ORACLE");
+    expect(mocks.callLlmJson.mock.calls[0]![1]).toContain("Have CODE DJ revise");
+  });
+  it("rejects an oracle gap without a matching CODE DJ implementation", async () => {
+    const out = output();
+    out.collaboration.dj = [];
+    mocks.callLlmJson.mockResolvedValue(out);
+    const { req, res, response } = request(body());
+    await handleF8CodeDj(req, response);
+    expect(res.status).toHaveBeenCalledWith(502);
+    expect(mocks.persistArtifact).not.toHaveBeenCalled();
+  });
+  it("rejects CODE DJ references to files not actually generated", async () => {
+    const out = output();
+    out.collaboration.dj[0]!.files = ["missing-route.ts"];
+    mocks.callLlmJson.mockResolvedValue(out);
+    const { req, res, response } = request(body());
+    await handleF8CodeDj(req, response);
+    expect(res.status).toHaveBeenCalledWith(502);
+    expect(mocks.persistArtifact).not.toHaveBeenCalled();
+  });
+  it("stops when an omission requires a source decision rather than inventing requirements", async () => {
+    const out = output();
+    out.collaboration.oracle[0]!.resolution = "NEEDS_SOURCE_DECISION";
+    out.collaboration.dj = [];
+    mocks.callLlmJson.mockResolvedValue(out);
+    const { req, res, response } = request(body());
+    await handleF8CodeDj(req, response);
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      code: "CODE_ORACLE_SOURCE_DECISION_REQUIRED",
+      error: expect.stringContaining("Reporting"),
+    }));
     expect(mocks.persistArtifact).not.toHaveBeenCalled();
   });
 });
