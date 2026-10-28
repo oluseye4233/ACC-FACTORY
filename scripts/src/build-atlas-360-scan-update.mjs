@@ -18,9 +18,12 @@ const base = new URL(deployment.primaryUrl);
 if (base.protocol !== "https:" || base.username || base.password || base.search) {
   throw new Error("Expected an HTTPS published origin without credentials or query.");
 }
-const slug = "ATANDA_Command_Centre_ATLAS_360_SCAN_Living_PDD_2026-10-27";
+const edition = process.env.ATLAS_SCAN_EDITION || "2026-10-27";
+if (!/^\d{4}-\d{2}-\d{2}$/.test(edition)) throw new Error("Invalid report edition.");
+const editionLabel = new Date(`${edition}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+const slug = `ATANDA_Command_Centre_ATLAS_360_SCAN_Living_PDD_${edition}`;
 const input = path.join(root, "docs", `${slug}.md`);
-const output = path.join(root, "generated-artifacts/atlas-360-scan-2026-10-27");
+const output = path.join(root, `generated-artifacts/atlas-360-scan-${edition}`);
 fs.mkdirSync(output, { recursive: true });
 const markdown = fs.readFileSync(input, "utf8");
 if (!markdown.startsWith("# ATANDA Command Centre — ")) throw new Error("Project-first report title is required.");
@@ -65,6 +68,14 @@ const sourceFiles = [
   "docs/upgrade-program/artifact-title-invariant.md",
   "replit/AGENT_RULES.md",
   "scripts/src/build-atlas-360-scan-update.mjs",
+  "scripts/db/startup-lock.mjs",
+  "artifacts/command-centre/src/components/shared/StageOptionalTools.tsx",
+  "artifacts/command-centre/src/lib/stage-origin.ts",
+  "artifacts/command-centre/src/components/boomerang/ReturnedUpgrade.tsx",
+  "artifacts/command-centre/src/components/boomerang/BoomerangCaseCard.tsx",
+  "artifacts/command-centre/src/components/marketing/ForgeInviteApplication.tsx",
+  "artifacts/command-centre/src/pages/spc-player/detail.tsx",
+  "artifacts/command-centre/src/pages/f0.tsx",
 ];
 const sources = sourceFiles.map(file => ({ file, sha256: hash(fs.readFileSync(path.join(root, file))) }));
 const app = fs.readFileSync(path.join(root, "artifacts/command-centre/src/App.tsx"), "utf8");
@@ -72,7 +83,7 @@ const routes = [...new Set([...app.matchAll(/<Route path="([^"]+)"/g)].map(match
 const evidence = {
   reportTitle: "ATANDA Command Centre — ATLAS 360 SCAN Living PDD",
   generatedAt: new Date().toISOString(),
-  reportingEdition: "2026-10-27",
+  reportingEdition: edition,
   workspaceHead: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
   liveRevisionParity: "UNVERIFIED",
   deployment,
@@ -81,7 +92,7 @@ const evidence = {
   routes,
   limitations: [
     "No production SQL, authenticated production acceptance, independent certification or paid model calls.",
-    "Full API workflow recorded 10 failed, 866 passed, 40 skipped tests; not rerun by this exporter.",
+    "Consult the edition's development-evidence section for dated test outcomes; this exporter does not run tests.",
     "Startup ARK RLS verification is not an exhaustive public artifact-operations request-path audit.",
     "ART-TITLE-001 is specified, not universally runtime-enforced.",
   ],
@@ -107,11 +118,14 @@ doc.fillColor("#e1eef0").fontSize(13).text("ARK Harness / ACC-FACTORY", 45, 127)
 doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(29).text("ATLAS 360 SCAN", 45, 220);
 doc.fillColor(NAVY).fontSize(23).text("Living PromptWare Design Document", 45, 264, { width: 490 });
 doc.y = 343;
-t.lead("27 October 2026 | Evidence-grounded current-state update");
+t.lead(`${editionLabel} | Evidence-grounded current-state update`);
 t.p("Eight SCAN stages, four ATLAS parts, 45 atomic work items, current route inventory and an evidence-linked completion plan.");
-t.p("Incorporates F5 link intake, F6 source restrictions, integrated CODE ONE + conversion, ATANDA SNAP identity and the project-first artifact title invariant.");
+t.p("Incorporates the retained F production floor, integrated CODE ONE + conversion, bottom-centred supporting tools, origin-bound artifact returns and FORGE invitation applications.");
 t.h2("Decision in brief");
-t.p("The process-health endpoint responds, but the latest frozen readiness probe reports database unavailable. Full regression is not green; independent/governed capabilities remain incomplete.");
+const latestReadiness = observations.find(item => item.route === "/api/readyz");
+t.p(latestReadiness?.http === 200 && latestReadiness?.summary?.database === "available"
+  ? "Public health and database readiness respond successfully. This is bounded operational evidence, not full-feature acceptance. Complete regression clearance, independent verification and full F12 operation remain unestablished."
+  : "Public readiness has not established current database availability. Review the dated observations before asserting operational readiness. Independent/governed capabilities remain incomplete.");
 t.p("This report is not an independent certification, production-security attestation or authorization to open protected gates.");
 doc.fillColor(SOFT).fontSize(9).text("Project-first title: ATANDA Command Centre — ATLAS 360 SCAN Living PDD", 45, 719, { width: 490 });
 doc.addPage();
@@ -179,7 +193,7 @@ const category = route => {
 };
 table(["Path", "Access or qualification boundary"], routes.map(route => [route, category(route)]), [0.53, 0.47]);
 t.h1("Addendum C — Fresh observation and source manifest");
-t.p(`Generated: ${evidence.generatedAt}. Published origin: ${base.origin}. Public observation dates are UTC; the edition date is 27 October 2026. A successful build does not identify the exact serving source revision.`);
+t.p(`Generated: ${evidence.generatedAt}. Published origin: ${base.origin}. Public observation dates are UTC; the edition date is ${editionLabel}. A successful build does not identify the exact serving source revision.`);
 table(["Endpoint / time", "Fresh result"], observations.map(item => [
   `${item.route}\n${item.observedAt}`, `HTTP ${item.http ?? "unknown"}: ${JSON.stringify(item.summary ?? { error: item.error })}`,
 ]), [0.36, 0.64]);
@@ -195,7 +209,7 @@ for (let index = range.start; index < range.start + range.count; index++) {
   doc.page.margins.bottom = 0;
   const y = doc.page.height - 30;
   doc.save().strokeColor("#d9dfe7").lineWidth(0.5).moveTo(45, y - 9).lineTo(doc.page.width - 45, y - 9).stroke().restore();
-  doc.fillColor(SOFT).font("Helvetica").fontSize(8).text("ATANDA / ARK — ATLAS 360 SCAN — 27 October 2026", 45, y, { width: 420, lineBreak: false });
+  doc.fillColor(SOFT).font("Helvetica").fontSize(8).text(`ATANDA / ARK — ATLAS 360 SCAN — ${editionLabel}`, 45, y, { width: 420, lineBreak: false });
   doc.text(`${index + 1} / ${pageCount}`, doc.page.width - 97, y, { width: 52, align: "right", lineBreak: false });
   doc.page.margins.bottom = bottom;
 }
