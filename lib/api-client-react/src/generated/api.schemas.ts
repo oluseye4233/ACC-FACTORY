@@ -5,6 +5,136 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+export type PlatformServiceScope = typeof PlatformServiceScope[keyof typeof PlatformServiceScope];
+
+
+export const PlatformServiceScope = {
+  STAGE: 'STAGE',
+  FUNCTION: 'FUNCTION',
+} as const;
+
+export type PlatformServiceImplementation = typeof PlatformServiceImplementation[keyof typeof PlatformServiceImplementation];
+
+
+export const PlatformServiceImplementation = {
+  EXISTING: 'EXISTING',
+  PARTIAL: 'PARTIAL',
+  PLANNED: 'PLANNED',
+} as const;
+
+export type PlatformServiceServiceReadiness = typeof PlatformServiceServiceReadiness[keyof typeof PlatformServiceServiceReadiness];
+
+
+export const PlatformServiceServiceReadiness = {
+  EXISTING_UNVERIFIED: 'EXISTING_UNVERIFIED',
+  PARTIAL: 'PARTIAL',
+  PLANNED: 'PLANNED',
+} as const;
+
+export type PlatformServiceSourceEligibility = typeof PlatformServiceSourceEligibility[keyof typeof PlatformServiceSourceEligibility];
+
+
+export const PlatformServiceSourceEligibility = {
+  NOT_EVALUATED: 'NOT_EVALUATED',
+} as const;
+
+export type PlatformServiceEntitlement = typeof PlatformServiceEntitlement[keyof typeof PlatformServiceEntitlement];
+
+
+export const PlatformServiceEntitlement = {
+  NOT_EVALUATED: 'NOT_EVALUATED',
+} as const;
+
+export type PlatformServiceAssessmentStatus = typeof PlatformServiceAssessmentStatus[keyof typeof PlatformServiceAssessmentStatus];
+
+
+export const PlatformServiceAssessmentStatus = {
+  NOT_EVALUATED: 'NOT_EVALUATED',
+} as const;
+
+export type PlatformServiceDeliveryStatus = typeof PlatformServiceDeliveryStatus[keyof typeof PlatformServiceDeliveryStatus];
+
+
+export const PlatformServiceDeliveryStatus = {
+  NOT_EVALUATED: 'NOT_EVALUATED',
+} as const;
+
+export type PlatformServiceOperationStatus = typeof PlatformServiceOperationStatus[keyof typeof PlatformServiceOperationStatus];
+
+
+export const PlatformServiceOperationStatus = {
+  NOT_EVALUATED: 'NOT_EVALUATED',
+} as const;
+
+export type PlatformServiceLocalAcceptance = typeof PlatformServiceLocalAcceptance[keyof typeof PlatformServiceLocalAcceptance];
+
+
+export const PlatformServiceLocalAcceptance = {
+  NOT_VERIFIED: 'NOT_VERIFIED',
+} as const;
+
+export type PlatformServiceProductionAcceptance = typeof PlatformServiceProductionAcceptance[keyof typeof PlatformServiceProductionAcceptance];
+
+
+export const PlatformServiceProductionAcceptance = {
+  NOT_VERIFIED: 'NOT_VERIFIED',
+} as const;
+
+export interface PlatformService {
+  id: string;
+  title: string;
+  scope: PlatformServiceScope;
+  /** @nullable */
+  stage: string | null;
+  implementation: PlatformServiceImplementation;
+  serviceMode: string;
+  serviceReadiness: PlatformServiceServiceReadiness;
+  subscriberOutcome: string;
+  limitations: string;
+  /** @nullable */
+  blockedReason: string | null;
+  /** @nullable */
+  href: string | null;
+  sourceEligibility: PlatformServiceSourceEligibility;
+  entitlement: PlatformServiceEntitlement;
+  assessmentStatus: PlatformServiceAssessmentStatus;
+  deliveryStatus: PlatformServiceDeliveryStatus;
+  operationStatus: PlatformServiceOperationStatus;
+  localAcceptance: PlatformServiceLocalAcceptance;
+  productionAcceptance: PlatformServiceProductionAcceptance;
+  /** @nullable */
+  evidenceCheckedAt: string | null;
+  requiredEvidence: string[];
+}
+
+export type PlatformUpgradeClassCategory = typeof PlatformUpgradeClassCategory[keyof typeof PlatformUpgradeClassCategory];
+
+
+export const PlatformUpgradeClassCategory = {
+  B: 'B',
+  C: 'C',
+} as const;
+
+export interface PlatformUpgradeClass {
+  category: PlatformUpgradeClassCategory;
+  description: string;
+  activationTrigger: string;
+}
+
+export interface PlatformServiceInventory {
+  schemaVersion: string;
+  inventoryUpdatedAt: string;
+  generatedAt: string;
+  evidencePolicy: string;
+  totalServices: number;
+  stageServices: number;
+  supportingServices: number;
+  localAccepted: number;
+  productionAccepted: number;
+  services: PlatformService[];
+  upgradeClasses: PlatformUpgradeClass[];
+}
+
 export type StageSupportStartInputTool = typeof StageSupportStartInputTool[keyof typeof StageSupportStartInputTool];
 
 

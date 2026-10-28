@@ -4,6 +4,30 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import Guide from "./guide";
 
 vi.mock("@/components/layout/TopNav", () => ({ TopNav: () => null }));
+const svc = (id: string, over: Record<string, unknown> = {}) => ({
+  id, title: `Service ${id}`, scope: "STAGE", stage: id, implementation: "EXISTING", serviceMode: "PRIVATE",
+  serviceReadiness: "EXISTING_UNVERIFIED", subscriberOutcome: `Outcome ${id}`, limitations: `Limit ${id}`,
+  blockedReason: null, href: "/command", sourceEligibility: "NOT_EVALUATED", entitlement: "NOT_EVALUATED",
+  assessmentStatus: "NOT_EVALUATED", deliveryStatus: "NOT_EVALUATED", operationStatus: "NOT_EVALUATED",
+  localAcceptance: "NOT_VERIFIED", productionAcceptance: "NOT_VERIFIED", evidenceCheckedAt: null,
+  requiredEvidence: ["Runtime acceptance record"], ...over,
+});
+vi.mock("@workspace/api-client-react", () => ({
+  getGetPlatformServicesQueryKey: () => ["/api/platform-services"],
+  useGetPlatformServices: () => ({
+    data: {
+      schemaVersion: "1", inventoryUpdatedAt: "2026-10-20T00:00:00Z", generatedAt: "2026-10-21T00:00:00Z",
+      evidencePolicy: "Source review is not runtime acceptance.", totalServices: 3, stageServices: 2,
+      supportingServices: 1, localAccepted: 0, productionAccepted: 0,
+      services: [
+        svc("F0"),
+        svc("F12", { title: "Full F12 operation", implementation: "PLANNED", serviceReadiness: "PLANNED", href: null, limitations: "Not launched" }),
+        svc("COSTS", { scope: "FUNCTION", stage: null, title: "Cost views", href: "/me/costs" }),
+      ],
+      upgradeClasses: [{ category: "B", description: "Deferred hardening", activationTrigger: "Enterprise demand" }],
+    },
+  }),
+}));
 vi.mock("@/components/layout/Footer", () => ({ Footer: () => null }));
 
 // Mock asset imports
@@ -68,19 +92,19 @@ describe("Guide Page - ATANDA Site Map", () => {
     expect(screen.getAllByText("SPC PLAYER")[0]).toBeTruthy();
   });
 
-  it("separates observed baseline, limited preparation and inactive release features", () => {
-    render(<Guide />);
+  it("renders API inventory honestly without static dated claims", () => {
+    const { container } = render(<Guide />);
     expect(screen.getByRole("heading", { name: "CURRENT PLATFORM STATUS" })).toBeTruthy();
-    expect(screen.getAllByTestId("guide-platform-status")).toHaveLength(9);
-    const imprima = screen.getByRole("heading", { name: "IMPRIMA" }).closest("article")!;
-    expect(within(imprima).getByText("LIMITED · PRIVATE PREPARATION")).toBeTruthy();
-    expect(imprima.textContent).toContain("FINAL approval remain blocked");
-    const sprint = screen.getByRole("heading", { name: "SHORT SPRINTS" }).closest("article")!;
-    expect(sprint.textContent).toContain("do not certify a sprint");
-    const verification = screen.getByRole("heading", { name: "Independent XVL / VTE & full F12" }).closest("article")!;
-    expect(within(verification).getByText("INCOMPLETE · NOT ACTIVE")).toBeTruthy();
-    expect(screen.getByText("LIBRARY AVAILABLE · PUBLIC MARKET CLOSED")).toBeTruthy();
-    expect(screen.getByText("DEFERRED · CLASS B")).toBeTruthy();
+    expect(screen.getAllByTestId(/^guide-platform-service-/)).toHaveLength(3);
+    expect(screen.queryByText(/17 October/)).toBeNull();
+    expect(screen.getByText(/Available does not mean unrestricted/)).toBeTruthy();
+    const f12 = screen.getByTestId("guide-platform-service-F12");
+    expect(within(f12).getByText("PLANNED · NOT LAUNCHED")).toBeTruthy();
+    expect(within(f12).queryByRole("link")).toBeNull();
+    expect(container.querySelector('a[href="/f12"]')).toBeNull();
+    expect(screen.getByTestId("link-service-COSTS").getAttribute("href")).toBe("/me/costs");
+    expect(screen.getByTestId("text-accepted-explainer").textContent).toContain("does not mean zero working features");
+    expect(screen.getByTestId("upgrade-class-B").textContent).toContain("Enterprise demand");
     expect(screen.getByRole("link", { name: "Check current readiness" }).getAttribute("href")).toBe("/status");
   });
 

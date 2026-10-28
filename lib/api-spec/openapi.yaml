@@ -611,6 +611,18 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/DeepHealth" }
 
+  /platform-services:
+    get:
+      operationId: getPlatformServices
+      tags: [health]
+      summary: Dated go-live service inventory, separate from runtime eligibility and acceptance
+      responses:
+        "200":
+          description: Public service definitions without credentials or account-specific claims
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformServiceInventory"
   /launch-readiness:
     get:
       operationId: getLaunchReadiness
@@ -3366,6 +3378,56 @@ components:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   schemas:
+    PlatformService:
+      type: object
+      required: [id, title, scope, stage, implementation, serviceMode, serviceReadiness, subscriberOutcome, limitations, blockedReason, href, sourceEligibility, entitlement, assessmentStatus, deliveryStatus, operationStatus, localAcceptance, productionAcceptance, evidenceCheckedAt, requiredEvidence]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        scope: { type: string, enum: [STAGE, FUNCTION] }
+        stage: { type: string, nullable: true }
+        implementation: { type: string, enum: [EXISTING, PARTIAL, PLANNED] }
+        serviceMode: { type: string }
+        serviceReadiness: { type: string, enum: [EXISTING_UNVERIFIED, PARTIAL, PLANNED] }
+        subscriberOutcome: { type: string }
+        limitations: { type: string }
+        blockedReason: { type: string, nullable: true }
+        href: { type: string, nullable: true }
+        sourceEligibility: { type: string, enum: [NOT_EVALUATED] }
+        entitlement: { type: string, enum: [NOT_EVALUATED] }
+        assessmentStatus: { type: string, enum: [NOT_EVALUATED] }
+        deliveryStatus: { type: string, enum: [NOT_EVALUATED] }
+        operationStatus: { type: string, enum: [NOT_EVALUATED] }
+        localAcceptance: { type: string, enum: [NOT_VERIFIED] }
+        productionAcceptance: { type: string, enum: [NOT_VERIFIED] }
+        evidenceCheckedAt: { type: string, nullable: true, format: date-time }
+        requiredEvidence: { type: array, items: { type: string } }
+    PlatformUpgradeClass:
+      type: object
+      required: [category, description, activationTrigger]
+      properties:
+        category: { type: string, enum: [B, C] }
+        description: { type: string }
+        activationTrigger: { type: string }
+    PlatformServiceInventory:
+      type: object
+      required: [schemaVersion, inventoryUpdatedAt, generatedAt, evidencePolicy, totalServices, stageServices, supportingServices, localAccepted, productionAccepted, services, upgradeClasses]
+      properties:
+        schemaVersion: { type: string }
+        inventoryUpdatedAt: { type: string, format: date }
+        generatedAt: { type: string, format: date-time }
+        evidencePolicy: { type: string }
+        totalServices: { type: integer }
+        stageServices: { type: integer }
+        supportingServices: { type: integer }
+        localAccepted: { type: integer }
+        productionAccepted: { type: integer }
+        services:
+          type: array
+          items: { $ref: "#/components/schemas/PlatformService" }
+        upgradeClasses:
+          type: array
+          items: { $ref: "#/components/schemas/PlatformUpgradeClass" }
     StageSupportStartInput:
       type: object
       required: [sessionId, featureId, tool]

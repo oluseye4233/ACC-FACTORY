@@ -2457,6 +2457,49 @@ export const HealthDeepResponse = zod.object({
 
 
 /**
+ * @summary Dated go-live service inventory, separate from runtime eligibility and acceptance
+ */
+export const GetPlatformServicesResponse = zod.object({
+  "schemaVersion": zod.string(),
+  "inventoryUpdatedAt": zod.coerce.date(),
+  "generatedAt": zod.coerce.date(),
+  "evidencePolicy": zod.string(),
+  "totalServices": zod.number().int(),
+  "stageServices": zod.number().int(),
+  "supportingServices": zod.number().int(),
+  "localAccepted": zod.number().int(),
+  "productionAccepted": zod.number().int(),
+  "services": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "scope": zod.enum(['STAGE', 'FUNCTION']),
+  "stage": zod.string().nullable(),
+  "implementation": zod.enum(['EXISTING', 'PARTIAL', 'PLANNED']),
+  "serviceMode": zod.string(),
+  "serviceReadiness": zod.enum(['EXISTING_UNVERIFIED', 'PARTIAL', 'PLANNED']),
+  "subscriberOutcome": zod.string(),
+  "limitations": zod.string(),
+  "blockedReason": zod.string().nullable(),
+  "href": zod.string().nullable(),
+  "sourceEligibility": zod.enum(['NOT_EVALUATED']),
+  "entitlement": zod.enum(['NOT_EVALUATED']),
+  "assessmentStatus": zod.enum(['NOT_EVALUATED']),
+  "deliveryStatus": zod.enum(['NOT_EVALUATED']),
+  "operationStatus": zod.enum(['NOT_EVALUATED']),
+  "localAcceptance": zod.enum(['NOT_VERIFIED']),
+  "productionAcceptance": zod.enum(['NOT_VERIFIED']),
+  "evidenceCheckedAt": zod.coerce.date().nullable(),
+  "requiredEvidence": zod.array(zod.string())
+})),
+  "upgradeClasses": zod.array(zod.object({
+  "category": zod.enum(['B', 'C']),
+  "description": zod.string(),
+  "activationTrigger": zod.string()
+}))
+})
+
+
+/**
  * @summary Public dependency checks, not independent certification or feature verification
  */
 export const GetLaunchReadinessResponse = zod.object({

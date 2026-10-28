@@ -96,3 +96,13 @@ CODON and CORDON without waiting for infrastructure beyond present capabilities.
 real dependencies. Record local service acceptance separately from live
 acceptance and original-contract completion; never mark missing authority,
 security or evidence active simply to make the floor appear complete.
+
+For each milestone that unlocks an F stage, explain the exact subscriber
+actions newly available, remaining limits and whether evidence is development
+only or verified on the deployed revision.
+
+**Why:** The user requested explicit subscriber-facing unlock reports during
+the final go-live sprint, rather than implementation-only progress claims.
+
+**How to apply:** Report foundations separately from stage activations; a
+shared status register or generated package is not itself an operational unlock.

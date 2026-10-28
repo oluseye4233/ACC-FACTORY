@@ -756,3 +756,17 @@ mtime_ms = 1793218831740
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/67fce990-5642-4858-88f6-c140a761eba5/b7443b95-8c65-48d4-bc2f-d1484bfebd2f"
 storage_version_token = "1793218857397927"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "-RIfLeBTYc6AwIenI1OPW"
+uri = "file://docs/ARK_Go_Live_Baseline_2026-10-28.md"
+type = "text"
+title = "ARK — Go-Live Baseline and Status Contract"
+description = "Foundation checkpoint: 35-service register, implementation versus acceptance, fresh production observations, protected-workflow blockers and verification limits."
+logical_id = "015b0d98-48ec-447d-9d52-6d3f0bd93e2b"
+content_hash = "sha256:ccfbdcf3711aef25cd0296da57d40695d9135a887b81eff58269367835f0c333"
+size = 6116
+mtime_ms = 1793219910456
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/015b0d98-48ec-447d-9d52-6d3f0bd93e2b/15667e72-d839-41fe-affb-2d59246541ae"
+storage_version_token = "1793219937773882"
+content_type = "text/markdown"

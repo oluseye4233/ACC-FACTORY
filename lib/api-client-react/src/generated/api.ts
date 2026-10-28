@@ -205,6 +205,7 @@ import type {
   Ok,
   OnboardingState,
   PfpReport,
+  PlatformServiceInventory,
   PortalInput,
   PortalSession,
   PricingPayload,
@@ -5342,6 +5343,107 @@ export function useHealthDeep<TData = Awaited<ReturnType<typeof healthDeep>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getHealthDeepQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPlatformServicesUrl = () => {
+
+
+
+
+  return `/api/platform-services`
+}
+
+/**
+ * @summary Dated go-live service inventory, separate from runtime eligibility and acceptance
+ */
+export const getPlatformServices = async ( options?: Parameters<typeof customFetch>[1]): Promise<PlatformServiceInventory> => {
+
+  return customFetch<PlatformServiceInventory>(getGetPlatformServicesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPlatformServicesQueryKey = () => {
+    return [
+    `/api/platform-services`
+    ] as const;
+    }
+
+
+export const getGetPlatformServicesQueryOptions = <TData = Awaited<ReturnType<typeof getPlatformServices>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlatformServices>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPlatformServicesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPlatformServices>>> = ({ signal }) => getPlatformServices({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPlatformServices>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPlatformServicesQueryResult = NonNullable<Awaited<ReturnType<typeof getPlatformServices>>>
+export type GetPlatformServicesQueryError = ErrorType<unknown>
+
+
+export function useGetPlatformServices<TData = Awaited<ReturnType<typeof getPlatformServices>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlatformServices>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPlatformServices>>,
+          TError,
+          Awaited<ReturnType<typeof getPlatformServices>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPlatformServices<TData = Awaited<ReturnType<typeof getPlatformServices>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlatformServices>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPlatformServices>>,
+          TError,
+          Awaited<ReturnType<typeof getPlatformServices>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPlatformServices<TData = Awaited<ReturnType<typeof getPlatformServices>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlatformServices>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Dated go-live service inventory, separate from runtime eligibility and acceptance
+ */
+
+export function useGetPlatformServices<TData = Awaited<ReturnType<typeof getPlatformServices>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlatformServices>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPlatformServicesQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

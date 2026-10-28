@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import platformServicesRouter from "./platform-services";
 import healthRouter from "./health";
 import learningRouter from "./learning";
 import learningConvenerRouter from "./learning-convener";
@@ -41,6 +42,7 @@ import artifactGovernanceRouter from "./artifact-governance";
 import { guardSkippedEngine } from "../lib/artifact-operations/engine-guard";
 
 const router: IRouter = Router();
+router.use(platformServicesRouter);
 router.use(learningRouter);
 router.use(learningConvenerRouter);
 router.use(guardSkippedEngine);
