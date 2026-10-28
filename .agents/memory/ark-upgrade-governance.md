@@ -82,3 +82,17 @@ and all usable features while upgrades proceed.
 
 **How to apply:** Separate core launch requirements from future upgrade gates;
 never interpret a frozen database as justification to replace it or fake data.
+
+The final go-live scope requires a useful A-category service for every existing
+F stage and customer-facing function on current infrastructure. Keep supporting
+implementation/qualification in B and scale-only expansion in C, with explicit
+triggers. Preserve original full-feature requirements beside each bounded A
+service rather than treating preparation as independent approval or deployment.
+
+**Why:** The user requested an all-stage functional launch using SPARTAN,
+CODON and CORDON without waiting for infrastructure beyond present capabilities.
+
+**How to apply:** Classify scope, compose validated existing modules and order by
+real dependencies. Record local service acceptance separately from live
+acceptance and original-contract completion; never mark missing authority,
+security or evidence active simply to make the floor appear complete.

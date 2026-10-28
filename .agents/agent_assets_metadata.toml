@@ -742,3 +742,17 @@ mtime_ms = 1793215361544
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/48b591b4-2231-4b91-8774-a858fe58e3bf/2587c6ac-068a-4271-8182-201f2e97b880"
 storage_version_token = "1793215372519768"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "5rMlsEjIU7VjvSI5KpxgJ"
+uri = "file://docs/ARK_Final_Go_Live_A_B_C_Plan_2026-10-28.md"
+type = "text"
+title = "ARK — Final Go-Live A/B/C Plan"
+description = "SPARTAN scope, CODON module composition and CORDON dependency order: 35 bounded service contracts, 23 build units, acceptance criteria, protected boundaries and B/C activation triggers."
+logical_id = "67fce990-5642-4858-88f6-c140a761eba5"
+content_hash = "sha256:f1df6558cc24e75eebbf7b0a43a842a1e6ba61eb5c11de74a3f0081a05deb0c4"
+size = 35917
+mtime_ms = 1793218831740
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/67fce990-5642-4858-88f6-c140a761eba5/b7443b95-8c65-48d4-bc2f-d1484bfebd2f"
+storage_version_token = "1793218857397927"
+content_type = "text/markdown"
