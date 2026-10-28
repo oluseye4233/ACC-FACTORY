@@ -39,6 +39,7 @@ const STAFF_LINKS: Array<{ href: string; label: string }> = [
   { href: "/ascension", label: "Ascension" },
   { href: "/me/activity", label: "Activity" },
   { href: "/me/costs", label: "Costs" },
+  { href: "/orgs", label: "Organizations" },
   { href: "/account", label: "Account" },
 ];
 

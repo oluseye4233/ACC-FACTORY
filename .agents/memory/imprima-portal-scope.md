@@ -45,5 +45,7 @@ system as part of single-user or enterprise account setup.
 settings to the organization with authorized administrative controls. Separate
 delivery-provider configuration from preferences and identity verification.
 Do not interpret this clarification as permission to disable publication codes
-or the previously required control copy. Whether customization includes
-bring-your-own delivery providers remains to be confirmed.
+or the previously required control copy. The user confirmed both delivery modes:
+platform-managed default and optional subscriber-owned delivery. Existing
+identity-provider sign-in/SSO emails remain separate; configuring notification
+transport must not silently replace authentication or bypass verification.

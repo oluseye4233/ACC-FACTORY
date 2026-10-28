@@ -26,6 +26,64 @@ tags:
   - name: magnet
 
 paths:
+  /me/email-delivery:
+    get:
+      operationId: getEmailDeliverySettings
+      parameters:
+        - { name: organizationId, in: query, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Authorized scope settings; credentials are never returned.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmailDeliverySettings" }
+    put:
+      operationId: saveEmailDeliverySettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmailDeliveryInput" }
+      responses:
+        "200":
+          description: Saved settings.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmailDeliverySettings" }
+  /me/email-delivery/test:
+    post:
+      operationId: testEmailDeliverySettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmailDeliveryScope" }
+      responses:
+        "200":
+          description: Test submitted to the current authenticated subscriber's email.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message, expiresAt]
+                properties:
+                  message: { type: string }
+                  expiresAt: { type: [string, "null"], format: date-time }
+  /me/email-delivery/verify:
+    post:
+      operationId: verifyEmailDeliverySettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailDeliveryVerification"
+      responses:
+        "200":
+          description: Verified connection.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmailDeliverySettings" }
   /stage-support/options:
     get:
       operationId: getStageSupportOptions
@@ -3415,6 +3473,8 @@ paths:
   /imprima-portal:
     get:
       operationId: getImprimaPortal
+      parameters:
+        - { name: organizationId, in: query, schema: { type: string, format: uuid } }
       tags: [IMPRIMA Portal]
       responses:
         "200":
@@ -3507,6 +3567,43 @@ components:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   schemas:
+    EmailDeliveryScope:
+      type: object
+      properties:
+        organizationId: { type: [string, "null"], format: uuid }
+    EmailDeliveryVerification:
+      type: object
+      required: [code]
+      properties:
+        organizationId: { type: [string, "null"], format: uuid }
+        code: { type: string, pattern: "^[0-9]{6}$" }
+    EmailDeliveryInput:
+      type: object
+      required: [mode]
+      properties:
+        organizationId: { type: [string, "null"], format: uuid }
+        mode: { type: string, enum: [MANAGED, OWN_PROVIDER] }
+        provider: { type: string, enum: [RESEND, POSTMARK] }
+        senderName: { type: string, maxLength: 80 }
+        fromEmail: { type: string, format: email, maxLength: 254 }
+        replyTo: { type: string, format: email, maxLength: 254 }
+        credential: { type: string, minLength: 1, maxLength: 500 }
+    EmailDeliverySettings:
+      type: object
+      required: [organizationId, mode, provider, senderName, fromEmail, replyTo, status, configured, canManage, hasCredential, verificationExpiresAt, authenticationSeparate]
+      properties:
+        organizationId: { type: [string, "null"], format: uuid }
+        mode: { type: string, enum: [MANAGED, OWN_PROVIDER] }
+        provider: { type: [string, "null"], enum: [RESEND, POSTMARK, null] }
+        senderName: { type: [string, "null"] }
+        fromEmail: { type: [string, "null"] }
+        replyTo: { type: [string, "null"] }
+        status: { type: string, enum: [ACTIVE, PENDING_VERIFICATION, UNCONFIGURED, ERROR] }
+        configured: { type: boolean }
+        canManage: { type: boolean }
+        hasCredential: { type: boolean }
+        verificationExpiresAt: { type: [string, "null"], format: date-time }
+        authenticationSeparate: { type: boolean }
     AgentCreationInput:
       type: object
       required: [sourceArtifactId, requestKey]
@@ -3564,6 +3661,7 @@ components:
         sourceType: { type: string }
         title: { type: string }
         type: { type: string }
+        organizationId: { type: [string, "null"], format: uuid }
         parentSourceArtifactId: { type: [string, "null"], format: uuid }
         sessionId: { type: [string, "null"], format: uuid }
         parentId: { type: string, format: uuid }
@@ -3582,6 +3680,7 @@ components:
       type: object
       required: [sourceId, sourceType, format, author, rightsConfirmed]
       properties:
+        organizationId: { type: [string, "null"], format: uuid }
         sourceId: { type: string, format: uuid }
         sourceType: { type: string, enum: [ARTIFACT, EXEMPLAR, SPC_PLAYER, IMPRIMA_FILE, PREPARATION_FILE, SPRINT_EXPORT, F10_EXPORT] }
         parentId: { type: string, format: uuid }
@@ -3594,6 +3693,8 @@ components:
       type: object
       required: [id, sourceId, sourceType, title, author, format, state, filename, createdAt]
       properties:
+        organizationId: { type: [string, "null"], format: uuid }
+        emailConfigured: { type: boolean }
         id: { type: string, format: uuid }
         sourceId: { type: string, format: uuid }
         sourceType: { type: string }

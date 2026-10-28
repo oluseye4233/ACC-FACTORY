@@ -8,6 +8,8 @@ import {
   useGetImprimaPortal,
   useRequestPublicationCode,
   type PortalPublication,
+  type PortalPublicationInputSourceType,
+  type PortalPublicationInputKind,
 } from "@workspace/api-client-react";
 import { AlertTriangle, ArrowLeft, Boxes, Download, FileInput, FileOutput, KeyRound, Library, Loader2, Mail } from "lucide-react";
 import { TopNav } from "@/components/layout/TopNav";
@@ -43,7 +45,15 @@ function saveBlob(blob: Blob, filename: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-function PublicationRow({ p, canEmail, emailBlock, departure }: { p: PortalPublication; canEmail: boolean; emailBlock: string; departure: Departure | null }) {
+
+export function emailSettingsHref(organizationId?: string | null) {
+  return organizationId ? `/email-settings?organizationId=${encodeURIComponent(organizationId)}` : "/email-settings";
+}
+
+function PublicationRow({ p, canEmail: globalCanEmail, subscriberEmail, emailBlock, departure }: { p: PortalPublication; canEmail: boolean; subscriberEmail: boolean; emailBlock: string; departure: Departure | null }) {
+  // Per-publication delivery (personal or the publication's org); global flag only for older payloads.
+  const deliveryOk = p.emailConfigured ?? globalCanEmail;
+  const canEmail = deliveryOk && subscriberEmail;
   const req = useRequestPublicationCode();
   const dl = useDownloadPortalPublication();
   const [challenge, setChallenge] = useState<{ id: string; expiresAt: string } | null>(null);
@@ -93,7 +103,12 @@ function PublicationRow({ p, canEmail, emailBlock, departure }: { p: PortalPubli
           </>
         )}
       </div>
-      {!canEmail && <p className="text-[11px] text-muted-foreground" data-testid={`text-email-blocked-${p.id}`}>{emailBlock}</p>}
+      {!canEmail && (
+        <p className="text-[11px] text-muted-foreground" data-testid={`text-email-blocked-${p.id}`}>
+          {!deliveryOk ? `Email delivery is not configured for ${p.organizationId ? "this organization" : "your account"}, so a code cannot be sent.` : emailBlock}{" "}
+          {!deliveryOk && <Link href={emailSettingsHref(p.organizationId)} className="text-primary underline" data-testid={`link-configure-email-${p.id}`}>Configure email</Link>}
+        </p>
+      )}
       {canEmail && !ready && <p className="text-[11px] text-muted-foreground">Codes and download open only when the publication is READY (current state {p.state}).</p>}
       {departure && p.sourceId === departure.sourceId && (
         <div data-testid={`return-publication-${p.id}`}>
@@ -109,7 +124,8 @@ export default function ImprimaPortal() {
   const search = useSearch();
   const params = new URLSearchParams(search);
   const qc = useQueryClient();
-  const portal = useGetImprimaPortal();
+  const orgId = params.get("organizationId") || null;
+  const portal = useGetImprimaPortal(orgId ? { organizationId: orgId } : undefined);
   const create = useCreatePortalPublication();
   const [location, setLocation] = useLocation();
   const tab: "publish" | "intake" = params.get("tab") === "intake" ? "intake" : "publish";
@@ -139,6 +155,7 @@ export default function ImprimaPortal() {
   const featureId = Number(params.get("featureId") ?? "");
   const d = portal.data;
   const canEmail = !!d?.emailConfigured && !!d?.subscriberEmailAvailable;
+  const subscriberEmail = !!d?.subscriberEmailAvailable;
   const emailBlock = !d?.emailConfigured ? "Code email is not configured on this deployment, so protected downloads are unavailable." : "Your account has no verified email address, so a code cannot be sent.";
   const visibleSources = (d?.sources ?? []).filter((x) => allSessions || !sessionId || x.sessionId === sessionId || `${x.sourceType}:${x.id}` === sourceKey);
   const [sourceType, sourceId] = sourceKey ? [sourceKey.split(":")[0], sourceKey.slice(sourceKey.indexOf(":") + 1)] : ["", ""];
@@ -154,11 +171,12 @@ export default function ImprimaPortal() {
     try {
       // PREPARATION_FILE needs its parent preparation and operation kind; other types send the contract body only.
       const extra = {
-        ...(sourceType === "PREPARATION_FILE" ? { parentId, kind: opKind } : {}),
+        ...(sourceType === "PREPARATION_FILE" && parentId && (opKind === "imprima" || opKind === "short-sprints") ? { parentId, kind: opKind as PortalPublicationInputKind } : {}),
         ...(exportOptions && urlBound ? { exportOptions } : {}),
       };
-      type Input = Parameters<typeof create.mutateAsync>[0]["data"];
-      await create.mutateAsync({ data: { sourceId, sourceType, format: effFormat, author: author.trim(), rightsConfirmed: true, ...extra } as Input });
+      // An org-bound source always publishes under its own org; otherwise the URL org context, if any.
+      const srcOrg = d?.sources.find((x) => x.id === sourceId && x.sourceType === sourceType)?.organizationId ?? orgId;
+      await create.mutateAsync({ data: { sourceId, sourceType: sourceType as PortalPublicationInputSourceType, format: effFormat, author: author.trim(), rightsConfirmed: true, ...extra, ...(srcOrg ? { organizationId: srcOrg } : {}) } });
       setRights(false);
       void qc.invalidateQueries({ queryKey: getGetImprimaPortalQueryKey() });
     } catch (e) { setErr(apiErr(e)); }
@@ -221,6 +239,9 @@ export default function ImprimaPortal() {
                 <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Protected sources are currently unavailable ({d.protectedSourcesStatus}). The source list below may be incomplete; this does not mean you have no sources.
               </p>
             )}
+            {!d.emailConfigured && (
+              <p className="text-xs" data-testid="text-email-unconfigured">Code email is not configured{orgId ? " for this organization" : ""}. You can use your own Resend or Postmark sender: <Link href={emailSettingsHref(orgId)} className="text-primary underline" data-testid="link-configure-email">Configure email</Link></p>
+            )}
             {!(d.storageConfigured && canEmail) && <p className="text-xs text-secondary" data-testid="text-portal-partial">Some portal actions are unavailable on this deployment. They are shown disabled with the reason.</p>}
 
             <section className="space-y-3 rounded-lg border bg-card p-4" data-testid="panel-prepare">
@@ -264,7 +285,7 @@ export default function ImprimaPortal() {
             <section className="rounded-lg border bg-card p-4">
               <h2 className="flex items-center gap-2 font-display text-xl tracking-wider"><KeyRound className="h-4 w-4" /> Your publications</h2>
               {d.publications.length === 0 ? <p className="py-4 text-xs text-muted-foreground" data-testid="text-no-publications">No publications yet. Prepare one above.</p> : (
-                <ul className="divide-y">{d.publications.map((p) => <PublicationRow key={p.id} p={p} canEmail={canEmail} emailBlock={emailBlock} departure={departure} />)}</ul>
+                <ul className="divide-y">{d.publications.map((p) => <PublicationRow key={p.id} p={p} canEmail={!!d.emailConfigured} subscriberEmail={subscriberEmail} emailBlock={emailBlock} departure={departure} />)}</ul>
               )}
             </section>
             <p className="text-[11px] text-muted-foreground">Account, privacy and audit exports remain in <Link href="/account" className="underline">Account</Link>. Historical preparations remain in <Link href="/operations?kind=imprima" className="underline">IMPRIMA operations</Link>.</p>

@@ -1,3 +1,4 @@
+import emailDeliveryRouter from "./email-delivery";
 import { Router, type IRouter } from "express";
 import platformServicesRouter from "./platform-services";
 import agentCreatorRouter from "./agent-creator";
@@ -87,6 +88,7 @@ router.use(activityRouter);
 router.use(costRouter);
 router.use(adminOpsRouter);
 router.use(notificationsRouter);
+router.use(emailDeliveryRouter);
 router.use(integrationsRouter);
 router.use(f1000Router);
 router.use(f0Router);

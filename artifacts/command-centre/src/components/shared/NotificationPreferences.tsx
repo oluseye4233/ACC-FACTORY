@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,6 +87,9 @@ export function NotificationPreferences({
 
   return (
     <div className="space-y-6" data-testid={`notification-prefs-${orgId ?? "personal"}`}>
+      <Link href={orgId ? `/email-settings?organizationId=${encodeURIComponent(orgId)}` : "/email-settings"} className="flex items-center justify-between gap-2 rounded-md border border-primary/40 bg-primary/5 px-3 py-2 font-mono text-[11px] text-primary hover:bg-primary/10" data-testid={`link-email-settings-${orgId ?? "personal"}`}>
+        <span>Email delivery: platform-managed or your own Resend/Postmark sender</span><span aria-hidden>&rarr;</span>
+      </Link>
       <p className="text-xs font-mono text-muted-foreground">
         Scope: <strong>{scopeLabel}</strong>. Changes apply only to this scope.
       </p>

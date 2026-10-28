@@ -26,7 +26,7 @@
 
 ## Activation dependencies — not yet a live-availability claim
 
-1. Connect a transactional email service and configure a verified `EMAIL_FROM`.
+1. Configure either platform-managed email with a verified `EMAIL_FROM`, or a subscriber/organization-owned Resend or Postmark connection through Account/Organizations → Notifications → Email delivery. Subscriber-owned delivery must pass its inbox-code verification; it does not require the platform Resend connection. See [subscriber email delivery](subscriber-email-delivery.md).
 2. Confirm the subscriber profile email and approved control-recipient setting.
 3. Verify real code delivery, control-copy acceptance and download once email is configured.
 4. Complete the signed-in browser check through the normal staff-access and Clerk gates.

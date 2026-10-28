@@ -202,6 +202,24 @@ describe("IMPRIMA Portal", () => {
     renderAt("/imprima-portal", ImprimaPortal);
     expect(screen.getByTestId("text-protected-sources-unavailable").textContent).toContain("does not mean you have no sources");
   });
+  it("uses per-publication email readiness and links to the right email settings scope", () => {
+    m.portal.emailConfigured = false;
+    m.portal.publications = [{ ...PUB, id: "pub-org", organizationId: "org-1", emailConfigured: true }, { ...PUB, id: "pub-me", organizationId: null, emailConfigured: false }];
+    renderAt("/imprima-portal?organizationId=org-1", ImprimaPortal);
+    expect((screen.getByTestId("button-request-code-pub-org") as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByTestId("button-request-code-pub-me") as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByTestId("link-configure-email-pub-me").getAttribute("href")).toBe("/email-settings");
+    expect(screen.getByTestId("link-configure-email").getAttribute("href")).toBe("/email-settings?organizationId=org-1");
+  });
+  it("prepares an org-bound source under its own organization", async () => {
+    m.pub.mockResolvedValue({});
+    m.portal.sources = [{ ...MA, organizationId: "org-2" }];
+    renderAt("/imprima-portal?sourceId=ma-1&sourceType=ARTIFACT&organizationId=org-1", ImprimaPortal);
+    fireEvent.change(screen.getByTestId("input-portal-author"), { target: { value: "Ada" } });
+    fireEvent.click(screen.getByTestId("check-portal-rights"));
+    fireEvent.click(screen.getByTestId("button-prepare-publication"));
+    await waitFor(() => expect(m.pub.mock.calls[0][0].data.organizationId).toBe("org-2"));
+  });
   it("rejects unknown URL source types", () => {
     renderAt("/imprima-portal?sourceId=x1&sourceType=BOGUS", ImprimaPortal);
     expect(screen.getByTestId("text-source-unlisted")).toBeTruthy();

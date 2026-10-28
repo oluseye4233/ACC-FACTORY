@@ -5,6 +5,102 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+export interface EmailDeliveryScope {
+  /** @nullable */
+  organizationId?: string | null;
+}
+
+export interface EmailDeliveryVerification {
+  /** @nullable */
+  organizationId?: string | null;
+  /** @pattern ^[0-9]{6}$ */
+  code: string;
+}
+
+export type EmailDeliveryInputMode = typeof EmailDeliveryInputMode[keyof typeof EmailDeliveryInputMode];
+
+
+export const EmailDeliveryInputMode = {
+  MANAGED: 'MANAGED',
+  OWN_PROVIDER: 'OWN_PROVIDER',
+} as const;
+
+export type EmailDeliveryInputProvider = typeof EmailDeliveryInputProvider[keyof typeof EmailDeliveryInputProvider];
+
+
+export const EmailDeliveryInputProvider = {
+  RESEND: 'RESEND',
+  POSTMARK: 'POSTMARK',
+} as const;
+
+export interface EmailDeliveryInput {
+  /** @nullable */
+  organizationId?: string | null;
+  mode: EmailDeliveryInputMode;
+  provider?: EmailDeliveryInputProvider;
+  /** @maxLength 80 */
+  senderName?: string;
+  /** @maxLength 254 */
+  fromEmail?: string;
+  /** @maxLength 254 */
+  replyTo?: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  credential?: string;
+}
+
+export type EmailDeliverySettingsMode = typeof EmailDeliverySettingsMode[keyof typeof EmailDeliverySettingsMode];
+
+
+export const EmailDeliverySettingsMode = {
+  MANAGED: 'MANAGED',
+  OWN_PROVIDER: 'OWN_PROVIDER',
+} as const;
+
+/**
+ * @nullable
+ */
+export type EmailDeliverySettingsProvider = typeof EmailDeliverySettingsProvider[keyof typeof EmailDeliverySettingsProvider] | null;
+
+
+export const EmailDeliverySettingsProvider = {
+  RESEND: 'RESEND',
+  POSTMARK: 'POSTMARK',
+} as const;
+
+export type EmailDeliverySettingsStatus = typeof EmailDeliverySettingsStatus[keyof typeof EmailDeliverySettingsStatus];
+
+
+export const EmailDeliverySettingsStatus = {
+  ACTIVE: 'ACTIVE',
+  PENDING_VERIFICATION: 'PENDING_VERIFICATION',
+  UNCONFIGURED: 'UNCONFIGURED',
+  ERROR: 'ERROR',
+} as const;
+
+export interface EmailDeliverySettings {
+  /** @nullable */
+  organizationId: string | null;
+  mode: EmailDeliverySettingsMode;
+  /** @nullable */
+  provider: EmailDeliverySettingsProvider;
+  /** @nullable */
+  senderName: string | null;
+  /** @nullable */
+  fromEmail: string | null;
+  /** @nullable */
+  replyTo: string | null;
+  status: EmailDeliverySettingsStatus;
+  configured: boolean;
+  canManage: boolean;
+  hasCredential: boolean;
+  /** @nullable */
+  verificationExpiresAt: string | null;
+  authenticationSeparate: boolean;
+}
+
 export interface AgentCreationInput {
   sourceArtifactId: string;
   microPddArtifactId?: string;
@@ -92,6 +188,8 @@ export interface PortalSource {
   title: string;
   type: string;
   /** @nullable */
+  organizationId?: string | null;
+  /** @nullable */
   parentSourceArtifactId?: string | null;
   /** @nullable */
   sessionId?: string | null;
@@ -100,6 +198,9 @@ export interface PortalSource {
 }
 
 export interface PortalPublication {
+  /** @nullable */
+  organizationId?: string | null;
+  emailConfigured?: boolean;
   id: string;
   sourceId: string;
   sourceType: string;
@@ -152,6 +253,8 @@ export const PortalPublicationInputFormat = {
 } as const;
 
 export interface PortalPublicationInput {
+  /** @nullable */
+  organizationId?: string | null;
   sourceId: string;
   sourceType: PortalPublicationInputSourceType;
   parentId?: string;
@@ -6362,6 +6465,16 @@ export type NotFoundResponse = ErrorResponse;
  */
 export type RateLimitedResponse = ErrorResponse;
 
+export type GetEmailDeliverySettingsParams = {
+organizationId?: string;
+};
+
+export type TestEmailDeliverySettings200 = {
+  message: string;
+  /** @nullable */
+  expiresAt: string | null;
+};
+
 export type GetStageSupportOptionsParams = {
 sessionId: string;
 featureId: number;
@@ -6677,4 +6790,8 @@ sessionId?: string;
  * @minimum 0
  */
 offset?: number;
+};
+
+export type GetImprimaPortalParams = {
+organizationId?: string;
 };

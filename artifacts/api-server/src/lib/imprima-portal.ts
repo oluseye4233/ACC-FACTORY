@@ -3,8 +3,10 @@ import { createHash, createHmac, randomInt, randomUUID } from "node:crypto";
 import { and, desc, eq, gt, sql, inArray } from "drizzle-orm";
 import { db, portalPublicationsTable as publications, portalChallengesTable as challenges,
   harnessArtifactsTable as artifacts, exemplarLibraryItemsTable as library, usersTable,
-  spcPlayerDraftRunsTable as drafts, spcPlayerRunsTable as executions, imprimaFilesTable as legacyFiles } from "@workspace/db";
-import { learningEmailConfigured, sendPublicationMessage } from "@workspace/email";
+  spcPlayerDraftRunsTable as drafts, spcPlayerRunsTable as executions, imprimaFilesTable as legacyFiles,
+  harnessSessionsTable as sessions } from "@workspace/db";
+import { sendPublicationMessage } from "@workspace/email";
+import { authorizeEmailScope, emailDeliveryReady, emailTransport } from "./email-delivery";
 import { governanceHash } from "./artifact-governance";
 import { readPrivate, savePrivate } from "./artifact-operations/private-storage";
 import { CreatorError } from "./agent-creator";
@@ -17,7 +19,9 @@ export const publicationCodeHash = (id: string, userId: string, publicationId: s
   if (!secret) throw new CreatorError(503, "Publication code security is not configured.");
   return createHmac("sha256", secret).update(`${id}:${userId}:${publicationId}:${code}`).digest("hex");
 };
-const view = (row: typeof publications.$inferSelect) => ({
+const view = async (row: typeof publications.$inferSelect) => ({
+  organizationId: row.organizationId,
+  emailConfigured: await emailDeliveryReady({ userId: row.userId, organizationId: row.organizationId }),
   id: row.id, sourceId: row.sourceId, sourceType: row.sourceType, title: row.title,
   author: row.author, format: row.format, state: row.state, filename: row.filename, createdAt: row.createdAt.toISOString(),
 });
@@ -31,11 +35,14 @@ async function subscriberEmail(userId: string) {
   if (!user?.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(user.email)) throw new CreatorError(409, "Your subscriber profile needs a valid email address before publication.");
   return user.email;
 }
-export async function portalWorkspace(userId: string) {
+export async function portalWorkspace(userId: string, organizationId?: string | null) {
+  await authorizeEmailScope({ userId, organizationId });
   const [sourceRows, libraryRows, history, playerRows, preparationRows] = await Promise.all([
     db.select({ id: artifacts.id, title: artifacts.name, type: artifacts.artifactType, sessionId: artifacts.sessionId,
-      parentSourceArtifactId: sql<string | null>`${artifacts.artifactContent}->>'sourceArtifactId'` })
-      .from(artifacts).where(eq(artifacts.userId, userId)).orderBy(desc(artifacts.createdAt)).limit(500),
+      parentSourceArtifactId: sql<string | null>`${artifacts.artifactContent}->>'sourceArtifactId'`,
+      organizationId: sql<string | null>`CASE WHEN ${sessions.orgVisible} THEN ${sessions.orgId} ELSE NULL END` })
+      .from(artifacts).leftJoin(sessions, and(eq(sessions.id, artifacts.sessionId), eq(sessions.userId, userId)))
+      .where(eq(artifacts.userId, userId)).orderBy(desc(artifacts.createdAt)).limit(500),
     db.select({ id: library.id, title: library.title, type: library.kind }).from(library)
       .where(and(eq(library.ownerUserId, userId), eq(library.active, true))).limit(500),
     db.select().from(publications).where(eq(publications.userId, userId)).orderBy(desc(publications.createdAt)).limit(100),
@@ -58,7 +65,7 @@ export async function portalWorkspace(userId: string) {
     })) : [];
   });
   return {
-    emailConfigured: learningEmailConfigured(), storageConfigured: Boolean(process.env.PRIVATE_OBJECT_DIR),
+    emailConfigured: await emailDeliveryReady({ userId, organizationId }), storageConfigured: Boolean(process.env.PRIVATE_OBJECT_DIR),
     subscriberEmailAvailable: await subscriberEmail(userId).then(() => true, () => false),
     protectedSourcesStatus,
     sources: [
@@ -69,14 +76,23 @@ export async function portalWorkspace(userId: string) {
       ...protectedSources.map(row => ({ ...row, type: "Historical IMPRIMA file", sourceType: "IMPRIMA_FILE", sessionId: null })),
       ...preparationSources,
     ],
-    publications: history.map(view),
+    publications: await Promise.all(history.map(view)),
   };
 }
 export async function preparePublication(userId: string, input: PortalSourceInput & {
   format: "PDF" | "EDITABLE_ZIP"; author: string; rightsConfirmed: boolean;
 }) {
   if (!input.rightsConfirmed) throw new CreatorError(400, "Confirm that you are authorized to publish this material.");
-  const { content, title, native, artifactKind } = await resolvePortalSource(userId, input);
+  const { content, title, native, artifactKind, sessionId } = await resolvePortalSource(userId, input);
+  const [sourceSession] = sessionId ? await db.select({ organizationId: sessions.orgId, visible: sessions.orgVisible })
+    .from(sessions).where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId))).limit(1) : [];
+  if (sessionId && !sourceSession) throw new CreatorError(404, "The source session is not available to this subscriber.");
+  const requiredOrg = sourceSession?.visible ? sourceSession.organizationId : null;
+  if (requiredOrg && input.organizationId !== undefined && input.organizationId !== requiredOrg) {
+    throw new CreatorError(403, "This organization-visible source must use its organization's email context.");
+  }
+  const organizationId = requiredOrg ?? input.organizationId ?? null;
+  await authorizeEmailScope({ userId, organizationId });
   if (native && input.format !== "EDITABLE_ZIP") throw new CreatorError(400, "Use Editable ZIP for this source so the original file is preserved unchanged alongside the stamped publication document.");
   const serialized = JSON.stringify(content);
   if (/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|(?:sk_live_|sk-[A-Za-z0-9_-]{20}|ghp_[A-Za-z0-9]{20}|AKIA[A-Z0-9]{16})/.test(serialized)) {
@@ -100,6 +116,7 @@ export async function preparePublication(userId: string, input: PortalSourceInpu
       eq(publications.userId, userId), gt(publications.createdAt, new Date(Date.now() - 5 * 60_000)))).limit(10);
     if (recent.length >= 10) throw new CreatorError(429, "Wait before preparing more publications.");
     await tx.insert(publications).values({
+      organizationId,
     id, userId, sourceType: input.sourceType, sourceId: input.sourceId, sourceHash, title,
     author: document.author, format: input.format, filename, mime, storageKey, createdAt,
     editorial: { layout: "Structured headings, source provenance, declared authorship, publisher, page numbering and bottom-right time stamp",
@@ -116,8 +133,8 @@ export async function preparePublication(userId: string, input: PortalSourceInpu
   }
 }
 export async function issuePublicationCode(userId: string, publicationId: string) {
-  if (!learningEmailConfigured()) throw new CreatorError(503, "IMPRIMA email is not configured. Publication downloads remain closed.");
   const publication = await ownedPublication(userId, publicationId);
+  const delivery = await emailTransport({ userId, organizationId: publication.organizationId });
   if (publication.state !== "READY") throw new CreatorError(409, "The publication is not ready.");
   const to = await subscriberEmail(userId);
   const id = randomUUID(), code = String(randomInt(0, 1_000_000)).padStart(6, "0");
@@ -136,7 +153,7 @@ export async function issuePublicationCode(userId: string, publicationId: string
     to, subject: "Your single-use ATANDA.IMPRIMA publication code",
     text: `Publication: ${publication.title}\nPublication ID: ${publicationId}\nCode: ${code}\nExpires: ${expiresAt.toISOString()}\nThis code permits one download of this publication by your subscriber profile. Do not share it.`,
     idempotencyKey: `imprima-code-${id}`,
-  });
+  }, delivery);
   if (!result.ok || result.dryRun) {
     await db.update(challenges).set({ state: "EMAIL_FAILED" }).where(eq(challenges.id, id));
     throw new CreatorError(503, "The publication code email was not confirmed. No download is authorized.");
@@ -147,8 +164,8 @@ export async function issuePublicationCode(userId: string, publicationId: string
   return { challengeId: id, expiresAt: expiresAt.toISOString() };
 }
 export async function redeemPublication(userId: string, publicationId: string, input: { challengeId: string; code: string }) {
-  if (!learningEmailConfigured()) throw new CreatorError(503, "IMPRIMA email is not configured. Publication downloads remain closed.");
   const publication = await ownedPublication(userId, publicationId);
+  const delivery = await emailTransport({ userId, organizationId: publication.organizationId });
   if (publication.state !== "READY" || !publication.contentHash) throw new CreatorError(409, "Publication is not ready.");
   const hash = publicationCodeHash(input.challengeId, userId, publicationId, input.code);
   const [claimed] = await db.update(challenges).set({
@@ -165,7 +182,7 @@ export async function redeemPublication(userId: string, publicationId: string, i
       subject: `ATANDA.IMPRIMA publication copy · ${publication.title.slice(0, 150)}`,
       text: `Publication: ${publication.id}\nTitle: ${publication.title}\nAuthor: ${publication.author}\nPublisher: ATANDA\nSubscriber stamp: ${createHash("sha256").update(userId).digest("hex").slice(0, 16)}\nPublished: ${publication.createdAt.toISOString()}\nSHA-256: ${publication.contentHash}\nThe attached bytes are the exact publication being issued. Provider acceptance is not proof that the subscriber completed the download.`,
       idempotencyKey: `imprima-copy-${input.challengeId}`, attachment: { filename: publication.filename, bytes },
-    });
+    }, delivery);
     if (!result.ok || result.dryRun) throw new CreatorError(503, "The control copy was not confirmed. No download was issued; request a new code after email service recovery.");
     const [consumed] = await db.update(challenges).set({ state: "CONSUMED", downloadIssuedAt: new Date(), controlMessageId: result.id })
       .where(and(eq(challenges.id, claimed.id), eq(challenges.state, "CLAIMED"))).returning({ id: challenges.id });

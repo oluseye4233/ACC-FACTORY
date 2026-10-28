@@ -8,6 +8,96 @@
 import * as zod from 'zod';
 
 
+export const GetEmailDeliverySettingsQueryParams = zod.object({
+  "organizationId": zod.coerce.string().uuid().optional()
+})
+
+export const GetEmailDeliverySettingsResponse = zod.object({
+  "organizationId": zod.string().uuid().nullable(),
+  "mode": zod.enum(['MANAGED', 'OWN_PROVIDER']),
+  "provider": zod.union([zod.literal('RESEND'),zod.literal('POSTMARK'),zod.literal(null)]).nullable(),
+  "senderName": zod.string().nullable(),
+  "fromEmail": zod.string().nullable(),
+  "replyTo": zod.string().nullable(),
+  "status": zod.enum(['ACTIVE', 'PENDING_VERIFICATION', 'UNCONFIGURED', 'ERROR']),
+  "configured": zod.boolean(),
+  "canManage": zod.boolean(),
+  "hasCredential": zod.boolean(),
+  "verificationExpiresAt": zod.coerce.date().nullable(),
+  "authenticationSeparate": zod.boolean()
+})
+
+
+export const saveEmailDeliverySettingsBodySenderNameMax = 80;
+
+export const saveEmailDeliverySettingsBodyFromEmailMax = 254;
+
+export const saveEmailDeliverySettingsBodyReplyToMax = 254;
+
+export const saveEmailDeliverySettingsBodyCredentialMax = 500;
+
+
+
+export const SaveEmailDeliverySettingsBody = zod.object({
+  "organizationId": zod.string().uuid().nullish(),
+  "mode": zod.enum(['MANAGED', 'OWN_PROVIDER']),
+  "provider": zod.enum(['RESEND', 'POSTMARK']).optional(),
+  "senderName": zod.string().max(saveEmailDeliverySettingsBodySenderNameMax).optional(),
+  "fromEmail": zod.string().email().max(saveEmailDeliverySettingsBodyFromEmailMax).optional(),
+  "replyTo": zod.string().email().max(saveEmailDeliverySettingsBodyReplyToMax).optional(),
+  "credential": zod.string().min(1).max(saveEmailDeliverySettingsBodyCredentialMax).optional()
+})
+
+export const SaveEmailDeliverySettingsResponse = zod.object({
+  "organizationId": zod.string().uuid().nullable(),
+  "mode": zod.enum(['MANAGED', 'OWN_PROVIDER']),
+  "provider": zod.union([zod.literal('RESEND'),zod.literal('POSTMARK'),zod.literal(null)]).nullable(),
+  "senderName": zod.string().nullable(),
+  "fromEmail": zod.string().nullable(),
+  "replyTo": zod.string().nullable(),
+  "status": zod.enum(['ACTIVE', 'PENDING_VERIFICATION', 'UNCONFIGURED', 'ERROR']),
+  "configured": zod.boolean(),
+  "canManage": zod.boolean(),
+  "hasCredential": zod.boolean(),
+  "verificationExpiresAt": zod.coerce.date().nullable(),
+  "authenticationSeparate": zod.boolean()
+})
+
+
+export const TestEmailDeliverySettingsBody = zod.object({
+  "organizationId": zod.string().uuid().nullish()
+})
+
+export const TestEmailDeliverySettingsResponse = zod.object({
+  "message": zod.string(),
+  "expiresAt": zod.coerce.date().nullable()
+})
+
+
+export const verifyEmailDeliverySettingsBodyCodeRegExp = new RegExp('^[0-9]{6}$');
+
+
+export const VerifyEmailDeliverySettingsBody = zod.object({
+  "organizationId": zod.string().uuid().nullish(),
+  "code": zod.string().regex(verifyEmailDeliverySettingsBodyCodeRegExp)
+})
+
+export const VerifyEmailDeliverySettingsResponse = zod.object({
+  "organizationId": zod.string().uuid().nullable(),
+  "mode": zod.enum(['MANAGED', 'OWN_PROVIDER']),
+  "provider": zod.union([zod.literal('RESEND'),zod.literal('POSTMARK'),zod.literal(null)]).nullable(),
+  "senderName": zod.string().nullable(),
+  "fromEmail": zod.string().nullable(),
+  "replyTo": zod.string().nullable(),
+  "status": zod.enum(['ACTIVE', 'PENDING_VERIFICATION', 'UNCONFIGURED', 'ERROR']),
+  "configured": zod.boolean(),
+  "canManage": zod.boolean(),
+  "hasCredential": zod.boolean(),
+  "verificationExpiresAt": zod.coerce.date().nullable(),
+  "authenticationSeparate": zod.boolean()
+})
+
+
 export const GetStageSupportOptionsQueryParams = zod.object({
   "sessionId": zod.coerce.string().uuid(),
   "featureId": zod.coerce.number().int()
@@ -8259,6 +8349,10 @@ export const RunCreatedAgentResponse = zod.object({
 })
 
 
+export const GetImprimaPortalQueryParams = zod.object({
+  "organizationId": zod.coerce.string().uuid().optional()
+})
+
 export const GetImprimaPortalResponse = zod.object({
   "emailConfigured": zod.boolean(),
   "storageConfigured": zod.boolean(),
@@ -8269,12 +8363,15 @@ export const GetImprimaPortalResponse = zod.object({
   "sourceType": zod.string(),
   "title": zod.string(),
   "type": zod.string(),
+  "organizationId": zod.string().uuid().nullish(),
   "parentSourceArtifactId": zod.string().uuid().nullish(),
   "sessionId": zod.string().uuid().nullish(),
   "parentId": zod.string().uuid().optional(),
   "kind": zod.enum(['imprima', 'short-sprints']).optional()
 })),
   "publications": zod.array(zod.object({
+  "organizationId": zod.string().uuid().nullish(),
+  "emailConfigured": zod.boolean().optional(),
   "id": zod.string().uuid(),
   "sourceId": zod.string().uuid(),
   "sourceType": zod.string(),
@@ -8293,6 +8390,7 @@ export const createPortalPublicationBodyAuthorMax = 160;
 
 
 export const CreatePortalPublicationBody = zod.object({
+  "organizationId": zod.string().uuid().nullish(),
   "sourceId": zod.string().uuid(),
   "sourceType": zod.enum(['ARTIFACT', 'EXEMPLAR', 'SPC_PLAYER', 'IMPRIMA_FILE', 'PREPARATION_FILE', 'SPRINT_EXPORT', 'F10_EXPORT']),
   "parentId": zod.string().uuid().optional(),
@@ -8304,6 +8402,8 @@ export const CreatePortalPublicationBody = zod.object({
 })
 
 export const CreatePortalPublicationResponse = zod.object({
+  "organizationId": zod.string().uuid().nullish(),
+  "emailConfigured": zod.boolean().optional(),
   "id": zod.string().uuid(),
   "sourceId": zod.string().uuid(),
   "sourceType": zod.string(),

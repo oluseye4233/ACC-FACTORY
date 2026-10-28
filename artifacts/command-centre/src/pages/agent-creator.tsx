@@ -30,7 +30,7 @@ const sel = "h-9 w-full rounded-md border bg-background px-2 font-mono text-xs";
 const fmt = (s: string) => new Date(s).toLocaleString();
 /** MA sources are MA birth packages; MICRO_PDD is only ever the paired companion. */
 const MA_TYPE = "MA_BIRTH_PACKAGE";
-/** parentSourceArtifactId is the MA a Micro PDD was converted from (artifactContent.sourceArtifactId). Read defensively until codegen lands. */
+/** parentSourceArtifactId is the MA a Micro PDD was converted from (artifactContent.sourceArtifactId).. */
 const parentOf = (s: { parentSourceArtifactId?: string | null }) => s.parentSourceArtifactId ?? null;
 
 const STATE_TONE: Record<string, string> = {

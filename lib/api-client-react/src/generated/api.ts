@@ -89,6 +89,10 @@ import type {
   DeepHealth,
   DeleteAccountInput,
   DeleteAccountResult,
+  EmailDeliveryInput,
+  EmailDeliveryScope,
+  EmailDeliverySettings,
+  EmailDeliveryVerification,
   EngineerClaimInput,
   ErrorResponse,
   ExecuteSpcPlayerRunInput,
@@ -150,7 +154,9 @@ import type {
   GetArtifactOperationsParams,
   GetArtifactPreparationsParams,
   GetBoomerangRemediationParams,
+  GetEmailDeliverySettingsParams,
   GetF8RemediationProgressParams,
+  GetImprimaPortalParams,
   GetShortSprintPreflightParams,
   GetSphinxCatalog200,
   GetStageSupportOptions200,
@@ -255,6 +261,7 @@ import type {
   StageSupportReturnInput,
   StageSupportStartInput,
   StripeWebhookPayload,
+  TestEmailDeliverySettings200,
   TraineeSupport,
   UnauthorizedResponse,
   UpdateF0RetainerTaskInput,
@@ -296,6 +303,354 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetEmailDeliverySettingsUrl = (params?: GetEmailDeliverySettingsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/me/email-delivery?${stringifiedParams}` : `/api/me/email-delivery`
+}
+
+export const getEmailDeliverySettings = async (params?: GetEmailDeliverySettingsParams, options?: Parameters<typeof customFetch>[1]): Promise<EmailDeliverySettings> => {
+
+  return customFetch<EmailDeliverySettings>(getGetEmailDeliverySettingsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmailDeliverySettingsQueryKey = (params?: GetEmailDeliverySettingsParams,) => {
+    return [
+    `/api/me/email-delivery`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetEmailDeliverySettingsQueryOptions = <TData = Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError = ErrorType<unknown>>(params?: GetEmailDeliverySettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmailDeliverySettingsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmailDeliverySettings>>> = ({ signal }) => getEmailDeliverySettings(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmailDeliverySettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getEmailDeliverySettings>>>
+export type GetEmailDeliverySettingsQueryError = ErrorType<unknown>
+
+
+export function useGetEmailDeliverySettings<TData = Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError = ErrorType<unknown>>(
+ params: undefined |  GetEmailDeliverySettingsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmailDeliverySettings>>,
+          TError,
+          Awaited<ReturnType<typeof getEmailDeliverySettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmailDeliverySettings<TData = Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError = ErrorType<unknown>>(
+ params?: GetEmailDeliverySettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmailDeliverySettings>>,
+          TError,
+          Awaited<ReturnType<typeof getEmailDeliverySettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmailDeliverySettings<TData = Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError = ErrorType<unknown>>(
+ params?: GetEmailDeliverySettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmailDeliverySettings<TData = Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError = ErrorType<unknown>>(
+ params?: GetEmailDeliverySettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmailDeliverySettingsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveEmailDeliverySettingsUrl = () => {
+
+
+
+
+  return `/api/me/email-delivery`
+}
+
+export const saveEmailDeliverySettings = async (emailDeliveryInput: EmailDeliveryInput, options?: Parameters<typeof customFetch>[1]): Promise<EmailDeliverySettings> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<EmailDeliverySettings>(getSaveEmailDeliverySettingsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(emailDeliveryInput)
+  }
+);}
+
+
+
+
+
+export const getSaveEmailDeliverySettingsMutationKey = () => ['saveEmailDeliverySettings'] as const;
+
+export const getSaveEmailDeliverySettingsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmailDeliverySettings>>, TError,SaveEmailDeliverySettingsMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveEmailDeliverySettings>>, TError,SaveEmailDeliverySettingsMutationVariables, TContext> => {
+
+const mutationKey = getSaveEmailDeliverySettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveEmailDeliverySettings>>, SaveEmailDeliverySettingsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveEmailDeliverySettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveEmailDeliverySettingsMutationResult = NonNullable<Awaited<ReturnType<typeof saveEmailDeliverySettings>>>
+    export type SaveEmailDeliverySettingsMutationBody = BodyType<EmailDeliveryInput>
+    export type SaveEmailDeliverySettingsMutationError = ErrorType<unknown>
+    export type SaveEmailDeliverySettingsMutationVariables = {data: BodyType<EmailDeliveryInput>}
+
+    export const useSaveEmailDeliverySettings = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmailDeliverySettings>>, TError,SaveEmailDeliverySettingsMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveEmailDeliverySettings>>,
+        TError,
+        SaveEmailDeliverySettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveEmailDeliverySettingsMutationOptions(options), queryClient);
+    }
+
+export const getTestEmailDeliverySettingsUrl = () => {
+
+
+
+
+  return `/api/me/email-delivery/test`
+}
+
+export const testEmailDeliverySettings = async (emailDeliveryScope: EmailDeliveryScope, options?: Parameters<typeof customFetch>[1]): Promise<TestEmailDeliverySettings200> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<TestEmailDeliverySettings200>(getTestEmailDeliverySettingsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(emailDeliveryScope)
+  }
+);}
+
+
+
+
+
+export const getTestEmailDeliverySettingsMutationKey = () => ['testEmailDeliverySettings'] as const;
+
+export const getTestEmailDeliverySettingsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testEmailDeliverySettings>>, TError,TestEmailDeliverySettingsMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof testEmailDeliverySettings>>, TError,TestEmailDeliverySettingsMutationVariables, TContext> => {
+
+const mutationKey = getTestEmailDeliverySettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof testEmailDeliverySettings>>, TestEmailDeliverySettingsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  testEmailDeliverySettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TestEmailDeliverySettingsMutationResult = NonNullable<Awaited<ReturnType<typeof testEmailDeliverySettings>>>
+    export type TestEmailDeliverySettingsMutationBody = BodyType<EmailDeliveryScope>
+    export type TestEmailDeliverySettingsMutationError = ErrorType<unknown>
+    export type TestEmailDeliverySettingsMutationVariables = {data: BodyType<EmailDeliveryScope>}
+
+    export const useTestEmailDeliverySettings = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testEmailDeliverySettings>>, TError,TestEmailDeliverySettingsMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof testEmailDeliverySettings>>,
+        TError,
+        TestEmailDeliverySettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTestEmailDeliverySettingsMutationOptions(options), queryClient);
+    }
+
+export const getVerifyEmailDeliverySettingsUrl = () => {
+
+
+
+
+  return `/api/me/email-delivery/verify`
+}
+
+export const verifyEmailDeliverySettings = async (emailDeliveryVerification: EmailDeliveryVerification, options?: Parameters<typeof customFetch>[1]): Promise<EmailDeliverySettings> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<EmailDeliverySettings>(getVerifyEmailDeliverySettingsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(emailDeliveryVerification)
+  }
+);}
+
+
+
+
+
+export const getVerifyEmailDeliverySettingsMutationKey = () => ['verifyEmailDeliverySettings'] as const;
+
+export const getVerifyEmailDeliverySettingsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyEmailDeliverySettings>>, TError,VerifyEmailDeliverySettingsMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyEmailDeliverySettings>>, TError,VerifyEmailDeliverySettingsMutationVariables, TContext> => {
+
+const mutationKey = getVerifyEmailDeliverySettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyEmailDeliverySettings>>, VerifyEmailDeliverySettingsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyEmailDeliverySettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyEmailDeliverySettingsMutationResult = NonNullable<Awaited<ReturnType<typeof verifyEmailDeliverySettings>>>
+    export type VerifyEmailDeliverySettingsMutationBody = BodyType<EmailDeliveryVerification>
+    export type VerifyEmailDeliverySettingsMutationError = ErrorType<unknown>
+    export type VerifyEmailDeliverySettingsMutationVariables = {data: BodyType<EmailDeliveryVerification>}
+
+    export const useVerifyEmailDeliverySettings = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyEmailDeliverySettings>>, TError,VerifyEmailDeliverySettingsMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof verifyEmailDeliverySettings>>,
+        TError,
+        VerifyEmailDeliverySettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getVerifyEmailDeliverySettingsMutationOptions(options), queryClient);
+    }
 
 export const getGetStageSupportOptionsUrl = (params: GetStageSupportOptionsParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -18748,17 +19103,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getRunCreatedAgentMutationOptions(options), queryClient);
     }
 
-export const getGetImprimaPortalUrl = () => {
+export const getGetImprimaPortalUrl = (params?: GetImprimaPortalParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/imprima-portal`
+  return stringifiedParams.length > 0 ? `/api/imprima-portal?${stringifiedParams}` : `/api/imprima-portal`
 }
 
-export const getImprimaPortal = async ( options?: Parameters<typeof customFetch>[1]): Promise<ImprimaPortal> => {
+export const getImprimaPortal = async (params?: GetImprimaPortalParams, options?: Parameters<typeof customFetch>[1]): Promise<ImprimaPortal> => {
 
-  return customFetch<ImprimaPortal>(getGetImprimaPortalUrl(),
+  return customFetch<ImprimaPortal>(getGetImprimaPortalUrl(params),
   {
     ...options,
     method: 'GET'
@@ -18771,23 +19133,23 @@ export const getImprimaPortal = async ( options?: Parameters<typeof customFetch>
 
 
 
-export const getGetImprimaPortalQueryKey = () => {
+export const getGetImprimaPortalQueryKey = (params?: GetImprimaPortalParams,) => {
     return [
-    `/api/imprima-portal`
+    `/api/imprima-portal`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetImprimaPortalQueryOptions = <TData = Awaited<ReturnType<typeof getImprimaPortal>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getGetImprimaPortalQueryOptions = <TData = Awaited<ReturnType<typeof getImprimaPortal>>, TError = ErrorType<unknown>>(params?: GetImprimaPortalParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetImprimaPortalQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetImprimaPortalQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getImprimaPortal>>> = ({ signal }) => getImprimaPortal({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getImprimaPortal>>> = ({ signal }) => getImprimaPortal(params, { signal, ...requestOptions });
 
 
 
@@ -18801,7 +19163,7 @@ export type GetImprimaPortalQueryError = ErrorType<unknown>
 
 
 export function useGetImprimaPortal<TData = Awaited<ReturnType<typeof getImprimaPortal>>, TError = ErrorType<unknown>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>> & Pick<
+ params: undefined |  GetImprimaPortalParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getImprimaPortal>>,
           TError,
@@ -18811,7 +19173,7 @@ export function useGetImprimaPortal<TData = Awaited<ReturnType<typeof getImprima
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetImprimaPortal<TData = Awaited<ReturnType<typeof getImprimaPortal>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>> & Pick<
+ params?: GetImprimaPortalParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getImprimaPortal>>,
           TError,
@@ -18821,16 +19183,16 @@ export function useGetImprimaPortal<TData = Awaited<ReturnType<typeof getImprima
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetImprimaPortal<TData = Awaited<ReturnType<typeof getImprimaPortal>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: GetImprimaPortalParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useGetImprimaPortal<TData = Awaited<ReturnType<typeof getImprimaPortal>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: GetImprimaPortalParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetImprimaPortalQueryOptions(options)
+  const queryOptions = getGetImprimaPortalQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

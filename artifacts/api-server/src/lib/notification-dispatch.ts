@@ -1,3 +1,4 @@
+import { scopedEmailTransport } from "./email-delivery";
 import { and, eq, gte, lt, sql } from "drizzle-orm";
 import {
   db,
@@ -71,6 +72,7 @@ export async function maybeDispatchHighCostAlerts(args: {
       void safeFire(
         "high-cost-alert",
         sendHighCostRunAlert({
+          delivery: scopedEmailTransport({ userId: c.userId, organizationId: orgId }),
           to: c.email,
           orgName: ctx.orgName,
           actorEmail: ctx.email,
@@ -108,6 +110,7 @@ export async function dispatchBillingFailureForCustomer(args: {
       void safeFire(
         "billing-alert",
         sendBillingFailureAlert({
+          delivery: scopedEmailTransport({ userId: c.userId, organizationId: c.orgId }),
           to: c.email,
           orgName: c.orgName,
           eventType: args.eventType,
@@ -148,6 +151,7 @@ export async function dispatchRetainerMonitoringAlert(args: {
     const prefs = await getOrCreatePreferences(args.userId, null);
     if (!prefs.retainerAlertsEnabled) return false;
     const result = await sendRetainerMonitoringAlert({
+      delivery: scopedEmailTransport({ userId: args.userId }),
       to: email,
       retainerTitle: args.retainerTitle,
       capiPosture: args.capiPosture,
@@ -310,6 +314,7 @@ export async function runWeeklyDigest(now: Date = new Date()): Promise<{
       const prefs = await getOrCreatePreferences(c.userId, c.orgId);
       try {
         const result = await sendOrgActivityDigest({
+          delivery: scopedEmailTransport({ userId: c.userId, organizationId: c.orgId }),
           to: c.email,
           orgName: c.orgName,
           periodStart: windowStart,

@@ -1,3 +1,4 @@
+import { EmailDeliveryError } from "../lib/email-delivery";
 import { Router } from "express";
 import { z } from "zod/v4";
 import { CreatePortalPublicationBody, DownloadPortalPublicationBody } from "@workspace/api-zod";
@@ -10,11 +11,11 @@ router.use("/imprima-portal", (_req, res, next) => { res.setHeader("Cache-Contro
 const uuid = z.string().uuid();
 function failure(res: import("express").Response, err: unknown) {
   if (err instanceof z.ZodError) return res.status(400).json({ error: "Invalid publication request." });
-  if (err instanceof CreatorError) return res.status(err.status).json({ error: err.message });
+  if (err instanceof CreatorError || err instanceof EmailDeliveryError) return res.status(err.status).json({ error: err.message });
   return res.status(503).json({ error: "Publication could not be confirmed. No download has been authorized. Check saved publication status." });
 }
 router.get("/imprima-portal", requireAuth, async (req, res) => {
-  try { res.json(await portalWorkspace(req.localUser!.id)); } catch (err) { failure(res, err); }
+  try { res.json(await portalWorkspace(req.localUser!.id, req.query.organizationId === undefined ? undefined : uuid.parse(req.query.organizationId))); } catch (err) { failure(res, err); }
 });
 router.post("/imprima-portal/publications", requireAuth, async (req, res) => {
   try { res.json(await preparePublication(req.localUser!.id, CreatePortalPublicationBody.parse(req.body))); } catch (err) { failure(res, err); }

@@ -2,14 +2,17 @@ export type EmailResult =
   | { ok: true; id: string; dryRun?: boolean }
   | { ok: false; error: string };
 
-type SendArgs = {
+export type EmailMessage = {
   to: string;
   subject: string;
   html: string;
   text: string;
   idempotencyKey?: string;
   attachments?: { filename: string; content: string }[];
+  replyTo?: string;
 };
+export type EmailTransport = (args: EmailMessage) => Promise<EmailResult>;
+type SendArgs = EmailMessage & { from?: string; strict?: boolean };
 
 const FROM = process.env.EMAIL_FROM ?? "ATANDA Command Centre <no-reply@atanda.local>";
 
@@ -22,9 +25,9 @@ export function learningEmailConfigured(): boolean {
 export function sendPublicationMessage(args: {
   to: string; subject: string; text: string; idempotencyKey: string;
   attachment?: { filename: string; bytes: Buffer };
-}): Promise<EmailResult> {
-  if (!learningEmailConfigured()) return Promise.resolve({ ok: false, error: "Publication email service is not configured" });
-  return send({
+}, delivery?: EmailTransport): Promise<EmailResult> {
+  if (!delivery && !learningEmailConfigured()) return Promise.resolve({ ok: false, error: "Publication email service is not configured" });
+  return (delivery ?? send)({
     to: args.to, subject: args.subject, text: args.text,
     html: `<pre style="white-space:pre-wrap">${esc(args.text)}</pre>`,
     idempotencyKey: args.idempotencyKey,
@@ -63,6 +66,7 @@ const esc = (value: string): string =>
 
 async function send(args: SendArgs): Promise<EmailResult> {
   const key = process.env.RESEND_API_KEY;
+  if (args.strict && !learningEmailConfigured()) return { ok: false, error: "Platform email delivery is not configured." };
   if (!key) {
     // Dry-run: keep dev/test working without a key.
     // eslint-disable-next-line no-console
@@ -75,18 +79,63 @@ async function send(args: SendArgs): Promise<EmailResult> {
     const { Resend } = await import("resend");
     const resend = new Resend(key);
     const result = await resend.emails.send({
-      from: FROM,
+      from: args.from ?? FROM,
       to: args.to,
       subject: args.subject,
       html: args.html,
       text: args.text,
+      ...(args.replyTo ? { replyTo: args.replyTo } : {}),
       ...(args.attachments ? { attachments: args.attachments } : {}),
     }, { idempotencyKey: args.idempotencyKey });
     if (result.error) return { ok: false, error: result.error.message };
+    if (args.strict && !result.data?.id) return { ok: false, error: "Email acceptance could not be confirmed." };
     return { ok: true, id: result.data?.id ?? "unknown" };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
+}
+
+/** Strict transactional transport. Never logs content or treats a dry-run as sent. */
+export function sendManagedEmail(args: EmailMessage, identity?: { senderName?: string | null; replyTo?: string | null }): Promise<EmailResult> {
+  const configuredFrom = process.env.EMAIL_FROM ?? "";
+  const address = configuredFrom.match(/<([^<>]+)>\s*$/)?.[1] ?? configuredFrom;
+  const from = identity?.senderName ? `${JSON.stringify(identity.senderName)} <${address}>` : configuredFrom;
+  return send({ ...args, from, strict: true, replyTo: identity?.replyTo ?? args.replyTo })
+    .then(result => result.ok ? result : { ok: false, error: "Platform email delivery could not be confirmed." });
+}
+
+/** Subscriber credentials are supplied only by the server-side encrypted settings resolver. */
+export async function sendProviderEmail(provider: "RESEND" | "POSTMARK", credential: string,
+  identity: { fromEmail: string; senderName?: string | null; replyTo?: string | null },
+  args: EmailMessage): Promise<EmailResult> {
+  const from = identity.senderName ? `${JSON.stringify(identity.senderName)} <${identity.fromEmail}>` : identity.fromEmail;
+  try {
+    if (provider === "RESEND") {
+      const { Resend } = await import("resend");
+      const result = await new Resend(credential).emails.send({
+        from, to: args.to, subject: args.subject, html: args.html, text: args.text,
+        ...(identity.replyTo ? { replyTo: identity.replyTo } : {}),
+        ...(args.attachments ? { attachments: args.attachments } : {}),
+      }, { idempotencyKey: args.idempotencyKey });
+      return result.error || !result.data?.id
+        ? { ok: false, error: "Provider did not confirm email acceptance. Check the verified sender and connection." }
+        : { ok: true, id: result.data.id };
+    }
+    const response = await fetch("https://api.postmarkapp.com/email", {
+      method: "POST", redirect: "error", signal: AbortSignal.timeout(15_000),
+      headers: { "Content-Type": "application/json", Accept: "application/json", "X-Postmark-Server-Token": credential },
+      body: JSON.stringify({ From: from, To: args.to, Subject: args.subject, HtmlBody: args.html, TextBody: args.text,
+        ...(identity.replyTo ? { ReplyTo: identity.replyTo } : {}),
+        ...(args.attachments ? { Attachments: args.attachments.map(file => ({
+          Name: file.filename, Content: file.content, ContentType: file.filename.endsWith(".pdf") ? "application/pdf" : "application/zip",
+        })) } : {}),
+      }),
+    });
+    const result = await response.json() as { ErrorCode?: number; MessageID?: string };
+    return response.ok && result.ErrorCode === 0 && result.MessageID
+      ? { ok: true, id: result.MessageID }
+      : { ok: false, error: "Provider did not confirm email acceptance. Check the verified sender and connection." };
+  } catch { return { ok: false, error: "Email delivery could not be confirmed. No automatic retry was made." }; }
 }
 
 /** Operator-only operational alert. Never include private paths or raw errors. */
@@ -284,6 +333,7 @@ export interface DigestRow {
 }
 
 export function sendOrgActivityDigest(args: {
+  delivery?: EmailTransport;
   to: string;
   orgName: string;
   periodStart: Date;
@@ -357,7 +407,7 @@ ${billingText}
 
 Full activity: ${args.activityUrl}
 Unsubscribe: ${args.unsubscribeUrl}`;
-  return send({
+  return (args.delivery ?? send)({
     to: args.to,
     subject: `WEEKLY DIGEST · ${args.orgName}`,
     html: wrap("WEEKLY ACTIVITY DIGEST", body),
@@ -366,6 +416,7 @@ Unsubscribe: ${args.unsubscribeUrl}`;
 }
 
 export function sendBillingFailureAlert(args: {
+  delivery?: EmailTransport;
   to: string;
   orgName: string | null;
   eventType: string;
@@ -385,7 +436,7 @@ export function sendBillingFailureAlert(args: {
   const text = `Billing event on ${scopeText}: ${args.eventType} at ${args.occurredAt.toISOString()}.
 Open billing: ${args.billingUrl}
 Unsubscribe: ${args.unsubscribeUrl}`;
-  return send({
+  return (args.delivery ?? send)({
     to: args.to,
     subject: `BILLING ALERT · ${args.eventType}`,
     html: wrap("BILLING ALERT", body),
@@ -394,6 +445,7 @@ Unsubscribe: ${args.unsubscribeUrl}`;
 }
 
 export function sendHighCostRunAlert(args: {
+  delivery?: EmailTransport;
   to: string;
   orgName: string | null;
   actorEmail: string | null;
@@ -427,7 +479,7 @@ Session: ${args.sessionId}
 When: ${args.occurredAt.toISOString()}
 Activity: ${args.activityUrl}
 Unsubscribe: ${args.unsubscribeUrl}`;
-  return send({
+  return (args.delivery ?? send)({
     to: args.to,
     subject: `HIGH-COST RUN · F${args.engineId} · $${args.costUsd.toFixed(2)}`,
     html: wrap("HIGH-COST RUN ALERT", body),
@@ -442,6 +494,7 @@ export interface RetainerAlertItem {
 }
 
 export function sendRetainerMonitoringAlert(args: {
+  delivery?: EmailTransport;
   to: string;
   retainerTitle: string;
   capiPosture: string;
@@ -483,7 +536,7 @@ ${args.weeklyCounsel}
 
 Dashboard: ${args.dashboardUrl}
 Unsubscribe: ${args.unsubscribeUrl}`;
-  return send({
+  return (args.delivery ?? send)({
     to: args.to,
     subject: `RETAINER ALERT · ${args.highestUrgency} · ${args.retainerTitle}`,
     html: wrap("RETAINER MONITORING ALERT", body),

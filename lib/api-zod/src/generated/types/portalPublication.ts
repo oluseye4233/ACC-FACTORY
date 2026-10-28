@@ -7,6 +7,9 @@
  */
 
 export interface PortalPublication {
+  /** @nullable */
+  organizationId?: string | null;
+  emailConfigured?: boolean;
   id: string;
   sourceId: string;
   sourceType: string;

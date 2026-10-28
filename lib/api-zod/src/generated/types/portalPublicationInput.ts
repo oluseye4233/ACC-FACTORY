@@ -11,6 +11,8 @@ import type { PortalPublicationInputKind } from './portalPublicationInputKind';
 import type { PortalPublicationInputSourceType } from './portalPublicationInputSourceType';
 
 export interface PortalPublicationInput {
+  /** @nullable */
+  organizationId?: string | null;
   sourceId: string;
   sourceType: PortalPublicationInputSourceType;
   parentId?: string;

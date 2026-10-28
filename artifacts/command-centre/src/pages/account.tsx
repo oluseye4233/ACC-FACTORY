@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLogout } from "@/lib/staff-session";
 import { TopNav } from "@/components/layout/TopNav";
@@ -298,6 +299,10 @@ export default function Account() {
               </CardHeader>
               <CardContent>
                 <NotificationPreferences orgId={null} scopeLabel="Personal account" />
+                <p className="mt-4 font-mono text-[11px] text-muted-foreground">
+                  Organization email delivery and notifications are managed per organization in{" "}
+                  <Link href="/orgs" className="text-primary underline" data-testid="link-account-orgs">Organizations</Link>.
+                </p>
               </CardContent>
             </Card>
 

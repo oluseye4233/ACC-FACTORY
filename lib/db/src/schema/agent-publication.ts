@@ -29,6 +29,8 @@ export const createdAgentRunsTable = pgTable("created_agent_runs", {
 }, t => [uniqueIndex("created_agent_runs_owner_request").on(t.userId, t.requestKey), index("created_agent_runs_agent").on(t.agentId)]);
 
 export const portalPublicationsTable = pgTable("portal_publications", {
+  // Retained independently of org deletion so delivery never silently changes tenant.
+  organizationId: uuid("organization_id"),
   id: uuid("id").primaryKey(),
   userId: uuid("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
   sourceType: text("source_type").notNull(),

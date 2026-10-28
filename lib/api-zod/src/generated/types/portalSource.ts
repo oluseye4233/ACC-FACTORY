@@ -13,6 +13,8 @@ export interface PortalSource {
   title: string;
   type: string;
   /** @nullable */
+  organizationId?: string | null;
+  /** @nullable */
   parentSourceArtifactId?: string | null;
   /** @nullable */
   sessionId?: string | null;

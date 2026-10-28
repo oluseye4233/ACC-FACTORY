@@ -44,6 +44,8 @@ const Sphinx = lazy(() => import("@/pages/sphinx"));
 const Prompts = lazy(() => import("@/pages/prompts"));
 const Quests = lazy(() => import("@/pages/quests"));
 const Account = lazy(() => import("@/pages/account"));
+const Orgs = lazy(() => import("@/pages/orgs"));
+const OrgDetail = lazy(() => import("@/pages/org-detail"));
 const F0Dashboard = lazy(() => import("@/pages/f0"));
 const AdminBadges = lazy(() => import("@/pages/admin-badges"));
 const AdminOps = lazy(() => import("@/pages/admin-ops"));
@@ -51,6 +53,7 @@ const AdminProviderBilling = lazy(() => import("@/pages/admin-provider-billing")
 const Ascension = lazy(() => import("@/pages/ascension"));
 const F10Console = lazy(() => import("@/pages/f10"));
 const AgentCreator = lazy(() => import("@/pages/agent-creator"));
+const EmailSettings = lazy(() => import("@/pages/email-settings"));
 const ImprimaPortal = lazy(() => import("@/pages/imprima-portal"));
 const Operations = lazy(() => import("@/pages/operations"));
 const Activity = lazy(() => import("@/pages/activity"));
@@ -131,6 +134,8 @@ function AuthenticatedRoutes() {
       <Route path="/quests" component={Quests} />
       <Route path="/ascension" component={Ascension} />
       <Route path="/account" component={Account} />
+      <Route path="/orgs" component={Orgs} />
+      <Route path="/orgs/:id" component={OrgDetail} />
       <Route path="/admin/badges" component={AdminBadges} />
       <Route path="/admin/ops" component={AdminOps} />
       <Route path="/admin/provider-billing" component={AdminProviderBilling} />
@@ -143,6 +148,7 @@ function AuthenticatedRoutes() {
       <Route path="/spc-player/:id" component={SpcPlayerDetail} />
       <Route path="/operations" component={Operations} />
       <Route path="/agent-creator" component={AgentCreator} />
+      <Route path="/email-settings" component={EmailSettings} />
       <Route path="/imprima-portal" component={ImprimaPortal} />
       <Route path="/f10" component={() => <F10Console />} />
       <Route component={NotFound} />

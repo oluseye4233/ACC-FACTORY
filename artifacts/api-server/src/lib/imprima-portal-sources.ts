@@ -12,10 +12,11 @@ import { readPrivate } from "./artifact-operations/private-storage";
 import { buildExport, SOURCE_TYPES, type OwnedSource, type ExportProfile } from "./f10-export";
 
 export type PortalSourceInput = {
+  organizationId?: string | null;
   sourceId: string; sourceType: string; parentId?: string; kind?: "imprima" | "short-sprints";
   exportOptions?: Record<string, unknown>;
 };
-export type ResolvedPortalSource = { title: string; content: unknown; artifactKind?: string; native?: { filename: string; bytes: Buffer } };
+export type ResolvedPortalSource = { title: string; content: unknown; sessionId?: string | null; artifactKind?: string; native?: { filename: string; bytes: Buffer } };
 export async function portalActor(userId: string) {
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
   if (!user) throw new CreatorError(404, "Subscriber not found.");
@@ -27,7 +28,7 @@ export async function resolvePortalSource(userId: string, input: PortalSourceInp
       .innerJoin(executions, eq(executions.id, drafts.id))
       .where(and(eq(drafts.id, input.sourceId), eq(drafts.ownerUserId, userId), eq(executions.userId, userId))).limit(1);
     if (!row || row.execution.status !== "completed" || !row.execution.outputPackage) throw new CreatorError(409, "An owned, completed SPC Player synthesis is required.");
-    return { title: row.draft.title, content: row.execution.outputPackage };
+    return { title: row.draft.title, content: row.execution.outputPackage, sessionId: row.draft.originSessionId };
   }
   if (input.sourceType === "IMPRIMA_FILE") {
     const actor = await portalActor(userId);
@@ -76,11 +77,11 @@ export async function resolvePortalSource(userId: string, input: PortalSourceInp
     if (!profile.success) throw new CreatorError(400, "Select a valid F10 export family, output kind and target.");
     const output = buildExport({ id: source.id, type: source.artifactType as OwnedSource["type"], name: source.name,
       content: source.artifactContent, createdAt: source.createdAt }, profile.data as ExportProfile);
-    return { title, content: { manifest: output.manifest, notice: "Target packaging only. No deployment or external permission is conferred." },
+    return { title, sessionId: source.sessionId, content: { manifest: output.manifest, notice: "Target packaging only. No deployment or external permission is conferred." },
       native: { filename: "target-export.zip", bytes: output.bundle } };
   }
   if (["IMPRIMA_PREPARATION", "SHORT_SPRINT_PREPARATION"].includes(source.artifactType)) {
     throw new CreatorError(409, "Choose the preparation's file in IMPRIMA Portal, not its internal storage metadata.");
   }
-  return { title, content: source.artifactContent, artifactKind: source.artifactType };
+  return { title, content: source.artifactContent, artifactKind: source.artifactType, sessionId: source.sessionId };
 }
