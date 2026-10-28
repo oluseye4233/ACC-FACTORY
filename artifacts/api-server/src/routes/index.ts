@@ -1,5 +1,8 @@
 import { Router, type IRouter } from "express";
 import platformServicesRouter from "./platform-services";
+import agentCreatorRouter from "./agent-creator";
+import imprimaPortalRouter from "./imprima-portal";
+import { imprimaDownloadGate } from "../lib/imprima-download-gate";
 import healthRouter from "./health";
 import learningRouter from "./learning";
 import learningConvenerRouter from "./learning-convener";
@@ -43,6 +46,9 @@ import { guardSkippedEngine } from "../lib/artifact-operations/engine-guard";
 
 const router: IRouter = Router();
 router.use(platformServicesRouter);
+router.use(agentCreatorRouter);
+router.use(imprimaPortalRouter);
+router.use(imprimaDownloadGate);
 router.use(learningRouter);
 router.use(learningConvenerRouter);
 router.use(guardSkippedEngine);

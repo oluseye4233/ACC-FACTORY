@@ -8,6 +8,7 @@ type SendArgs = {
   html: string;
   text: string;
   idempotencyKey?: string;
+  attachments?: { filename: string; content: string }[];
 };
 
 const FROM = process.env.EMAIL_FROM ?? "ATANDA Command Centre <no-reply@atanda.local>";
@@ -15,6 +16,22 @@ const FROM = process.env.EMAIL_FROM ?? "ATANDA Command Centre <no-reply@atanda.l
 /** Cohort mail must never pretend a dry-run was sent. */
 export function learningEmailConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+}
+
+/** Publication credentials/copies must never use the legacy development dry-run. */
+export function sendPublicationMessage(args: {
+  to: string; subject: string; text: string; idempotencyKey: string;
+  attachment?: { filename: string; bytes: Buffer };
+}): Promise<EmailResult> {
+  if (!learningEmailConfigured()) return Promise.resolve({ ok: false, error: "Publication email service is not configured" });
+  return send({
+    to: args.to, subject: args.subject, text: args.text,
+    html: `<pre style="white-space:pre-wrap">${esc(args.text)}</pre>`,
+    idempotencyKey: args.idempotencyKey,
+    ...(args.attachment ? { attachments: [{
+      filename: args.attachment.filename, content: args.attachment.bytes.toString("base64"),
+    }] } : {}),
+  });
 }
 
 export function sendLearningMessage(args: {
@@ -63,6 +80,7 @@ async function send(args: SendArgs): Promise<EmailResult> {
       subject: args.subject,
       html: args.html,
       text: args.text,
+      ...(args.attachments ? { attachments: args.attachments } : {}),
     }, { idempotencyKey: args.idempotencyKey });
     if (result.error) return { ok: false, error: result.error.message };
     return { ok: true, id: result.data?.id ?? "unknown" };

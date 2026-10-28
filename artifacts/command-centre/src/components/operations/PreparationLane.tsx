@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetArtifactPreparationsQueryKey,
@@ -9,11 +10,11 @@ import {
   type ArtifactPreparationWorkspace,
   type GetArtifactPreparationsParams,
 } from "@workspace/api-client-react";
-import { Archive, Download, FileText, ShieldAlert, ShieldCheck } from "lucide-react";
+import { FileText, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MANIFEST_FIELDS, PREPARATION_MANIFEST_SAMPLE, downloadFrom, errMessage, isRec, rec, str, type OpsKind } from "@/lib/artifact-ops";
+import { MANIFEST_FIELDS, PREPARATION_MANIFEST_SAMPLE, errMessage, isRec, rec, str, type OpsKind } from "@/lib/artifact-ops";
 import { streamSse } from "@/lib/sse";
 import { InternalEditorialChanges } from "./InternalEditorialChanges";
 import { StageSupportReturnAction } from "@/components/shared/StageSupportReturn";
@@ -135,8 +136,6 @@ export function InternalReport({ id, value }: { id: string; value: unknown }) {
 function PrepCard({ p, kind, departure }: { p: ArtifactPreparation; kind: OpsKind; departure: Departure | null }) {
   const returnable = !!departure && departure.tool === kind && p.sourceId === departure.sourceId && p.files.length > 0 && p.state === COMPLETED_STATE[kind];
   const isInternal = p.evaluationMode === "INTERNAL";
-  const [err, setErr] = useState<string | null>(null);
-  const dl = (path: string, name: string) => downloadFrom(path, name).then(() => setErr(null), (e) => setErr(errMessage(e).message));
   const zip = p.files.find((f) => f.format.toUpperCase() === "ZIP" || f.filename.endsWith(".zip"));
   return (
     <li className="border rounded p-3 bg-card space-y-2" data-testid={`card-prep-${p.id}`}>
@@ -156,9 +155,7 @@ function PrepCard({ p, kind, departure }: { p: ArtifactPreparation; kind: OpsKin
       {isInternal && <InternalReport id={p.id} value={p.internalEvaluation} />}
       {p.notices.length > 0 && <ul className="font-mono text-[10px] list-disc pl-4">{p.notices.map((n, i) => <li key={i}>{n}</li>)}</ul>}
       {zip && (
-        <Button size="sm" className="h-7" onClick={() => dl(zip.downloadPath, zip.filename)} data-testid={`button-prep-zip-${p.id}`}>
-          <Archive className="h-3 w-3 mr-1" /> Download ZIP
-        </Button>
+        <PortalArtifactLink sourceId={zip.id} sourceType="PREPARATION_FILE" parentId={p.id} kind={kind} sessionId={p.sessionId} testId={`button-prep-zip-${p.id}`} label="ZIP via Portal" />
       )}
       <ul className="divide-y border-t font-mono text-[11px]">
         {p.files.map((f) => (
@@ -167,13 +164,10 @@ function PrepCard({ p, kind, departure }: { p: ArtifactPreparation; kind: OpsKin
             <span className="truncate">{f.filename}</span>
             <span className="text-muted-foreground">{f.size.toLocaleString()} bytes</span>
             <span className="text-muted-foreground break-all w-full">sha256 {f.fileHash}</span>
-            <Button size="sm" variant="outline" className="h-7 ml-auto" onClick={() => dl(f.downloadPath, f.filename)} data-testid={`button-prep-download-${f.id}`}>
-              <Download className="h-3 w-3 mr-1" /> Download
-            </Button>
+            <PortalArtifactLink sourceId={f.id} sourceType="PREPARATION_FILE" parentId={p.id} kind={kind} sessionId={p.sessionId} testId={`button-prep-download-${f.id}`} label="Portal" className="ml-auto h-7" />
           </li>
         ))}
       </ul>
-      {err && <p className="font-mono text-xs text-destructive">{err}</p>}
       {returnable && <StageSupportReturnAction departure={departure} resultId={p.id} />}
     </li>
   );

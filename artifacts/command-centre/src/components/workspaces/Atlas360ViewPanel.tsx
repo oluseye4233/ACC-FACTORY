@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessPddView,
@@ -20,9 +21,7 @@ import {
 import { UpgradeCTA } from "@/components/shared/UpgradeCTA";
 import { ErrorBanner } from "./_shared";
 import { extractApiError } from "@/lib/sse";
-import { downloadZip } from "@/lib/zipExport";
-import { buildArtifactFilename } from "@workspace/artifact-naming";
-import { Download, LayoutDashboard, ShieldAlert, Loader2 } from "lucide-react";
+import { LayoutDashboard, ShieldAlert, Loader2 } from "lucide-react";
 
 interface Props {
   sessionId: string;
@@ -91,45 +90,7 @@ export function Atlas360ViewPanel({ sessionId, sessionOrigin, sourceArtifactId, 
     });
   };
 
-  const exportView = async () => {
-    if (!viewData) return;
-    const files: Record<string, string> = {};
-    
-    // JSON dump
-    files[`atlas-360-${format}.json`] = JSON.stringify(viewData, null, 2);
-    
-    // Markdown dump
-    let md = `# ATLAS 360 ${viewData.view} VIEW\n\n`;
-    if (viewData.disclosure) {
-      md += `> **DISCLOSURE**: ${viewData.disclosure}\n\n`;
-    }
-    
-    if (viewData.view === 'PLAN' && viewData.parts) {
-      for (const part of viewData.parts) {
-        md += `## Part ${part.part}: ${part.title}\n\n${part.content}\n\n`;
-      }
-    } else if (viewData.view === 'SCAN' && viewData.stages) {
-      for (const stage of viewData.stages) {
-        md += `## Stage ${stage.stage}: ${stage.name}\n\n`;
-        md += `**Assessment**: ${stage.assessment}\n\n`;
-        md += `**Evidence**:\n${stage.evidence.map(e => `- ${e}`).join('\n')}\n\n`;
-        md += `**Actions**:\n${stage.actions.map(a => `- ${a}`).join('\n')}\n\n`;
-      }
-    }
-    
-    files[`atlas-360-${format}.md`] = md;
-    
-    const viewArtifactId = matchingArtifact?.id ?? sourceArtifactId;
-    const filename = buildArtifactFilename({
-      type: "ATLAS_360",
-      title: viewData.title || `ATLAS 360 ${format}`,
-      id: viewArtifactId,
-      extension: "zip",
-    });
-    await downloadZip(filename, files);
-  };
-
-  return (
+    return (
     <Card className="flex flex-col bg-card/50 mt-4 overflow-hidden border-border/50">
       <div className="p-4 border-b border-border/40 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
@@ -173,15 +134,7 @@ export function Atlas360ViewPanel({ sessionId, sessionOrigin, sourceArtifactId, 
           </Button>
           
           {viewData && (
-            <Button
-              onClick={exportView}
-              variant="outline"
-              size="sm"
-              className="font-mono text-xs h-8 px-3"
-              data-testid="pdd-view-export"
-            >
-              <Download className="w-3 h-3 mr-1.5" /> EXPORT
-            </Button>
+            <PortalArtifactLink sourceId={matchingArtifact?.id} sessionId={sessionId} testId="pdd-view-export" missingReason="This view is not saved as an artifact yet." />
           )}
         </div>
       </div>

@@ -12,6 +12,7 @@ export type StageSupportDepartureTool = typeof StageSupportDepartureTool[keyof t
 export const StageSupportDepartureTool = {
   imprima: 'imprima',
   'short-sprints': 'short-sprints',
+  'agent-creator': 'agent-creator',
   ingestion: 'ingestion',
   cartridge: 'cartridge',
   f0: 'f0',

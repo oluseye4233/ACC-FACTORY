@@ -68,7 +68,7 @@ interface LinkDraft {
   note: string;
 }
 
-export default function Cartridge() {
+export default function Cartridge({ embedded = false }: { embedded?: boolean } = {}) {
   const [location, setLocation] = useLocation();
   const currentSearch = useSearch();
   const { toast } = useToast();
@@ -266,17 +266,17 @@ export default function Cartridge() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background">
-      <TopNav />
+    <div className={embedded ? "flex flex-col bg-background" : "min-h-[100dvh] flex flex-col bg-background"} data-testid={embedded ? `embedded-${"cartridge"}` : undefined}>
+      {!embedded && <TopNav />}
       <StageSupportBanner {...support} />
       <main className="flex-1">
         <section className="border-b bg-gradient-to-b from-secondary/5 to-background">
           <div className="container px-4 md:px-6 py-8 md:py-12 max-w-4xl">
-            <Button asChild variant="ghost" size="sm" className="-ml-2 mb-4">
+            {!embedded && <Button asChild variant="ghost" size="sm" className="-ml-2 mb-4">
               <Link href="/command" className="gap-2 text-muted-foreground">
                 <ArrowLeft className="h-4 w-4" /> RETURN TO COMMAND
               </Link>
-            </Button>
+            </Button>}
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-mono text-primary mb-3">
               <Sparkles className="h-3 w-3" />
               STANDALONE · PREMIUM PER-PROJECT
@@ -890,7 +890,7 @@ export default function Cartridge() {
           )}
         </section>
       </main>
-      <Footer />
+      {!embedded && <Footer />}
     </div>
   );
 }

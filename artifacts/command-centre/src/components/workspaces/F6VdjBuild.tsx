@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import {
   useHarnessF6Vdj,
   useHarnessF8Hdj,
@@ -23,11 +24,8 @@ import {
   overrideToBody,
   type OverrideValue,
 } from "@/components/shared/ProviderOverride";
-import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
-import { exportBuildInstructions } from "@/lib/buildInstructionsExport";
-import { Download, Music2, Rocket, Wrench } from "lucide-react";
-import { buildArtifactFilename } from "@workspace/artifact-naming";
+import { Music2, Rocket, Wrench } from "lucide-react";
 
 const HOST_LABELS: Record<string, string> = {
   "replit-deployments": "Replit Deployments",
@@ -48,7 +46,6 @@ interface Props {
 }
 
 export function F6VdjBuild({ sessionId, artifacts }: Props) {
-  const { toast } = useToast();
 
   const atlasPddSources = useMemo(
     () =>
@@ -163,32 +160,7 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
     });
   };
 
-  const exportBrief = async () => {
-    try {
-      const source = artifacts.find(
-        (artifact) => artifact.id === (vdjSourceId || hostSourceId),
-      );
-      await exportBuildInstructions(
-        sessionId,
-        vdj,
-        hostPlan,
-        source?.name ?? "BUILD INSTRUCTIONS",
-        source?.id ?? sessionId,
-      );
-      toast({
-        title: "BUILD INSTRUCTIONS exported",
-        description: "VIBE ORACLE + HOST ORACLE brief downloaded as a ZIP.",
-      });
-    } catch {
-      toast({
-        title: "Export failed",
-        description: "Could not build the export ZIP.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (!atlasPddSources.length && !certifiedMvpSources.length) {
+    if (!atlasPddSources.length && !certifiedMvpSources.length) {
     return (
       <WorkspaceShell>
         <EmptyState
@@ -201,22 +173,10 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
     );
   }
 
-  const canExport = !!vdj || !!hostPlan;
-
   return (
     <WorkspaceShell
       toolbar={
-        <Button
-          onClick={exportBrief}
-          size="sm"
-          variant="outline"
-          disabled={!canExport}
-          className="font-mono text-xs gap-1.5"
-          data-testid="build-instructions-export"
-        >
-          <Download className="h-3.5 w-3.5" />
-          EXPORT
-        </Button>
+        <PortalArtifactLink sourceId={hostPlan?.artifactId} sessionId={sessionId} testId="build-instructions-export" missingReason="Generate the HOST ORACLE plan to publish build instructions; the VIBE recommendation alone is not a saved artifact." />
       }
     >
       <div className="grid lg:grid-cols-2 gap-4">

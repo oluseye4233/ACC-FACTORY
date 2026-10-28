@@ -26,3 +26,24 @@ controls; cosmetic button renaming is insufficient. Distinguish downloader,
 author and publisher, preserve ownership and protected workflow boundaries,
 and do not describe publication stamps as proof of copyright ownership,
 registration, independent certification or a release approval.
+
+For editable code and previously bound native files, retain the original bytes
+and put the publication identity/stamp in an accompanying publication document.
+Do not inject stamps into executable code or silently rewrite a bound manifest.
+
+**Why:** Traceable publication must not invalidate file-integrity evidence or
+change the behaviour of the code being handed off.
+
+Subscriber-configurable email is part of the individual-account or enterprise
+authentication and notification experience, not solely an ATANDA workspace-wide
+sender setup.
+
+**Why:** The user clarified that subscribers must customize their own email
+system as part of single-user or enterprise account setup.
+
+**How to apply:** Scope individual settings to the subscriber and enterprise
+settings to the organization with authorized administrative controls. Separate
+delivery-provider configuration from preferences and identity verification.
+Do not interpret this clarification as permission to disable publication codes
+or the previously required control copy. Whether customization includes
+bring-your-own delivery providers remains to be confirmed.

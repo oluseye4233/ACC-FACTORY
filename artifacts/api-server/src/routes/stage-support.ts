@@ -1,3 +1,4 @@
+import { createdAgentsTable, portalPublicationsTable } from "@workspace/db";
 import { Router, type Response } from "express";
 import { z } from "zod";
 import { and, desc, eq, sql } from "drizzle-orm";
@@ -65,7 +66,11 @@ async function departureDto(reader: Reader, row: Case) {
   const sourceText = JSON.stringify(source.artifactContent, null, 2);
   if (sourceText.length > 200_000) throw new BoomerangError(413, "SOURCE_TOO_LARGE", "This saved source exceeds the supporting intake limit.");
   const params = new URLSearchParams({ supportCaseId: row.id });
-  let path: string = m.supportTool === "f0" ? "/f0" : m.supportTool === "ingestion" ? "/ingest" : m.supportTool === "cartridge" ? "/cartridge" : "/operations";
+  let path: string = m.supportTool === "agent-creator" ? "/agent-creator" : m.supportTool === "imprima" ? "/imprima-portal" : m.supportTool === "f0" ? "/f0" : m.supportTool === "ingestion" ? "/ingest" : m.supportTool === "cartridge" ? "/cartridge" : "/operations";
+  if (m.supportTool === "agent-creator" || m.supportTool === "imprima") {
+    params.set("sessionId", row.originId); params.set("featureId", String(m.featureId));
+    params.set("sourceId", source.id); params.set("sourceType", "ARTIFACT");
+  }
   if (m.supportTool === "f0") {
     const [engagement] = await reader.select({ id: f0EngagementsTable.id }).from(f0EngagementsTable).where(and(
       eq(f0EngagementsTable.id, m.f0EngagementId ?? row.id), eq(f0EngagementsTable.userId, row.userId),
@@ -101,7 +106,7 @@ router.get("/stage-support/options", requireAuth, async (req, res) => {
     stageFor(parsed.data.featureId);
     await ownedSession(db, req.localUser!.id, parsed.data.sessionId);
     const source = exactSupportSource(await sourceRows(db, req.localUser!.id, parsed.data.sessionId), parsed.data.featureId);
-    res.json({ sourceId: source?.id ?? null, tools: SUPPORT_TOOLS.map(tool => supportAvailability(source, tool)) });
+    res.json({ sourceId: source?.id ?? null, tools: SUPPORT_TOOLS.filter(tool => tool !== "short-sprints").map(tool => supportAvailability(source, tool)) });
   } catch (error) { fail(res, error); }
 });
 
@@ -204,7 +209,33 @@ router.post("/stage-support/departures/:id/return", requireAuth, async (req, res
       if (!source) throw new BoomerangError(409, "SOURCE_MISSING", "Origin source is no longer available.");
       let output: unknown;
       let ownPreparationId: string | undefined;
-      if (m.supportTool === "imprima" || m.supportTool === "short-sprints") {
+      const [portalResult] = m.supportTool === "imprima" ? await tx.select().from(portalPublicationsTable)
+        .where(and(eq(portalPublicationsTable.id, resultId), eq(portalPublicationsTable.userId, owner))).limit(1) : [];
+      if (m.supportTool === "agent-creator") {
+        const [agent] = await tx.select().from(createdAgentsTable).where(and(
+          eq(createdAgentsTable.id, resultId), eq(createdAgentsTable.userId, owner),
+          eq(createdAgentsTable.sessionId, row!.originId),
+        )).limit(1);
+        if (!agent?.artifactId || !["ACTIVE", "NEEDS_REWORK"].includes(agent.state) ||
+            (agent.sourceArtifactId !== source.id && agent.companionArtifactId !== source.id) ||
+            agent.createdAt.getTime() < row!.createdAt.getTime()) {
+          throw new BoomerangError(409, "AGENT_RESULT_MISMATCH", "Create and save an agent tied to this departure's exact source or Micro PDD companion before returning.");
+        }
+        const [pkg] = await tx.select().from(harnessArtifactsTable).where(and(
+          eq(harnessArtifactsTable.id, agent.artifactId), eq(harnessArtifactsTable.userId, owner),
+        )).limit(1);
+        if (!pkg) throw new BoomerangError(409, "AGENT_RESULT_MISSING", "Saved agent package is unavailable.");
+        output = { agentId: agent.id, agentArtifactId: pkg.id, package: pkg.artifactContent,
+          notice: "Supporting agent package; internal activation does not pass or advance the originating production stage." };
+      } else if (portalResult) {
+        if (portalResult.sourceType !== "ARTIFACT" || portalResult.sourceId !== source.id ||
+            portalResult.state !== "READY" || portalResult.createdAt.getTime() < row!.createdAt.getTime()) {
+          throw new BoomerangError(409, "PUBLICATION_RESULT_MISMATCH", "Prepare a publication for this exact departure source before returning.");
+        }
+        output = { publicationId: portalResult.id, title: portalResult.title, author: portalResult.author,
+          publicationHref: `/imprima-portal?publicationId=${portalResult.id}`, source: source.artifactContent,
+          notice: "Private publication preparation; downloading still requires the single-use emailed code. No release approval is conferred." };
+      } else if (m.supportTool === "imprima" || m.supportTool === "short-sprints") {
         const [saved] = await tx.select().from(harnessArtifactsTable).where(and(
           eq(harnessArtifactsTable.id, resultId), eq(harnessArtifactsTable.userId, owner),
           eq(harnessArtifactsTable.sessionId, row!.originId),

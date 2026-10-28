@@ -5,6 +5,7 @@ import { harnessSessionsTable } from "./harness-sessions";
 import { usersTable } from "./users";
 
 export const ARTIFACT_TYPES = [
+  "AGENT_PACKAGE",
   "PROMPT_DIAGNOSTIC",
   "ATOMIC_PROMPT",
   "MA_BIRTH_PACKAGE",

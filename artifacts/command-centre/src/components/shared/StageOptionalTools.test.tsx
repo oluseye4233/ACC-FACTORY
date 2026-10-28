@@ -26,7 +26,7 @@ describe("StageOptionalTools", () => {
   it("explains each tool with a return-to-stage section", () => {
     ready([]);
     render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner />);
-    for (const id of ["boomerang", "spc-player", "f0", "imprima", "short-sprints", "ingestion", "cartridge"]) {
+    for (const id of ["boomerang", "spc-player", "agent-creator", "f0", "imprima", "ingestion", "cartridge"]) {
       const box = screen.getByTestId(`tool-${id}`);
       for (const term of ["What it does", "Outcome", "How to use", "Return to this stage"]) {
         expect(box.textContent).toContain(term);
@@ -35,7 +35,7 @@ describe("StageOptionalTools", () => {
     expect(screen.getByTestId("tool-spc-player").textContent).toContain("RETURN TO THE STAGE YOU LEFT WITH NEW ARTIFACT AND CONTINUE PRODUCTION");
     expect(screen.getByTestId("tool-f0").textContent).toContain("Not automatically adopted");
     expect(screen.queryByTestId("link-open-f0-advisory")).toBeNull();
-    for (const id of ["f0", "imprima", "short-sprints", "ingestion", "cartridge"]) {
+    for (const id of ["f0", "imprima", "ingestion", "cartridge"]) {
       expect(screen.getByTestId(`tool-${id}`).textContent).toContain("RETURN TO THE STAGE YOU LEFT WITH NEW ARTIFACT AND CONTINUE PRODUCTION");
     }
   });
@@ -49,17 +49,18 @@ describe("StageOptionalTools", () => {
     ]);
     render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner />);
     expect(screen.getByTestId("status-tool-imprima").textContent).toBe("active");
-    expect(screen.getByTestId("status-tool-short-sprints").textContent).toBe("inactive");
-    expect(screen.getByTestId("text-tool-reason-short-sprints").textContent).toBe("No saved F4/F5 source.");
+    expect(screen.queryByTestId("status-tool-short-sprints")).toBeNull();
+    expect(screen.getByTestId("tool-agent-creator")).toBeTruthy();
+    expect(screen.queryByTestId("link-open-agent-creator")).toBeNull();
+    expect((screen.getByTestId("button-launch-agent-creator") as HTMLButtonElement).disabled).toBe(true);
     expect((screen.getByTestId("button-launch-imprima") as HTMLButtonElement).disabled).toBe(false);
-    expect((screen.getByTestId("button-launch-short-sprints") as HTMLButtonElement).disabled).toBe(true);
     expect((screen.getByTestId("button-launch-cartridge") as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("disables every support launch for non-owners", () => {
     ready([{ tool: "imprima", active: true, reason: "ok" }]);
     render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner={false} />);
-    for (const t of ["imprima", "short-sprints", "ingestion", "cartridge"]) {
+    for (const t of ["imprima", "ingestion", "cartridge"]) {
       expect((screen.getByTestId(`button-launch-${t}`) as HTMLButtonElement).disabled).toBe(true);
     }
   });

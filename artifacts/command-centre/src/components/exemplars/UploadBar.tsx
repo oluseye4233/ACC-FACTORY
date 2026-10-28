@@ -1,13 +1,19 @@
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { FolderUp, Loader2, Upload } from "lucide-react";
+import { Link } from "wouter";
+import { FileInput, FolderUp, Loader2, Upload } from "lucide-react";
+import { portalHref } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { invalidateCatalog } from "./invalidate";
 
 type UploadKind = "SPC" | "MA" | "MPDD" | "PDD";
 
-export function UploadBar() {
+/**
+ * Exemplar archive upload. File intake is centralised in the IMPRIMA Portal: only the embedded
+ * (portal) instance shows file pickers; elsewhere a link opens the portal library intake tab.
+ */
+export function UploadBar({ embedded = false }: { embedded?: boolean } = {}) {
   const fileRef = useRef<HTMLInputElement>(null);
   const folderRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -39,8 +45,16 @@ export function UploadBar() {
     }
   };
 
+  if (!embedded) {
+    return (
+      <Link href={portalHref({ tab: "intake", intake: "library" })} className="inline-flex h-9 items-center gap-2 rounded-md border border-primary/50 px-3 font-display text-sm tracking-wider text-primary hover:bg-primary/10" data-testid="link-library-intake">
+        <FileInput className="h-4 w-4" /> UPLOAD IN IMPRIMA PORTAL
+      </Link>
+    );
+  }
+
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2" data-testid="upload-bar-embedded">
       <select
         value={uploadKind}
         onChange={(e) => setUploadKind(e.target.value as UploadKind)}

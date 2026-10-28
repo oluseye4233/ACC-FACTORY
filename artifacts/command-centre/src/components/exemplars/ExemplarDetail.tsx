@@ -10,7 +10,7 @@ import {
 import { ArrowLeft, Download, GitFork } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { buildExemplarDownloadFilename, getExemplarDownloadFormat } from "@/lib/exemplar-download";
+import { portalHref } from "@/lib/portal";
 import { KIND_LABEL, errorMessage, sourceLabel } from "@/lib/catalog";
 import { F0AdvisoryTag } from "@/components/catalog/CatalogStatusBadge";
 import { useDocumentMeta } from "@/hooks/use-document-meta";
@@ -29,20 +29,6 @@ export function ExemplarDetail({ id }: { id: string }) {
     item ? `${item.title} · Exemplar Library · ATANDA` : "Exemplar · ATANDA",
     item?.tagline ?? "ATANDA Exemplar Library artifact.",
   );
-
-  const download = () => {
-    if (!item?.body) return;
-    const format = getExemplarDownloadFormat(item.body);
-    const filename = buildExemplarDownloadFilename({ id: item.id, kind: item.kind, title: item.title }, format.extension);
-    const url = URL.createObjectURL(new Blob([item.body], { type: format.mimeType }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
-  };
 
   return (
     <div className="space-y-6">
@@ -80,8 +66,10 @@ export function ExemplarDetail({ id }: { id: string }) {
           </div>
           <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
             <div className="space-y-2 rounded-md border bg-card p-4">
-              <Button onClick={download} variant="outline" className="w-full font-display tracking-wider" data-testid={`button-download-exemplar-${item.id}`}>
-                <Download className="mr-2 h-4 w-4" /> DOWNLOAD
+              <Button asChild variant="outline" className="w-full font-display tracking-wider">
+                <Link href={portalHref({ sourceId: item.id, sourceType: "EXEMPLAR" })} data-testid={`link-portal-exemplar-${item.id}`}>
+                  <Download className="mr-2 h-4 w-4" /> PUBLISH VIA IMPRIMA PORTAL
+                </Link>
               </Button>
               <Button asChild className="w-full font-display tracking-wider">
                 <Link href={`/session/new?exemplar=${item.id}`} data-testid="link-fork-session">

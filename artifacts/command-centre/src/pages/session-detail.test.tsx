@@ -213,8 +213,12 @@ describe("SessionDetail — optional tools footer", () => {
     expect(screen.getByTestId("mock-boomerang-panel").getAttribute("data-stage")).toBe(label);
     expect(screen.getByTestId("link-open-spc-player").getAttribute("href"))
       .toBe(`/spc-player/new?sourceSessionId=session-1&originFeatureId=${engineId}`);
-    expect(screen.getByTestId("link-open-f0-advisory").getAttribute("href"))
-      .toBe(`/f0?originSessionId=session-1&originFeatureId=${engineId}`);
+    // F0 and Agent Creator launch through recorded stage-support departures, not plain links.
+    expect(screen.getAllByTestId("button-launch-f0")).toHaveLength(1);
+    expect(screen.getAllByTestId("tool-agent-creator")).toHaveLength(1);
+    expect(screen.getAllByTestId("button-launch-agent-creator")).toHaveLength(1);
+    expect(screen.queryByTestId("tool-short-sprints")).toBeNull();
+    void engineId;
   });
 
   it("uses engine 9 (labelled F8) for the F8 stage URLs", async () => {
@@ -228,8 +232,7 @@ describe("SessionDetail — optional tools footer", () => {
     await waitFor(() => expect(screen.getByTestId("mock-boomerang-panel").getAttribute("data-stage")).toBe("F8"));
     expect(screen.getByTestId("link-open-spc-player").getAttribute("href"))
       .toBe("/spc-player/new?sourceSessionId=session-1&originFeatureId=9");
-    expect(screen.getByTestId("link-open-f0-advisory").getAttribute("href"))
-      .toBe("/f0?originSessionId=session-1&originFeatureId=9");
+    expect(screen.getByTestId("button-launch-agent-creator").textContent).toContain("F8");
   });
 
   it("hides owner-only Boomerang and SPC Player controls from non-owners", async () => {
@@ -242,7 +245,8 @@ describe("SessionDetail — optional tools footer", () => {
     expect(screen.queryByTestId("mock-boomerang-panel")).toBeNull();
     expect(screen.getByTestId("text-boomerang-readonly")).toBeTruthy();
     expect(screen.queryByTestId("link-open-spc-player")).toBeNull();
-    expect(screen.getByTestId("link-open-f0-advisory")).toBeTruthy();
+    expect((screen.getByTestId("button-launch-f0") as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByTestId("button-launch-agent-creator") as HTMLButtonElement).disabled).toBe(true);
   });
 });
 

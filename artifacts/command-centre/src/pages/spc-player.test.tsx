@@ -257,12 +257,8 @@ describe("SpcPlayerDetail", () => {
     expect(screen.getByTestId("score-truthfulness").textContent).toContain("9");
     expect(screen.getByTestId("score-detectability").textContent).toContain("7");
 
-    fireEvent.click(screen.getByTestId("button-download-package"));
-    expect(window.open).toHaveBeenCalledWith(
-      `/api/spc-player/runs/${RUN_ID}/download`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    expect(screen.getByTestId("button-download-package").getAttribute("href"))
+      .toContain(`/imprima-portal?sourceId=${RUN_ID}&sourceType=SPC_PLAYER`);
 
     fireEvent.change(screen.getByTestId("input-webhook-endpoint"), { target: { value: MOCK_AUTHORIZATION.endpoint } });
     fireEvent.click(screen.getByTestId("button-authorize-webhook"));

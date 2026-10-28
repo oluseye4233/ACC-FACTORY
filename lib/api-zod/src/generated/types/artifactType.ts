@@ -10,6 +10,7 @@ export type ArtifactType = typeof ArtifactType[keyof typeof ArtifactType];
 
 
 export const ArtifactType = {
+  AGENT_PACKAGE: 'AGENT_PACKAGE',
   PROMPT_DIAGNOSTIC: 'PROMPT_DIAGNOSTIC',
   ATOMIC_PROMPT: 'ATOMIC_PROMPT',
   MA_BIRTH_PACKAGE: 'MA_BIRTH_PACKAGE',

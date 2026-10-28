@@ -1,16 +1,14 @@
 import { useMemo, useState } from "react";
 import {
   useListF10Sources,
-  useDownloadF10Export,
   type F10Source,
   type F10ExportInput,
   type HarnessArtifact,
 } from "@workspace/api-client-react";
-import { buildArtifactFilename } from "@workspace/artifact-naming";
-import { Download, ExternalLink, PackageOpen } from "lucide-react";
+import { ExternalLink, PackageOpen } from "lucide-react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { extractApiError } from "@/lib/sse";
 
 /** Fixed, allowlisted official consoles and signup pages. No credentials are ever requested here. */
 export const HOSTING_PROVIDER_LINKS = [
@@ -50,32 +48,9 @@ export function selectVerifiedBundle(sources: F10Source[], artifacts: HarnessArt
 
 export function F11SubscriptionHandoff({ artifacts, preferredSourceId }: { artifacts: HarnessArtifact[]; preferredSourceId?: string | null }) {
   const { data: sources = [], isLoading, isError, refetch } = useListF10Sources();
-  const download = useDownloadF10Export();
-  const [pkg, setPkg] = useState<PackageKey>("GENERIC");
-  const [error, setError] = useState<string | null>(null);
-  const [downloadedPackage, setDownloadedPackage] = useState<{ id: string; pkg: PackageKey } | null>(null);
   const bundle = useMemo(() => selectVerifiedBundle(sources, artifacts, preferredSourceId), [sources, artifacts, preferredSourceId]);
-
-  const onDownload = async () => {
-    if (!bundle) return;
-    setError(null);
-    const choice = PACKAGES[pkg];
-    const input: F10ExportInput = { sourceArtifactId: bundle.id, outputKind: "CODE_DJ", family: choice.family, target: choice.target, deliveryMode: "EXPORT" };
-    try {
-      const blob = await download.mutateAsync({ data: input });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = buildArtifactFilename({ type: "F10_EXPORT", title: bundle.name ?? "F11 hosting handoff", id: bundle.id, extension: "zip" });
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      setDownloadedPackage({ id: bundle.id, pkg });
-    } catch (cause) {
-      setError(extractApiError(cause).message);
-    }
-  };
+  const [pkg, setPkg] = useState<PackageKey>("GENERIC");
+  const exportOptions: F10ExportInput | null = bundle ? { sourceArtifactId: bundle.id, outputKind: "CODE_DJ", family: PACKAGES[pkg].family, target: PACKAGES[pkg].target, deliveryMode: "EXPORT" } : null;
 
   return (
     <Card className="border-amber-500/30 bg-amber-500/5 p-5" data-testid="f11-subscription-handoff" aria-labelledby="f11-handoff-title">
@@ -84,7 +59,7 @@ export function F11SubscriptionHandoff({ artifacts, preferredSourceId }: { artif
         <h3 id="f11-handoff-title" className="font-mono text-[10px] font-bold uppercase tracking-wider">Manual handoff · your own hosting subscription</h3>
       </div>
       <p className="max-w-3xl font-mono text-xs leading-relaxed text-muted-foreground">
-        Download the F10 CODE_DJ export of your verified F8 bundle and continue in a hosting account you own. This is a source/runtime handoff, not a provider deployment.
+        Publish your verified F8 bundle through the IMPRIMA Portal (single-use emailed code) and continue in a hosting account you own. This is a source/runtime handoff, not a provider deployment.
         It is separate from H4 staging, H7 promotion and H8 hosting evidence; downloading or opening a provider does not complete any H stage.
         Subscriptions and charges are between you and the provider. ATANDA does not sell them or guarantee plan eligibility.
       </p>
@@ -104,19 +79,14 @@ export function F11SubscriptionHandoff({ artifacts, preferredSourceId }: { artif
               : "No verified F8 code bundle is available for export. Complete F8 verification first."}
           </p>
         ) : (
-          <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-            <div className="grid gap-1">
-              <label htmlFor="f11-handoff-package" className="font-mono text-[10px] uppercase text-muted-foreground">Package for bundle {bundle.name ?? bundle.id.slice(0, 10)}</label>
-              <select id="f11-handoff-package" value={pkg} onChange={e => setPkg(e.target.value as PackageKey)} className="h-10 rounded-md border border-input bg-background px-3 font-mono text-xs">
-                {Object.entries(PACKAGES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-              </select>
-            </div>
-            <Button onClick={onDownload} disabled={download.isPending} className="font-mono text-xs">
-              <Download className="mr-2 h-4 w-4" aria-hidden="true" />{download.isPending ? "Preparing export..." : "Download handoff package"}
-            </Button>
-            <p className="break-all font-mono text-[10px] text-muted-foreground md:col-span-2">Verified artifact: {bundle.name || "Untitled code bundle"} · {bundle.id}</p>
-            {downloadedPackage?.id === bundle.id && downloadedPackage.pkg === pkg && <p className="font-mono text-[10px] text-muted-foreground md:col-span-2">Package downloaded. Nothing is hosted until you deploy it in your own account.</p>}
-            {error && <p role="alert" className="font-mono text-xs text-destructive md:col-span-2">{error}</p>}
+          <div className="grid gap-2">
+            <label htmlFor="f11-handoff-package" className="font-mono text-[10px] uppercase text-muted-foreground">Package for bundle {bundle.name ?? bundle.id.slice(0, 10)}</label>
+            <select id="f11-handoff-package" value={pkg} onChange={e => setPkg(e.target.value as PackageKey)} className="h-10 max-w-md rounded-md border border-input bg-background px-3 font-mono text-xs" data-testid="select-f11-package">
+              {Object.entries(PACKAGES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+            </select>
+            <PortalArtifactLink sourceId={bundle.id} sourceType="F10_EXPORT" exportOptions={exportOptions} testId="link-f11-portal" label="Publish handoff package via Portal" />
+            <p className="break-all font-mono text-[10px] text-muted-foreground">Verified artifact: {bundle.name || "Untitled code bundle"} · {bundle.id}</p>
+            <p className="font-mono text-[10px] text-muted-foreground">Nothing is hosted until you deploy it in your own account.</p>
           </div>
         )}
       </div>

@@ -1,22 +1,21 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { CartridgeLibrarySnapshot } from "@workspace/api-client-react";
-import { Download, ShieldAlert } from "lucide-react";
+import { Copy, ShieldAlert } from "lucide-react";
+import { useState } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import { Button } from "@/components/ui/button";
-import { buildExemplarDownloadFilename, getExemplarDownloadFormat } from "@/lib/exemplar-download";
 import { libraryOriginLabel } from "./LibrarySourcePicker";
 
-function downloadSnapshot(s: CartridgeLibrarySnapshot) {
-  const format = getExemplarDownloadFormat(s.body);
-  const filename = buildExemplarDownloadFilename({ id: s.id, kind: s.kind, title: s.title }, format.extension);
-  const url = URL.createObjectURL(new Blob([s.body], { type: format.mimeType }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+
+function CopyButton({ id, body }: { id: string; body: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <Button size="sm" variant="outline" className="font-mono text-[10px]" data-testid={`button-copy-retained-${id}`}
+      onClick={() => void navigator.clipboard?.writeText(body).then(() => setDone(true), () => setDone(false))}>
+      <Copy className="h-3 w-3 mr-1" /> {done ? "COPIED" : "COPY TEXT"}
+    </Button>
+  );
 }
 
 export function RetainedLibrarySources({ sources }: { sources: CartridgeLibrarySnapshot[] }) {
@@ -50,9 +49,10 @@ export function RetainedLibrarySources({ sources }: { sources: CartridgeLibraryS
                     <span title={s.contentSha256}>SHA {s.contentSha256.slice(0, 12)}</span>
                   </div>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => downloadSnapshot(s)} className="font-mono text-[10px]" data-testid={`button-download-retained-${s.id}`}>
-                  <Download className="h-3 w-3 mr-1" /> DOWNLOAD
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  {s.source !== "curated" && <PortalArtifactLink sourceId={s.id} sourceType="EXEMPLAR" testId={`link-portal-retained-${s.id}`} label="Portal" />}
+                  <CopyButton id={s.id} body={s.body} />
+                </div>
               </div>
               <details className="mt-2">
                 <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-wider text-primary" data-testid={`toggle-read-retained-${s.id}`}>

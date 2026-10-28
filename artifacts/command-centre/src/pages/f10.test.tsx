@@ -200,7 +200,7 @@ describe("F10Console", () => {
     });
   });
 
-  it("can download bundle", async () => {
+  it("routes the selected source to the portal", async () => {
     render(
       <TestWrapper>
         <F10Console />
@@ -213,14 +213,7 @@ describe("F10Console", () => {
     await userEvent.click(familyTrigger);
     await userEvent.click(screen.getByTestId("family-option-IDE"));
 
-    const downloadBtn = screen.getByTestId("btn-download-bundle");
-    await userEvent.click(downloadBtn);
-
-    expect(useDownloadF10Export().mutateAsync).toHaveBeenCalled();
-    expect(URL.createObjectURL).toHaveBeenCalled();
-    expect(URL.revokeObjectURL).toHaveBeenCalled();
-    expect(downloadedFilename).toMatch(
-      /^F10_EXPORT\.MY.APP\.SRC-1\.\d{2}\.\d{2}\.\d{2}\.\d{1,2}-\d{2}-\d{2}(AM|PM)\.zip$/,
-    );
+    expect(screen.getByTestId("btn-download-bundle").getAttribute("href")).toContain("/imprima-portal?sourceId=src-1&sourceType=F10_EXPORT&exportOptions=");
+    expect(decodeURIComponent(screen.getByTestId("btn-download-bundle").getAttribute("href") ?? "")).toContain('"family":"IDE"');
   });
 });

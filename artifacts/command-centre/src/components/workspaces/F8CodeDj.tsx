@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import { Link, useSearch } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -41,11 +42,11 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/sse";
 import { pfpContextMatches } from "@/lib/f8-context";
-import { exportCodeDjBundle, SUPPORTED_IDES } from "@/lib/codeDjExport";
+import { SUPPORTED_IDES } from "@/lib/codeDjExport";
 import { HARDWARE_CONFIGS, getHardwareConfig, type HardwareConfigId } from "@/lib/hardware-configs";
 import { F8DriftRemediation } from "./F8DriftRemediation";
 import { F8ConversionTeam } from "./F8ConversionTeam";
-import { AlertTriangle, Cpu, Download, FileCode, Radar, Rocket, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Cpu, FileCode, Radar, Rocket, ShieldCheck } from "lucide-react";
 
 const HOST_LABELS: Record<string, string> = {
   "replit-deployments": "Replit Deployments",
@@ -434,29 +435,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
     low: "bg-muted/40 text-muted-foreground border-border/40",
   };
 
-  const downloadBundle = async () => {
-    if (!result) return;
-    // Starter project ZIP: scaffold files at their real paths plus a
-    // CODE ONE + operating brief (AGENTS.md) and per-IDE adapter files, so the
-    // bundle drops straight into Cursor / Replit / Codex / Claude Code / etc.
-    // and the IDE's agent keeps building in fidelity to the certified spec.
-    const source = certifiedMvpSources.find((s) => s.id === sourceId);
-    try {
-      await exportCodeDjBundle(result, source, pfp);
-      toast({
-        title: "SCAFFOLD EXPORTED",
-        description: `Starter ZIP with AGENTS.md + ${SUPPORTED_IDES.length} IDE adapters; test results are not included.`,
-      });
-    } catch {
-      toast({
-        variant: "destructive",
-        title: "EXPORT FAILED",
-        description: "Could not assemble the bundle ZIP",
-      });
-    }
-  };
-
-  const activeFileContent = result?.files.find((f) => f.path === activeFile);
+    const activeFileContent = result?.files.find((f) => f.path === activeFile);
 
   return (
     <WorkspaceShell>
@@ -935,16 +914,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
               </div>
               <div className="flex flex-col items-end gap-1">
                 <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={downloadBundle}
-                    data-testid="f8-download"
-                    className="gap-2 font-mono text-xs"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    DOWNLOAD UNVERIFIED SCAFFOLD
-                  </Button>
+                  <PortalArtifactLink sourceId={bundleArtifactId} sessionId={sessionId} testId="f8-download" label="Unverified scaffold via Portal" />
                   {verifiedChild || verifiedArtifactId ? (
                     <Button size="sm" variant="outline" asChild className="font-mono text-xs">
                       <Link href="/f10">

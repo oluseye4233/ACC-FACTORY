@@ -1,22 +1,28 @@
 import { BoomerangError } from "./boomerang";
 
-export const SUPPORT_TOOLS = ["imprima", "short-sprints", "ingestion", "cartridge", "f0"] as const;
+export const SUPPORT_TOOLS = ["imprima", "short-sprints", "agent-creator", "ingestion", "cartridge", "f0"] as const;
 export type SupportTool = typeof SUPPORT_TOOLS[number];
 export const PUBLICATION_KINDS: Record<string, string> = {
   MA_BIRTH_PACKAGE: "F3_MA", MICRO_PDD: "F4_MICRO_PDD", SPC: "F5_SPC",
   ATLAS_PDD: "F6_PDD", ATLAS_PDD_JSON: "F6_PDD", ATLAS_360_PLAN_VIEW: "F6_PDD",
   ATLAS_360_SCAN_VIEW: "F6_PDD", MVP_PDD: "F7_MVP_PDD",
+  PROMPT_DIAGNOSTIC: "ARTIFACT", ATOMIC_PROMPT: "ARTIFACT",
+  CODEBASE_BUNDLE: "ARTIFACT", VERIFIED_CODEBASE_BUNDLE: "ARTIFACT",
+  AGENT_PACKAGE: "ARTIFACT", PFP_REPORT: "ARTIFACT", HOSTING_PLAN: "ARTIFACT",
 };
 type Source = { id: string; featureId: number; artifactType: string; createdAt: Date | string };
 
 /** No upstream fallback: the currently open stage must have its own saved output. */
 export function exactSupportSource<T extends Source>(rows: T[], featureId: number): T | undefined {
-  return rows.filter(row => row.featureId === featureId && row.artifactType !== "SPC_PLAYER_SUPPORT")
+  return rows.filter(row => row.featureId === featureId && !["SPC_PLAYER_SUPPORT", "AGENT_PACKAGE"].includes(row.artifactType))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime() || b.id.localeCompare(a.id))[0];
 }
 
 export function supportAvailability(source: Source | undefined, tool: SupportTool) {
   if (!source) return { tool, active: false, reason: "Save an artifact at this exact stage first." };
+  if (tool === "agent-creator") return { tool,
+    active: ["MA_BIRTH_PACKAGE", "MICRO_PDD", "SPC"].includes(source.artifactType),
+    reason: "Create a source-bound MA or SPC agent with fresh internal evaluation. External release remains separately gated." };
   if (tool === "imprima" && !PUBLICATION_KINDS[source.artifactType]) {
     return { tool, active: false, reason: "IMPRIMA requires a saved MA, Micro PDD, SPC, PDD or MVP PDD at this stage." };
   }

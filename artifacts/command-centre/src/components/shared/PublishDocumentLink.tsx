@@ -1,5 +1,6 @@
 import { Link } from "wouter";
-import { FileOutput, Rocket } from "lucide-react";
+import { Bot, FileOutput } from "lucide-react";
+import { agentCreatorHref, portalHref } from "@/lib/portal";
 
 export function operationsHref(kind: "imprima" | "short-sprints", p: { sessionId?: string | null; sourceId?: string | null; sourceKind?: string | null }) {
   const q = new URLSearchParams({ kind });
@@ -14,16 +15,16 @@ const cls =
 
 export function PublishDocumentLink(props: { sourceId?: string | null; sourceKind?: string | null; sessionId?: string | null; label?: string }) {
   return (
-    <Link href={operationsHref("imprima", props)} className={cls} data-testid="link-publish-document">
-      <FileOutput className="h-3.5 w-3.5" /> {props.label ?? "Publish document"}
+    <Link href={props.sourceId && props.sourceKind !== "F95_LIVING_PDD" ? portalHref({ sourceId: props.sourceId, sourceType: "ARTIFACT", sessionId: props.sessionId }) : portalHref({ sessionId: props.sessionId })} className={cls} data-testid="link-publish-document">
+      <FileOutput className="h-3.5 w-3.5" /> {props.label ?? "Publish via IMPRIMA Portal"}
     </Link>
   );
 }
 
 export function ShortSprintsLink({ sessionId }: { sessionId: string }) {
   return (
-    <Link href={operationsHref("short-sprints", { sessionId })} className={cls} data-testid="link-short-sprints">
-      <Rocket className="h-3.5 w-3.5" /> Manage SHORT SPRINTS
+    <Link href={agentCreatorHref({ sessionId })} className={cls} data-testid="link-agent-creator">
+      <Bot className="h-3.5 w-3.5" /> Open Agent Creator
     </Link>
   );
 }

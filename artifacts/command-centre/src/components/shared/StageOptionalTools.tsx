@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ArrowLeft, ArrowRight, Briefcase, Boxes, CornerDownLeft, FileInput, FileOutput, Layers, Loader2, Rocket } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bot, Briefcase, Boxes, CornerDownLeft, FileInput, FileOutput, Layers, Loader2 } from "lucide-react";
 import { supportErrMessage, useLaunchDeparture, useStageSupportOptions, type SupportTool } from "@/lib/stage-support";
 import { BoomerangPanel } from "@/components/boomerang";
 import { RETURN_WITH_ARTIFACT_LABEL } from "@/components/boomerang/ReturnedUpgrade";
@@ -51,10 +51,10 @@ const SUPPORT: { tool: SupportTool; title: string; tag: string; icon: ReactNode;
     what: "Renders the saved source of this exact stage into private DOCX, PDF or HTML draft files, optionally with an internal clarity and claims assessment.",
     outcome: "Private, non-releasable DRAFT files referenced from a saved preparation. Returned as a candidate for review; never a certification, Final approval or gate pass.",
     how: "Launch, complete a private or internal preparation for the pre-selected source, then use the return action shown beside that completed preparation." },
-  { tool: "short-sprints", title: "SHORT SPRINTS", tag: "sprint package", icon: <Rocket className="h-4 w-4" />, tone: "text-[hsl(24_88%_50%)]", btn: "border-[hsl(24_88%_50%/0.5)] text-[hsl(24_88%_42%)] hover:bg-[hsl(24_88%_50%/0.08)]",
-    what: "Prepares a non-releasable sprint package (SC_ONE from F4 Micro-PDD, SC_TWO from F5 SPC) from this stage's saved source.",
-    outcome: "Private package files with source and manifest hashes. No tests, gates, release or deployment run. Nothing claims the target code is corrected.",
-    how: "Launch, fill host target and manifest, save the preparation, then use the return action beside that completed preparation." },
+  { tool: "agent-creator", title: "AGENT CREATOR", tag: "owned agent", icon: <Bot className="h-4 w-4" />, tone: "text-primary", btn: "border-primary/40 text-primary hover:bg-primary/10",
+    what: "Creates an owned agent from this stage's saved MA birth package with its exact Micro PDD, or from its SPC, and lets you run it on text input.",
+    outcome: "An internal, text-only agent with model-assessed evaluation, returned as a supporting artifact for your review. No external tools or side effects; not certification, not auto-approval, not a third-party deployment.",
+    how: "Launch, create the agent from the pre-selected source, wait until it is ACTIVE, then use the return action beside that agent." },
   { tool: "ingestion", title: "INGESTION", tag: "seed and summary", icon: <FileInput className="h-4 w-4" />, tone: "text-primary", btn: "border-primary/40 text-primary hover:bg-primary/10",
     what: "Opens the Ingestion Engine prefilled once with this stage's saved source text. Your edits are never overwritten.",
     outcome: "A saved seed prompt and summary, returned to this stage as a candidate requiring review. Normal credit and generation gates still apply.",

@@ -121,7 +121,7 @@ describe("Atlas360ViewPanel", () => {
     expect(screen.getByText("Mock overview content")).not.toBeNull();
   });
 
-  it("uses the view artifact title and stable ID in the export filename", async () => {
+  it("routes the saved view artifact to the portal by exact ID", async () => {
     const mockArtifact = {
       id: "art-view-1",
       sessionId: "test-session",
@@ -149,16 +149,8 @@ describe("Atlas360ViewPanel", () => {
       />,
     );
 
-    await screen.getByTestId("pdd-view-export").click();
-
-    expect(downloadZip).toHaveBeenCalledWith(
-      buildArtifactFilename({
-        type: "ATLAS_360",
-        title: "My Mock Plan",
-        id: "art-view-1",
-        extension: "zip",
-      }),
-      expect.any(Object),
-    );
+    expect(screen.getByTestId("pdd-view-export").getAttribute("href")).toContain("/imprima-portal?sourceId=art-view-1&sourceType=ARTIFACT");
+    expect(downloadZip).not.toHaveBeenCalled();
+    void buildArtifactFilename;
   });
 });

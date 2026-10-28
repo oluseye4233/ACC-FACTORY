@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessAtlasCrystallise,
@@ -32,11 +33,9 @@ import {
   type OverrideValue,
 } from "@/components/shared/ProviderOverride";
 import { streamSse, extractApiError } from "@/lib/sse";
-import { downloadZip } from "@/lib/zipExport";
-import { Download, Layers, Sparkles } from "lucide-react";
+import { Layers, Sparkles } from "lucide-react";
 
 import { Atlas360ViewPanel } from "./Atlas360ViewPanel";
-import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { ColonizationTargetSelect, type ColonizationTarget } from "./ColonizationTargetSelect";
 
 const PHASES = ["AUDIT", "TRIANGULATE", "LAYOUT", "ASSEMBLE", "STAMP"] as const;
@@ -178,25 +177,7 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
     }
   };
 
-  const exportZip = async () => {
-    if (!pdd) return;
-    const files: Record<string, string> = {
-      "cheat-sheet.md": pdd.cheatSheet,
-      "exec-summary.md": pdd.execSummary,
-      "worksheet.md": pdd.worksheet,
-      "implementation.md": pdd.implementation,
-    };
-    const artifactId = pddArtifactId ?? latestPddArtifact?.id ?? sessionId;
-    const filename = buildArtifactFilename({
-      type: "ATLAS_PDD",
-      title: latestPddArtifact?.name ?? "ATLAS PDD",
-      id: artifactId,
-      extension: "zip",
-    });
-    await downloadZip(filename, files);
-  };
-
-  return (
+    return (
     <WorkspaceShell>
       <div className="flex flex-col gap-4 h-full">
         <Card className="p-5 bg-card/50">
@@ -307,15 +288,7 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
 <PublishDocumentLink sourceId={(pddArtifactId || latestPddArtifact?.id)!} sourceKind="F6_PDD" sessionId={sessionId} />
 </>
                   )}
-                  <Button
-                    onClick={exportZip}
-                    size="sm"
-                    variant="outline"
-                    className="font-mono text-xs"
-                    data-testid="f6-export"
-                  >
-                    <Download className="h-3 w-3 mr-1" /> EXPORT
-                  </Button>
+                  <PortalArtifactLink sourceId={pddArtifactId ?? latestPddArtifact?.id} sessionId={sessionId} testId="f6-export" />
                 </div>
               )}
             </div>

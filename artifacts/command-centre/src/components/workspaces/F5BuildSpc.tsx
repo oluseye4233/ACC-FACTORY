@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessF5,
@@ -24,15 +25,13 @@ import {
   type OverrideValue,
 } from "@/components/shared/ProviderOverride";
 import { streamSse, extractApiError } from "@/lib/sse";
-import { Download, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { PublishToSphinxButton } from "@/components/shared/PublishToSphinxButton";
 import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 import { SpcLineage } from "@/components/shared/SpcLineage";
 import { SuggestSpcPanel } from "@/components/shared/SuggestSpcPanel";
-import { downloadZip } from "@/lib/zipExport";
 import { SpcPlayerAdvisoryPrompt } from "@/components/shared/SpcPlayerAdvisoryPrompt";
-import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { F5ScanLinks } from "./F5ScanLinks";
 
 const FORGE_STEPS = [
@@ -264,25 +263,7 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
     setError(null);
   };
 
-  const exportSpc = async () => {
-    if (!spc) return;
-    const displayName = spcName.trim() || spc.name || null;
-    const artifactId = spc.artifactId ?? latestArtifact?.id ?? sessionId;
-    const filename = buildArtifactFilename({
-      type: "SPC",
-      title: displayName ?? "SPC",
-      id: artifactId,
-      extension: "zip",
-    });
-    const heading = displayName ? `# ${displayName}\n\n` : "";
-    const body = spc.sections.map((s) => `# ${s.title}\n\n${s.body}`).join("\n\n---\n\n");
-    await downloadZip(filename, {
-      "spc.md": heading + body,
-      "spc.json": JSON.stringify({ ...spc, name: displayName }, null, 2),
-    });
-  };
-
-  return (
+    return (
     <WorkspaceShell>
       <div className="flex flex-col gap-4 h-full">
         <F5ScanLinks sessionId={sessionId} artifacts={artifacts ?? []} />
@@ -441,15 +422,7 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
                       />
                     </>
                   )}
-                  <Button
-                    onClick={exportSpc}
-                    size="sm"
-                    variant="outline"
-                    className="font-mono text-xs"
-                    data-testid="f5-export"
-                  >
-                    <Download className="h-3 w-3 mr-1" /> EXPORT
-                  </Button>
+                  <PortalArtifactLink sourceId={targetArtifactId} sessionId={sessionId} testId="f5-export" />
                 </div>
               )}
             </div>

@@ -3352,6 +3352,119 @@ paths:
               schema: { type: string, format: binary }
         '401': { description: Sign-in required }
         '404': { description: File unavailable }
+  /agent-creator:
+    get:
+      operationId: listCreatedAgents
+      tags: [Agent Creator]
+      responses:
+        "200":
+          description: Owned governed agents and preparation attempts
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/CreatedAgent" } }
+    post:
+      operationId: createGovernedAgent
+      tags: [Agent Creator]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AgentCreationInput" }
+      responses:
+        "200":
+          description: Saved internal evaluation and limited-runtime eligibility
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedAgent" }
+  /agent-creator/{agentId}:
+    get:
+      operationId: getCreatedAgent
+      tags: [Agent Creator]
+      parameters: [{ name: agentId, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200":
+          description: Owned agent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedAgent" }
+  /agent-creator/{agentId}/runs:
+    parameters: [{ name: agentId, in: path, required: true, schema: { type: string, format: uuid } }]
+    get:
+      operationId: listCreatedAgentRuns
+      tags: [Agent Creator]
+      responses:
+        "200":
+          description: Owned execution history
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/CreatedAgentRun" } }
+    post:
+      operationId: runCreatedAgent
+      tags: [Agent Creator]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AgentRunInput" }
+      responses:
+        "200":
+          description: Text-only governed execution; no external tools or deployment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedAgentRun" }
+  /imprima-portal:
+    get:
+      operationId: getImprimaPortal
+      tags: [IMPRIMA Portal]
+      responses:
+        "200":
+          description: Publication readiness and owned sources/history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImprimaPortal" }
+  /imprima-portal/publications:
+    post:
+      operationId: createPortalPublication
+      tags: [IMPRIMA Portal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PortalPublicationInput" }
+      responses:
+        "200":
+          description: Frozen private publication, not a release approval
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PortalPublication" }
+  /imprima-portal/publications/{publicationId}/code:
+    post:
+      operationId: requestPublicationCode
+      tags: [IMPRIMA Portal]
+      parameters: [{ name: publicationId, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200":
+          description: A single-use code was accepted by the email provider
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicationCodeReceipt" }
+  /imprima-portal/publications/{publicationId}/download:
+    post:
+      operationId: downloadPortalPublication
+      tags: [IMPRIMA Portal]
+      parameters: [{ name: publicationId, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PublicationRedemption" }
+      responses:
+        "200":
+          description: Frozen bytes; code consumed and control copy accepted before issuing download
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+
 components:
   parameters:
     SessionId:
@@ -3394,6 +3507,114 @@ components:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   schemas:
+    AgentCreationInput:
+      type: object
+      required: [sourceArtifactId, requestKey]
+      properties:
+        sourceArtifactId: { type: string, format: uuid }
+        microPddArtifactId: { type: string, format: uuid }
+        requestKey: { type: string, format: uuid }
+    AgentRunInput:
+      type: object
+      required: [input, requestKey]
+      properties:
+        input: { type: string, minLength: 1, maxLength: 8000 }
+        requestKey: { type: string, format: uuid }
+    AgentEvaluation:
+      type: object
+      required: [basis, jcse, mathmon, eligible, blocks]
+      properties:
+        basis: { type: string, enum: [INTERNAL_MODEL_ASSESSED] }
+        jcse: { type: number }
+        mathmon: { type: number }
+        eligible: { type: boolean }
+        blocks: { type: array, items: { type: string } }
+    CreatedAgent:
+      type: object
+      required: [id, sessionId, sourceArtifactId, state, title, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
+        sourceArtifactId: { type: string, format: uuid }
+        companionArtifactId: { type: [string, "null"], format: uuid }
+        artifactId: { type: [string, "null"], format: uuid }
+        state: { type: string }
+        kind: { type: [string, "null"], enum: [MA, SPC, null] }
+        title: { type: string }
+        cheatSheet: { type: [string, "null"] }
+        evaluation: { $ref: "#/components/schemas/AgentEvaluation" }
+        error: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+    CreatedAgentRun:
+      type: object
+      required: [id, agentId, state, input, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        agentId: { type: string, format: uuid }
+        state: { type: string }
+        input: { type: string }
+        output: { type: [string, "null"] }
+        disclosure: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+    PortalSource:
+      type: object
+      required: [id, sourceType, title, type]
+      properties:
+        id: { type: string, format: uuid }
+        sourceType: { type: string }
+        title: { type: string }
+        type: { type: string }
+        parentSourceArtifactId: { type: [string, "null"], format: uuid }
+        sessionId: { type: [string, "null"], format: uuid }
+        parentId: { type: string, format: uuid }
+        kind: { type: string, enum: [imprima, short-sprints] }
+    ImprimaPortal:
+      type: object
+      required: [emailConfigured, storageConfigured, subscriberEmailAvailable, sources, publications]
+      properties:
+        emailConfigured: { type: boolean }
+        storageConfigured: { type: boolean }
+        subscriberEmailAvailable: { type: boolean }
+        protectedSourcesStatus: { type: string }
+        sources: { type: array, items: { $ref: "#/components/schemas/PortalSource" } }
+        publications: { type: array, items: { $ref: "#/components/schemas/PortalPublication" } }
+    PortalPublicationInput:
+      type: object
+      required: [sourceId, sourceType, format, author, rightsConfirmed]
+      properties:
+        sourceId: { type: string, format: uuid }
+        sourceType: { type: string, enum: [ARTIFACT, EXEMPLAR, SPC_PLAYER, IMPRIMA_FILE, PREPARATION_FILE, SPRINT_EXPORT, F10_EXPORT] }
+        parentId: { type: string, format: uuid }
+        kind: { type: string, enum: [imprima, short-sprints] }
+        exportOptions: { type: object, additionalProperties: true }
+        format: { type: string, enum: [PDF, EDITABLE_ZIP] }
+        author: { type: string, minLength: 1, maxLength: 160 }
+        rightsConfirmed: { type: boolean }
+    PortalPublication:
+      type: object
+      required: [id, sourceId, sourceType, title, author, format, state, filename, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        sourceId: { type: string, format: uuid }
+        sourceType: { type: string }
+        title: { type: string }
+        author: { type: string }
+        format: { type: string }
+        state: { type: string }
+        filename: { type: string }
+        createdAt: { type: string, format: date-time }
+    PublicationCodeReceipt:
+      type: object
+      required: [challengeId, expiresAt]
+      properties:
+        challengeId: { type: string, format: uuid }
+        expiresAt: { type: string, format: date-time }
+    PublicationRedemption:
+      type: object
+      required: [challengeId, code]
+      properties:
+        challengeId: { type: string, format: uuid }
+        code: { type: string, pattern: "^[0-9]{6}$" }
     PlatformService:
       type: object
       required: [id, title, scope, stage, implementation, serviceMode, serviceReadiness, subscriberOutcome, limitations, blockedReason, href, sourceEligibility, entitlement, assessmentStatus, deliveryStatus, operationStatus, localAcceptance, productionAcceptance, evidenceCheckedAt, requiredEvidence]
@@ -3450,7 +3671,7 @@ components:
       properties:
         sessionId: { type: string, format: uuid }
         featureId: { type: integer }
-        tool: { type: string, enum: [imprima, short-sprints, ingestion, cartridge, f0] }
+        tool: { type: string, enum: [imprima, short-sprints, agent-creator, ingestion, cartridge, f0] }
     F0StageOrigin:
       type: object
       required: [departure]
@@ -3469,7 +3690,7 @@ components:
       required: [caseId, tool, sessionId, featureId, stageLabel, sourceId, sourceKind, sourceTitle, sourceText, launchHref, returnedArtifactHref]
       properties:
         caseId: { type: string, format: uuid }
-        tool: { type: string, enum: [imprima, short-sprints, ingestion, cartridge, f0] }
+        tool: { type: string, enum: [imprima, short-sprints, agent-creator, ingestion, cartridge, f0] }
         sessionId: { type: string, format: uuid }
         featureId: { type: integer }
         stageLabel: { type: string }
@@ -4749,6 +4970,7 @@ components:
     ArtifactType:
       type: string
       enum:
+        - AGENT_PACKAGE
         - PROMPT_DIAGNOSTIC
         - ATOMIC_PROMPT
         - MA_BIRTH_PACKAGE

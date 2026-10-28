@@ -1,4 +1,6 @@
+import { portalHref } from "@/lib/portal";
 import { useEffect, useMemo, useState } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import { Link, useSearch } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,7 +12,7 @@ import {
   type ArtifactOperationWorkflow,
   type ArtifactOperationsWorkspace,
 } from "@workspace/api-client-react";
-import { AlertTriangle, Download, FileOutput, RefreshCw, Rocket, ShieldAlert, ShieldCheck, Upload } from "lucide-react";
+import { AlertTriangle, FileOutput, RefreshCw, Rocket, ShieldAlert, ShieldCheck } from "lucide-react";
 import { TopNav } from "@/components/layout/TopNav";
 import { GuardStatus, PreparationLane } from "@/components/operations/PreparationLane";
 import { operationsHref } from "@/components/shared/PublishDocumentLink";
@@ -23,7 +25,6 @@ import { useToast } from "@/hooks/use-toast";
 import {
   MANIFEST_FIELDS,
   MANIFEST_SAMPLE,
-  downloadFrom,
   errMessage,
   filenamePreview,
   imprimaView,
@@ -184,7 +185,6 @@ function ImprimaDetail({ wf, run, pending }: { wf: ArtifactOperationWorkflow; ru
   const [overrideReason, setOverride] = useState("");
   const [targetUrl, setTargetUrl] = useState("");
   const [consent, setConsent] = useState(false);
-  const [dlErr, setDlErr] = useState<string | null>(null);
   const handoff = [...wf.events].reverse().find((e) => e.action === "HANDOFF");
   const canApprove = checks.confirmHuman && checks.accessibilityReviewed && checks.layoutReviewed && !!v.contentHash && (!pol.needed || (pol.allowed && overrideReason.trim().length >= 10));
 
@@ -233,14 +233,11 @@ function ImprimaDetail({ wf, run, pending }: { wf: ArtifactOperationWorkflow; ru
                 <span className="truncate">{f.filename}</span>
                 {!approved && <span className="text-secondary border border-secondary/50 px-1 rounded">REVIEW · not approved</span>}
                 <span className="text-muted-foreground">{f.variant} · {(f.size / 1024).toFixed(1)} KB · {short(f.fileHash)}</span>
-                <Button size="sm" variant="outline" className="ml-auto h-7" onClick={() => downloadFrom(f.downloadPath, f.filename).then(() => setDlErr(null), (e) => setDlErr(errMessage(e).message))} data-testid={`button-download-${f.id}`}>
-                  <Download className="h-3 w-3 mr-1" /> Download
-                </Button>
+                <PortalArtifactLink sourceId={f.id} sourceType="IMPRIMA_FILE" sessionId={wf.sessionId} testId={`button-download-${f.id}`} label="Portal" className="ml-auto h-7" />
               </li>
             ))}
           </ul>
         )}
-        {dlErr && <p className="text-destructive">{dlErr}</p>}
         <p className="text-muted-foreground">Files are private to your account.</p>
       </Report>
 
@@ -381,7 +378,6 @@ function ShortSprintDetail({ wf, run, pending }: { wf: ArtifactOperationWorkflow
   const [reason, setReason] = useState("");
   const [receipt, setReceipt] = useState("");
   const [rErr, setRErr] = useState<string | null>(null);
-  const [dlErr, setDlErr] = useState<string | null>(null);
   const reasonOk = reason.trim().length >= 3;
   const importEvidence = async () => {
     let parsed: unknown;
@@ -432,7 +428,7 @@ function ShortSprintDetail({ wf, run, pending }: { wf: ArtifactOperationWorkflow
                 <span className="bg-muted px-1.5 rounded">{f.format}</span>
                 <span className="truncate">{f.filename}</span>
                 <span className="text-muted-foreground break-all">sha256 {f.fileHash}</span>
-                <Button size="sm" variant="outline" className="ml-auto h-7" onClick={() => downloadFrom(f.downloadPath, f.filename).then(() => setDlErr(null), (e) => setDlErr(errMessage(e).message))} data-testid={`button-ss-download-${f.id}`}><Download className="h-3 w-3 mr-1" /> Download</Button>
+                <PortalArtifactLink sourceId={wf.id} sourceType="SPRINT_EXPORT" sessionId={wf.sessionId} testId={`button-ss-download-${f.id}`} label="Portal" className="ml-auto h-7" />
               </li>
             ))}
           </ul>
@@ -442,10 +438,7 @@ function ShortSprintDetail({ wf, run, pending }: { wf: ArtifactOperationWorkflow
 
       {allowed.has("IMPORT_EVIDENCE") && (
         <Report title="Import signed evidence" note={`bound to source ${short(wf.sourceHash)}`}>
-          <label className="inline-flex items-center gap-1.5 cursor-pointer underline">
-            <Upload className="h-3 w-3" /> Load JSON file
-            <input type="file" accept="application/json,.json" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setReceipt(await f.text()); e.target.value = ""; }} data-testid="input-receipt-file" />
-          </label>
+          <p className="text-[11px] text-muted-foreground">Paste the signed receipt JSON below. File uploads go through <Link href={portalHref({ tab: "intake" })} className="underline" data-testid="link-central-intake">IMPRIMA Portal intake</Link>; this page has no local file picker.</p>
           <Textarea rows={6} className="font-mono text-[10px]" placeholder='{"payload": {...}, "signature": "...", "authorityId": "..."}' value={receipt} onChange={(e) => setReceipt(e.target.value)} data-testid="input-receipt" />
           {rErr && <p className="text-destructive">{rErr}</p>}
           <Button size="sm" disabled={!receipt.trim() || pending} onClick={importEvidence} data-testid="button-import-evidence">Import receipt</Button>
@@ -469,12 +462,9 @@ function ShortSprintDetail({ wf, run, pending }: { wf: ArtifactOperationWorkflow
         {allowed.has("RELEASE") && <Button size="sm" variant="outline" disabled={pending} onClick={() => run("RELEASE", {}, { wf })} data-testid="button-release">Record release receipts</Button>}
         {allowed.has("CANCEL") && <Button size="sm" variant="outline" className="text-destructive" disabled={pending} onClick={() => run("CANCEL", {}, { wf })} data-testid="button-ss-cancel">Cancel</Button>}
         {allowed.has("EXPORT") && (
-          <Button size="sm" variant="outline" onClick={() => downloadFrom(`/api/artifact-operations/short-sprints/${encodeURIComponent(wf.id)}/export`, `short-sprint-release-package-${wf.id.slice(0, 8)}.json`).then(() => setDlErr(null), (e) => setDlErr(errMessage(e).message))} data-testid="button-ss-export">
-            <Download className="h-3.5 w-3.5 mr-1" /> Export release package (JSON)
-          </Button>
+          <PortalArtifactLink sourceId={wf.id} sourceType="SPRINT_EXPORT" sessionId={wf.sessionId} testId="button-ss-export" label="Release package via Portal" />
         )}
       </div>
-      {dlErr && <p className="font-mono text-xs text-destructive">{dlErr}</p>}
       <p className="font-mono text-[10px] text-muted-foreground">
         Pack validates approved, signed external receipts from registered authorities; it does not run BUGMXT or MECHA and no tests run in this browser. Release records verified downstream receipts and does not change traffic. Nothing here certifies or activates an agent.
       </p>

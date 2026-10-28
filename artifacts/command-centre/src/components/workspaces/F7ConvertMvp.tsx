@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getHarnessF7StreamUrl,
@@ -30,14 +31,12 @@ import {
 } from "@/components/shared/ProviderOverride";
 import { useToast } from "@/hooks/use-toast";
 import { streamSse, extractApiError } from "@/lib/sse";
-import { downloadZip } from "@/lib/zipExport";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
-import { Sparkles, ShieldCheck, Download } from "lucide-react";
+import { Sparkles, ShieldCheck } from "lucide-react";
 import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
 
 import { Atlas360ViewPanel } from "./Atlas360ViewPanel";
-import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { ColonizationTargetSelect, type ColonizationTarget } from "./ColonizationTargetSelect";
 
 const SPARTAN_STEPS = [
@@ -170,39 +169,7 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
     }
   };
 
-  const exportZip = async () => {
-    if (!result) return;
-    const files: Record<string, string> = {};
-    for (const s of result.sections) {
-      files[`${s.key}.md`] = `# ${s.title}\n\n${s.body}`;
-    }
-    files["certificate.json"] = JSON.stringify(result.cert, null, 2);
-    const verifyUrl = `${window.location.origin}/verify?cert=${encodeURIComponent(result.cert.certId)}`;
-    files["verification.md"] =
-      `# SPARTAN Certification\n\n` +
-      `- **Cert ID:** ${result.cert.certId}\n` +
-      `- **Class:** ${result.cert.class}\n` +
-      `- **CR_p:** ${result.cert.crP.toFixed(2)}\n` +
-      `- **Issued:** ${new Date(result.cert.issuedAt).toISOString()}\n` +
-      `- **FORGE VERIFIED:** ${result.forgeVerified ? "YES" : "NO"}\n` +
-      (typeof result.mathmonScore === "number"
-        ? `- **MATHMON score:** ${result.mathmonScore}\n`
-        : "") +
-      `\n## Public verification URL\n\n${verifyUrl}\n` +
-      (result.forgeVerified && result.disclaimer
-        ? `\n## Disclaimer\n\n${result.disclaimer}\n`
-        : "");
-    const artifactId = result.artifactId ?? latestArtifact?.id ?? sessionId;
-    const filename = buildArtifactFilename({
-      type: "MVP_PDD",
-      title: latestArtifact?.name ?? "MVP PDD",
-      id: artifactId,
-      extension: "zip",
-    });
-    await downloadZip(filename, files);
-  };
-
-  const donutData = result?.donut
+    const donutData = result?.donut
     ? [
         { name: "Class A", value: result.donut.a },
         { name: "Class B", value: result.donut.b },
@@ -362,15 +329,7 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
                   </ResponsiveContainer>
                 </div>
               )}
-              <Button
-                onClick={exportZip}
-                size="sm"
-                variant="outline"
-                className="font-mono text-xs mt-4 w-full"
-                data-testid="f7-export"
-              >
-                <Download className="h-3 w-3 mr-1" /> EXPORT MVP PDD
-              </Button>
+              <PortalArtifactLink sourceId={result?.artifactId ?? latestArtifact?.id} sessionId={sessionId} testId="f7-export" label="Publish MVP PDD via Portal" className="mt-4 w-full justify-center" />
             </Card>
 
             <Card className="p-5 bg-card/50 flex flex-col min-h-0">

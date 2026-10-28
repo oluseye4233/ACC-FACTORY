@@ -5,6 +5,178 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+export interface AgentCreationInput {
+  sourceArtifactId: string;
+  microPddArtifactId?: string;
+  requestKey: string;
+}
+
+export interface AgentRunInput {
+  /**
+     * @minLength 1
+     * @maxLength 8000
+     */
+  input: string;
+  requestKey: string;
+}
+
+export type AgentEvaluationBasis = typeof AgentEvaluationBasis[keyof typeof AgentEvaluationBasis];
+
+
+export const AgentEvaluationBasis = {
+  INTERNAL_MODEL_ASSESSED: 'INTERNAL_MODEL_ASSESSED',
+} as const;
+
+export interface AgentEvaluation {
+  basis: AgentEvaluationBasis;
+  jcse: number;
+  mathmon: number;
+  eligible: boolean;
+  blocks: string[];
+}
+
+/**
+ * @nullable
+ */
+export type CreatedAgentKind = typeof CreatedAgentKind[keyof typeof CreatedAgentKind] | null;
+
+
+export const CreatedAgentKind = {
+  MA: 'MA',
+  SPC: 'SPC',
+} as const;
+
+export interface CreatedAgent {
+  id: string;
+  sessionId: string;
+  sourceArtifactId: string;
+  /** @nullable */
+  companionArtifactId?: string | null;
+  /** @nullable */
+  artifactId?: string | null;
+  state: string;
+  /** @nullable */
+  kind?: CreatedAgentKind;
+  title: string;
+  /** @nullable */
+  cheatSheet?: string | null;
+  evaluation?: AgentEvaluation;
+  /** @nullable */
+  error?: string | null;
+  createdAt: string;
+}
+
+export interface CreatedAgentRun {
+  id: string;
+  agentId: string;
+  state: string;
+  input: string;
+  /** @nullable */
+  output?: string | null;
+  /** @nullable */
+  disclosure?: string | null;
+  createdAt: string;
+}
+
+export type PortalSourceKind = typeof PortalSourceKind[keyof typeof PortalSourceKind];
+
+
+export const PortalSourceKind = {
+  imprima: 'imprima',
+  'short-sprints': 'short-sprints',
+} as const;
+
+export interface PortalSource {
+  id: string;
+  sourceType: string;
+  title: string;
+  type: string;
+  /** @nullable */
+  parentSourceArtifactId?: string | null;
+  /** @nullable */
+  sessionId?: string | null;
+  parentId?: string;
+  kind?: PortalSourceKind;
+}
+
+export interface PortalPublication {
+  id: string;
+  sourceId: string;
+  sourceType: string;
+  title: string;
+  author: string;
+  format: string;
+  state: string;
+  filename: string;
+  createdAt: string;
+}
+
+export interface ImprimaPortal {
+  emailConfigured: boolean;
+  storageConfigured: boolean;
+  subscriberEmailAvailable: boolean;
+  protectedSourcesStatus?: string;
+  sources: PortalSource[];
+  publications: PortalPublication[];
+}
+
+export type PortalPublicationInputSourceType = typeof PortalPublicationInputSourceType[keyof typeof PortalPublicationInputSourceType];
+
+
+export const PortalPublicationInputSourceType = {
+  ARTIFACT: 'ARTIFACT',
+  EXEMPLAR: 'EXEMPLAR',
+  SPC_PLAYER: 'SPC_PLAYER',
+  IMPRIMA_FILE: 'IMPRIMA_FILE',
+  PREPARATION_FILE: 'PREPARATION_FILE',
+  SPRINT_EXPORT: 'SPRINT_EXPORT',
+  F10_EXPORT: 'F10_EXPORT',
+} as const;
+
+export type PortalPublicationInputKind = typeof PortalPublicationInputKind[keyof typeof PortalPublicationInputKind];
+
+
+export const PortalPublicationInputKind = {
+  imprima: 'imprima',
+  'short-sprints': 'short-sprints',
+} as const;
+
+export type PortalPublicationInputExportOptions = { [key: string]: unknown };
+
+export type PortalPublicationInputFormat = typeof PortalPublicationInputFormat[keyof typeof PortalPublicationInputFormat];
+
+
+export const PortalPublicationInputFormat = {
+  PDF: 'PDF',
+  EDITABLE_ZIP: 'EDITABLE_ZIP',
+} as const;
+
+export interface PortalPublicationInput {
+  sourceId: string;
+  sourceType: PortalPublicationInputSourceType;
+  parentId?: string;
+  kind?: PortalPublicationInputKind;
+  exportOptions?: PortalPublicationInputExportOptions;
+  format: PortalPublicationInputFormat;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  author: string;
+  rightsConfirmed: boolean;
+}
+
+export interface PublicationCodeReceipt {
+  challengeId: string;
+  expiresAt: string;
+}
+
+export interface PublicationRedemption {
+  challengeId: string;
+  /** @pattern ^[0-9]{6}$ */
+  code: string;
+}
+
 export type PlatformServiceScope = typeof PlatformServiceScope[keyof typeof PlatformServiceScope];
 
 
@@ -141,6 +313,7 @@ export type StageSupportStartInputTool = typeof StageSupportStartInputTool[keyof
 export const StageSupportStartInputTool = {
   imprima: 'imprima',
   'short-sprints': 'short-sprints',
+  'agent-creator': 'agent-creator',
   ingestion: 'ingestion',
   cartridge: 'cartridge',
   f0: 'f0',
@@ -158,6 +331,7 @@ export type StageSupportDepartureTool = typeof StageSupportDepartureTool[keyof t
 export const StageSupportDepartureTool = {
   imprima: 'imprima',
   'short-sprints': 'short-sprints',
+  'agent-creator': 'agent-creator',
   ingestion: 'ingestion',
   cartridge: 'cartridge',
   f0: 'f0',
@@ -2550,6 +2724,7 @@ export type ArtifactType = typeof ArtifactType[keyof typeof ArtifactType];
 
 
 export const ArtifactType = {
+  AGENT_PACKAGE: 'AGENT_PACKAGE',
   PROMPT_DIAGNOSTIC: 'PROMPT_DIAGNOSTIC',
   ATOMIC_PROMPT: 'ATOMIC_PROMPT',
   MA_BIRTH_PACKAGE: 'MA_BIRTH_PACKAGE',

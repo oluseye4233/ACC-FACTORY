@@ -26,6 +26,7 @@ import {
 } from "@/lib/staff-session";
 import { Redirect } from "wouter";
 import { ThemeProvider } from "next-themes";
+import { intakeRedirectHref } from "@/lib/portal";
 
 // Keep authentication/providers eager and persistent. Tool code loads only when
 // the existing route gate selects that tool; this does not grant access to it.
@@ -43,14 +44,14 @@ const Sphinx = lazy(() => import("@/pages/sphinx"));
 const Prompts = lazy(() => import("@/pages/prompts"));
 const Quests = lazy(() => import("@/pages/quests"));
 const Account = lazy(() => import("@/pages/account"));
-const Ingest = lazy(() => import("@/pages/ingest"));
-const Cartridge = lazy(() => import("@/pages/cartridge"));
 const F0Dashboard = lazy(() => import("@/pages/f0"));
 const AdminBadges = lazy(() => import("@/pages/admin-badges"));
 const AdminOps = lazy(() => import("@/pages/admin-ops"));
 const AdminProviderBilling = lazy(() => import("@/pages/admin-provider-billing"));
 const Ascension = lazy(() => import("@/pages/ascension"));
 const F10Console = lazy(() => import("@/pages/f10"));
+const AgentCreator = lazy(() => import("@/pages/agent-creator"));
+const ImprimaPortal = lazy(() => import("@/pages/imprima-portal"));
 const Operations = lazy(() => import("@/pages/operations"));
 const Activity = lazy(() => import("@/pages/activity"));
 const MeCosts = lazy(() => import("@/pages/me-costs"));
@@ -67,6 +68,11 @@ const SpcPlayerNew = lazy(() => import("@/pages/spc-player/new"));
 const SpcPlayerDetail = lazy(() => import("@/pages/spc-player/detail"));
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+/** Upload surfaces live inside the IMPRIMA Portal; legacy URLs keep every query param (case, result, player run). */
+function IntakeRedirect({ target }: { target: "ingest" | "cartridge" }) {
+  return <Redirect to={intakeRedirectHref(target, useSearch())} replace />;
+}
 
 function LoadingScreen() {
   return (
@@ -116,8 +122,8 @@ function AuthenticatedRoutes() {
       <Route path="/teach/cohorts/:id" component={LearningCohortPage} />
       <Route path="/sessions" component={Sessions} />
       <Route path="/session/new" component={SessionNew} />
-      <Route path="/ingest" component={Ingest} />
-      <Route path="/cartridge" component={Cartridge} />
+      <Route path="/ingest">{() => <IntakeRedirect target="ingest" />}</Route>
+      <Route path="/cartridge">{() => <IntakeRedirect target="cartridge" />}</Route>
       <Route path="/f0" component={F0Dashboard} />
       <Route path="/session/:sessionId/verification" component={SessionVerification} />
       <Route path="/session/:id" component={SessionDetail} />
@@ -136,6 +142,8 @@ function AuthenticatedRoutes() {
       <Route path="/spc-player/new" component={SpcPlayerNew} />
       <Route path="/spc-player/:id" component={SpcPlayerDetail} />
       <Route path="/operations" component={Operations} />
+      <Route path="/agent-creator" component={AgentCreator} />
+      <Route path="/imprima-portal" component={ImprimaPortal} />
       <Route path="/f10" component={() => <F10Console />} />
       <Route component={NotFound} />
     </Switch>

@@ -35,6 +35,8 @@ import type {
   AdminRestoreBadgeResult,
   AdminRevokeBadgeInput,
   AdminRevokeBadgeResult,
+  AgentCreationInput,
+  AgentRunInput,
   AiseClaimInput,
   ArtifactGovernanceStatus,
   ArtifactOperationKind,
@@ -81,6 +83,8 @@ import type {
   CreateF0RetainerTaskInput,
   CreateLearningCohortBody,
   CreateSpcPlayerRunInput,
+  CreatedAgent,
+  CreatedAgentRun,
   CronReconcileF10Deployments200,
   DeepHealth,
   DeleteAccountInput,
@@ -175,6 +179,7 @@ import type {
   HarnessSession,
   HealthStatus,
   HostingPlan,
+  ImprimaPortal,
   IngestStartSessionInput,
   IngestionCheckoutInput,
   IngestionCreditsSummary,
@@ -208,12 +213,16 @@ import type {
   PfpReport,
   PlatformServiceInventory,
   PortalInput,
+  PortalPublication,
+  PortalPublicationInput,
   PortalSession,
   PricingPayload,
   PromptDiagnostic,
   PromptLibraryPage,
   ProviderBillingImportResult,
   ProviderBillingReport,
+  PublicationCodeReceipt,
+  PublicationRedemption,
   RateLimitedResponse,
   ReaderCodeInput,
   RecordF0DiscoveryInput,
@@ -18282,3 +18291,787 @@ export function useDownloadImprimaFile<TData = Awaited<ReturnType<typeof downloa
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+
+
+export const getListCreatedAgentsUrl = () => {
+
+
+
+
+  return `/api/agent-creator`
+}
+
+export const listCreatedAgents = async ( options?: Parameters<typeof customFetch>[1]): Promise<CreatedAgent[]> => {
+
+  return customFetch<CreatedAgent[]>(getListCreatedAgentsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCreatedAgentsQueryKey = () => {
+    return [
+    `/api/agent-creator`
+    ] as const;
+    }
+
+
+export const getListCreatedAgentsQueryOptions = <TData = Awaited<ReturnType<typeof listCreatedAgents>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgents>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCreatedAgentsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCreatedAgents>>> = ({ signal }) => listCreatedAgents({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgents>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCreatedAgentsQueryResult = NonNullable<Awaited<ReturnType<typeof listCreatedAgents>>>
+export type ListCreatedAgentsQueryError = ErrorType<unknown>
+
+
+export function useListCreatedAgents<TData = Awaited<ReturnType<typeof listCreatedAgents>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgents>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCreatedAgents>>,
+          TError,
+          Awaited<ReturnType<typeof listCreatedAgents>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCreatedAgents<TData = Awaited<ReturnType<typeof listCreatedAgents>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgents>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCreatedAgents>>,
+          TError,
+          Awaited<ReturnType<typeof listCreatedAgents>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCreatedAgents<TData = Awaited<ReturnType<typeof listCreatedAgents>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgents>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListCreatedAgents<TData = Awaited<ReturnType<typeof listCreatedAgents>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgents>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCreatedAgentsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateGovernedAgentUrl = () => {
+
+
+
+
+  return `/api/agent-creator`
+}
+
+export const createGovernedAgent = async (agentCreationInput: AgentCreationInput, options?: Parameters<typeof customFetch>[1]): Promise<CreatedAgent> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CreatedAgent>(getCreateGovernedAgentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(agentCreationInput)
+  }
+);}
+
+
+
+
+
+export const getCreateGovernedAgentMutationKey = () => ['createGovernedAgent'] as const;
+
+export const getCreateGovernedAgentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createGovernedAgent>>, TError,CreateGovernedAgentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createGovernedAgent>>, TError,CreateGovernedAgentMutationVariables, TContext> => {
+
+const mutationKey = getCreateGovernedAgentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createGovernedAgent>>, CreateGovernedAgentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createGovernedAgent(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateGovernedAgentMutationResult = NonNullable<Awaited<ReturnType<typeof createGovernedAgent>>>
+    export type CreateGovernedAgentMutationBody = BodyType<AgentCreationInput>
+    export type CreateGovernedAgentMutationError = ErrorType<unknown>
+    export type CreateGovernedAgentMutationVariables = {data: BodyType<AgentCreationInput>}
+
+    export const useCreateGovernedAgent = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createGovernedAgent>>, TError,CreateGovernedAgentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createGovernedAgent>>,
+        TError,
+        CreateGovernedAgentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateGovernedAgentMutationOptions(options), queryClient);
+    }
+
+export const getGetCreatedAgentUrl = (agentId: string,) => {
+
+
+
+
+  return `/api/agent-creator/${agentId}`
+}
+
+export const getCreatedAgent = async (agentId: string, options?: Parameters<typeof customFetch>[1]): Promise<CreatedAgent> => {
+
+  return customFetch<CreatedAgent>(getGetCreatedAgentUrl(agentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCreatedAgentQueryKey = (agentId: string,) => {
+    return [
+    `/api/agent-creator/${agentId}`
+    ] as const;
+    }
+
+
+export const getGetCreatedAgentQueryOptions = <TData = Awaited<ReturnType<typeof getCreatedAgent>>, TError = ErrorType<unknown>>(agentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCreatedAgent>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCreatedAgentQueryKey(agentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCreatedAgent>>> = ({ signal }) => getCreatedAgent(agentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: agentId !== null && agentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCreatedAgent>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCreatedAgentQueryResult = NonNullable<Awaited<ReturnType<typeof getCreatedAgent>>>
+export type GetCreatedAgentQueryError = ErrorType<unknown>
+
+
+export function useGetCreatedAgent<TData = Awaited<ReturnType<typeof getCreatedAgent>>, TError = ErrorType<unknown>>(
+ agentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCreatedAgent>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCreatedAgent>>,
+          TError,
+          Awaited<ReturnType<typeof getCreatedAgent>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCreatedAgent<TData = Awaited<ReturnType<typeof getCreatedAgent>>, TError = ErrorType<unknown>>(
+ agentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCreatedAgent>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCreatedAgent>>,
+          TError,
+          Awaited<ReturnType<typeof getCreatedAgent>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCreatedAgent<TData = Awaited<ReturnType<typeof getCreatedAgent>>, TError = ErrorType<unknown>>(
+ agentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCreatedAgent>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetCreatedAgent<TData = Awaited<ReturnType<typeof getCreatedAgent>>, TError = ErrorType<unknown>>(
+ agentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCreatedAgent>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCreatedAgentQueryOptions(agentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListCreatedAgentRunsUrl = (agentId: string,) => {
+
+
+
+
+  return `/api/agent-creator/${agentId}/runs`
+}
+
+export const listCreatedAgentRuns = async (agentId: string, options?: Parameters<typeof customFetch>[1]): Promise<CreatedAgentRun[]> => {
+
+  return customFetch<CreatedAgentRun[]>(getListCreatedAgentRunsUrl(agentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCreatedAgentRunsQueryKey = (agentId: string,) => {
+    return [
+    `/api/agent-creator/${agentId}/runs`
+    ] as const;
+    }
+
+
+export const getListCreatedAgentRunsQueryOptions = <TData = Awaited<ReturnType<typeof listCreatedAgentRuns>>, TError = ErrorType<unknown>>(agentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgentRuns>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCreatedAgentRunsQueryKey(agentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCreatedAgentRuns>>> = ({ signal }) => listCreatedAgentRuns(agentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: agentId !== null && agentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgentRuns>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCreatedAgentRunsQueryResult = NonNullable<Awaited<ReturnType<typeof listCreatedAgentRuns>>>
+export type ListCreatedAgentRunsQueryError = ErrorType<unknown>
+
+
+export function useListCreatedAgentRuns<TData = Awaited<ReturnType<typeof listCreatedAgentRuns>>, TError = ErrorType<unknown>>(
+ agentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgentRuns>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCreatedAgentRuns>>,
+          TError,
+          Awaited<ReturnType<typeof listCreatedAgentRuns>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCreatedAgentRuns<TData = Awaited<ReturnType<typeof listCreatedAgentRuns>>, TError = ErrorType<unknown>>(
+ agentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgentRuns>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCreatedAgentRuns>>,
+          TError,
+          Awaited<ReturnType<typeof listCreatedAgentRuns>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCreatedAgentRuns<TData = Awaited<ReturnType<typeof listCreatedAgentRuns>>, TError = ErrorType<unknown>>(
+ agentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgentRuns>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListCreatedAgentRuns<TData = Awaited<ReturnType<typeof listCreatedAgentRuns>>, TError = ErrorType<unknown>>(
+ agentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCreatedAgentRuns>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCreatedAgentRunsQueryOptions(agentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRunCreatedAgentUrl = (agentId: string,) => {
+
+
+
+
+  return `/api/agent-creator/${agentId}/runs`
+}
+
+export const runCreatedAgent = async (agentId: string,
+    agentRunInput: AgentRunInput, options?: Parameters<typeof customFetch>[1]): Promise<CreatedAgentRun> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CreatedAgentRun>(getRunCreatedAgentUrl(agentId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(agentRunInput)
+  }
+);}
+
+
+
+
+
+export const getRunCreatedAgentMutationKey = () => ['runCreatedAgent'] as const;
+
+export const getRunCreatedAgentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runCreatedAgent>>, TError,RunCreatedAgentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runCreatedAgent>>, TError,RunCreatedAgentMutationVariables, TContext> => {
+
+const mutationKey = getRunCreatedAgentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runCreatedAgent>>, RunCreatedAgentMutationVariables> = (props) => {
+          const {agentId,data} = props ?? {};
+
+          return  runCreatedAgent(agentId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunCreatedAgentMutationResult = NonNullable<Awaited<ReturnType<typeof runCreatedAgent>>>
+    export type RunCreatedAgentMutationBody = BodyType<AgentRunInput>
+    export type RunCreatedAgentMutationError = ErrorType<unknown>
+    export type RunCreatedAgentMutationVariables = {agentId: string;data: BodyType<AgentRunInput>}
+
+    export const useRunCreatedAgent = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runCreatedAgent>>, TError,RunCreatedAgentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof runCreatedAgent>>,
+        TError,
+        RunCreatedAgentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRunCreatedAgentMutationOptions(options), queryClient);
+    }
+
+export const getGetImprimaPortalUrl = () => {
+
+
+
+
+  return `/api/imprima-portal`
+}
+
+export const getImprimaPortal = async ( options?: Parameters<typeof customFetch>[1]): Promise<ImprimaPortal> => {
+
+  return customFetch<ImprimaPortal>(getGetImprimaPortalUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetImprimaPortalQueryKey = () => {
+    return [
+    `/api/imprima-portal`
+    ] as const;
+    }
+
+
+export const getGetImprimaPortalQueryOptions = <TData = Awaited<ReturnType<typeof getImprimaPortal>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetImprimaPortalQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getImprimaPortal>>> = ({ signal }) => getImprimaPortal({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetImprimaPortalQueryResult = NonNullable<Awaited<ReturnType<typeof getImprimaPortal>>>
+export type GetImprimaPortalQueryError = ErrorType<unknown>
+
+
+export function useGetImprimaPortal<TData = Awaited<ReturnType<typeof getImprimaPortal>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getImprimaPortal>>,
+          TError,
+          Awaited<ReturnType<typeof getImprimaPortal>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetImprimaPortal<TData = Awaited<ReturnType<typeof getImprimaPortal>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getImprimaPortal>>,
+          TError,
+          Awaited<ReturnType<typeof getImprimaPortal>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetImprimaPortal<TData = Awaited<ReturnType<typeof getImprimaPortal>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetImprimaPortal<TData = Awaited<ReturnType<typeof getImprimaPortal>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImprimaPortal>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetImprimaPortalQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreatePortalPublicationUrl = () => {
+
+
+
+
+  return `/api/imprima-portal/publications`
+}
+
+export const createPortalPublication = async (portalPublicationInput: PortalPublicationInput, options?: Parameters<typeof customFetch>[1]): Promise<PortalPublication> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<PortalPublication>(getCreatePortalPublicationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(portalPublicationInput)
+  }
+);}
+
+
+
+
+
+export const getCreatePortalPublicationMutationKey = () => ['createPortalPublication'] as const;
+
+export const getCreatePortalPublicationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPortalPublication>>, TError,CreatePortalPublicationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPortalPublication>>, TError,CreatePortalPublicationMutationVariables, TContext> => {
+
+const mutationKey = getCreatePortalPublicationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPortalPublication>>, CreatePortalPublicationMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPortalPublication(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePortalPublicationMutationResult = NonNullable<Awaited<ReturnType<typeof createPortalPublication>>>
+    export type CreatePortalPublicationMutationBody = BodyType<PortalPublicationInput>
+    export type CreatePortalPublicationMutationError = ErrorType<unknown>
+    export type CreatePortalPublicationMutationVariables = {data: BodyType<PortalPublicationInput>}
+
+    export const useCreatePortalPublication = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPortalPublication>>, TError,CreatePortalPublicationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createPortalPublication>>,
+        TError,
+        CreatePortalPublicationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreatePortalPublicationMutationOptions(options), queryClient);
+    }
+
+export const getRequestPublicationCodeUrl = (publicationId: string,) => {
+
+
+
+
+  return `/api/imprima-portal/publications/${publicationId}/code`
+}
+
+export const requestPublicationCode = async (publicationId: string, options?: Parameters<typeof customFetch>[1]): Promise<PublicationCodeReceipt> => {
+
+  return customFetch<PublicationCodeReceipt>(getRequestPublicationCodeUrl(publicationId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRequestPublicationCodeMutationKey = () => ['requestPublicationCode'] as const;
+
+export const getRequestPublicationCodeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestPublicationCode>>, TError,RequestPublicationCodeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestPublicationCode>>, TError,RequestPublicationCodeMutationVariables, TContext> => {
+
+const mutationKey = getRequestPublicationCodeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestPublicationCode>>, RequestPublicationCodeMutationVariables> = (props) => {
+          const {publicationId} = props ?? {};
+
+          return  requestPublicationCode(publicationId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestPublicationCodeMutationResult = NonNullable<Awaited<ReturnType<typeof requestPublicationCode>>>
+
+    export type RequestPublicationCodeMutationError = ErrorType<unknown>
+    export type RequestPublicationCodeMutationVariables = {publicationId: string}
+
+    export const useRequestPublicationCode = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestPublicationCode>>, TError,RequestPublicationCodeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof requestPublicationCode>>,
+        TError,
+        RequestPublicationCodeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRequestPublicationCodeMutationOptions(options), queryClient);
+    }
+
+export const getDownloadPortalPublicationUrl = (publicationId: string,) => {
+
+
+
+
+  return `/api/imprima-portal/publications/${publicationId}/download`
+}
+
+export const downloadPortalPublication = async (publicationId: string,
+    publicationRedemption: PublicationRedemption, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<Blob>(getDownloadPortalPublicationUrl(publicationId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(publicationRedemption)
+  }
+);}
+
+
+
+
+
+export const getDownloadPortalPublicationMutationKey = () => ['downloadPortalPublication'] as const;
+
+export const getDownloadPortalPublicationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof downloadPortalPublication>>, TError,DownloadPortalPublicationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof downloadPortalPublication>>, TError,DownloadPortalPublicationMutationVariables, TContext> => {
+
+const mutationKey = getDownloadPortalPublicationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof downloadPortalPublication>>, DownloadPortalPublicationMutationVariables> = (props) => {
+          const {publicationId,data} = props ?? {};
+
+          return  downloadPortalPublication(publicationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DownloadPortalPublicationMutationResult = NonNullable<Awaited<ReturnType<typeof downloadPortalPublication>>>
+    export type DownloadPortalPublicationMutationBody = BodyType<PublicationRedemption>
+    export type DownloadPortalPublicationMutationError = ErrorType<unknown>
+    export type DownloadPortalPublicationMutationVariables = {publicationId: string;data: BodyType<PublicationRedemption>}
+
+    export const useDownloadPortalPublication = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof downloadPortalPublication>>, TError,DownloadPortalPublicationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof downloadPortalPublication>>,
+        TError,
+        DownloadPortalPublicationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDownloadPortalPublicationMutationOptions(options), queryClient);
+    }

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 const sourcesState = { data: [] as any[], isLoading: false, isError: false, refetch: vi.fn() };
 vi.mock("@workspace/api-client-react", () => ({
@@ -41,9 +41,14 @@ describe("F11SubscriptionHandoff", () => {
     expect(screen.queryByRole("button", { name: /download/i })).toBeNull();
     expect(screen.getByText(/does not complete any H stage/i)).toBeTruthy();
   });
-  it("offers download for verified bundle", () => {
+  it("routes the verified bundle to the portal by exact artifact ID", () => {
     sourcesState.data = [src("v", { verificationStatus: "VERIFIED" })];
     render(<F11SubscriptionHandoff artifacts={[{ id: "v", artifactType: "VERIFIED_CODEBASE_BUNDLE", verificationStatus: "VERIFIED" }] as any} preferredSourceId="v" />);
-    expect(screen.getAllByRole("button", { name: /download handoff package/i }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: /download/i })).toBeNull();
+    const href = () => decodeURIComponent(screen.getAllByTestId("link-f11-portal")[0].getAttribute("href") ?? "");
+    expect(href()).toContain("/imprima-portal?sourceId=v&sourceType=F10_EXPORT");
+    expect(href()).toContain('"target":"TypeScript/Node"');
+    fireEvent.change(screen.getAllByTestId("select-f11-package")[0], { target: { value: "REPLIT" } });
+    expect(href()).toContain('"family":"VIBE_APP"');
   });
 });

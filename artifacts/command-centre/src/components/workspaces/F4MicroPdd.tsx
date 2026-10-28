@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useHarnessF4,
@@ -29,9 +30,7 @@ import {
   type OverrideValue,
 } from "@/components/shared/ProviderOverride";
 import { extractApiError } from "@/lib/sse";
-import { downloadZip } from "@/lib/zipExport";
-import { Download, Workflow } from "lucide-react";
-import { buildArtifactFilename } from "@workspace/artifact-naming";
+import { Workflow } from "lucide-react";
 
 interface Props {
   sessionId: string;
@@ -112,24 +111,7 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
     });
   };
 
-  const exportZip = async () => {
-    if (!result) return;
-    const artifactId = latestArtifact?.id ?? sessionId;
-    const filename = buildArtifactFilename({
-      type: "MICRO_PDD",
-      title: latestArtifact?.name ?? "Micro PDD",
-      id: artifactId,
-      extension: "zip",
-    });
-    await downloadZip(filename, {
-      "cheat-sheet.md": result.cheatSheet,
-      "worksheet.md": result.worksheet,
-      "build-launch.md": result.buildLaunch,
-      "interface-contract.md": result.interfaceContract,
-    });
-  };
-
-  return (
+    return (
     <WorkspaceShell>
       <div className="flex flex-col gap-4 h-full">
         <Card className="p-5 bg-card/50">
@@ -196,15 +178,7 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
                   <PublishDocumentLink sourceId={latestArtifact.id} sourceKind="F4_MICRO_PDD" sessionId={sessionId} />
                   </>
                 )}
-                <Button
-                  onClick={exportZip}
-                  size="sm"
-                  variant="outline"
-                  className="font-mono text-xs"
-                  data-testid="f4-export"
-                >
-                  <Download className="h-3 w-3 mr-1" /> EXPORT ZIP
-                </Button>
+                <PortalArtifactLink sourceId={latestArtifact?.id} sessionId={sessionId} testId="f4-export" />
               </div>
             </div>
             <Tabs defaultValue="cheatSheet" className="flex-1 flex flex-col min-h-0">

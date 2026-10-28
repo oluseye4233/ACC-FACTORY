@@ -8,7 +8,8 @@ import {
 } from "@workspace/api-client-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-export type SupportTool = "imprima" | "short-sprints" | "ingestion" | "cartridge" | "f0";
+/** "agent-creator" is cast through until the regenerated spec includes it; "short-sprints" stays valid for historical departures. */
+export type SupportTool = "imprima" | "short-sprints" | "ingestion" | "cartridge" | "f0" | "agent-creator";
 export interface SupportToolStatus { tool: SupportTool; active: boolean; reason: string }
 export interface StageSupportOptions { tools: SupportToolStatus[]; sourceId: string | null }
 export interface Departure {
@@ -40,7 +41,7 @@ export const stageSupportApi = {
   options: (sessionId: string, featureId: number) =>
     getStageSupportOptions({ sessionId, featureId }) as unknown as Promise<StageSupportOptions>,
   depart: (body: { sessionId: string; featureId: number; tool: SupportTool }) =>
-    createStageSupportDeparture(body) as unknown as Promise<Departure>,
+    createStageSupportDeparture(body as Parameters<typeof createStageSupportDeparture>[0]) as unknown as Promise<Departure>,
   departure: (id: string) => getStageSupportDeparture(id) as unknown as Promise<Departure>,
   return: (id: string, resultId: string) =>
     returnStageSupportArtifact(id, { resultId }) as unknown as Promise<DepartureReturn>,

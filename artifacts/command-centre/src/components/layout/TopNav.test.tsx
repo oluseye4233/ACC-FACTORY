@@ -52,12 +52,13 @@ describe("keyboard and current-page navigation", () => {
   });
 
   it("marks exactly the correct operations view as current", () => {
-    state.pathname = "/operations";
-    state.search = "kind=short-sprints";
+    state.pathname = "/agent-creator";
+    state.search = "";
     render(<TopNav />);
     const navigation = screen.getByRole("navigation", { name: "Main navigation" });
-    expect(within(navigation).getByRole("link", { name: "Short Sprints" }).getAttribute("aria-current")).toBe("page");
-    expect(within(navigation).getByRole("link", { name: "IMPRIMA" }).hasAttribute("aria-current")).toBe(false);
+    expect(within(navigation).getByRole("link", { name: "Agent Creator" }).getAttribute("aria-current")).toBe("page");
+    expect(within(navigation).getByRole("link", { name: "IMPRIMA Portal" }).hasAttribute("aria-current")).toBe(false);
+    expect(within(navigation).queryByRole("link", { name: "Short Sprints" })).toBeNull();
   });
 
   it("uses real links and marks the current destination in the mobile menu", async () => {
@@ -76,7 +77,7 @@ describe("keyboard and current-page navigation", () => {
     state.student = true;
     render(<TopNav />);
     const navigation = screen.getByRole("navigation", { name: "Main navigation" });
-    expect(within(navigation).queryByRole("link", { name: "IMPRIMA" })).toBeNull();
+    expect(within(navigation).queryByRole("link", { name: "IMPRIMA Portal" })).toBeNull();
     expect(within(navigation).queryByRole("link", { name: "Admin" })).toBeNull();
     expect(within(navigation).getByRole("link", { name: "Training" })).toBeTruthy();
     expect(screen.queryByTestId("company-spend-meter")).toBeNull();

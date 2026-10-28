@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import { useParams, useLocation, Link } from "wouter";
 import { ENGINES } from "@/lib/constants";
 import { sessionStageHref } from "@/lib/stage-origin";
@@ -23,11 +24,10 @@ import {
   getListSpcPlayerRunsQueryKey,
   getListBoomerangCasesQueryKey,
   getListSessionArtifactsQueryKey,
-  getDownloadSpcPlayerRunUrl,
   type SpcPlayerRun,
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
-import { ArrowLeft, ArrowRight, Download, Play, Shield, Activity, Package, FileJson, Loader2, CheckCircle2, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Play, Shield, Activity, Package, FileJson, Loader2, CheckCircle2, Send } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,12 +87,7 @@ export default function SpcPlayerDetail() {
     return card ? card.slug : "";
   };
 
-  const handleDownloadPackage = () => {
-    if (!id) return;
-    window.open(getDownloadSpcPlayerRunUrl(id), "_blank", "noopener,noreferrer");
-  };
-
-  const handleExecute = () => {
+    const handleExecute = () => {
     if (!id) return;
     executeRun.mutate(
       { id },
@@ -322,15 +317,7 @@ export default function SpcPlayerDetail() {
                   </p>
                 )}
                 {run.outputPackage && (
-                  <Button
-                    variant="outline"
-                    onClick={handleDownloadPackage}
-                    className="w-full font-mono text-[10px] uppercase tracking-wider"
-                    data-testid="button-download-package"
-                  >
-                    <Download className="mr-2 h-3.5 w-3.5" />
-                    Download Final JSON Package
-                  </Button>
+                  <PortalArtifactLink sourceId={id} sourceType="SPC_PLAYER" testId="button-download-package" label="Publish final package via Portal" className="w-full justify-center uppercase text-[10px] tracking-wider" />
                 )}
               </div>
             </div>

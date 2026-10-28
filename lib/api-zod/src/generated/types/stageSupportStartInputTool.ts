@@ -12,6 +12,7 @@ export type StageSupportStartInputTool = typeof StageSupportStartInputTool[keyof
 export const StageSupportStartInputTool = {
   imprima: 'imprima',
   'short-sprints': 'short-sprints',
+  'agent-creator': 'agent-creator',
   ingestion: 'ingestion',
   cartridge: 'cartridge',
   f0: 'f0',

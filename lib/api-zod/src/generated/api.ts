@@ -26,12 +26,12 @@ export const GetStageSupportOptionsResponse = zod.object({
 export const CreateStageSupportDepartureBody = zod.object({
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge', 'f0'])
+  "tool": zod.enum(['imprima', 'short-sprints', 'agent-creator', 'ingestion', 'cartridge', 'f0'])
 })
 
 export const CreateStageSupportDepartureResponse = zod.object({
   "caseId": zod.string().uuid(),
-  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge', 'f0']),
+  "tool": zod.enum(['imprima', 'short-sprints', 'agent-creator', 'ingestion', 'cartridge', 'f0']),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
   "stageLabel": zod.string(),
@@ -51,7 +51,7 @@ export const GetStageSupportDepartureParams = zod.object({
 
 export const GetStageSupportDepartureResponse = zod.object({
   "caseId": zod.string().uuid(),
-  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge', 'f0']),
+  "tool": zod.enum(['imprima', 'short-sprints', 'agent-creator', 'ingestion', 'cartridge', 'f0']),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
   "stageLabel": zod.string(),
@@ -75,7 +75,7 @@ export const GetF0StageSupportOriginParams = zod.object({
 export const GetF0StageSupportOriginResponse = zod.object({
   "departure": zod.union([zod.object({
   "caseId": zod.string().uuid(),
-  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge', 'f0']),
+  "tool": zod.enum(['imprima', 'short-sprints', 'agent-creator', 'ingestion', 'cartridge', 'f0']),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
   "stageLabel": zod.string(),
@@ -2837,7 +2837,7 @@ export const GetSessionResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['AGENT_PACKAGE', 'PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -3050,7 +3050,7 @@ export const ListSessionArtifactsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['AGENT_PACKAGE', 'PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -3199,7 +3199,7 @@ export const GetArtifactResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['AGENT_PACKAGE', 'PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -3260,7 +3260,7 @@ export const ListArtifactsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['AGENT_PACKAGE', 'PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -3334,7 +3334,7 @@ export const RenameArtifactResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['AGENT_PACKAGE', 'PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -4097,7 +4097,7 @@ export const HarnessF5ScanResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['AGENT_PACKAGE', 'PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -5415,7 +5415,7 @@ export const ListMyPromptsResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "sessionName": zod.string().nullish(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['AGENT_PACKAGE', 'PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "certTier": zod.string().nullish(),
   "jcseScore": zod.number().int().nullish(),
   "spcOrigin": zod.union([zod.literal('artisanal'),zod.literal('digitally_evolved'),zod.literal(null)]).nullish(),
@@ -5681,7 +5681,7 @@ export const HarnessEvolveResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['AGENT_PACKAGE', 'PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -7271,7 +7271,7 @@ export const ReturnSpcPlayerRunToStageResponse = zod.object({
   "id": zod.string().uuid(),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "artifactType": zod.enum(['PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
+  "artifactType": zod.enum(['AGENT_PACKAGE', 'PROMPT_DIAGNOSTIC', 'ATOMIC_PROMPT', 'MA_BIRTH_PACKAGE', 'MICRO_PDD', 'SPC', 'ATLAS_PDD', 'ATLAS_PDD_JSON', 'MVP_PDD', 'CODEBASE_BUNDLE', 'VERIFIED_CODEBASE_BUNDLE', 'SPC_PLAYER_SUPPORT', 'PFP_REPORT', 'F8_DRIFT_REMEDIATION', 'HOSTING_PLAN', 'ATLAS_360_PLAN_VIEW', 'ATLAS_360_SCAN_VIEW']),
   "parentArtifactId": zod.string().uuid().nullish(),
   "contentHash": zod.string().nullish(),
   "verificationStatus": zod.enum(['UNVERIFIED', 'VERIFIED']).optional(),
@@ -8140,3 +8140,202 @@ export const DownloadImprimaFileParams = zod.object({
 })
 
 export const DownloadImprimaFileResponse = zod.unknown()
+
+
+export const ListCreatedAgentsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "sessionId": zod.string().uuid(),
+  "sourceArtifactId": zod.string().uuid(),
+  "companionArtifactId": zod.string().uuid().nullish(),
+  "artifactId": zod.string().uuid().nullish(),
+  "state": zod.string(),
+  "kind": zod.union([zod.literal('MA'),zod.literal('SPC'),zod.literal(null)]).nullish(),
+  "title": zod.string(),
+  "cheatSheet": zod.string().nullish(),
+  "evaluation": zod.object({
+  "basis": zod.enum(['INTERNAL_MODEL_ASSESSED']),
+  "jcse": zod.number(),
+  "mathmon": zod.number(),
+  "eligible": zod.boolean(),
+  "blocks": zod.array(zod.string())
+}).optional(),
+  "error": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListCreatedAgentsResponse = zod.array(ListCreatedAgentsResponseItem)
+
+
+export const CreateGovernedAgentBody = zod.object({
+  "sourceArtifactId": zod.string().uuid(),
+  "microPddArtifactId": zod.string().uuid().optional(),
+  "requestKey": zod.string().uuid()
+})
+
+export const CreateGovernedAgentResponse = zod.object({
+  "id": zod.string().uuid(),
+  "sessionId": zod.string().uuid(),
+  "sourceArtifactId": zod.string().uuid(),
+  "companionArtifactId": zod.string().uuid().nullish(),
+  "artifactId": zod.string().uuid().nullish(),
+  "state": zod.string(),
+  "kind": zod.union([zod.literal('MA'),zod.literal('SPC'),zod.literal(null)]).nullish(),
+  "title": zod.string(),
+  "cheatSheet": zod.string().nullish(),
+  "evaluation": zod.object({
+  "basis": zod.enum(['INTERNAL_MODEL_ASSESSED']),
+  "jcse": zod.number(),
+  "mathmon": zod.number(),
+  "eligible": zod.boolean(),
+  "blocks": zod.array(zod.string())
+}).optional(),
+  "error": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const GetCreatedAgentParams = zod.object({
+  "agentId": zod.coerce.string().uuid()
+})
+
+export const GetCreatedAgentResponse = zod.object({
+  "id": zod.string().uuid(),
+  "sessionId": zod.string().uuid(),
+  "sourceArtifactId": zod.string().uuid(),
+  "companionArtifactId": zod.string().uuid().nullish(),
+  "artifactId": zod.string().uuid().nullish(),
+  "state": zod.string(),
+  "kind": zod.union([zod.literal('MA'),zod.literal('SPC'),zod.literal(null)]).nullish(),
+  "title": zod.string(),
+  "cheatSheet": zod.string().nullish(),
+  "evaluation": zod.object({
+  "basis": zod.enum(['INTERNAL_MODEL_ASSESSED']),
+  "jcse": zod.number(),
+  "mathmon": zod.number(),
+  "eligible": zod.boolean(),
+  "blocks": zod.array(zod.string())
+}).optional(),
+  "error": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const ListCreatedAgentRunsParams = zod.object({
+  "agentId": zod.coerce.string().uuid()
+})
+
+export const ListCreatedAgentRunsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "agentId": zod.string().uuid(),
+  "state": zod.string(),
+  "input": zod.string(),
+  "output": zod.string().nullish(),
+  "disclosure": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListCreatedAgentRunsResponse = zod.array(ListCreatedAgentRunsResponseItem)
+
+
+export const RunCreatedAgentParams = zod.object({
+  "agentId": zod.coerce.string().uuid()
+})
+
+export const runCreatedAgentBodyInputMax = 8000;
+
+
+
+export const RunCreatedAgentBody = zod.object({
+  "input": zod.string().min(1).max(runCreatedAgentBodyInputMax),
+  "requestKey": zod.string().uuid()
+})
+
+export const RunCreatedAgentResponse = zod.object({
+  "id": zod.string().uuid(),
+  "agentId": zod.string().uuid(),
+  "state": zod.string(),
+  "input": zod.string(),
+  "output": zod.string().nullish(),
+  "disclosure": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const GetImprimaPortalResponse = zod.object({
+  "emailConfigured": zod.boolean(),
+  "storageConfigured": zod.boolean(),
+  "subscriberEmailAvailable": zod.boolean(),
+  "protectedSourcesStatus": zod.string().optional(),
+  "sources": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "sourceType": zod.string(),
+  "title": zod.string(),
+  "type": zod.string(),
+  "parentSourceArtifactId": zod.string().uuid().nullish(),
+  "sessionId": zod.string().uuid().nullish(),
+  "parentId": zod.string().uuid().optional(),
+  "kind": zod.enum(['imprima', 'short-sprints']).optional()
+})),
+  "publications": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "sourceId": zod.string().uuid(),
+  "sourceType": zod.string(),
+  "title": zod.string(),
+  "author": zod.string(),
+  "format": zod.string(),
+  "state": zod.string(),
+  "filename": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+export const createPortalPublicationBodyAuthorMax = 160;
+
+
+
+export const CreatePortalPublicationBody = zod.object({
+  "sourceId": zod.string().uuid(),
+  "sourceType": zod.enum(['ARTIFACT', 'EXEMPLAR', 'SPC_PLAYER', 'IMPRIMA_FILE', 'PREPARATION_FILE', 'SPRINT_EXPORT', 'F10_EXPORT']),
+  "parentId": zod.string().uuid().optional(),
+  "kind": zod.enum(['imprima', 'short-sprints']).optional(),
+  "exportOptions": zod.record(zod.string(), zod.unknown()).optional(),
+  "format": zod.enum(['PDF', 'EDITABLE_ZIP']),
+  "author": zod.string().min(1).max(createPortalPublicationBodyAuthorMax),
+  "rightsConfirmed": zod.boolean()
+})
+
+export const CreatePortalPublicationResponse = zod.object({
+  "id": zod.string().uuid(),
+  "sourceId": zod.string().uuid(),
+  "sourceType": zod.string(),
+  "title": zod.string(),
+  "author": zod.string(),
+  "format": zod.string(),
+  "state": zod.string(),
+  "filename": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const RequestPublicationCodeParams = zod.object({
+  "publicationId": zod.coerce.string().uuid()
+})
+
+export const RequestPublicationCodeResponse = zod.object({
+  "challengeId": zod.string().uuid(),
+  "expiresAt": zod.coerce.date()
+})
+
+
+export const DownloadPortalPublicationParams = zod.object({
+  "publicationId": zod.coerce.string().uuid()
+})
+
+export const downloadPortalPublicationBodyCodeRegExp = new RegExp('^[0-9]{6}$');
+
+
+export const DownloadPortalPublicationBody = zod.object({
+  "challengeId": zod.string().uuid(),
+  "code": zod.string().regex(downloadPortalPublicationBodyCodeRegExp)
+})
+
+export const DownloadPortalPublicationResponse = zod.unknown()

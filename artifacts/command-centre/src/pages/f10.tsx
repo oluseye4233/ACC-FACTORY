@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import {
   useListF10Releases,
   useCreateF10Release,
@@ -7,7 +8,6 @@ import {
   useGetF10Catalog,
   useListF10Sources,
   useCreateF10ExportManifest,
-  useDownloadF10Export,
   usePushF10ExportToGitHub,
   useListF10Destinations,
   useCreateF10Destination,
@@ -51,7 +51,6 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { buildArtifactFilename } from "@workspace/artifact-naming";
 import { queryClient } from "@/lib/queryClient";
 import { api } from "@/lib/api";
 import {
@@ -601,7 +600,6 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
 
   // Mutations
   const createF10ExportManifest = useCreateF10ExportManifest();
-  const downloadF10Export = useDownloadF10Export();
   const pushF10ExportToGitHub = usePushF10ExportToGitHub();
   const createDestination = useCreateF10Destination();
   const createRelease = useCreateF10Release();
@@ -732,43 +730,7 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
     }
   };
 
-  const handleDownloadBundle = async () => {
-    if (!selectedSource || !selectedFamily || !selectedTarget) return;
-
-    const mode = selectedFamilyData?.liveMode === "INTERNAL_HANDOFF" ? "INTERNAL_HANDOFF" : "EXPORT";
-    const input = exportInput(selectedFamily as F10ExportInputFamily, mode as F10ExportInputDeliveryMode);
-    if (!input || governanceInvalid) return;
-
-    try {
-      const blob = await downloadF10Export.mutateAsync({ data: input });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = buildArtifactFilename({
-        type: "F10_EXPORT",
-        title: selectedSource.name ?? "F10 Export",
-        id: selectedSource.id,
-        extension: "zip",
-      });
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast({
-        title: "Download Complete",
-        description: "The bundle has been successfully downloaded.",
-      });
-    } catch (err: unknown) {
-      toast({
-        title: "Download Failed",
-        description: getErrorMessage(err),
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Live Dispatch Logic
+    // Live Dispatch Logic
   async function handleCreateDestination() {
     createDestination.mutate(
       {
@@ -1241,14 +1203,11 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
                     >
                       {createF10ExportManifest.isPending ? "Generating..." : "Preview Manifest"}
                     </Button>
-                    <Button
-                      onClick={handleDownloadBundle}
-                      disabled={!selectedSourceId || !selectedFamily || !selectedTarget || downloadF10Export.isPending || governanceInvalid}
-                      data-testid="btn-download-bundle"
-                      className="flex-1 font-mono uppercase text-xs tracking-wider"
-                    >
-                      {downloadF10Export.isPending ? "Bundling..." : "Download Bundle"}
-                    </Button>
+                    {selectedSourceId && selectedFamily && selectedTarget && !governanceInvalid ? (
+                      <PortalArtifactLink sourceId={selectedSource?.id ?? selectedSourceId} sourceType="F10_EXPORT" exportOptions={exportInput(selectedFamily as F10ExportInputFamily, (selectedFamilyData?.liveMode === "INTERNAL_HANDOFF" ? "INTERNAL_HANDOFF" : "EXPORT") as F10ExportInputDeliveryMode)} testId="btn-download-bundle" label="Publish this export via Portal" className="flex-1 justify-center h-10 uppercase tracking-wider" />
+                    ) : (
+                      <span className="flex-1 self-center font-mono text-[10px] text-muted-foreground" data-testid="btn-download-bundle-unavailable">Select a source, family and target to publish its code artifact via the Portal.</span>
+                    )}
                   </div>
                 </CardContent>
               </Card>
