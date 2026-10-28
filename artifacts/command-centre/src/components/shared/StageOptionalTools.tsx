@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, Briefcase, Boxes, CornerDownLeft, FileInput, Fil
 import { supportErrMessage, useLaunchDeparture, useStageSupportOptions, type SupportTool } from "@/lib/stage-support";
 import { BoomerangPanel } from "@/components/boomerang";
 import { RETURN_WITH_ARTIFACT_LABEL } from "@/components/boomerang/ReturnedUpgrade";
-import { f0OriginHref, sessionStageHref, spcPlayerOriginHref } from "@/lib/stage-origin";
+import { sessionStageHref, spcPlayerOriginHref } from "@/lib/stage-origin";
 
 interface Props {
   sessionId: string;
@@ -63,6 +63,10 @@ const SUPPORT: { tool: SupportTool; title: string; tag: string; icon: ReactNode;
     what: "Opens Advanced Cartridge with project name and scope prefilled once from this stage's saved source.",
     outcome: "A built cartridge package returned to this stage as a candidate requiring review. Credit and build gates are unchanged.",
     how: "Launch, adjust scope and assets, build the cartridge, then use the return action." },
+  { tool: "f0", title: "F0 ADVISORY", tag: "business read", icon: <Briefcase className="h-4 w-4" />, tone: "text-secondary", btn: "border-secondary/50 text-secondary hover:bg-secondary/10",
+    what: "Opens F0 Business Intelligence with a new engagement bound to this stage's saved source, created for you on launch. You never pick or re-enter the source.",
+    outcome: "A saved advisory report (bear case, range-based financials) returned to this stage as a candidate requiring review. Not automatically adopted; discovery and usage gates are unchanged.",
+    how: "Launch, run SOCRATES discovery in the linked engagement, generate a report, then use the return action beside that saved report. Reports from other engagements cannot be returned here." },
 ];
 
 function SupportLaunch({ sessionId, featureId, stageLabel, isSessionOwner }: Props) {
@@ -156,17 +160,6 @@ export function StageOptionalTools({ sessionId, featureId, stageLabel, isSession
           )}
         </ToolBox>
 
-        <ToolBox id="f0" icon={<Briefcase className="h-4 w-4" />} title="F0 Advisory" tag="business read">
-          <Explain
-            what="Opens F0 Business Intelligence to pressure-test viability, positioning and financials alongside this stage."
-            outcome="An advisory report with a bear case and range-based financials. F0 reports are not automatically adopted into this session."
-            how="Open F0, start or select an engagement, run SOCRATES discovery and generate a report. To use findings here, copy the relevant report text into a Boomerang request at this stage and review it on return."
-            back={`F0 shows a Return to ${stageLabel} banner at the top for as long as you stay in it. Press it to come straight back to this stage.`}
-          />
-          <Link href={f0OriginHref(sessionId, featureId)} className="inline-flex items-center gap-1 rounded border border-secondary/50 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-secondary hover:bg-secondary/10" data-testid="link-open-f0-advisory">
-            Open F0 Advisory <ArrowRight className="h-3 w-3" />
-          </Link>
-        </ToolBox>
         <SupportLaunch sessionId={sessionId} featureId={featureId} stageLabel={stageLabel} isSessionOwner={isSessionOwner} />
       </div>
     </section>

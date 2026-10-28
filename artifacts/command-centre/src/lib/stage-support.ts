@@ -8,7 +8,7 @@ import {
 } from "@workspace/api-client-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-export type SupportTool = "imprima" | "short-sprints" | "ingestion" | "cartridge";
+export type SupportTool = "imprima" | "short-sprints" | "ingestion" | "cartridge" | "f0";
 export interface SupportToolStatus { tool: SupportTool; active: boolean; reason: string }
 export interface StageSupportOptions { tools: SupportToolStatus[]; sourceId: string | null }
 export interface Departure {
@@ -23,6 +23,7 @@ export interface Departure {
   sourceText: string;
   launchHref: string;
   returnedArtifactHref: string | null;
+  f0EngagementId?: string | null;
 }
 export interface DepartureReturn { returnedArtifactId: string; returnedArtifactHref: string; upgradeLabel: string }
 

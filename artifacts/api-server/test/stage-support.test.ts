@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import { and, eq, inArray } from "drizzle-orm";
 import {
   db, usersTable, harnessSessionsTable, harnessArtifactsTable, boomerangCasesTable,
-  ingestionDocumentsTable, cartridgePackagesTable,
+  ingestionDocumentsTable, cartridgePackagesTable, f0EngagementsTable, f0ReportsTable,
 } from "@workspace/db";
 import { supportAvailability, exactSupportSource, safePreparationResult } from "../src/lib/stage-support";
 
@@ -31,6 +31,8 @@ describe("stage support qualification", () => {
     expect(supportAvailability(source, "short-sprints").active).toBe(false);
     expect(supportAvailability({ ...source, artifactType: "CODE_BUNDLE" }, "imprima").active).toBe(false);
     expect(supportAvailability({ ...source, artifactType: "SPC" }, "short-sprints").active).toBe(true);
+    expect(supportAvailability(undefined, "f0").active).toBe(false);
+    expect(supportAvailability({ ...source, artifactType: "CODEBASE_BUNDLE" }, "f0").active).toBe(true);
   });
   test("requires a completed matching preparation and strips private storage keys", () => {
     const content = { kind: "imprima", sourceId: "a", state: "PREPARED_DRAFT", files: [
@@ -61,6 +63,8 @@ describe("persisted stage-support round trip", () => {
     await new Promise<void>(resolve => server?.close(() => resolve()));
     if (!owner) return;
     await db.delete(boomerangCasesTable).where(inArray(boomerangCasesTable.userId, [owner, stranger]));
+    await db.delete(f0ReportsTable).where(inArray(f0ReportsTable.userId, [owner, stranger]));
+    await db.delete(f0EngagementsTable).where(inArray(f0EngagementsTable.userId, [owner, stranger]));
     if (sessionIds.length) {
       await db.delete(harnessArtifactsTable).where(inArray(harnessArtifactsTable.sessionId, sessionIds));
       await db.delete(harnessSessionsTable).where(inArray(harnessSessionsTable.id, sessionIds));
@@ -83,6 +87,80 @@ describe("persisted stage-support round trip", () => {
     expect(departure.status).toBe(201);
     return { source: source!, session: session!, departure: departure.data };
   }
+  async function report(engagementId: string, options: {
+    user?: string; createdAt?: Date; content?: Record<string, unknown>;
+  } = {}) {
+    const [saved] = await db.insert(f0ReportsTable).values({
+      userId: options.user ?? owner, engagementId, service: "PRODUCT_VIABILITY",
+      reportCode: `QA-${randomUUID()}`, content: options.content ?? { summary: "Synthetic saved advisory findings; not provider evidence." },
+      ...(options.createdAt ? { createdAt: options.createdAt } : {}),
+    }).returning();
+    return saved!;
+  }
+  test("F0 departure creates an exact owned engagement and restores it after navigation", async () => {
+    const { departure, source, session } = await setup("f0");
+    expect(departure.launchHref).toBe(`/f0?supportCaseId=${departure.caseId}&engagementId=${departure.f0EngagementId}`);
+    const [engagement] = await db.select().from(f0EngagementsTable).where(eq(f0EngagementsTable.id, departure.f0EngagementId));
+    expect(engagement).toMatchObject({ userId: owner, artifactId: source.id, sessionId: session.id, status: "DISCOVERY" });
+    const reloaded = await request(`/stage-support/departures/${departure.caseId}`);
+    expect(reloaded.data.f0EngagementId).toBe(engagement!.id);
+    const reopened = await request(`/stage-support/f0-origins/${engagement!.id}`);
+    expect(reopened.status).toBe(200);
+    expect(reopened.data.departure).toMatchObject({
+      caseId: departure.caseId, sourceId: source.id, sessionId: session.id, featureId: 4, tool: "f0",
+    });
+    expect((await request(`/stage-support/f0-origins/${engagement!.id}`, undefined, stranger)).status).toBe(404);
+    expect((await request("/stage-support/f0-origins/not-a-uuid")).status).toBe(400);
+    const [standalone] = await db.insert(f0EngagementsTable).values({ userId: owner, title: `QA standalone ${randomUUID()}` }).returning();
+    expect((await request(`/stage-support/f0-origins/${standalone!.id}`)).data).toEqual({ departure: null });
+  });
+  test("F0 saved report returns once at the exact stage without altering the report or passing a gate", async () => {
+    const { departure, source, session } = await setup("f0", 9, "CODEBASE_BUNDLE");
+    const saved = await report(departure.f0EngagementId);
+    const path = `/stage-support/departures/${departure.caseId}/return`;
+    expect((await request(path, { resultId: saved.id }, stranger)).status).toBe(404);
+    const returned = await request(path, { resultId: saved.id });
+    expect(returned.status).toBe(200);
+    expect(returned.data.returnedArtifactHref).toContain(`featureId=9&artifactId=${returned.data.returnedArtifactId}`);
+    expect(returned.data.upgradeLabel).toBe("Upgraded 1");
+    const [artifact] = await db.select().from(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, returned.data.returnedArtifactId));
+    expect(artifact).toMatchObject({ parentArtifactId: source.id, featureId: 9, verificationStatus: "UNVERIFIED", forgeVerified: false });
+    expect(artifact!.name).toMatch(new RegExp(`^${session.sessionName}`));
+    expect(artifact!.artifactContent).toMatchObject({ supportTool: "f0", supportResultId: saved.id, reviewRequired: true, certifies: false, advancesStage: false });
+    const output = JSON.parse((artifact!.artifactContent as { resultText: string }).resultText);
+    expect(output).toMatchObject({ reportId: saved.id, engagementId: departure.f0EngagementId, reportCode: saved.reportCode, content: saved.content });
+    expect((await request(path, { resultId: saved.id })).data.returnedArtifactId).toBe(artifact!.id);
+    expect((await request(path, { resultId: (await report(departure.f0EngagementId)).id })).status).toBe(409);
+    const [stillSaved] = await db.select().from(f0ReportsTable).where(eq(f0ReportsTable.id, saved.id));
+    expect(stillSaved!.content).toEqual(saved.content);
+    const reopened = await request(`/stage-support/f0-origins/${departure.f0EngagementId}`);
+    expect(reopened.data.departure.returnedArtifactHref).toBe(returned.data.returnedArtifactHref);
+    const second = (await request("/stage-support/departures", { sessionId: session.id, featureId: 9, tool: "f0" })).data;
+    const next = await request(`/stage-support/departures/${second.caseId}/return`, { resultId: (await report(second.f0EngagementId)).id });
+    expect(next.data.upgradeLabel).toBe("Upgraded 2");
+  });
+  test("F0 rejects an unrelated or foreign-owned report, incomplete output and an old result", async () => {
+    const { departure, session, source } = await setup("f0");
+    const [other] = await db.insert(f0EngagementsTable).values({
+      userId: owner, title: `QA different case ${randomUUID()}`, sessionId: session.id, artifactId: source.id,
+    }).returning();
+    const path = `/stage-support/departures/${departure.caseId}/return`;
+    expect((await request(path, { resultId: (await report(other!.id)).id })).status).toBe(404);
+    expect((await request(path, { resultId: (await report(departure.f0EngagementId, { user: stranger })).id })).status).toBe(404);
+    expect((await request(path, { resultId: (await report(departure.f0EngagementId, { content: {} })).id })).data.code).toBe("INCOMPLETE_ADVISORY");
+    expect((await request(path, { resultId: (await report(departure.f0EngagementId, { createdAt: new Date(0) })).id })).data.code).toBe("OLD_SUPPORT_OUTPUT");
+  });
+  test("F0 rejects a changed origin or a changed engagement source binding", async () => {
+    const first = await setup("f0");
+    const saved = await report(first.departure.f0EngagementId);
+    await db.update(harnessArtifactsTable).set({ artifactContent: { changed: true } }).where(eq(harnessArtifactsTable.id, first.source.id));
+    expect((await request(`/stage-support/departures/${first.departure.caseId}/return`, { resultId: saved.id })).data.code).toBe("SOURCE_CHANGED");
+    const second = await setup("f0");
+    const another = await report(second.departure.f0EngagementId);
+    await db.update(f0EngagementsTable).set({ artifactId: first.source.id }).where(eq(f0EngagementsTable.id, second.departure.f0EngagementId));
+    expect((await request(`/stage-support/departures/${second.departure.caseId}/return`, { resultId: another.id })).data.code).toBe("WRONG_ADVISORY_SOURCE");
+    expect((await request(`/stage-support/departures/${second.departure.caseId}`)).data.code).toBe("ADVISORY_MISSING");
+  });
   async function ingestion(user = owner, createdAt?: Date) {
     const [saved] = await db.insert(ingestionDocumentsTable).values({
       userId: user, originalFilename: "qa.md", mimeType: "text/markdown", fileSizeBytes: 35,

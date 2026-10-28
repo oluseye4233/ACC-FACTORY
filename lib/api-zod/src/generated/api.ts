@@ -16,7 +16,7 @@ export const GetStageSupportOptionsQueryParams = zod.object({
 export const GetStageSupportOptionsResponse = zod.object({
   "sourceId": zod.string().nullable(),
   "tools": zod.array(zod.object({
-  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge']),
+  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge', 'f0']),
   "active": zod.boolean(),
   "reason": zod.string()
 }))
@@ -26,12 +26,12 @@ export const GetStageSupportOptionsResponse = zod.object({
 export const CreateStageSupportDepartureBody = zod.object({
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
-  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge'])
+  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge', 'f0'])
 })
 
 export const CreateStageSupportDepartureResponse = zod.object({
   "caseId": zod.string().uuid(),
-  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge']),
+  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge', 'f0']),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
   "stageLabel": zod.string(),
@@ -40,7 +40,8 @@ export const CreateStageSupportDepartureResponse = zod.object({
   "sourceTitle": zod.string(),
   "sourceText": zod.string(),
   "launchHref": zod.string(),
-  "returnedArtifactHref": zod.string().nullable()
+  "returnedArtifactHref": zod.string().nullable(),
+  "f0EngagementId": zod.string().uuid().nullish()
 })
 
 
@@ -50,7 +51,7 @@ export const GetStageSupportDepartureParams = zod.object({
 
 export const GetStageSupportDepartureResponse = zod.object({
   "caseId": zod.string().uuid(),
-  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge']),
+  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge', 'f0']),
   "sessionId": zod.string().uuid(),
   "featureId": zod.number().int(),
   "stageLabel": zod.string(),
@@ -59,7 +60,33 @@ export const GetStageSupportDepartureResponse = zod.object({
   "sourceTitle": zod.string(),
   "sourceText": zod.string(),
   "launchHref": zod.string(),
-  "returnedArtifactHref": zod.string().nullable()
+  "returnedArtifactHref": zod.string().nullable(),
+  "f0EngagementId": zod.string().uuid().nullish()
+})
+
+
+/**
+ * @summary Restore the saved owned stage departure when reopening an advisory engagement
+ */
+export const GetF0StageSupportOriginParams = zod.object({
+  "engagementId": zod.coerce.string().uuid()
+})
+
+export const GetF0StageSupportOriginResponse = zod.object({
+  "departure": zod.union([zod.object({
+  "caseId": zod.string().uuid(),
+  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge', 'f0']),
+  "sessionId": zod.string().uuid(),
+  "featureId": zod.number().int(),
+  "stageLabel": zod.string(),
+  "sourceId": zod.string().uuid(),
+  "sourceKind": zod.string().nullable(),
+  "sourceTitle": zod.string(),
+  "sourceText": zod.string(),
+  "launchHref": zod.string(),
+  "returnedArtifactHref": zod.string().nullable(),
+  "f0EngagementId": zod.string().uuid().nullish()
+}),zod.null()])
 })
 
 

@@ -101,6 +101,7 @@ import type {
   F0Retainer,
   F0RetainerDetail,
   F0RetainerTask,
+  F0StageOrigin,
   F1000ActivateResult,
   F1000RedeemInput,
   F1000RedeemResult,
@@ -554,6 +555,107 @@ export function useGetStageSupportDeparture<TData = Awaited<ReturnType<typeof ge
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetStageSupportDepartureQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetF0StageSupportOriginUrl = (engagementId: string,) => {
+
+
+
+
+  return `/api/stage-support/f0-origins/${engagementId}`
+}
+
+/**
+ * @summary Restore the saved owned stage departure when reopening an advisory engagement
+ */
+export const getF0StageSupportOrigin = async (engagementId: string, options?: Parameters<typeof customFetch>[1]): Promise<F0StageOrigin> => {
+
+  return customFetch<F0StageOrigin>(getGetF0StageSupportOriginUrl(engagementId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetF0StageSupportOriginQueryKey = (engagementId: string,) => {
+    return [
+    `/api/stage-support/f0-origins/${engagementId}`
+    ] as const;
+    }
+
+
+export const getGetF0StageSupportOriginQueryOptions = <TData = Awaited<ReturnType<typeof getF0StageSupportOrigin>>, TError = ErrorType<void>>(engagementId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getF0StageSupportOrigin>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetF0StageSupportOriginQueryKey(engagementId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getF0StageSupportOrigin>>> = ({ signal }) => getF0StageSupportOrigin(engagementId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: engagementId !== null && engagementId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getF0StageSupportOrigin>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetF0StageSupportOriginQueryResult = NonNullable<Awaited<ReturnType<typeof getF0StageSupportOrigin>>>
+export type GetF0StageSupportOriginQueryError = ErrorType<void>
+
+
+export function useGetF0StageSupportOrigin<TData = Awaited<ReturnType<typeof getF0StageSupportOrigin>>, TError = ErrorType<void>>(
+ engagementId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getF0StageSupportOrigin>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getF0StageSupportOrigin>>,
+          TError,
+          Awaited<ReturnType<typeof getF0StageSupportOrigin>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetF0StageSupportOrigin<TData = Awaited<ReturnType<typeof getF0StageSupportOrigin>>, TError = ErrorType<void>>(
+ engagementId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getF0StageSupportOrigin>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getF0StageSupportOrigin>>,
+          TError,
+          Awaited<ReturnType<typeof getF0StageSupportOrigin>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetF0StageSupportOrigin<TData = Awaited<ReturnType<typeof getF0StageSupportOrigin>>, TError = ErrorType<void>>(
+ engagementId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getF0StageSupportOrigin>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Restore the saved owned stage departure when reopening an advisory engagement
+ */
+
+export function useGetF0StageSupportOrigin<TData = Awaited<ReturnType<typeof getF0StageSupportOrigin>>, TError = ErrorType<void>>(
+ engagementId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getF0StageSupportOrigin>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetF0StageSupportOriginQueryOptions(engagementId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

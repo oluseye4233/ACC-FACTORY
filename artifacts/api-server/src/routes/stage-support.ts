@@ -3,7 +3,7 @@ import { z } from "zod";
 import { and, desc, eq, sql } from "drizzle-orm";
 import {
   db, boomerangCasesTable, harnessSessionsTable, harnessArtifactsTable,
-  ingestionDocumentsTable, cartridgePackagesTable,
+  ingestionDocumentsTable, cartridgePackagesTable, f0EngagementsTable, f0ReportsTable,
 } from "@workspace/db";
 import { artifactDisplayName } from "@workspace/artifact-naming";
 import { requireAuth } from "../lib/auth";
@@ -20,7 +20,7 @@ const uuid = z.string().uuid();
 const originSchema = z.object({ sessionId: uuid, featureId: z.coerce.number().int() }).strict();
 type Reader = Pick<typeof db, "select">;
 type Case = typeof boomerangCasesTable.$inferSelect;
-type Metadata = { supportTool: SupportTool; sourceId: string; featureId: number; sourceKind: string | null };
+type Metadata = { supportTool: SupportTool; sourceId: string; featureId: number; sourceKind: string | null; f0EngagementId?: string };
 
 function stageFor(featureId: number) {
   const stage = Object.keys(BOOMERANG_FEATURES).find(stage => BOOMERANG_FEATURES[stage] === featureId);
@@ -65,7 +65,15 @@ async function departureDto(reader: Reader, row: Case) {
   const sourceText = JSON.stringify(source.artifactContent, null, 2);
   if (sourceText.length > 200_000) throw new BoomerangError(413, "SOURCE_TOO_LARGE", "This saved source exceeds the supporting intake limit.");
   const params = new URLSearchParams({ supportCaseId: row.id });
-  let path: string = m.supportTool === "ingestion" ? "/ingest" : m.supportTool === "cartridge" ? "/cartridge" : "/operations";
+  let path: string = m.supportTool === "f0" ? "/f0" : m.supportTool === "ingestion" ? "/ingest" : m.supportTool === "cartridge" ? "/cartridge" : "/operations";
+  if (m.supportTool === "f0") {
+    const [engagement] = await reader.select({ id: f0EngagementsTable.id }).from(f0EngagementsTable).where(and(
+      eq(f0EngagementsTable.id, m.f0EngagementId ?? row.id), eq(f0EngagementsTable.userId, row.userId),
+      eq(f0EngagementsTable.sessionId, row.originId), eq(f0EngagementsTable.artifactId, source.id),
+    )).limit(1);
+    if (!engagement) throw new BoomerangError(409, "ADVISORY_MISSING", "This departure's linked advisory engagement is no longer available.");
+    params.set("engagementId", engagement.id);
+  }
   if (path === "/operations") {
     params.set("kind", m.supportTool); params.set("sessionId", row.originId);
     params.set("sourceId", source.id); params.set("sourceKind", m.sourceKind!);
@@ -77,7 +85,7 @@ async function departureDto(reader: Reader, row: Case) {
   return {
     caseId: row.id, tool: m.supportTool, sessionId: row.originId, featureId: m.featureId, stageLabel: row.stage,
     sourceId: source.id, sourceKind: m.sourceKind, sourceTitle: artifactDisplayName(source), sourceText,
-    launchHref: `${path}?${params}`,
+    launchHref: `${path}?${params}`, f0EngagementId: m.f0EngagementId ?? null,
     returnedArtifactHref: returned ? returnedArtifactHref(row.originId, m.featureId, returned.id) : null,
   };
 }
@@ -115,12 +123,23 @@ router.post("/stage-support/departures", requireAuth, async (req, res) => {
       if (JSON.stringify(source.artifactContent).length > 200_000) throw new BoomerangError(413, "SOURCE_TOO_LARGE", "Saved source exceeds the supporting intake limit.");
       const baseline = await boomerangOrigin(tx, owner, "SESSION", sessionId, stage);
       const brief = `Prepare ${tool} supporting work for the saved ${stage} artifact. Return a new candidate for review and fresh evaluation; never certify or advance the stage.`;
+      // A unique engagement per departure prevents unrelated/old advisory reports
+      // being attached to a stage. Standalone F0 and its discovery gates are unchanged.
+      let f0EngagementId: string | undefined;
+      if (tool === "f0") {
+        const [engagement] = await tx.insert(f0EngagementsTable).values({
+          userId: owner, sessionId, artifactId: source.id,
+          title: `${source.name || artifactDisplayName(source)} · ${stage} F0 Advisory`,
+        }).returning({ id: f0EngagementsTable.id });
+        f0EngagementId = engagement!.id;
+      }
       const [created] = await tx.insert(boomerangCasesTable).values({
         userId: owner, originKind: "SESSION", originId: sessionId, stage,
         title: `${tool.toUpperCase()} · ${stage} supporting work`, brief,
         sourceHash: baseline.hash, sourceRefs: baseline.refs,
         history: [{ action: "REQUESTED", at: new Date().toISOString(), note: brief,
-          supportTool: tool, sourceId: source.id, featureId, sourceKind: PUBLICATION_KINDS[source.artifactType] ?? null }],
+          supportTool: tool, sourceId: source.id, featureId, sourceKind: PUBLICATION_KINDS[source.artifactType] ?? null,
+          ...(f0EngagementId ? { f0EngagementId } : {}) }],
       }).returning();
       return created!;
     });
@@ -132,6 +151,25 @@ router.get("/stage-support/departures/:id", requireAuth, async (req, res) => {
   if (!uuid.safeParse(req.params.id).success) { res.status(400).json({ error: "Invalid departure ID." }); return; }
   try { res.json(await departureDto(db, await ownedCase(db, req.localUser!.id, req.params.id as string))); }
   catch (error) { fail(res, error); }
+});
+
+// Reopen from the advisory dashboard after leaving the page without relying on
+// browser storage or caller-supplied session/stage fields.
+router.get("/stage-support/f0-origins/:engagementId", requireAuth, async (req, res) => {
+  if (!uuid.safeParse(req.params.engagementId).success) { res.status(400).json({ error: "Invalid engagement ID." }); return; }
+  try {
+    const owner = req.localUser!.id;
+    const [engagement] = await db.select({ id: f0EngagementsTable.id }).from(f0EngagementsTable).where(and(
+      eq(f0EngagementsTable.id, req.params.engagementId as string), eq(f0EngagementsTable.userId, owner),
+    )).limit(1);
+    if (!engagement) throw new BoomerangError(404, "ADVISORY_NOT_FOUND", "Owned advisory engagement not found.");
+    const [row] = await db.select().from(boomerangCasesTable).where(and(
+      eq(boomerangCasesTable.userId, owner), eq(boomerangCasesTable.originKind, "SESSION"),
+      sql`${boomerangCasesTable.history}->0->>'supportTool' = 'f0'`,
+      sql`${boomerangCasesTable.history}->0->>'f0EngagementId' = ${engagement.id}`,
+    )).orderBy(desc(boomerangCasesTable.createdAt)).limit(1);
+    res.json({ departure: row ? await departureDto(db, row) : null });
+  } catch (error) { fail(res, error); }
 });
 
 router.post("/stage-support/departures/:id/return", requireAuth, async (req, res) => {
@@ -176,6 +214,24 @@ router.post("/stage-support/departures/:id/return", requireAuth, async (req, res
         assertFreshSupportOutput(saved.createdAt, row!.createdAt);
         output = { preparationId: saved.id, ...safePreparationResult(saved.artifactContent as Record<string, unknown>, m.supportTool, m.sourceId) };
         ownPreparationId = saved.id;
+      } else if (m.supportTool === "f0") {
+        const [engagement] = await tx.select({ id: f0EngagementsTable.id }).from(f0EngagementsTable).where(and(
+          eq(f0EngagementsTable.id, m.f0EngagementId ?? row!.id), eq(f0EngagementsTable.userId, owner),
+          eq(f0EngagementsTable.sessionId, row!.originId), eq(f0EngagementsTable.artifactId, m.sourceId),
+        )).limit(1);
+        if (!engagement) throw new BoomerangError(409, "WRONG_ADVISORY_SOURCE", "This departure's exact owned advisory source is no longer valid.");
+        const [saved] = await tx.select().from(f0ReportsTable).where(and(
+          eq(f0ReportsTable.id, resultId), eq(f0ReportsTable.userId, owner),
+          eq(f0ReportsTable.engagementId, engagement.id),
+        )).limit(1);
+        if (!saved) throw new BoomerangError(404, "RESULT_NOT_FOUND", "Saved report for this exact advisory departure not found.");
+        assertFreshSupportOutput(saved.createdAt, row!.createdAt);
+        if (!saved.reportCode.trim() || !saved.content || typeof saved.content !== "object" ||
+            Array.isArray(saved.content) || !Object.keys(saved.content).length) {
+          throw new BoomerangError(409, "INCOMPLETE_ADVISORY", "A completed saved advisory report is required.");
+        }
+        output = { reportId: saved.id, engagementId: engagement.id, reportCode: saved.reportCode,
+          service: saved.service, content: saved.content, advisoryOnly: true, independentVerification: "NOT_ASSERTED" };
       } else if (m.supportTool === "ingestion") {
         const [saved] = await tx.select().from(ingestionDocumentsTable).where(and(
           eq(ingestionDocumentsTable.id, resultId), eq(ingestionDocumentsTable.userId, owner),

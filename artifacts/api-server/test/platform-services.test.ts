@@ -53,7 +53,7 @@ describe("go-live inventory contract", () => {
     });
     expect(services.find((service) => service.stage === "F10")?.limitations).toMatch(/not a deployment/i);
     expect(services.find((service) => service.id === "X09")?.limitations).toMatch(/public launch requires explicit authorization/i);
-    expect(services.find((service) => service.id === "S00")?.serviceReadiness).toBe("PARTIAL");
+    expect(services.find((service) => service.id === "S00")?.serviceReadiness).toBe("EXISTING_UNVERIFIED");
   });
 
   it("only links to existing application routes, not invented stage screens", () => {

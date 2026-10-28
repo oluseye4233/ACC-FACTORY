@@ -33,9 +33,9 @@ describe("StageOptionalTools", () => {
       }
     }
     expect(screen.getByTestId("tool-spc-player").textContent).toContain("RETURN TO THE STAGE YOU LEFT WITH NEW ARTIFACT AND CONTINUE PRODUCTION");
-    expect(screen.getByTestId("tool-f0").textContent).toContain("not automatically adopted");
-    expect(screen.getByTestId("tool-f0").textContent).toContain("Return to F4");
-    for (const id of ["imprima", "short-sprints", "ingestion", "cartridge"]) {
+    expect(screen.getByTestId("tool-f0").textContent).toContain("Not automatically adopted");
+    expect(screen.queryByTestId("link-open-f0-advisory")).toBeNull();
+    for (const id of ["f0", "imprima", "short-sprints", "ingestion", "cartridge"]) {
       expect(screen.getByTestId(`tool-${id}`).textContent).toContain("RETURN TO THE STAGE YOU LEFT WITH NEW ARTIFACT AND CONTINUE PRODUCTION");
     }
   });
@@ -79,6 +79,38 @@ describe("StageOptionalTools", () => {
     render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner />);
     fireEvent.click(screen.getByTestId("button-launch-imprima"));
     await waitFor(() => expect(screen.getByTestId("text-launch-error-imprima").textContent).toContain("Source changed"));
+    expect(navigate).not.toHaveBeenCalled();
+  });
+});
+
+describe("F0 source-bound launch", () => {
+  it("records the departure before navigating to the linked engagement", () => {
+    ready([{ tool: "f0", active: true, reason: "Saved F4 source." }]);
+    launchMutate.mockImplementation((_b, o: { onSuccess: (d: unknown) => void }) => {
+      expect(navigate).not.toHaveBeenCalled();
+      o.onSuccess({ launchHref: "/f0?supportCaseId=c1&engagementId=e1", f0EngagementId: "e1" });
+    });
+    render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner />);
+    fireEvent.click(screen.getByTestId("button-launch-f0"));
+    expect(launchMutate.mock.calls[0][0]).toEqual({ sessionId: "s1", featureId: 4, tool: "f0" });
+    expect(navigate).toHaveBeenCalledWith("/f0?supportCaseId=c1&engagementId=e1");
+  });
+  it("is inactive without a saved source and for non-owners", () => {
+    ready([{ tool: "f0", active: false, reason: "No saved source at this stage." }]);
+    const { unmount } = render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner />);
+    expect((screen.getByTestId("button-launch-f0") as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByTestId("text-tool-reason-f0").textContent).toBe("No saved source at this stage.");
+    unmount();
+    ready([{ tool: "f0", active: true, reason: "ok" }]);
+    render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner={false} />);
+    expect((screen.getByTestId("button-launch-f0") as HTMLButtonElement).disabled).toBe(true);
+  });
+  it("shows launch failure without navigating", async () => {
+    ready([{ tool: "f0", active: true, reason: "ok" }]);
+    launchMutate.mockImplementation((_b, o: { onError: (e: unknown) => void }) => o.onError({ data: { error: "Source changed" } }));
+    render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner />);
+    fireEvent.click(screen.getByTestId("button-launch-f0"));
+    await waitFor(() => expect(screen.getByTestId("text-launch-error-f0").textContent).toContain("Source changed"));
     expect(navigate).not.toHaveBeenCalled();
   });
 });

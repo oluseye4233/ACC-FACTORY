@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
+import { StageSupportBanner, StageSupportReturnAction, useStageSupportCase } from "@/components/shared/StageSupportReturn";
+import { isUuid, type Departure } from "@/lib/stage-support";
 import { parseStageOrigin } from "@/lib/stage-origin";
 import { ReturnToStageBanner } from "@/components/shared/StageOptionalTools";
 import { BoomerangPanel } from "@/components/boomerang";
@@ -7,6 +9,8 @@ import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetF0Dashboard,
+  useGetF0StageSupportOrigin,
+  getGetF0StageSupportOriginQueryKey,
   useCreateF0Engagement,
   useGetF0Engagement,
   useGenerateF0Discovery,
@@ -113,19 +117,53 @@ export default function F0Dashboard() {
   const qc = useQueryClient();
   const { data: dash, isLoading } = useGetF0Dashboard();
 
-  const [engagementId, setEngagementId] = useState<string | null>(
-    () => new URLSearchParams(window.location.search).get("engagementId"),
-  );
+  // URL is the single source of truth for engagement + support identity (reactive).
+  const search = useSearch();
+  const [location, navigate] = useLocation();
+  const engagementId = useMemo(() => new URLSearchParams(search).get("engagementId") || null, [search]);
+  const setEngagementId = (id: string | null, keepCase = false) => {
+    const q = new URLSearchParams(search);
+    // Selecting a different engagement leaves the prior support context; its own origin is looked up below.
+    if (!keepCase && id !== engagementId) q.delete("supportCaseId");
+    if (id) q.set("engagementId", id);
+    else q.delete("engagementId");
+    const qs = q.toString();
+    navigate(`${location}${qs ? `?${qs}` : ""}`, { replace: true });
+  };
+  const explicitCase = new URLSearchParams(search).has("supportCaseId");
+  // Reopen without supportCaseId: ask the server whether this engagement is stage-linked.
+  const originEngId = engagementId ?? "";
+  const origin = useGetF0StageSupportOrigin(originEngId, {
+    query: {
+      enabled: !explicitCase && isUuid(engagementId),
+      retry: false,
+      queryKey: getGetF0StageSupportOriginQueryKey(originEngId),
+    },
+  });
+  const restoredCaseId = !explicitCase && origin.data?.departure?.caseId;
+  useEffect(() => {
+    if (!restoredCaseId || !isUuid(restoredCaseId) || !engagementId) return;
+    const q = new URLSearchParams(search);
+    if (q.get("engagementId") !== engagementId || q.has("supportCaseId")) return;
+    q.set("supportCaseId", restoredCaseId);
+    navigate(`${location}?${q.toString()}`, { replace: true });
+  }, [restoredCaseId, engagementId, search, location, navigate]);
+  const support = useStageSupportCase();
+  const departure = support.departure && support.departure.caseId === support.caseId ? support.departure : null;
+  const linkedEngagementId = departure?.tool === "f0" ? departure.f0EngagementId ?? null : null;
+  // On entry/refresh, open the server-linked engagement once per case even if the URL id is absent or wrong.
+  const appliedLinkFor = useRef<string | null>(null);
+  const setEngRef = useRef(setEngagementId);
+  setEngRef.current = setEngagementId;
+  useEffect(() => {
+    if (!linkedEngagementId || !support.caseId || appliedLinkFor.current === support.caseId) return;
+    appliedLinkFor.current = support.caseId;
+    if (engagementId !== linkedEngagementId) setEngRef.current(linkedEngagementId, true);
+  }, [linkedEngagementId, support.caseId, engagementId]);
   const [retainerId, setRetainerId] = useState<string | null>(null);
   // Explicit stage origin (originSessionId/originFeatureId) survives engagement
   // navigation because we only rewrite engagementId in the URL.
   const [stageOrigin] = useState(() => parseStageOrigin(window.location.search));
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    if (engagementId) url.searchParams.set("engagementId", engagementId);
-    else url.searchParams.delete("engagementId");
-    window.history.replaceState(window.history.state, "", url);
-  }, [engagementId]);
 
   const createEngagement = useCreateF0Engagement();
   const createRetainer = useCreateF0Retainer();
@@ -158,7 +196,8 @@ export default function F0Dashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <TopNav />
-      {stageOrigin && (
+      <StageSupportBanner {...support} />
+      {!support.caseId && stageOrigin && (
         <ReturnToStageBanner
           sessionId={stageOrigin.sessionId}
           featureId={stageOrigin.featureId}
@@ -312,6 +351,7 @@ export default function F0Dashboard() {
                   {(dash?.engagements ?? []).map((e) => (
                     <button
                       key={e.id}
+                      title={linkedEngagementId === e.id ? "Linked to the stage you left" : undefined}
                       onClick={() => setEngagementId(e.id)}
                       data-testid={`engagement-${e.id}`}
                       className={`w-full text-left border rounded p-3 transition-colors ${
@@ -322,6 +362,11 @@ export default function F0Dashboard() {
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-mono text-xs font-bold truncate">{e.title}</span>
+                        {linkedEngagementId === e.id && (
+                          <span className="ml-auto shrink-0 rounded border border-primary/50 bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-primary" data-testid={`badge-linked-engagement-${e.id}`}>
+                            stage-linked
+                          </span>
+                        )}
                         <StatusChip status={e.status} />
                       </div>
                     </button>
@@ -381,7 +426,7 @@ export default function F0Dashboard() {
 
             {engagementId && (
               <>
-                <EngagementPanel engagementId={engagementId} onClose={() => setEngagementId(null)} />
+                <EngagementPanel key={engagementId} engagementId={engagementId} departure={support.caseId ? departure : null} supportMode={!!support.caseId || explicitCase} onClose={() => setEngagementId(null)} />
                 <details className="mt-4 rounded-lg border bg-card p-3">
                   <summary className="cursor-pointer font-mono text-xs font-bold text-primary">
                     BOOMERANG · F0 advisory support
@@ -587,9 +632,13 @@ function StatusChip({ status }: { status: string }) {
 
 function EngagementPanel({
   engagementId,
+  departure,
+  supportMode = false,
   onClose,
 }: {
   engagementId: string;
+  departure?: Departure | null;
+  supportMode?: boolean;
   onClose: () => void;
 }) {
   const { toast } = useToast();
@@ -607,8 +656,15 @@ function EngagementPanel({
   const [report, setReport] = useState<F0Report | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const engagement = data?.engagement;
+  // Return is offered only for saved reports of the exact server-linked engagement.
+  const returnDeparture =
+    departure && departure.tool === "f0" && !!engagement && !!departure.f0EngagementId && departure.f0EngagementId === engagement.id
+      ? departure
+      : null;
+  const savedReportIds = new Set((data?.reports ?? []).map((r) => r.id));
   const transcript = engagement?.discoveryTranscript as
     | { intro?: string; questions?: { id: string; prompt: string; why: string }[]; answers?: { id: string; answer: string }[] }
     | undefined
@@ -718,6 +774,17 @@ function EngagementPanel({
               CLOSE
             </Button>
           </div>
+          {supportMode && (
+            <p
+              role="status"
+              data-testid={returnDeparture ? "text-f0-linked-engagement" : "text-f0-unlinked-engagement"}
+              className={`mb-4 rounded border px-3 py-2 font-mono text-[11px] ${returnDeparture ? "border-primary/40 bg-primary/5 text-primary" : "border-dashed text-muted-foreground"}`}
+            >
+              {returnDeparture
+                ? `Linked to ${returnDeparture.stageLabel}. Saved reports from this engagement can be returned there for review.`
+                : "Browsing a standalone engagement. Its reports cannot be returned to the stage you left; only the stage-linked engagement can."}
+            </p>
+          )}
           {engagement.artifactId && (
             <div className="mb-4 rounded border border-secondary/30 bg-secondary/5 p-3">
               <ArtifactPicker
@@ -858,7 +925,10 @@ function EngagementPanel({
                 <p className="mt-3 font-mono text-[10px] text-muted-foreground">
                   Saved to the Exemplar Library as advisory material. This report does not certify or advance a production stage.
                 </p>
-                {engagement.sessionId && (
+                {returnDeparture && !error && !savedReportIds.has(report.id) && report.engagementId === engagementId && (
+                  <StageSupportReturnAction departure={returnDeparture} resultId={report.id} />
+                )}
+                {!supportMode && engagement.sessionId && (
                   <Button
                     className="mt-2 font-mono text-xs"
                     variant="outline"
@@ -895,7 +965,8 @@ function EngagementPanel({
                     <div className="mt-2">
                       <ReportView report={r} />
                       <div className="mt-2"><PublishDocumentLink sourceId={r.id} sourceKind="F0_SERVICE" sessionId={engagement.sessionId ?? undefined} label="Publish F0 report" /></div>
-                      {engagement.sessionId && (
+                      {returnDeparture && r.engagementId === engagementId && <StageSupportReturnAction departure={returnDeparture} resultId={r.id} />}
+                      {!supportMode && engagement.sessionId && (
                         <Button
                           className="mt-2 font-mono text-xs"
                           variant="outline"

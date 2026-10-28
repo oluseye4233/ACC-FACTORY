@@ -49,7 +49,7 @@ paths:
                       type: object
                       required: [tool, active, reason]
                       properties:
-                        tool: { type: string, enum: [imprima, short-sprints, ingestion, cartridge] }
+                        tool: { type: string, enum: [imprima, short-sprints, ingestion, cartridge, f0] }
                         active: { type: boolean }
                         reason: { type: string }
   /stage-support/departures:
@@ -80,6 +80,22 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/StageSupportDeparture" }
+  /stage-support/f0-origins/{engagementId}:
+    get:
+      operationId: getF0StageSupportOrigin
+      tags: [boomerang]
+      summary: Restore the saved owned stage departure when reopening an advisory engagement
+      parameters:
+        - { in: path, name: engagementId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Linked departure, or null for a standalone advisory engagement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/F0StageOrigin"
+        "404":
+          description: Owned engagement not found
   /stage-support/departures/{id}/return:
     post:
       operationId: returnStageSupportArtifact
@@ -3434,7 +3450,15 @@ components:
       properties:
         sessionId: { type: string, format: uuid }
         featureId: { type: integer }
-        tool: { type: string, enum: [imprima, short-sprints, ingestion, cartridge] }
+        tool: { type: string, enum: [imprima, short-sprints, ingestion, cartridge, f0] }
+    F0StageOrigin:
+      type: object
+      required: [departure]
+      properties:
+        departure:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/StageSupportDeparture"
     StageSupportReturnInput:
       type: object
       required: [resultId]
@@ -3445,7 +3469,7 @@ components:
       required: [caseId, tool, sessionId, featureId, stageLabel, sourceId, sourceKind, sourceTitle, sourceText, launchHref, returnedArtifactHref]
       properties:
         caseId: { type: string, format: uuid }
-        tool: { type: string, enum: [imprima, short-sprints, ingestion, cartridge] }
+        tool: { type: string, enum: [imprima, short-sprints, ingestion, cartridge, f0] }
         sessionId: { type: string, format: uuid }
         featureId: { type: integer }
         stageLabel: { type: string }
@@ -3455,6 +3479,7 @@ components:
         sourceText: { type: string }
         launchHref: { type: string }
         returnedArtifactHref: { type: [string, "null"] }
+        f0EngagementId: { type: string, nullable: true, format: uuid }
     BoomerangOrigin:
       type: object
       required: [kind, id, label]

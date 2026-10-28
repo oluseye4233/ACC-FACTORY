@@ -1,5 +1,7 @@
 # ARK — Final Go-Live A/B/C Delivery Plan
 
+> Milestone update: see [F0 advisory return evidence](ARK_F0_Return_Milestone_2026-10-28.md). Source-bound saved-report return is implemented in development; wider build-unit acceptance and production activation remain separate.
+
 **Date:** 28 October 2026  
 **Product:** ATANDA Command Centre / ARK  
 **Method:** SPARTAN scope and infrastructure compression; CODON module composition; CORDON dependency sequencing.  

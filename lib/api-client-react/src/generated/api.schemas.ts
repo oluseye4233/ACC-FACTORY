@@ -143,16 +143,13 @@ export const StageSupportStartInputTool = {
   'short-sprints': 'short-sprints',
   ingestion: 'ingestion',
   cartridge: 'cartridge',
+  f0: 'f0',
 } as const;
 
 export interface StageSupportStartInput {
   sessionId: string;
   featureId: number;
   tool: StageSupportStartInputTool;
-}
-
-export interface StageSupportReturnInput {
-  resultId: string;
 }
 
 export type StageSupportDepartureTool = typeof StageSupportDepartureTool[keyof typeof StageSupportDepartureTool];
@@ -163,6 +160,7 @@ export const StageSupportDepartureTool = {
   'short-sprints': 'short-sprints',
   ingestion: 'ingestion',
   cartridge: 'cartridge',
+  f0: 'f0',
 } as const;
 
 export interface StageSupportDeparture {
@@ -179,6 +177,16 @@ export interface StageSupportDeparture {
   launchHref: string;
   /** @nullable */
   returnedArtifactHref: string | null;
+  /** @nullable */
+  f0EngagementId?: string | null;
+}
+
+export interface F0StageOrigin {
+  departure: StageSupportDeparture | null;
+}
+
+export interface StageSupportReturnInput {
+  resultId: string;
 }
 
 export type BoomerangOriginKind = typeof BoomerangOriginKind[keyof typeof BoomerangOriginKind];
@@ -6157,6 +6165,7 @@ export const GetStageSupportOptions200ToolsItemTool = {
   'short-sprints': 'short-sprints',
   ingestion: 'ingestion',
   cartridge: 'cartridge',
+  f0: 'f0',
 } as const;
 
 export type GetStageSupportOptions200ToolsItem = {

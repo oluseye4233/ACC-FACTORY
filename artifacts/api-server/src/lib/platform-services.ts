@@ -13,9 +13,9 @@ type InventoryWire = Omit<PlatformServiceInventory, "inventoryUpdatedAt" | "gene
 // Source-reviewed inventory, not runtime qualification or a replacement for gates.
 // Keep IDs in step with the frozen service contracts in the go-live plan.
 const DEFINITIONS: Definition[] = [
-  { id: "S00", title: "F0 Advisory", stage: "F0", implementation: "PARTIAL", serviceMode: "ADVISORY",
+  { id: "S00", title: "F0 Advisory", stage: "F0", implementation: "EXISTING", serviceMode: "ADVISORY",
     subscriberOutcome: "Get saved source-bound advice and return its findings to the originating stage.",
-    limitations: "Advice is available; automatic source-linked report return still needs completion and acceptance.", href: "/f0" },
+    limitations: "Saved report return requires the exact departure engagement and unchanged source; discovery, usage and review gates remain mandatory. Advice is not a production verdict.", href: "/f0" },
   { id: "S01", title: "Intake and diagnostic", stage: "F1", implementation: "EXISTING", serviceMode: "SPECIFICATION",
     subscriberOutcome: "Review supported input, receive diagnostics and save the project context.",
     limitations: "Extraction, approved link access, tier and usage checks apply; unsupported sources must fail explicitly.", href: "/sessions" },

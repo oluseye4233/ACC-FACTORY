@@ -1,6 +1,6 @@
 import { BoomerangError } from "./boomerang";
 
-export const SUPPORT_TOOLS = ["imprima", "short-sprints", "ingestion", "cartridge"] as const;
+export const SUPPORT_TOOLS = ["imprima", "short-sprints", "ingestion", "cartridge", "f0"] as const;
 export type SupportTool = typeof SUPPORT_TOOLS[number];
 export const PUBLICATION_KINDS: Record<string, string> = {
   MA_BIRTH_PACKAGE: "F3_MA", MICRO_PDD: "F4_MICRO_PDD", SPC: "F5_SPC",
@@ -25,7 +25,9 @@ export function supportAvailability(source: Source | undefined, tool: SupportToo
   }
   return { tool, active: true, reason: tool === "imprima" || tool === "short-sprints"
     ? "Private/internal supporting work available. Protected verification and release remain separately gated."
-    : "Saved stage source available. Normal intake validation, usage and confirmation still apply." };
+    : tool === "f0"
+      ? "Source-bound advisory available. Complete discovery, save a report and return it for review; advice does not pass or advance this stage."
+      : "Saved stage source available. Normal intake validation, usage and confirmation still apply." };
 }
 
 export function assertFreshSupportOutput(createdAt: Date, departedAt: Date) {

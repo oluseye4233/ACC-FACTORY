@@ -3,6 +3,18 @@ name: Boomerang review boundary
 description: Supporting-work acceptance must remain separate from execution and protected workflow authority.
 ---
 
+For advisory handbacks, bind each departure to its own engagement as well as
+its exact production source. Same-owner and same-source reports alone do not
+establish which supporting trip produced a report.
+
+**Why:** Reusing an advisory engagement could let unrelated or older advice
+appear to satisfy a new stage-bound return.
+
+**How to apply:** Resolve saved-report eligibility and reopened origin from
+server-owned departure history; never reconstruct authority from browser
+storage or caller-supplied stage/session fields. Keep standalone advisory
+separate and preserve normal discovery and usage gates.
+
 Boomerang covers the whole F-process as an origin-bound supporting-work loop, not a route around normal workflow gates. Acceptance means the owner reviewed supporting input; it does not automatically inject it into prompts, run an engine, certify, establish custody or authorize release.
 
 **Why:** The process-wide integration was requested after a review identifying that returning a package alone proves delivery, not adoption or clearance. Automatically adopting arbitrary returned text would also cross a prompt-injection and evidence-trust boundary.

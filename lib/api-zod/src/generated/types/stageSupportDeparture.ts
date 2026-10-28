@@ -21,4 +21,6 @@ export interface StageSupportDeparture {
   launchHref: string;
   /** @nullable */
   returnedArtifactHref: string | null;
+  /** @nullable */
+  f0EngagementId?: string | null;
 }

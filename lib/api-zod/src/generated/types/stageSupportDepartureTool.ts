@@ -14,4 +14,5 @@ export const StageSupportDepartureTool = {
   'short-sprints': 'short-sprints',
   ingestion: 'ingestion',
   cartridge: 'cartridge',
+  f0: 'f0',
 } as const;
