@@ -178,12 +178,29 @@ No application record is stored or submitted by this form. The user must send th
 
 ### 3.6 IMPRIMA and SHORT SPRINTS
 
+The following distinct colours identify the products, not a pass/fail verdict. Each lane's written status remains authoritative.
+
+### IMPRIMA — Purple identification
+
+IMPRIMA is shown in purple to distinguish its preparation, supporting assessment and governed publication/approval responsibilities from the core production-floor flow.
+
 | Lane | Present boundary | Activation limit |
 | --- | --- | --- |
 | IMPRIMA Internal | Private preparation with internal KLARITY/SOCRATES supporting assessment represented. | Not independent verification, publication authority or governed release. |
-| SHORT SPRINT Internal | Private preparation and internal assessment represented. | Not an external verifier receipt or qualified release. |
 | Original governed IMPRIMA | Protected evaluation/approval/publication requirements retained. | Fresh readiness still states verification and governance incomplete. |
+
+Next activation evidence: demonstrate an authorized protected workflow under the correct runtime role/context, then satisfy the independent verification and approval requirements. Internal assessment cannot substitute for those gates.
+
+### SHORT SPRINTS — Orange identification
+
+SHORT SPRINTS is shown in orange to distinguish its bounded sprint preparation, eligibility and verification responsibilities from IMPRIMA and the core production-floor flow.
+
+| Lane | Present boundary | Activation limit |
+| --- | --- | --- |
+| SHORT SPRINT Internal | Private preparation and internal assessment represented. | Not an external verifier receipt or qualified release. |
 | Original governed SHORT SPRINTS | Protected eligibility/verifier/release requirements retained. | Fresh readiness still states verification and governance incomplete. |
+
+Next activation evidence: demonstrate an authorized protected sprint workflow, qualified eligibility and source-bound verifier evidence, followed by the applicable release requirements.
 
 Do not conflate a healthy database, successful schema verifier or internal assessment with activation of the externally evaluated lanes.
 

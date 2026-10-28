@@ -13,7 +13,7 @@ import { requireAuth } from "../lib/auth";
 import { boomerangRemediation } from "../lib/boomerang-remediation";
 import {
   assertBoomerangTransition, BOOMERANG_FEATURES, BOOMERANG_STAGES, BoomerangError,
-  boomerangHash, boomerangOrigin, boomerangResponse,
+  boomerangHash, boomerangOrigin, boomerangResponse, returnedSupportOutputId,
 } from "../lib/boomerang";
 
 const router = Router();
@@ -62,8 +62,10 @@ router.get("/boomerang/cases", requireAuth, async (req, res) => {
   const origins = new Map<string, ReturnType<typeof boomerangOrigin>>();
   res.json(await Promise.all(rows.map(async (row) => {
     const key = `${row.originKind}:${row.originId}:${row.stage}`;
-    if (!origins.has(key)) origins.set(key, boomerangOrigin(db, row.userId, row.originKind, row.originId, row.stage));
-    const origin = await origins.get(key)!.catch((error) => {
+    const supportOutput = returnedSupportOutputId(row);
+    const originKey = `${key}:${supportOutput ?? ""}`;
+    if (!origins.has(originKey)) origins.set(originKey, boomerangOrigin(db, row.userId, row.originKind, row.originId, row.stage, supportOutput));
+    const origin = await origins.get(originKey)!.catch((error) => {
       if (error instanceof BoomerangError && error.status === 404) return null;
       throw error;
     });
@@ -106,7 +108,7 @@ router.post("/boomerang/cases/:id/transition", requireAuth, async (req, res) => 
       )).for("update").limit(1);
       if (!row) throw new BoomerangError(404, "CASE_NOT_FOUND", "Supporting-work request not found");
       if (row.version !== input.expectedVersion) throw new BoomerangError(409, "STALE_VERSION", "This request changed. Refresh before taking another action.");
-      const origin = await boomerangOrigin(tx, owner, row.originKind, row.originId, row.stage).catch((error) => {
+      const origin = await boomerangOrigin(tx, owner, row.originKind, row.originId, row.stage, returnedSupportOutputId(row)).catch((error) => {
         if (error instanceof BoomerangError && error.status === 404) return null;
         throw error;
       });

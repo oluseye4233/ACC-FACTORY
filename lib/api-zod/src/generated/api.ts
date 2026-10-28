@@ -8,6 +8,76 @@
 import * as zod from 'zod';
 
 
+export const GetStageSupportOptionsQueryParams = zod.object({
+  "sessionId": zod.coerce.string().uuid(),
+  "featureId": zod.coerce.number().int()
+})
+
+export const GetStageSupportOptionsResponse = zod.object({
+  "sourceId": zod.string().nullable(),
+  "tools": zod.array(zod.object({
+  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge']),
+  "active": zod.boolean(),
+  "reason": zod.string()
+}))
+})
+
+
+export const CreateStageSupportDepartureBody = zod.object({
+  "sessionId": zod.string().uuid(),
+  "featureId": zod.number().int(),
+  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge'])
+})
+
+export const CreateStageSupportDepartureResponse = zod.object({
+  "caseId": zod.string().uuid(),
+  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge']),
+  "sessionId": zod.string().uuid(),
+  "featureId": zod.number().int(),
+  "stageLabel": zod.string(),
+  "sourceId": zod.string().uuid(),
+  "sourceKind": zod.string().nullable(),
+  "sourceTitle": zod.string(),
+  "sourceText": zod.string(),
+  "launchHref": zod.string(),
+  "returnedArtifactHref": zod.string().nullable()
+})
+
+
+export const GetStageSupportDepartureParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetStageSupportDepartureResponse = zod.object({
+  "caseId": zod.string().uuid(),
+  "tool": zod.enum(['imprima', 'short-sprints', 'ingestion', 'cartridge']),
+  "sessionId": zod.string().uuid(),
+  "featureId": zod.number().int(),
+  "stageLabel": zod.string(),
+  "sourceId": zod.string().uuid(),
+  "sourceKind": zod.string().nullable(),
+  "sourceTitle": zod.string(),
+  "sourceText": zod.string(),
+  "launchHref": zod.string(),
+  "returnedArtifactHref": zod.string().nullable()
+})
+
+
+export const ReturnStageSupportArtifactParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const ReturnStageSupportArtifactBody = zod.object({
+  "resultId": zod.string().uuid()
+})
+
+export const ReturnStageSupportArtifactResponse = zod.object({
+  "returnedArtifactId": zod.string().uuid(),
+  "returnedArtifactHref": zod.string(),
+  "upgradeLabel": zod.string()
+})
+
+
 /**
  * @summary Inspect owned MA/SPC governance criteria without claiming compliance
  */

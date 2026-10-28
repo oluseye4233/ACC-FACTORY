@@ -31,6 +31,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { withSupportResultId } from "@/lib/stage-support";
+import { StageSupportBanner, StageSupportReturnAction, useStageSupportCase } from "@/components/shared/StageSupportReturn";
 import {
   ArrowLeft,
   ArrowRight,
@@ -61,7 +63,8 @@ const KIND_LABEL: Record<Kind, string> = Object.fromEntries(
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export default function Ingest() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const currentSearch = useSearch();
   const { toast } = useToast();
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -102,6 +105,19 @@ export default function Ingest() {
     // call. Never overwrite work already entered on F1.
     if (!file && !pastedText && !submitting && !ingestion) loadPlayerArtifact();
   }, [completedPlayerSource?.id, remediation?.reingestionRequired]);
+
+  const support = useStageSupportCase();
+  const departure = support.departure?.tool === "ingestion" ? support.departure : null;
+  const prefilledFor = useRef<string | null>(null);
+  useEffect(() => {
+    // Origin-bound prefill happens once per case and never overwrites typed input.
+    if (!departure || prefilledFor.current === departure.caseId) return;
+    prefilledFor.current = departure.caseId;
+    if (!file && !pastedText.trim() && !ingestion && departure.sourceText) {
+      setPastedText(departure.sourceText.slice(0, MAX_BYTES));
+      setDeclaredKind("other");
+    }
+  }, [departure?.caseId]);
 
   const startSession = useStartSessionFromIngestion();
   const credits = useGetIngestionCredits({
@@ -182,6 +198,7 @@ export default function Ingest() {
       }
       const data = (await res.json()) as IngestionDocument;
       setIngestion(data);
+      if (departure) setLocation(withSupportResultId(location, currentSearch, data.id), { replace: true });
       setEditedSeed(data.seedPrompt);
       setEditedTitle(data.detectedTitle ?? data.originalFilename);
       qc.invalidateQueries({ queryKey: getGetIngestionCreditsQueryKey() });
@@ -225,11 +242,15 @@ export default function Ingest() {
     );
   };
 
+  const unsavedEdits = !!ingestion && (editedSeed !== ingestion.seedPrompt || editedTitle !== (ingestion.detectedTitle ?? ingestion.originalFilename));
+  const restoredResultId = !ingestion && departure ? support.resultId : "";
+
   const inputReady = Boolean(file) || pastedText.trim().length >= 50;
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
       <TopNav />
+      <StageSupportBanner {...support} />
       <main className="flex-1">
         <section className="border-b bg-gradient-to-b from-secondary/5 to-background">
           <div className="container px-4 md:px-6 py-8 md:py-12 max-w-4xl">
@@ -519,6 +540,16 @@ export default function Ingest() {
             </CardContent>
           </Card>
 
+          {restoredResultId && departure && (
+            <Card className="border-primary/40" data-testid="card-restored-ingestion-return">
+              <CardHeader>
+                <CardTitle className="font-display text-xl tracking-wider">SAVED INGESTION READY TO RETURN</CardTitle>
+                <CardDescription className="font-serif">Saved result {restoredResultId.slice(0, 8)} was kept across reload. The server checks it belongs to you and to this case before attaching it to {departure.stageLabel}.</CardDescription>
+              </CardHeader>
+              <CardContent><StageSupportReturnAction departure={departure} resultId={restoredResultId} compact /></CardContent>
+            </Card>
+          )}
+
           {/* Step 2: review + create session */}
           {ingestion && (
             <Card className="border-primary/30">
@@ -585,6 +616,17 @@ export default function Ingest() {
                   </div>
                 </div>
 
+                {departure && (
+                  <div className="space-y-1" data-testid="ingestion-stage-return">
+                    <p className="text-[11px] font-mono text-muted-foreground">Returns the saved seed and summary for {departure.stageLabel}. Only the saved version is returned. Starting a new session stays optional.</p>
+                    <StageSupportReturnAction departure={departure} resultId={ingestion.id} compact blockedReason={unsavedEdits ? "You edited the title or seed after it was saved. Only the saved version can be returned, and there is no save action for edits here. Restore the saved version to return it, or keep your edits and start a new session instead." : null} />
+                    {unsavedEdits && (
+                      <Button variant="outline" size="sm" onClick={() => { setEditedSeed(ingestion.seedPrompt); setEditedTitle(ingestion.detectedTitle ?? ingestion.originalFilename); }} data-testid="button-restore-saved-seed">
+                        Restore saved version
+                      </Button>
+                    )}
+                  </div>
+                )}
                 <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
                   <Button
                     variant="ghost"

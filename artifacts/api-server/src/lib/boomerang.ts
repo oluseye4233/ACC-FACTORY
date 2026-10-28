@@ -37,7 +37,14 @@ export function boomerangHash(value: unknown): string {
 }
 
 type DbReader = Pick<typeof db, "select">;
-export async function boomerangOrigin(reader: DbReader, userId: string, kind: string, id: string, stage: string) {
+/** Only a server-validated stage-support return records this exclusion. */
+export function returnedSupportOutputId(row: BoomerangCaseRow): string | undefined {
+  const history = row.history as Record<string, unknown>[];
+  if (!["imprima", "short-sprints"].includes(String(history[0]?.supportTool))) return;
+  const entry = [...history].reverse().find(item => item.action === "RETURN" && typeof item.supportOutputArtifactId === "string");
+  return entry?.supportOutputArtifactId as string | undefined;
+}
+export async function boomerangOrigin(reader: DbReader, userId: string, kind: string, id: string, stage: string, supportOutputId?: string) {
   if (!BOOMERANG_STAGES.includes(stage as typeof BOOMERANG_STAGES[number]) ||
       (kind === "F0" ? stage !== "F0" : kind !== "SESSION" || stage === "F0")) {
     throw new BoomerangError(400, "INVALID_ORIGIN_STAGE", "F0 requires an owned advisory engagement; session stages use their exact F label.");
@@ -66,7 +73,9 @@ export async function boomerangOrigin(reader: DbReader, userId: string, kind: st
   const artifacts = await reader.select().from(harnessArtifactsTable).where(and(
     eq(harnessArtifactsTable.sessionId, id), eq(harnessArtifactsTable.userId, userId),
   )).orderBy(asc(harnessArtifactsTable.id));
-  const refs = artifacts.filter((artifact) => artifact.artifactType !== "SPC_PLAYER_SUPPORT")
+  // Only the stage-support bridge may omit its single validated, newly-created
+  // preparation result. All other production changes still invalidate departure.
+  const refs = artifacts.filter((artifact) => artifact.artifactType !== "SPC_PLAYER_SUPPORT" && artifact.id !== supportOutputId)
     .map((artifact) => ({
       id: artifact.id, featureId: artifact.featureId, type: artifact.artifactType,
       hash: boomerangHash({ content: artifact.artifactContent, status: artifact.verificationStatus }),
@@ -84,7 +93,7 @@ export async function boomerangOrigin(reader: DbReader, userId: string, kind: st
 
 export async function boomerangResponse(row: BoomerangCaseRow, origin?: Awaited<ReturnType<typeof boomerangOrigin>> | null, reader: DbReader = db) {
   const current = origin === undefined
-    ? await boomerangOrigin(db, row.userId, row.originKind, row.originId, row.stage).catch((error) => {
+    ? await boomerangOrigin(db, row.userId, row.originKind, row.originId, row.stage, returnedSupportOutputId(row)).catch((error) => {
       if (error instanceof BoomerangError && error.status === 404) return null;
       throw error;
     }) : origin;

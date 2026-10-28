@@ -36,6 +36,7 @@ import xvlVerificationRouter from "./xvl-verification";
 import shortSprintsRouter from "./short-sprints";
 import artifactOperationsRouter from "./artifact-operations";
 import boomerangRouter from "./boomerang";
+import stageSupportRouter from "./stage-support";
 import artifactGovernanceRouter from "./artifact-governance";
 import { guardSkippedEngine } from "../lib/artifact-operations/engine-guard";
 
@@ -45,6 +46,7 @@ router.use(learningConvenerRouter);
 router.use(guardSkippedEngine);
 router.use(artifactOperationsRouter);
 router.use(boomerangRouter);
+router.use(stageSupportRouter);
 router.use(artifactGovernanceRouter);
 
 router.use(healthRouter);

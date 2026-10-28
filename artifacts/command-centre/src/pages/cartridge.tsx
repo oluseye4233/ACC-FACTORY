@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { useLocation, Link } from "wouter";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useSearch, Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useStartSessionFromCartridge,
@@ -31,6 +31,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { withSupportResultId } from "@/lib/stage-support";
+import { StageSupportBanner, StageSupportReturnAction, useStageSupportCase } from "@/components/shared/StageSupportReturn";
 import { LibrarySourcePicker } from "@/components/cartridge/LibrarySourcePicker";
 import { RetainedLibrarySources } from "@/components/cartridge/RetainedLibrarySources";
 import {
@@ -67,7 +69,8 @@ interface LinkDraft {
 }
 
 export default function Cartridge() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const currentSearch = useSearch();
   const { toast } = useToast();
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,6 +90,18 @@ export default function Cartridge() {
 
   const [submitting, setSubmitting] = useState(false);
   const [cartridge, setCartridge] = useState<CartridgePackage | null>(null);
+
+  const support = useStageSupportCase();
+  const departure = support.departure?.tool === "cartridge" ? support.departure : null;
+  const prefilledFor = useRef<string | null>(null);
+  useEffect(() => {
+    // Prefill once per case; only empty fields are filled so typed edits survive.
+    if (!departure || prefilledFor.current === departure.caseId) return;
+    prefilledFor.current = departure.caseId;
+    if (cartridge) return;
+    if (!projectName.trim() && departure.sourceTitle) setProjectName(departure.sourceTitle.slice(0, 255));
+    if (!scopeStatement.trim() && departure.sourceText) setScopeStatement(departure.sourceText.slice(0, 8000));
+  }, [departure?.caseId]);
 
   const startSession = useStartSessionFromCartridge();
   const credits = useGetCartridgeCredits({
@@ -212,6 +227,7 @@ export default function Cartridge() {
       }
       const data = (await res.json()) as CartridgePackage;
       setCartridge(data);
+      if (departure) setLocation(withSupportResultId(location, currentSearch, data.id), { replace: true });
       qc.invalidateQueries({ queryKey: getGetCartridgeCreditsQueryKey() });
     } catch (err) {
       toast({
@@ -252,6 +268,7 @@ export default function Cartridge() {
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
       <TopNav />
+      <StageSupportBanner {...support} />
       <main className="flex-1">
         <section className="border-b bg-gradient-to-b from-secondary/5 to-background">
           <div className="container px-4 md:px-6 py-8 md:py-12 max-w-4xl">
@@ -767,6 +784,18 @@ export default function Cartridge() {
           </Card>
 
           {/* Step 3 — cartridge built, start session */}
+          {!cartridge && departure && support.resultId && (
+            <div className="space-y-1" data-testid="cartridge-restored-return">
+              <p className="text-[11px] font-mono text-muted-foreground">Built cartridge {support.resultId.slice(0, 8)} was kept across reload. The server verifies it before attaching it to {departure.stageLabel}.</p>
+              <StageSupportReturnAction departure={departure} resultId={support.resultId} compact />
+            </div>
+          )}
+          {cartridge && departure && (
+            <div className="space-y-1" data-testid="cartridge-stage-return">
+              <p className="text-[11px] font-mono text-muted-foreground">Returns this built cartridge {cartridge.id.slice(0, 8)} to {departure.stageLabel} as a candidate requiring review. Starting a new session stays optional.</p>
+              <StageSupportReturnAction departure={departure} resultId={cartridge.id} compact />
+            </div>
+          )}
           {cartridge && (
             <Card
               className="border-primary/30"

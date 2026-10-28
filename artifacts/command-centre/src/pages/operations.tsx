@@ -14,6 +14,7 @@ import { AlertTriangle, Download, FileOutput, RefreshCw, Rocket, ShieldAlert, Sh
 import { TopNav } from "@/components/layout/TopNav";
 import { GuardStatus, PreparationLane } from "@/components/operations/PreparationLane";
 import { operationsHref } from "@/components/shared/PublishDocumentLink";
+import { StageSupportBanner, useStageSupportCase } from "@/components/shared/StageSupportReturn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -568,6 +569,9 @@ export default function Operations() {
   const sessionId = q.get("sessionId") ?? "";
   const sourceId = q.get("sourceId") ?? "";
   const sourceKind = q.get("sourceKind") ?? "";
+  const support = useStageSupportCase();
+  const departure = support.departure && support.departure.tool === kind ? support.departure : null;
+  const withCase = (h: string) => (support.caseId ? `${h}&supportCaseId=${encodeURIComponent(support.caseId)}` : h);
   const [offset, setOffset] = useState(0);
   const params = sessionId || offset ? { ...(sessionId ? { sessionId } : {}), ...(offset ? { offset } : {}) } : undefined;
   const queryKey = getGetArtifactOperationsQueryKey(kind, params);
@@ -621,6 +625,7 @@ export default function Operations() {
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
       <TopNav />
+      <StageSupportBanner {...support} />
       <header className="border-b bg-card px-4 py-3 flex flex-wrap items-center gap-3">
         <div className="min-w-0">
           <div className={lab}>Operations · owner-scoped</div>
@@ -628,7 +633,7 @@ export default function Operations() {
         </div>
         <nav className="flex gap-1 ml-auto" aria-label="Operation kind">
           {(["imprima", "short-sprints"] as const).map((k) => (
-            <Link key={k} href={operationsHref(k, { sessionId, sourceId, sourceKind })}
+            <Link key={k} href={withCase(operationsHref(k, { sessionId, sourceId, sourceKind }))}
               className={`px-3 h-8 inline-flex items-center rounded border font-mono text-[10px] uppercase tracking-wider ${k === kind ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"}`}
               aria-current={k === kind ? "page" : undefined} data-testid={`tab-${k}`}>
               {k === "imprima" ? "IMPRIMA" : "SHORT SPRINTS"}
@@ -673,9 +678,9 @@ export default function Operations() {
               </button>
             </nav>
             {view === "internal" ? (
-              <PreparationLane internal key={`internal:${kind}:${sessionId}:${sourceId}`} kind={kind} ws={prep.data} params={prepParams} offset={prepOffset} setOffset={setPrepOffset} fetching={prep.isFetching} initial={{ sourceId, sourceKind, sessionId }} />
+              <PreparationLane internal key={`internal:${kind}:${sessionId}:${sourceId}`} kind={kind} ws={prep.data} params={prepParams} offset={prepOffset} setOffset={setPrepOffset} fetching={prep.isFetching} initial={{ sourceId, sourceKind, sessionId }} departure={departure} />
             ) : view === "prep" || !guardsReady ? (
-              <PreparationLane key={`${kind}:${sessionId}:${sourceId}`} kind={kind} ws={prep.data} params={prepParams} offset={prepOffset} setOffset={setPrepOffset} fetching={prep.isFetching} initial={{ sourceId, sourceKind, sessionId }} />
+              <PreparationLane key={`${kind}:${sessionId}:${sourceId}`} kind={kind} ws={prep.data} params={prepParams} offset={prepOffset} setOffset={setPrepOffset} fetching={prep.isFetching} initial={{ sourceId, sourceKind, sessionId }} departure={departure} />
             ) : (
               <>
         {ws.isError ? (

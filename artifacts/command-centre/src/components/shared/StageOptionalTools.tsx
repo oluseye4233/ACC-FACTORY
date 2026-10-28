@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
-import { Link } from "wouter";
-import { ArrowLeft, ArrowRight, Briefcase, CornerDownLeft, Layers } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Link, useLocation } from "wouter";
+import { ArrowLeft, ArrowRight, Briefcase, Boxes, CornerDownLeft, FileInput, FileOutput, Layers, Loader2, Rocket } from "lucide-react";
+import { supportErrMessage, useLaunchDeparture, useStageSupportOptions, type SupportTool } from "@/lib/stage-support";
 import { BoomerangPanel } from "@/components/boomerang";
 import { RETURN_WITH_ARTIFACT_LABEL } from "@/components/boomerang/ReturnedUpgrade";
 import { f0OriginHref, sessionStageHref, spcPlayerOriginHref } from "@/lib/stage-origin";
@@ -26,11 +27,12 @@ function Explain({ what, outcome, how, back }: { what: string; outcome: string; 
   );
 }
 
-function ToolBox({ id, icon, title, tag, children }: { id: string; icon: ReactNode; title: string; tag: string; children: ReactNode }) {
+function ToolBox({ id, icon, title, tag, children, tone = "text-primary", status }: { id: string; icon: ReactNode; title: string; tag: string; children: ReactNode; tone?: string; status?: ReactNode }) {
   return (
     <details className="group rounded-lg border bg-card open:md:col-span-3 open:border-primary/40" data-testid={`tool-${id}`}>
       <summary className="flex cursor-pointer list-none items-center gap-2 p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
-        <span className="text-primary">{icon}</span>
+        <span className={tone}>{icon}</span>
+        {status}
         <span className="font-mono text-xs font-bold uppercase tracking-wider">{title}</span>
         <span className="ml-auto font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{tag}</span>
         <ArrowRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" aria-hidden />
@@ -44,6 +46,70 @@ function ToolBox({ id, icon, title, tag, children }: { id: string; icon: ReactNo
  * Optional, advisory-only tools for a session stage. Nothing here advances,
  * certifies, or clears a stage gate; returns always require explicit review.
  */
+const SUPPORT: { tool: SupportTool; title: string; tag: string; icon: ReactNode; tone: string; btn: string; what: string; outcome: string; how: string }[] = [
+  { tool: "imprima", title: "IMPRIMA", tag: "document draft", icon: <FileOutput className="h-4 w-4" />, tone: "text-[hsl(272_55%_48%)]", btn: "border-[hsl(272_55%_48%/0.5)] text-[hsl(272_55%_42%)] hover:bg-[hsl(272_55%_48%/0.08)]",
+    what: "Renders the saved source of this exact stage into private DOCX, PDF or HTML draft files, optionally with an internal clarity and claims assessment.",
+    outcome: "Private, non-releasable DRAFT files referenced from a saved preparation. Returned as a candidate for review; never a certification, Final approval or gate pass.",
+    how: "Launch, complete a private or internal preparation for the pre-selected source, then use the return action shown beside that completed preparation." },
+  { tool: "short-sprints", title: "SHORT SPRINTS", tag: "sprint package", icon: <Rocket className="h-4 w-4" />, tone: "text-[hsl(24_88%_50%)]", btn: "border-[hsl(24_88%_50%/0.5)] text-[hsl(24_88%_42%)] hover:bg-[hsl(24_88%_50%/0.08)]",
+    what: "Prepares a non-releasable sprint package (SC_ONE from F4 Micro-PDD, SC_TWO from F5 SPC) from this stage's saved source.",
+    outcome: "Private package files with source and manifest hashes. No tests, gates, release or deployment run. Nothing claims the target code is corrected.",
+    how: "Launch, fill host target and manifest, save the preparation, then use the return action beside that completed preparation." },
+  { tool: "ingestion", title: "INGESTION", tag: "seed and summary", icon: <FileInput className="h-4 w-4" />, tone: "text-primary", btn: "border-primary/40 text-primary hover:bg-primary/10",
+    what: "Opens the Ingestion Engine prefilled once with this stage's saved source text. Your edits are never overwritten.",
+    outcome: "A saved seed prompt and summary, returned to this stage as a candidate requiring review. Normal credit and generation gates still apply.",
+    how: "Launch, review or edit the prefilled input, normalise it, then use the return action. Starting a new session from there remains a separate, optional choice." },
+  { tool: "cartridge", title: "CARTRIDGE", tag: "scoped package", icon: <Boxes className="h-4 w-4" />, tone: "text-secondary", btn: "border-secondary/50 text-secondary hover:bg-secondary/10",
+    what: "Opens Advanced Cartridge with project name and scope prefilled once from this stage's saved source.",
+    outcome: "A built cartridge package returned to this stage as a candidate requiring review. Credit and build gates are unchanged.",
+    how: "Launch, adjust scope and assets, build the cartridge, then use the return action." },
+];
+
+function SupportLaunch({ sessionId, featureId, stageLabel, isSessionOwner }: Props) {
+  const [, setLocation] = useLocation();
+  const opts = useStageSupportOptions(sessionId, featureId, isSessionOwner);
+  const launch = useLaunchDeparture();
+  const [launching, setLaunching] = useState<SupportTool | null>(null);
+  const [err, setErr] = useState<{ tool: SupportTool; msg: string } | null>(null);
+  const go = (tool: SupportTool) => {
+    setErr(null); setLaunching(tool);
+    launch.mutate({ sessionId, featureId, tool }, {
+      onSuccess: (d) => setLocation(d.launchHref),
+      onError: (e) => { setErr({ tool, msg: supportErrMessage(e) }); setLaunching(null); },
+    });
+  };
+  return (
+    <>
+      {SUPPORT.map((t) => {
+        const st = opts.data?.tools.find((x) => x.tool === t.tool);
+        const active = isSessionOwner && !!st?.active;
+        const reason = !isSessionOwner ? "Only the session owner can launch origin-bound support." : opts.isLoading ? "Checking stage, saved source and ownership..." : opts.isError ? `Status unavailable: ${supportErrMessage(opts.error)}` : st?.reason ?? "Not offered for this stage.";
+        const status = (
+          <span className={`font-mono text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border ${active ? "border-primary/50 text-primary bg-primary/10" : "border-dashed text-muted-foreground"}`} data-testid={`status-tool-${t.tool}`}>
+            {opts.isLoading && isSessionOwner ? "checking" : active ? "active" : "inactive"}
+          </span>
+        );
+        return (
+          <ToolBox key={t.tool} id={t.tool} icon={t.icon} title={t.title} tag={t.tag} tone={t.tone} status={status}>
+            <Explain what={t.what} outcome={t.outcome} how={t.how}
+              back={`A Back to ${stageLabel} banner stays at the top while you work; it only navigates. When a completed saved result exists, press ${RETURN_WITH_ARTIFACT_LABEL} and confirm. Your session is not replaced.`} />
+            <p className={`text-[11px] ${active ? "text-foreground/80" : "text-muted-foreground"}`} data-testid={`text-tool-reason-${t.tool}`}>{reason}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" disabled={!active || launch.isPending} onClick={() => go(t.tool)}
+                className={`inline-flex items-center gap-1 rounded border px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-50 ${t.btn}`} data-testid={`button-launch-${t.tool}`}>
+                {launching === t.tool ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                {launching === t.tool ? "Opening..." : `Launch ${t.title} for ${stageLabel}`} {launching !== t.tool && <ArrowRight className="h-3 w-3" />}
+              </button>
+              {opts.isError && isSessionOwner && <button type="button" className="text-[11px] underline" onClick={() => opts.refetch()} data-testid={`button-retry-options-${t.tool}`}>Retry status</button>}
+            </div>
+            {err?.tool === t.tool && <p role="alert" className="text-[11px] text-destructive" data-testid={`text-launch-error-${t.tool}`}>Launch failed: {err.msg}. No departure was recorded.</p>}
+          </ToolBox>
+        );
+      })}
+    </>
+  );
+}
+
 export function StageOptionalTools({ sessionId, featureId, stageLabel, isSessionOwner }: Props) {
   return (
     <section id="stage-optional-tools" aria-labelledby="stage-optional-tools-title" className="mx-auto w-full max-w-5xl px-4 pb-8 pt-6">
@@ -101,6 +167,7 @@ export function StageOptionalTools({ sessionId, featureId, stageLabel, isSession
             Open F0 Advisory <ArrowRight className="h-3 w-3" />
           </Link>
         </ToolBox>
+        <SupportLaunch sessionId={sessionId} featureId={featureId} stageLabel={stageLabel} isSessionOwner={isSessionOwner} />
       </div>
     </section>
   );

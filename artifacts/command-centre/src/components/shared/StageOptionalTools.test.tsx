@@ -1,20 +1,32 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 vi.mock("@/components/boomerang", () => ({
   BoomerangPanel: ({ stage }: { stage: string }) => <div data-testid="mock-boomerang-panel" data-stage={stage} />,
 }));
+const navigate = vi.fn();
 vi.mock("wouter", () => ({
+  useLocation: () => ["/session/s1", navigate],
   Link: ({ href, children, ...rest }: Record<string, unknown>) => <a href={href as string} {...rest}>{children as React.ReactNode}</a>,
 }));
+const options = vi.fn();
+const launchMutate = vi.fn();
+vi.mock("@/lib/stage-support", () => ({
+  useStageSupportOptions: (...a: unknown[]) => options(...a),
+  useLaunchDeparture: () => ({ mutate: launchMutate, isPending: false }),
+  supportErrMessage: (e: unknown) => (e as { data?: { error?: string } })?.data?.error ?? String(e),
+}));
+const ready = (tools: { tool: string; active: boolean; reason: string }[]) =>
+  options.mockReturnValue({ data: { tools, sourceId: "src-1" }, isLoading: false, isError: false, error: null, refetch: vi.fn() });
 import { StageOptionalTools, ReturnToStageBanner } from "./StageOptionalTools";
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); navigate.mockReset(); launchMutate.mockReset(); options.mockReset(); });
 
 describe("StageOptionalTools", () => {
   it("explains each tool with a return-to-stage section", () => {
+    ready([]);
     render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner />);
-    for (const id of ["boomerang", "spc-player", "f0"]) {
+    for (const id of ["boomerang", "spc-player", "f0", "imprima", "short-sprints", "ingestion", "cartridge"]) {
       const box = screen.getByTestId(`tool-${id}`);
       for (const term of ["What it does", "Outcome", "How to use", "Return to this stage"]) {
         expect(box.textContent).toContain(term);
@@ -23,6 +35,51 @@ describe("StageOptionalTools", () => {
     expect(screen.getByTestId("tool-spc-player").textContent).toContain("RETURN TO THE STAGE YOU LEFT WITH NEW ARTIFACT AND CONTINUE PRODUCTION");
     expect(screen.getByTestId("tool-f0").textContent).toContain("not automatically adopted");
     expect(screen.getByTestId("tool-f0").textContent).toContain("Return to F4");
+    for (const id of ["imprima", "short-sprints", "ingestion", "cartridge"]) {
+      expect(screen.getByTestId(`tool-${id}`).textContent).toContain("RETURN TO THE STAGE YOU LEFT WITH NEW ARTIFACT AND CONTINUE PRODUCTION");
+    }
+  });
+
+  it("shows active and inactive support tools with server reasons; inactive launch is disabled", () => {
+    ready([
+      { tool: "imprima", active: true, reason: "Saved F4 Micro-PDD found." },
+      { tool: "short-sprints", active: false, reason: "No saved F4/F5 source." },
+      { tool: "ingestion", active: true, reason: "Saved artifact found." },
+      { tool: "cartridge", active: false, reason: "No saved artifact at this stage." },
+    ]);
+    render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner />);
+    expect(screen.getByTestId("status-tool-imprima").textContent).toBe("active");
+    expect(screen.getByTestId("status-tool-short-sprints").textContent).toBe("inactive");
+    expect(screen.getByTestId("text-tool-reason-short-sprints").textContent).toBe("No saved F4/F5 source.");
+    expect((screen.getByTestId("button-launch-imprima") as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByTestId("button-launch-short-sprints") as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByTestId("button-launch-cartridge") as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("disables every support launch for non-owners", () => {
+    ready([{ tool: "imprima", active: true, reason: "ok" }]);
+    render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner={false} />);
+    for (const t of ["imprima", "short-sprints", "ingestion", "cartridge"]) {
+      expect((screen.getByTestId(`button-launch-${t}`) as HTMLButtonElement).disabled).toBe(true);
+    }
+  });
+
+  it("creates the departure first, then navigates to its launchHref", () => {
+    ready([{ tool: "ingestion", active: true, reason: "ok" }]);
+    launchMutate.mockImplementation((_b, o: { onSuccess: (d: unknown) => void }) => o.onSuccess({ launchHref: "/ingest?supportCaseId=c1" }));
+    render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner />);
+    fireEvent.click(screen.getByTestId("button-launch-ingestion"));
+    expect(launchMutate.mock.calls[0][0]).toEqual({ sessionId: "s1", featureId: 4, tool: "ingestion" });
+    expect(navigate).toHaveBeenCalledWith("/ingest?supportCaseId=c1");
+  });
+
+  it("shows a rejected launch and does not navigate", async () => {
+    ready([{ tool: "imprima", active: true, reason: "ok" }]);
+    launchMutate.mockImplementation((_b, o: { onError: (e: unknown) => void }) => o.onError({ data: { error: "Source changed" } }));
+    render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner />);
+    fireEvent.click(screen.getByTestId("button-launch-imprima"));
+    await waitFor(() => expect(screen.getByTestId("text-launch-error-imprima").textContent).toContain("Source changed"));
+    expect(navigate).not.toHaveBeenCalled();
   });
 });
 

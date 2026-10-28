@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
-import { createTheme, NAVY, ACCENT, SOFT } from "./lib/atlas-pdf-theme.mjs";
+import { createTheme, NAVY, ACCENT, SOFT, PHASE_COLOURS } from "./lib/atlas-pdf-theme.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const require = createRequire(path.join(root, "lib/export/package.json"));
@@ -163,7 +163,27 @@ function renderMarkdown(text) {
       doc.outline.addItem(clean(line.slice(2))); index++; continue;
     }
     if (line.startsWith("## ")) { t.h2(clean(line.slice(3))); index++; continue; }
-    if (line.startsWith("### ")) { t.h3(clean(line.slice(4))); index++; continue; }
+    if (line.startsWith("### ")) {
+      const heading = clean(line.slice(4));
+      const colour = heading.startsWith("IMPRIMA —")
+        ? PHASE_COLOURS.VIOLET
+        : heading.startsWith("SHORT SPRINTS —") ? PHASE_COLOURS.ORANGE : null;
+      if (colour) {
+        t.pageGuard(240);
+        const x = doc.page.margins.left;
+        const y = doc.y + 6;
+        doc.save().fillColor(colour).rect(x, y, 5, 32).fill().restore();
+        doc.font("Helvetica-Bold").fontSize(13).fillColor(colour)
+          .text(heading, x + 14, y + 7, {
+            width: doc.page.width - doc.page.margins.right - x - 14,
+          });
+        doc.y = y + 43;
+        doc.x = x;
+      } else {
+        t.h3(heading);
+      }
+      index++; continue;
+    }
     if (/^(- |\d+\. )/.test(line)) {
       const items = [];
       while (index < lines.length && /^(- |\d+\. )/.test(lines[index].trim())) {

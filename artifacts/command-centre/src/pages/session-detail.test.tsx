@@ -22,6 +22,7 @@ vi.mock("@/lib/api", () => ({
 vi.mock("wouter", () => ({
   useParams: () => ({ id: "session-1" }),
   useSearch: () => window.location.search.slice(1),
+  useLocation: () => [window.location.pathname, vi.fn()],
   Link: ({ href, children, ...rest }: Record<string, unknown>) => (
     <a href={href as string} {...rest}>
       {children as React.ReactNode}
@@ -49,6 +50,13 @@ vi.mock("@workspace/api-client-react", () => ({
   useGetSessionIngestion: () => useGetSessionIngestionMock(),
   useGetSessionCartridge: () => ({ data: undefined, isLoading: false, isError: false }),
   getGetSessionCartridgeQueryKey: (sessionId: string) => ["/sessions", sessionId, "cartridge"],
+}));
+
+// Stage-support availability is covered in StageOptionalTools.test; keep it inert here.
+vi.mock("@/lib/stage-support", () => ({
+  useStageSupportOptions: () => ({ data: { tools: [], sourceId: null }, isLoading: false, isError: false, error: null, refetch: vi.fn() }),
+  useLaunchDeparture: () => ({ mutate: vi.fn(), isPending: false }),
+  supportErrMessage: (e: unknown) => String(e),
 }));
 
 // Chrome / side panels — not relevant to the F0 placement logic.

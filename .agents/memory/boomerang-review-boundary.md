@@ -15,6 +15,17 @@ The source baseline is intentionally conservative: any production artifact chang
 
 **How to apply:** Narrow this rule only with explicit dependency evidence, not by simply ignoring unrelated-looking artifact changes.
 
+A support operation that creates a preparation inside the origin session may
+exclude only its own validated saved output from its departure comparison.
+Carry that exact exclusion into subsequent review of the returned case.
+
+**Why:** The tool's own output would otherwise invalidate its unchanged input,
+but excluding all preparations would hide unrelated concurrent source changes.
+
+**How to apply:** Verify ownership, exact source, tool type, completion and
+creation after departure before the exception. Keep every other artifact in
+the baseline; ordinary manual supporting work cannot choose exclusions.
+
 Score-driven rework is an explicit user-authorized loop: JCSE <45 or MATHMON
 <70 recommends the latest exact-stage artifact for SPC Player, then requires
 F1 re-ingestion to address the recorded shortcomings.

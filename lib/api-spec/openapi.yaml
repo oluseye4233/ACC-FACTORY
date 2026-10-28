@@ -26,6 +26,84 @@ tags:
   - name: magnet
 
 paths:
+  /stage-support/options:
+    get:
+      operationId: getStageSupportOptions
+      tags: [stage-support]
+      parameters:
+        - { in: query, name: sessionId, required: true, schema: { type: string, format: uuid } }
+        - { in: query, name: featureId, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Owner-scoped exact-stage availability; does not activate protected workflows.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [tools, sourceId]
+                properties:
+                  sourceId: { type: [string, "null"] }
+                  tools:
+                    type: array
+                    items:
+                      type: object
+                      required: [tool, active, reason]
+                      properties:
+                        tool: { type: string, enum: [imprima, short-sprints, ingestion, cartridge] }
+                        active: { type: boolean }
+                        reason: { type: string }
+  /stage-support/departures:
+    post:
+      operationId: createStageSupportDeparture
+      tags: [stage-support]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StageSupportStartInput"
+      responses:
+        "201":
+          description: Persisted source-bound departure.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StageSupportDeparture" }
+  /stage-support/departures/{id}:
+    get:
+      operationId: getStageSupportDeparture
+      tags: [stage-support]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Owned persisted departure and exact return destination.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StageSupportDeparture" }
+  /stage-support/departures/{id}/return:
+    post:
+      operationId: returnStageSupportArtifact
+      tags: [stage-support]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StageSupportReturnInput"
+      responses:
+        "200":
+          description: Persisted review-only upgraded candidate; no stage advancement or certification.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [returnedArtifactId, returnedArtifactHref, upgradeLabel]
+                properties:
+                  returnedArtifactId: { type: string, format: uuid }
+                  returnedArtifactHref: { type: string }
+                  upgradeLabel: { type: string }
   /harness/artifacts/{artifactId}/governance:
     get:
       operationId: getArtifactGovernance
@@ -3288,6 +3366,33 @@ components:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   schemas:
+    StageSupportStartInput:
+      type: object
+      required: [sessionId, featureId, tool]
+      properties:
+        sessionId: { type: string, format: uuid }
+        featureId: { type: integer }
+        tool: { type: string, enum: [imprima, short-sprints, ingestion, cartridge] }
+    StageSupportReturnInput:
+      type: object
+      required: [resultId]
+      properties:
+        resultId: { type: string, format: uuid }
+    StageSupportDeparture:
+      type: object
+      required: [caseId, tool, sessionId, featureId, stageLabel, sourceId, sourceKind, sourceTitle, sourceText, launchHref, returnedArtifactHref]
+      properties:
+        caseId: { type: string, format: uuid }
+        tool: { type: string, enum: [imprima, short-sprints, ingestion, cartridge] }
+        sessionId: { type: string, format: uuid }
+        featureId: { type: integer }
+        stageLabel: { type: string }
+        sourceId: { type: string, format: uuid }
+        sourceKind: { type: [string, "null"] }
+        sourceTitle: { type: string }
+        sourceText: { type: string }
+        launchHref: { type: string }
+        returnedArtifactHref: { type: [string, "null"] }
     BoomerangOrigin:
       type: object
       required: [kind, id, label]

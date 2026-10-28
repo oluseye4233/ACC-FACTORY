@@ -16,6 +16,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { MANIFEST_FIELDS, PREPARATION_MANIFEST_SAMPLE, downloadFrom, errMessage, isRec, rec, str, type OpsKind } from "@/lib/artifact-ops";
 import { streamSse } from "@/lib/sse";
 import { InternalEditorialChanges } from "./InternalEditorialChanges";
+import { StageSupportReturnAction } from "@/components/shared/StageSupportReturn";
+import type { Departure } from "@/lib/stage-support";
+
+const COMPLETED_STATE: Record<OpsKind, string> = { imprima: "PREPARED_DRAFT", "short-sprints": "PREPARED_PROPOSAL" };
 
 const lab = "font-mono text-[10px] uppercase tracking-wider text-muted-foreground";
 const sel = "h-9 w-full rounded-md border bg-background px-2 font-mono text-xs";
@@ -128,7 +132,8 @@ export function InternalReport({ id, value }: { id: string; value: unknown }) {
   );
 }
 
-function PrepCard({ p }: { p: ArtifactPreparation }) {
+function PrepCard({ p, kind, departure }: { p: ArtifactPreparation; kind: OpsKind; departure: Departure | null }) {
+  const returnable = !!departure && departure.tool === kind && p.sourceId === departure.sourceId && p.files.length > 0 && p.state === COMPLETED_STATE[kind];
   const isInternal = p.evaluationMode === "INTERNAL";
   const [err, setErr] = useState<string | null>(null);
   const dl = (path: string, name: string) => downloadFrom(path, name).then(() => setErr(null), (e) => setErr(errMessage(e).message));
@@ -169,6 +174,7 @@ function PrepCard({ p }: { p: ArtifactPreparation }) {
         ))}
       </ul>
       {err && <p className="font-mono text-xs text-destructive">{err}</p>}
+      {returnable && <StageSupportReturnAction departure={departure} resultId={p.id} />}
     </li>
   );
 }
@@ -182,9 +188,10 @@ type Props = {
   fetching: boolean;
   initial: { sourceId: string; sourceKind: string; sessionId: string };
   internal?: boolean;
+  departure?: Departure | null;
 };
 
-export function PreparationLane({ kind, ws, params, offset, setOffset, fetching, initial, internal = false }: Props) {
+export function PreparationLane({ kind, ws, params, offset, setOffset, fetching, initial, internal = false, departure = null }: Props) {
   const manifestId = useId();
   const qc = useQueryClient();
   const abort = useRef<AbortController | null>(null);
@@ -342,7 +349,7 @@ export function PreparationLane({ kind, ws, params, offset, setOffset, fetching,
         {ws.items.length === 0 ? (
           <p className="font-mono text-xs text-muted-foreground border border-dashed rounded p-6" data-testid="text-prep-empty">No preparations saved yet. Pick a source and save one; it stays private to your account.</p>
         ) : (
-          <ul className="space-y-3">{ws.items.map((p) => <PrepCard key={p.id} p={p} />)}</ul>
+          <ul className="space-y-3">{ws.items.map((p) => <PrepCard key={p.id} p={p} kind={kind} departure={departure} />)}</ul>
         )}
       </section>
     </div>

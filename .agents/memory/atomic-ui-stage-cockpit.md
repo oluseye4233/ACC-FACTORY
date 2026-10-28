@@ -29,6 +29,18 @@ artifact when launching support. Show how returned work reaches that origin;
 distinguish navigation back from actual reviewed artifact adoption. Do not
 replace these boxes with extra production gates or imply advice clears a gate.
 
+Include IMPRIMA, SHORT SPRINTS, INGESTION and CARTRIDGE in the same bottom
+support area. Show each as active or inactive with its stage/source eligibility
+reason, and apply the explicit saved-artifact return action to these tools too.
+
+**Why:** The user explicitly requested all four as context-sensitive production
+support, not standalone destinations that lose the original F-stage.
+
+**How to apply:** Preserve departure and saved-result identities, require an
+owned exact-stage source, and retain ordinary usage, validation and protected
+workflow gates. Distinguish the available private/internal operations from
+independently governed publication or release.
+
 Completed origin-bound supporting work should offer the explicit primary action
 “RETURN TO THE STAGE YOU LEFT WITH NEW ARTIFACT AND CONTINUE PRODUCTION”.
 

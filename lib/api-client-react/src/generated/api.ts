@@ -148,6 +148,8 @@ import type {
   GetF8RemediationProgressParams,
   GetShortSprintPreflightParams,
   GetSphinxCatalog200,
+  GetStageSupportOptions200,
+  GetStageSupportOptionsParams,
   HarnessArtifact,
   HarnessAtlasCrystalliseInput,
   HarnessEscalationsStreamParams,
@@ -216,6 +218,7 @@ import type {
   RedeemLearningInvitationBody,
   RemediateF8DriftInput,
   RenameArtifactInput,
+  ReturnStageSupportArtifact200,
   ReviewExemplarRequest,
   ReviewLearningAttemptBody,
   SaveLearningAttemptBody,
@@ -237,6 +240,9 @@ import type {
   SpcPlayerWebhookAuthorizationStatus,
   SphinxMarketplaceActivationRequest,
   SphinxMarketplaceStatus,
+  StageSupportDeparture,
+  StageSupportReturnInput,
+  StageSupportStartInput,
   StripeWebhookPayload,
   TraineeSupport,
   UnauthorizedResponse,
@@ -279,6 +285,368 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetStageSupportOptionsUrl = (params: GetStageSupportOptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/stage-support/options?${stringifiedParams}` : `/api/stage-support/options`
+}
+
+export const getStageSupportOptions = async (params: GetStageSupportOptionsParams, options?: Parameters<typeof customFetch>[1]): Promise<GetStageSupportOptions200> => {
+
+  return customFetch<GetStageSupportOptions200>(getGetStageSupportOptionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStageSupportOptionsQueryKey = (params?: GetStageSupportOptionsParams,) => {
+    return [
+    `/api/stage-support/options`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetStageSupportOptionsQueryOptions = <TData = Awaited<ReturnType<typeof getStageSupportOptions>>, TError = ErrorType<unknown>>(params: GetStageSupportOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageSupportOptions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStageSupportOptionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStageSupportOptions>>> = ({ signal }) => getStageSupportOptions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStageSupportOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStageSupportOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof getStageSupportOptions>>>
+export type GetStageSupportOptionsQueryError = ErrorType<unknown>
+
+
+export function useGetStageSupportOptions<TData = Awaited<ReturnType<typeof getStageSupportOptions>>, TError = ErrorType<unknown>>(
+ params: GetStageSupportOptionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageSupportOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStageSupportOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getStageSupportOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStageSupportOptions<TData = Awaited<ReturnType<typeof getStageSupportOptions>>, TError = ErrorType<unknown>>(
+ params: GetStageSupportOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageSupportOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStageSupportOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getStageSupportOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStageSupportOptions<TData = Awaited<ReturnType<typeof getStageSupportOptions>>, TError = ErrorType<unknown>>(
+ params: GetStageSupportOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageSupportOptions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStageSupportOptions<TData = Awaited<ReturnType<typeof getStageSupportOptions>>, TError = ErrorType<unknown>>(
+ params: GetStageSupportOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageSupportOptions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStageSupportOptionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateStageSupportDepartureUrl = () => {
+
+
+
+
+  return `/api/stage-support/departures`
+}
+
+export const createStageSupportDeparture = async (stageSupportStartInput: StageSupportStartInput, options?: Parameters<typeof customFetch>[1]): Promise<StageSupportDeparture> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<StageSupportDeparture>(getCreateStageSupportDepartureUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageSupportStartInput)
+  }
+);}
+
+
+
+
+
+export const getCreateStageSupportDepartureMutationKey = () => ['createStageSupportDeparture'] as const;
+
+export const getCreateStageSupportDepartureMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStageSupportDeparture>>, TError,CreateStageSupportDepartureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStageSupportDeparture>>, TError,CreateStageSupportDepartureMutationVariables, TContext> => {
+
+const mutationKey = getCreateStageSupportDepartureMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStageSupportDeparture>>, CreateStageSupportDepartureMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createStageSupportDeparture(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStageSupportDepartureMutationResult = NonNullable<Awaited<ReturnType<typeof createStageSupportDeparture>>>
+    export type CreateStageSupportDepartureMutationBody = BodyType<StageSupportStartInput>
+    export type CreateStageSupportDepartureMutationError = ErrorType<unknown>
+    export type CreateStageSupportDepartureMutationVariables = {data: BodyType<StageSupportStartInput>}
+
+    export const useCreateStageSupportDeparture = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStageSupportDeparture>>, TError,CreateStageSupportDepartureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createStageSupportDeparture>>,
+        TError,
+        CreateStageSupportDepartureMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateStageSupportDepartureMutationOptions(options), queryClient);
+    }
+
+export const getGetStageSupportDepartureUrl = (id: string,) => {
+
+
+
+
+  return `/api/stage-support/departures/${id}`
+}
+
+export const getStageSupportDeparture = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<StageSupportDeparture> => {
+
+  return customFetch<StageSupportDeparture>(getGetStageSupportDepartureUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStageSupportDepartureQueryKey = (id: string,) => {
+    return [
+    `/api/stage-support/departures/${id}`
+    ] as const;
+    }
+
+
+export const getGetStageSupportDepartureQueryOptions = <TData = Awaited<ReturnType<typeof getStageSupportDeparture>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageSupportDeparture>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStageSupportDepartureQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStageSupportDeparture>>> = ({ signal }) => getStageSupportDeparture(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStageSupportDeparture>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStageSupportDepartureQueryResult = NonNullable<Awaited<ReturnType<typeof getStageSupportDeparture>>>
+export type GetStageSupportDepartureQueryError = ErrorType<unknown>
+
+
+export function useGetStageSupportDeparture<TData = Awaited<ReturnType<typeof getStageSupportDeparture>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageSupportDeparture>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStageSupportDeparture>>,
+          TError,
+          Awaited<ReturnType<typeof getStageSupportDeparture>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStageSupportDeparture<TData = Awaited<ReturnType<typeof getStageSupportDeparture>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageSupportDeparture>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStageSupportDeparture>>,
+          TError,
+          Awaited<ReturnType<typeof getStageSupportDeparture>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStageSupportDeparture<TData = Awaited<ReturnType<typeof getStageSupportDeparture>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageSupportDeparture>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStageSupportDeparture<TData = Awaited<ReturnType<typeof getStageSupportDeparture>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageSupportDeparture>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStageSupportDepartureQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReturnStageSupportArtifactUrl = (id: string,) => {
+
+
+
+
+  return `/api/stage-support/departures/${id}/return`
+}
+
+export const returnStageSupportArtifact = async (id: string,
+    stageSupportReturnInput: StageSupportReturnInput, options?: Parameters<typeof customFetch>[1]): Promise<ReturnStageSupportArtifact200> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ReturnStageSupportArtifact200>(getReturnStageSupportArtifactUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageSupportReturnInput)
+  }
+);}
+
+
+
+
+
+export const getReturnStageSupportArtifactMutationKey = () => ['returnStageSupportArtifact'] as const;
+
+export const getReturnStageSupportArtifactMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnStageSupportArtifact>>, TError,ReturnStageSupportArtifactMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof returnStageSupportArtifact>>, TError,ReturnStageSupportArtifactMutationVariables, TContext> => {
+
+const mutationKey = getReturnStageSupportArtifactMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof returnStageSupportArtifact>>, ReturnStageSupportArtifactMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  returnStageSupportArtifact(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReturnStageSupportArtifactMutationResult = NonNullable<Awaited<ReturnType<typeof returnStageSupportArtifact>>>
+    export type ReturnStageSupportArtifactMutationBody = BodyType<StageSupportReturnInput>
+    export type ReturnStageSupportArtifactMutationError = ErrorType<unknown>
+    export type ReturnStageSupportArtifactMutationVariables = {id: string;data: BodyType<StageSupportReturnInput>}
+
+    export const useReturnStageSupportArtifact = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnStageSupportArtifact>>, TError,ReturnStageSupportArtifactMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof returnStageSupportArtifact>>,
+        TError,
+        ReturnStageSupportArtifactMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReturnStageSupportArtifactMutationOptions(options), queryClient);
+    }
 
 export const getGetArtifactGovernanceUrl = (artifactId: string,) => {
 

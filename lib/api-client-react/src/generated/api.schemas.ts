@@ -5,6 +5,52 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+export type StageSupportStartInputTool = typeof StageSupportStartInputTool[keyof typeof StageSupportStartInputTool];
+
+
+export const StageSupportStartInputTool = {
+  imprima: 'imprima',
+  'short-sprints': 'short-sprints',
+  ingestion: 'ingestion',
+  cartridge: 'cartridge',
+} as const;
+
+export interface StageSupportStartInput {
+  sessionId: string;
+  featureId: number;
+  tool: StageSupportStartInputTool;
+}
+
+export interface StageSupportReturnInput {
+  resultId: string;
+}
+
+export type StageSupportDepartureTool = typeof StageSupportDepartureTool[keyof typeof StageSupportDepartureTool];
+
+
+export const StageSupportDepartureTool = {
+  imprima: 'imprima',
+  'short-sprints': 'short-sprints',
+  ingestion: 'ingestion',
+  cartridge: 'cartridge',
+} as const;
+
+export interface StageSupportDeparture {
+  caseId: string;
+  tool: StageSupportDepartureTool;
+  sessionId: string;
+  featureId: number;
+  stageLabel: string;
+  sourceId: string;
+  /** @nullable */
+  sourceKind: string | null;
+  sourceTitle: string;
+  sourceText: string;
+  launchHref: string;
+  /** @nullable */
+  returnedArtifactHref: string | null;
+}
+
 export type BoomerangOriginKind = typeof BoomerangOriginKind[keyof typeof BoomerangOriginKind];
 
 
@@ -5967,6 +6013,39 @@ export type NotFoundResponse = ErrorResponse;
  * Rate limit exceeded
  */
 export type RateLimitedResponse = ErrorResponse;
+
+export type GetStageSupportOptionsParams = {
+sessionId: string;
+featureId: number;
+};
+
+export type GetStageSupportOptions200ToolsItemTool = typeof GetStageSupportOptions200ToolsItemTool[keyof typeof GetStageSupportOptions200ToolsItemTool];
+
+
+export const GetStageSupportOptions200ToolsItemTool = {
+  imprima: 'imprima',
+  'short-sprints': 'short-sprints',
+  ingestion: 'ingestion',
+  cartridge: 'cartridge',
+} as const;
+
+export type GetStageSupportOptions200ToolsItem = {
+  tool: GetStageSupportOptions200ToolsItemTool;
+  active: boolean;
+  reason: string;
+};
+
+export type GetStageSupportOptions200 = {
+  /** @nullable */
+  sourceId: string | null;
+  tools: GetStageSupportOptions200ToolsItem[];
+};
+
+export type ReturnStageSupportArtifact200 = {
+  returnedArtifactId: string;
+  returnedArtifactHref: string;
+  upgradeLabel: string;
+};
 
 export type CreateLearningCohortBody = {
   /**
