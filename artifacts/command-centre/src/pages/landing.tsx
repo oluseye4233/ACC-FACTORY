@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { ForgeInviteApplication } from "@/components/marketing/ForgeInviteApplication";
 import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { useMarketingMeta } from "@/components/marketing/use-marketing-meta";
@@ -140,7 +141,10 @@ export default function Landing() {
             <h2 className="mt-2 font-display text-4xl">FORGE Field Engineer</h2>
             <p className="mt-2 max-w-2xl text-muted-foreground">You do not have to learn the process alone. Build your understanding through our free, invite-only programme. Complete the course and receive your FORGE FIELD ENGINEER Certification to unlock Practitioner free for life—no subscription fee or card. Joining alone does not unlock it. Standard usage limits apply. Contact your convener for an invitation.</p>
           </div>
-          <Link href="/learn-register" className="inline-flex h-11 items-center justify-center border border-secondary px-6 font-display text-lg tracking-wider hover:bg-secondary/10" data-testid="link-landing-forge">Register with invite</Link>
+          <div className="flex flex-col gap-3">
+            <Link href="/learn-register" className="inline-flex h-11 items-center justify-center border border-secondary px-6 font-display text-lg tracking-wider hover:bg-secondary/10" data-testid="link-landing-forge">Register with invite</Link>
+            <ForgeInviteApplication />
+          </div>
         </div>
       </section>
 

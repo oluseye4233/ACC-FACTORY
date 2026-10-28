@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ForgeInviteApplication } from "@/components/marketing/ForgeInviteApplication";
 import { Link } from "wouter";
 import { Check, Lock } from "lucide-react";
 import { useBillingCheckout, SubscriberTier, CheckoutInputInterval } from "@workspace/api-client-react";
@@ -87,7 +88,10 @@ export default function Pricing() {
             <h2 className="mt-2 font-display text-4xl">FORGE Field Engineer</h2>
             <p className="mt-2 max-w-2xl text-muted-foreground">Complete the FORGE FIELD ENGINEER course and receive its certification to unlock Practitioner free for life: $0 subscription fee, no expiry and no card. Invitation acceptance or course completion without certification does not unlock the benefit. Standard Practitioner usage limits apply; higher-tier features and course funding remain separate.</p>
           </div>
-          <Link href="/learn-register" className="inline-flex h-11 items-center justify-center border border-secondary px-6 font-display text-lg tracking-wider hover:bg-secondary/10" data-testid="link-forge-register">Register with invite</Link>
+          <div className="flex flex-col gap-3">
+            <Link href="/learn-register" className="inline-flex h-11 items-center justify-center border border-secondary px-6 font-display text-lg tracking-wider hover:bg-secondary/10" data-testid="link-forge-register">Register with invite</Link>
+            <ForgeInviteApplication />
+          </div>
         </div>
         <p className="mt-6 text-sm text-muted-foreground">Already have access? <Link href="/command" className="underline underline-offset-4" data-testid="link-open-command">Open the Command Centre</Link>.</p>
       </section>
