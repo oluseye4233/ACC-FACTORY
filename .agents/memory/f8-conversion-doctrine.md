@@ -21,3 +21,21 @@ The user also explicitly defined these four destination categories.
 conversion changes. CODE ONE + is a supplied draft specification, not an
 independently certified agent. Keep unsupported orchestration and verification
 explicit, and preserve ethical controls and downstream drift/release gates.
+
+The existing F production floor remains valid; integrate the four artifact
+classifications into it rather than relocating code production to F10/F11.
+CODE ONE+ is responsible for crafting editable code from upstream governed
+specifications before an authorised third-party handoff for further work and
+refinement. This is product direction, not a claim of complete current support.
+
+**Why:** The user clarified that the concept note does not replace or renumber
+the existing stages. Too many user-visible steps and gates make the product
+difficult to use; reducing technical debt and simplifying progression are goals.
+AWS Kiro is a UI/process design reference only, not a fixed template or hosting
+requirement.
+
+**How to apply:** Prefer consolidated interactions, reused authoritative
+artifacts and automatic applicable checks over new duplicate workflows or
+manual approvals. Distinguish necessary safeguards from redundant friction;
+do not weaken the Ethical Engine, misstate verification or infer release
+consent in the name of simplification.
