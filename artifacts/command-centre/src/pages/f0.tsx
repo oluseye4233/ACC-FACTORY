@@ -1,5 +1,7 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
+import { parseStageOrigin } from "@/lib/stage-origin";
+import { ReturnToStageBanner } from "@/components/shared/StageOptionalTools";
 import { BoomerangPanel } from "@/components/boomerang";
 import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { useQueryClient } from "@tanstack/react-query";
@@ -115,6 +117,15 @@ export default function F0Dashboard() {
     () => new URLSearchParams(window.location.search).get("engagementId"),
   );
   const [retainerId, setRetainerId] = useState<string | null>(null);
+  // Explicit stage origin (originSessionId/originFeatureId) survives engagement
+  // navigation because we only rewrite engagementId in the URL.
+  const [stageOrigin] = useState(() => parseStageOrigin(window.location.search));
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (engagementId) url.searchParams.set("engagementId", engagementId);
+    else url.searchParams.delete("engagementId");
+    window.history.replaceState(window.history.state, "", url);
+  }, [engagementId]);
 
   const createEngagement = useCreateF0Engagement();
   const createRetainer = useCreateF0Retainer();
@@ -147,6 +158,14 @@ export default function F0Dashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <TopNav />
+      {stageOrigin && (
+        <ReturnToStageBanner
+          sessionId={stageOrigin.sessionId}
+          featureId={stageOrigin.featureId}
+          stageLabel={stageOrigin.stageLabel}
+          note="F0 reports are not attached automatically. To use findings at that stage, copy the report text into a Boomerang request there and review it when returned."
+        />
+      )}
       <section className="border-b bg-card" aria-label="ATOMIC UI stage context">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-8">
           <div className="flex min-w-0 items-center gap-3">

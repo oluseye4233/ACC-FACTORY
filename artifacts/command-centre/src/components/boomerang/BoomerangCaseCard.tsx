@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { RETURN_WITH_ARTIFACT_LABEL } from "./ReturnedUpgrade";
 import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { getListBoomerangCasesQueryKey, useTransitionBoomerangCase, type BoomerangCase, type BoomerangTransitionInput } from "@workspace/api-client-react";
@@ -67,9 +68,12 @@ export function BoomerangCaseCard({ c, defaultOpen = false }: { c: BoomerangCase
           <div><div className={lab}>Brief</div><p className="whitespace-pre-wrap font-sans text-xs mt-1" data-testid={`text-brief-${c.id}`}>{c.brief}</p></div>
           {(c.resultText || c.spcPlayerRunId) && (
             <div className="border rounded p-2 bg-muted/30" data-testid={`panel-result-${c.id}`}>
-              {c.returnedArtifactHref && <Link href={c.returnedArtifactHref} className="mb-2 block font-bold text-primary underline" data-testid={`link-upgraded-${c.id}`}>
-                Open {c.upgradeLabel || "returned artifact"} at {c.stage}
-              </Link>}
+              {c.returnedArtifactHref && <div className="mb-3">
+                <Link href={c.returnedArtifactHref} className="inline-flex min-h-11 w-full items-center justify-center rounded bg-primary px-4 py-3 text-center font-mono text-[10px] font-bold text-primary-foreground hover:opacity-90" data-testid={`link-upgraded-${c.id}`}>
+                  {RETURN_WITH_ARTIFACT_LABEL}
+                </Link>
+                <p className="mt-1 text-[11px] text-muted-foreground">{c.upgradeLabel || "Returned artifact"} · {c.stage}. Continue with review and applicable checks; this does not pass a gate.</p>
+              </div>}
               <div className={lab}>Returned work · hash {shortHash(c.resultHash)}</div>
               {c.spcPlayerRunId && <div className="mt-1">SPC Player run <span className="break-all" data-testid={`text-run-id-${c.id}`}>{c.spcPlayerRunId}</span></div>}
               {c.resultText && <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap text-[10px]">{c.resultText}</pre>}

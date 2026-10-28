@@ -167,90 +167,74 @@ afterEach(() => {
 const gotoStage = (navName: string) =>
   fireEvent.click(screen.getByTestId(`feature-nav-${navName}`));
 
-describe("SessionDetail — F0 advisory placement", () => {
-  it("shows the advisory nudge before F1 by default", async () => {
+describe("SessionDetail — optional tools footer", () => {
+  const footer = () => document.getElementById("stage-optional-tools");
+
+  it("never renders the old top F0 nudge at any stage", async () => {
+    useListSessionArtifactsMock.mockReturnValue({
+      data: [{ artifactType: "MVP_PDD", spartanCert: { certId: "cert-1" } }],
+      isLoading: false,
+    });
     render(<SessionDetail />);
-    expect(screen.getByTestId(PROMPT)).toBeTruthy();
     expect(await screen.findByTestId("workspace-F1TestPrompt")).toBeTruthy();
+    expect(screen.queryByTestId(PROMPT)).toBeNull();
+    for (const nav of ["f7", "f8"]) {
+      gotoStage(nav);
+      expect(screen.queryByTestId(PROMPT)).toBeNull();
+    }
   });
 
-  it("shows the advisory nudge after F7 (certified)", async () => {
+  it.each([
+    ["f1", "F1TestPrompt", 1, "F1"],
+    ["f2", "F2BuildAtomic", 2, "F2"],
+    ["f4", "F4MicroPdd", 4, "F4"],
+    ["f7", "F7ConvertMvp", 7, "F7"],
+    ["mm", "MathmonLayer", 10, "MM"],
+  ])("places one set of tools below the %s workspace", async (nav, workspace, engineId, label) => {
     render(<SessionDetail />);
-    gotoStage("f7");
-    expect(screen.getByTestId(PROMPT)).toBeTruthy();
-    expect(await screen.findByTestId("workspace-F7ConvertMvp")).toBeTruthy();
+    if (nav !== "f1") gotoStage(nav);
+    const ws = await screen.findByTestId(`workspace-${workspace}`);
+    await waitFor(() => expect(screen.getByTestId("mock-boomerang-panel")).toBeTruthy());
+    const tools = footer()!;
+    expect(tools).toBeTruthy();
+    expect(ws.compareDocumentPosition(tools) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getAllByTestId("tool-boomerang")).toHaveLength(1);
+    expect(screen.getAllByTestId("tool-spc-player")).toHaveLength(1);
+    expect(screen.getAllByTestId("tool-f0")).toHaveLength(1);
+    expect(screen.getAllByTestId("mock-boomerang-panel")).toHaveLength(1);
+    expect(screen.getByTestId("mock-boomerang-panel").getAttribute("data-stage")).toBe(label);
+    expect(screen.getByTestId("link-open-spc-player").getAttribute("href"))
+      .toBe(`/spc-player/new?sourceSessionId=session-1&originFeatureId=${engineId}`);
+    expect(screen.getByTestId("link-open-f0-advisory").getAttribute("href"))
+      .toBe(`/f0?originSessionId=session-1&originFeatureId=${engineId}`);
   });
 
-  it("shows the advisory nudge after F8 / CODE ORACLE (engine 9)", async () => {
+  it("uses engine 9 (labelled F8) for the F8 stage URLs", async () => {
     useListSessionArtifactsMock.mockReturnValue({
       data: [{ artifactType: "MVP_PDD", spartanCert: { certId: "cert-1" } }],
       isLoading: false,
     });
     render(<SessionDetail />);
     gotoStage("f8");
-    expect(screen.getByTestId(PROMPT)).toBeTruthy();
     expect(await screen.findByTestId("workspace-F8CodeDj")).toBeTruthy();
+    await waitFor(() => expect(screen.getByTestId("mock-boomerang-panel").getAttribute("data-stage")).toBe("F8"));
+    expect(screen.getByTestId("link-open-spc-player").getAttribute("href"))
+      .toBe("/spc-player/new?sourceSessionId=session-1&originFeatureId=9");
+    expect(screen.getByTestId("link-open-f0-advisory").getAttribute("href"))
+      .toBe("/f0?originSessionId=session-1&originFeatureId=9");
   });
 
-  it.each([
-    ["f2", "F2BuildAtomic"],
-    ["f3", "F3BuildMa"],
-    ["f4", "F4MicroPdd"],
-    ["f5", "F5BuildSpc"],
-    ["f6", "F6DraftPdd"],
-    ["mm", "MathmonLayer"],
-  ])(
-    "does NOT show the advisory nudge at the %s stage",
-    async (navName, workspace) => {
-      render(<SessionDetail />);
-      gotoStage(navName);
-      expect(await screen.findByTestId(`workspace-${workspace}`)).toBeTruthy();
-      expect(screen.queryByTestId(PROMPT)).toBeNull();
-    },
-  );
-
-  it("uses distinct dismiss keys for the pre-F1 and post-F7 placements", () => {
+  it("hides owner-only Boomerang and SPC Player controls from non-owners", async () => {
+    apiGet.mockImplementation((path: string) =>
+      path.includes("/api/harness/f9/runs") ? Promise.resolve([]) : Promise.resolve({ id: "someone-else" }),
+    );
     render(<SessionDetail />);
-
-    // Dismiss the pre-F1 nudge.
-    expect(screen.getByTestId(PROMPT)).toBeTruthy();
-    fireEvent.click(screen.getByTestId("f0-advisory-dismiss"));
-    expect(screen.queryByTestId(PROMPT)).toBeNull();
-    expect(
-      localStorage.getItem("f0-advisory-dismissed:session-1:pre-f1"),
-    ).toBe("1");
-
-    // The post-F7 placement is keyed separately, so it still appears.
-    gotoStage("f7");
-    expect(screen.getByTestId(PROMPT)).toBeTruthy();
-    expect(
-      localStorage.getItem("f0-advisory-dismissed:session-1:post-f7"),
-    ).toBeNull();
-  });
-
-  it("stays dismissed after dismissal within the same placement", () => {
-    render(<SessionDetail />);
-    fireEvent.click(screen.getByTestId("f0-advisory-dismiss"));
-    expect(screen.queryByTestId(PROMPT)).toBeNull();
-
-    // Navigate away and back to the same (pre-F1) stage — still dismissed.
-    gotoStage("f3");
-    expect(screen.queryByTestId(PROMPT)).toBeNull();
-    gotoStage("f1");
-    expect(screen.queryByTestId(PROMPT)).toBeNull();
-  });
-
-  it("exposes the F0 advisory CTA linking to /f0", () => {
-    render(<SessionDetail />);
-    const link = screen.getByTestId("f0-advisory-link") as HTMLAnchorElement;
-    expect(link.getAttribute("href")).toBe("/f0");
-  });
-
-  it("does not render the nudge before F1 once its dismissal is persisted", async () => {
-    localStorage.setItem("f0-advisory-dismissed:session-1:pre-f1", "1");
-    render(<SessionDetail />);
-    expect(screen.queryByTestId(PROMPT)).toBeNull();
     expect(await screen.findByTestId("workspace-F1TestPrompt")).toBeTruthy();
+    await waitFor(() => expect(apiGet).toHaveBeenCalledWith("/api/me"));
+    expect(screen.queryByTestId("mock-boomerang-panel")).toBeNull();
+    expect(screen.getByTestId("text-boomerang-readonly")).toBeTruthy();
+    expect(screen.queryByTestId("link-open-spc-player")).toBeNull();
+    expect(screen.getByTestId("link-open-f0-advisory")).toBeTruthy();
   });
 });
 

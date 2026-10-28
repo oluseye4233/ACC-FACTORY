@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useParams, useSearch, Link } from "wouter";
-import { BoomerangPanel } from "@/components/boomerang";
 import { ReturnedUpgrade } from "@/components/boomerang/ReturnedUpgrade";
 import { SessionCartridgeSources } from "@/components/cartridge/SessionCartridgeSources";
 import { TopNav } from "@/components/layout/TopNav";
@@ -14,7 +13,7 @@ import {
 } from "@workspace/api-client-react";
 import { ENGINES } from "@/lib/constants";
 import { IngestionBanner } from "@/components/shared/IngestionBanner";
-import { F0AdvisoryPrompt } from "@/components/shared/F0AdvisoryPrompt";
+import { StageOptionalTools } from "@/components/shared/StageOptionalTools";
 import { FeatureNavItem } from "@/components/shared/FeatureNavItem";
 import { CockpitShell } from "@/components/shared/CockpitShell";
 import { EscalationModal } from "@/components/shared/EscalationModal";
@@ -351,53 +350,8 @@ export default function SessionDetail() {
           </div>
         )}
 
-        {/* F0 advisory nudge — before F1 (frame the idea) */}
-        {activeEngineId === 1 && (
-          <div className="p-4 border-b border-border/40">
-            <F0AdvisoryPrompt
-              dismissKey={`${id}:pre-f1`}
-              headline="Before you run F1 — want an advisory read?"
-              body="F0 Business Intelligence can pressure-test viability, positioning, and the numbers before you commit the idea to the production floor."
-            />
-          </div>
-        )}
-        
-        {/* F0 advisory nudge — after F7/F8 (pressure-test before shipping) */}
-        {(activeEngineId === 7 || activeEngineId === 9) && (
-          <div className="p-4 border-b border-border/40">
-            <F0AdvisoryPrompt
-              dismissKey={`${id}:post-f${activeEngineId}`}
-              headline="Certified — pressure-test before you ship?"
-              body="Commission an F0 SOLVA bear-case and range-based financials to stress the certified spec against the market before go-to-market."
-            />
-          </div>
-        )}
-
         {/* STAGE 3 WORKSPACES */}
         <div className="flex-1 min-h-0 overflow-y-auto">
-          {id && (
-            <details className="mx-4 mt-4 rounded-lg border bg-card p-3">
-              <summary className="cursor-pointer font-mono text-xs font-bold text-primary">
-                BOOMERANG · Request, return and review supporting work
-              </summary>
-              <div className="mt-3">
-                <BoomerangPanel
-                  key={`${id}:${activeEngineId}`}
-                  originKind="SESSION"
-                  originId={id}
-                  stage={ENGINES.find((engine) => engine.id === activeEngineId)?.name ?? "F1"}
-                  readOnly={!isSessionOwner}
-                />
-                {isSessionOwner && (
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    F9.5 custody and F12 support are also available in the{" "}
-                    <Link href={`/boomerang?originKind=SESSION&originId=${encodeURIComponent(id)}&stage=F9.5`} className="text-primary underline">process-wide workspace</Link>.
-                    Supporting work does not activate or clear those operations.
-                  </p>
-                )}
-              </div>
-            </details>
-          )}
           {id && activeEngineId === 1 && (
             <SessionCartridgeSources sessionId={id} origin={session?.origin} />
           )}
@@ -437,6 +391,14 @@ export default function SessionDetail() {
                 <F11HostConnector sessionId={id} artifacts={artifacts || []} />
               )}
             </Suspense>
+          )}
+          {id && (
+            <StageOptionalTools
+              sessionId={id}
+              featureId={activeEngineId}
+              stageLabel={activeEngine.name}
+              isSessionOwner={isSessionOwner}
+            />
           )}
         </div>
       </CockpitShell>

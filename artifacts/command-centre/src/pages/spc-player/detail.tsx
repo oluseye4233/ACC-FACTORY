@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { ENGINES } from "@/lib/constants";
-import { returnedUpgradeHref } from "@/components/boomerang/ReturnedUpgrade";
+import { sessionStageHref } from "@/lib/stage-origin";
+import { returnedUpgradeHref, RETURN_WITH_ARTIFACT_LABEL } from "@/components/boomerang/ReturnedUpgrade";
 import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
@@ -206,6 +207,9 @@ export default function SpcPlayerDetail() {
             title: "Supporting package returned",
             description: `Attached to ${ENGINES.find((engine) => engine.id === run.originFeatureId)?.name ?? "the recorded stage"} without advancing the stage. Review supporting work in Boomerang.`,
           });
+          if (result.run.returnedArtifactId) {
+            setLocation(returnedUpgradeHref(run.originSessionId!, run.originFeatureId!, result.run.returnedArtifactId));
+          }
         },
         onError: (err: any) => {
           toast({
@@ -244,6 +248,15 @@ export default function SpcPlayerDetail() {
           <ArrowLeft className="mr-2 h-3 w-3" />
           Back to Dashboard
         </Button>
+        {run?.originSessionId && run.originFeatureId != null && (
+          <Link
+            href={sessionStageHref(run.originSessionId, run.originFeatureId)}
+            className="mb-6 ml-2 inline-flex items-center font-mono text-[10px] font-bold uppercase tracking-wider text-primary underline"
+            data-testid="link-back-to-origin-stage"
+          >
+            Back to {ENGINES.find((engine) => engine.id === run.originFeatureId)?.name ?? "origin stage"} (does not return the package)
+          </Link>
+        )}
         <div className="mb-4 flex justify-end"><PublishDocumentLink sourceId={id} sourceKind="SPC_PLAYER" label="Publish SPC Player output" /></div>
 
         {isRunLoading || isDevKitLoading || isCatalogLoading ? (
@@ -496,8 +509,7 @@ export default function SpcPlayerDetail() {
                   </p>}
                   {run.returnedArtifactId ? (
                     <Button
-                      className="mt-3 font-mono text-[10px] uppercase tracking-wider"
-                      variant="outline"
+                      className="mt-3 h-auto min-h-11 w-full whitespace-normal px-4 py-3 text-center font-mono text-[10px] uppercase tracking-wider"
                       onClick={() =>
                         setLocation(
                           returnedUpgradeHref(run.originSessionId!, run.originFeatureId!, run.returnedArtifactId!),
@@ -505,16 +517,16 @@ export default function SpcPlayerDetail() {
                       }
                       data-testid="button-open-returned-stage"
                     >
-                      OPEN UPGRADED ARTIFACT AT ORIGIN <ArrowRight className="ml-2 h-3 w-3" />
+                      {RETURN_WITH_ARTIFACT_LABEL} <ArrowRight className="ml-2 h-3 w-3 shrink-0" />
                     </Button>
                   ) : (
                     <Button
-                      className="mt-3 font-mono text-[10px] uppercase tracking-wider"
+                      className="mt-3 h-auto min-h-11 w-full whitespace-normal px-4 py-3 text-center font-mono text-[10px] uppercase tracking-wider"
                       onClick={handleReturnToOrigin}
                       disabled={returnRun.isPending || run.status !== "COMPLETED"}
                       data-testid="button-return-spc-player"
                     >
-                      {returnRun.isPending ? "RETURNING…" : "CONFIRM RETURN TO ORIGIN"}
+                      {returnRun.isPending ? "RETURNING…" : RETURN_WITH_ARTIFACT_LABEL}
                     </Button>
                   )}
                   <Link href={`/boomerang?originKind=SESSION&originId=${encodeURIComponent(run.originSessionId)}&stage=${encodeURIComponent(ENGINES.find((engine) => engine.id === run.originFeatureId)?.name ?? "F1")}`} className="mt-3 block text-xs text-primary underline">

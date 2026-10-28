@@ -16,3 +16,26 @@ engine architecture.
 Expose real upload/download and connected-feature actions without adding fake
 controls or bypassing server gates. Derive color from ATANDA brand assets and
 keep text/background contrast legible.
+
+Optional supporting tools—Boomerang, SPC Player and F0 Advisory—belong in
+bottom-centred boxes beneath the current stage workspace, with expandable
+explanations of purpose, outcome, usage and the exact return path.
+
+**Why:** The user wants supporting work accessible without interrupting the main
+production task or leaving users unsure how to return revised artifacts.
+
+**How to apply:** Preserve the originating session, F-stage and applicable source
+artifact when launching support. Show how returned work reaches that origin;
+distinguish navigation back from actual reviewed artifact adoption. Do not
+replace these boxes with extra production gates or imply advice clears a gate.
+
+Completed origin-bound supporting work should offer the explicit primary action
+“RETURN TO THE STAGE YOU LEFT WITH NEW ARTIFACT AND CONTINUE PRODUCTION”.
+
+**Why:** The user requested a single understandable action that carries revised
+work back, rather than a generic Back link that only changes location.
+
+**How to apply:** Persist the actual returned artifact before navigating to its
+exact session, stage and artifact. Keep plain navigation labelled separately.
+Continue means resuming production with review and applicable evaluation, not
+automatically executing an engine, adopting advice or clearing a gate.

@@ -2,6 +2,8 @@ import { Link } from "wouter";
 import type { HarnessArtifact } from "@workspace/api-client-react";
 import { ENGINES } from "@/lib/constants";
 
+export const RETURN_WITH_ARTIFACT_LABEL = "RETURN TO THE STAGE YOU LEFT WITH NEW ARTIFACT AND CONTINUE PRODUCTION";
+
 export function returnedUpgradeHref(sessionId: string, featureId: number, artifactId: string) {
   return `/session/${encodeURIComponent(sessionId)}?featureId=${featureId}&artifactId=${encodeURIComponent(artifactId)}#artifact-${encodeURIComponent(artifactId)}`;
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { resolveSpcPlayerSource } from "@workspace/artifact-naming";
 import { ENGINES } from "@/lib/constants";
+import { sessionStageHref } from "@/lib/stage-origin";
 import { useLocation, useSearch } from "wouter";
 import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
@@ -284,7 +285,7 @@ export default function SpcPlayerNew() {
           size="sm"
           onClick={() => {
             if (sourceSessionId) {
-              setLocation(`/session/${sourceSessionId}`);
+              setLocation(originFeatureId ? sessionStageHref(sourceSessionId, originFeatureId) : `/session/${sourceSessionId}`);
             } else {
               setLocation("/spc-player");
             }
@@ -293,7 +294,7 @@ export default function SpcPlayerNew() {
           data-testid="button-back"
         >
           <ArrowLeft className="mr-2 h-3 w-3" />
-          {sourceSessionId ? "Back to Session" : "Back to Dashboard"}
+          {sourceSessionId ? `Back to ${stage || "Session"}` : "Back to Dashboard"}
         </Button>
 
         {sourceSessionId && originFeatureId && (
@@ -305,7 +306,7 @@ export default function SpcPlayerNew() {
               Return target: {ENGINES.find(engine => engine.id === originFeatureId)?.name ?? "Origin stage"}
             </div>
             <p className="mt-1 text-muted-foreground">
-              A completed plan-only package can be returned as supporting documentation or process input. It will not certify or advance this stage; return requires a separate confirmation after execution.
+              After completion, choose “RETURN TO THE STAGE YOU LEFT WITH NEW ARTIFACT AND CONTINUE PRODUCTION”. Confirm to save the revised package and open it at this exact stage. Review it and run applicable checks; returning does not certify or advance the stage. The Back link navigates without returning work.
             </p>
           </div>
         )}
