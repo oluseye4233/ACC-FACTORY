@@ -439,6 +439,7 @@ function optionalTokenCount(...values: unknown[]): number {
 async function callClaudeImpl(
   systemPrompt: string,
   userPrompt: string,
+  jsonSchema?: Record<string, unknown>,
 ): Promise<LlmCallResult> {
   const modelId = PROVIDER_MODELS.claude;
   let client;
@@ -455,9 +456,9 @@ async function callClaudeImpl(
     max_tokens: MAX_TOKENS,
     system: systemPrompt,
     messages: [{ role: "user", content: userPrompt }],
+    ...(jsonSchema ? { output_config: { format: { type: "json_schema" as const, schema: jsonSchema } } } : {}),
   });
-  const block = message.content[0];
-  const text = block && block.type === "text" ? block.text : "";
+  const text = message.content.filter(block => block.type === "text").map(block => block.text).join("");
   return {
     text,
     inputTokens: requiredTokenCount("input", message.usage?.input_tokens),
@@ -692,7 +693,7 @@ export async function callLlm(
   systemPrompt: string,
   userPrompt: string,
   ctx?: RunContext,
-  opts?: { jsonMode?: boolean },
+  opts?: { jsonMode?: boolean; claudeJsonSchema?: Record<string, unknown> },
 ): Promise<string> {
   const start = Date.now();
   if (learningCallContext.getStore() && !ctx) throw new Error("Training model calls require an attributable usage context");
@@ -718,6 +719,8 @@ export async function callLlm(
       const inputTokenUpperBound =
         Buffer.byteLength(finalSystem, "utf8") +
         Buffer.byteLength(userPrompt, "utf8") +
+        (provider === "claude" && opts?.claudeJsonSchema
+          ? Buffer.byteLength(JSON.stringify(opts.claudeJsonSchema), "utf8") : 0) +
         256;
       const estimatedCostUsd = computeWorstCaseReservationUsd(
         PROVIDER_MODELS[provider],
@@ -750,7 +753,7 @@ export async function callLlm(
           break;
         case "claude":
         default:
-          result = await callClaudeImpl(finalSystem, userPrompt);
+          result = await callClaudeImpl(finalSystem, userPrompt, opts?.claudeJsonSchema);
           break;
       }
     } catch (err) {
@@ -826,8 +829,9 @@ export async function callLlmJson<T>(
   userPrompt: string,
   schema: z.ZodType<T>,
   ctx?: RunContext,
+  opts?: { claudeJsonSchema?: Record<string, unknown> },
 ): Promise<T> {
-  const raw = await callLlm(provider, systemPrompt, userPrompt, ctx, { jsonMode: true });
+  const raw = await callLlm(provider, systemPrompt, userPrompt, ctx, { ...opts, jsonMode: true });
   const parsed = extractJson(raw);
   const result = schema.safeParse(parsed);
   if (!result.success) {

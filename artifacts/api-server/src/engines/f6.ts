@@ -23,6 +23,17 @@ const F6OutputSchema = z.object({
   worksheet: z.string(),
   implementation: z.string(),
 });
+// Native structured output prevents unescaped quotes in long narrative fields.
+// Keep the normal strict JSON parse and Zod validation after provider delivery.
+export const F6_CLAUDE_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    cheatSheet: { type: "string" }, execSummary: { type: "string" },
+    worksheet: { type: "string" }, implementation: { type: "string" },
+  },
+  required: ["cheatSheet", "execSummary", "worksheet", "implementation"],
+  additionalProperties: false,
+};
 
 type AtlasPdd = z.infer<typeof F6OutputSchema>;
 
@@ -74,7 +85,7 @@ async function synthesiseAtlasPdd(
     sessionId,
     userId,
     engineId: 6,
-  });
+  }, { claudeJsonSchema: F6_CLAUDE_JSON_SCHEMA });
 }
 
 async function persistAtlasPdd(

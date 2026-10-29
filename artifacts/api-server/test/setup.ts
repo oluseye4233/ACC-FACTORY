@@ -37,6 +37,7 @@ interface ClaudeParams {
   system: string;
   max_tokens: number;
   messages: Array<{ role: string; content: string }>;
+  output_config?: { format?: { type: string; schema: Record<string, unknown> } };
 }
 
 interface OpenAiParams {
@@ -95,6 +96,7 @@ function buildFakeAnthropic(realFactory: AnyFn): unknown {
           model: params.model,
           system: params.system,
           messages: params.messages,
+          ...(params.output_config ? { output_config: params.output_config } : {}),
         };
         const key = hashKey("claude", payload);
         const cached = readFixture<unknown>("claude", key);

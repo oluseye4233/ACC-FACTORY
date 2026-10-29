@@ -19,6 +19,18 @@ const supportLabels = new Set(["json", "yaml", "yml", "toml", "ini", "config", "
   "text", "txt", "plaintext", "html", "css", "scss", "xml", "env", "dotenv", "gitignore", "dockerfile",
   "makefile", "cmake", "properties", "sln", "csproj", "editorconfig"]);
 const supportNames = new Set(["makefile", "cmakelists.txt", "dockerfile", ".gitignore", ".gitattributes", ".editorconfig", ".env"]);
+export function normalizeF8SupportMetadata<T extends { path: string; language: string }>(file: T): T {
+  // Some providers repeat the application language for every file. Only
+  // recognized non-programming support paths can override that JS label.
+  if (codeLabels[file.language.toLowerCase()] !== "javascript") return file;
+  const extension = path.posix.extname(file.path).toLowerCase();
+  const name = path.posix.basename(file.path).toLowerCase();
+  const formats: Record<string, string> = {
+    ".json": "json", ".html": "html", ".css": "css", ".scss": "scss", ".md": "markdown",
+  };
+  const language = name === ".env" || name.startsWith(".env.") ? "env" : formats[extension];
+  return language ? { ...file, language } : file;
+}
 export function validateF8LanguageBundle(bundle: {
   language: string; platform: string; manifest: { language: string; entrypoint: string };
   files: { path: string; language: string; content: string }[];
@@ -27,7 +39,8 @@ export function validateF8LanguageBundle(bundle: {
   if (requested && bundle.language !== requested) return "Generated language must match the selected F8 language";
   if (bundle.manifest.language !== bundle.language) return "Manifest language must match the F8 bundle language";
   if (bundle.language !== "javascript" && bundle.platform !== "portable-source") return "Non-JavaScript output requires the portable-source implementation path";
-  for (const file of bundle.files) {
+  for (const original of bundle.files) {
+    const file = normalizeF8SupportMetadata(original);
     if (file.path.includes("\\") || /[\x00-\x1f]/.test(file.path)) return "Generated paths must be safe POSIX relative paths";
     const ext = path.posix.extname(file.path).toLowerCase();
     const name = path.posix.basename(file.path).toLowerCase();

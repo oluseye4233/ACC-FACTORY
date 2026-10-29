@@ -46,3 +46,14 @@ text, so behavioral prompt changes require matching fixture updates.
 prompt text. Re-record fixtures only when provider calls are intended; otherwise
 preserve the current prompt contract and test the new fallback/serialization path
 with deterministic fixtures.
+
+## Native response constraints are part of request identity
+
+Include provider-native output format and schema settings in replay fingerprints,
+conditionally so legacy requests keep their existing identity.
+
+**Why:** Reusing an unconstrained response for a schema-constrained request can
+replay malformed JSON and falsely suggest the native format was tested.
+
+**How to apply:** Keep raw failed responses as rejection regressions. Refresh
+only changed request contracts; never relabel an old response as a new recording.

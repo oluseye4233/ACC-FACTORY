@@ -13,7 +13,7 @@ import {
 } from "./shared";
 import { latestPfpForMvp } from "./pfp";
 import { getHardwareConfig } from "./hardware-configs";
-import { F8_LANGUAGES, F8_LANGUAGE_INSTRUCTION, validateF8LanguageBundle } from "./f8-language-policy";
+import { F8_LANGUAGES, F8_LANGUAGE_INSTRUCTION, normalizeF8SupportMetadata, validateF8LanguageBundle } from "./f8-language-policy";
 
 const PLATFORMS = [
   "nextjs-vercel",
@@ -104,7 +104,7 @@ export const CodebaseOutputSchema = z.object({
           }),
         language: z.string().min(1).max(40),
         content: z.string().max(40_000),
-      }),
+      }).transform(normalizeF8SupportMetadata),
     )
     .min(1)
     .max(12),

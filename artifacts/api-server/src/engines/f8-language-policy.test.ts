@@ -11,6 +11,15 @@ function bundle(language: F8Language) {
       buildCommand: null, deployTarget: "replit-deployments" }, notes: "Not compiled or executed." };
 }
 describe("F8 six-language boundary", () => {
+  it.each([
+    ["index.html", "html"], ["src/style.css", "css"], ["README.md", "markdown"], [".env.example", "env"],
+  ])("normalizes a provider's repeated JS label for known support file %s", (path, expected) => {
+    const b = bundle("javascript");
+    b.files.push({ path, language: "javascript", content: "support file fixture" });
+    const parsed = CodebaseOutputSchema.parse(b);
+    expect(parsed.files[1]).toEqual({ path, language: expected, content: "support file fixture" });
+    expect(validateF8LanguageBundle(parsed)).toBeNull();
+  });
   it.each(["javascript", "js"])("accepts %s metadata on a support file only when its contents are valid JSON", language => {
     const b = bundle("javascript");
     b.files.push({ path: "package.json", language, content: "{\"scripts\":{\"build\":\"vite build\"}}" });
