@@ -5,6 +5,86 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+export type StageGuideKind = typeof StageGuideKind[keyof typeof StageGuideKind];
+
+
+export const StageGuideKind = {
+  EXPLAINER: 'EXPLAINER',
+  DEMONSTRATION: 'DEMONSTRATION',
+} as const;
+
+export type StageGuideState = typeof StageGuideState[keyof typeof StageGuideState];
+
+
+export const StageGuideState = {
+  DRAFT: 'DRAFT',
+  SUBMITTING: 'SUBMITTING',
+  GENERATING: 'GENERATING',
+  COMPLETE: 'COMPLETE',
+  FAILED: 'FAILED',
+  UNKNOWN: 'UNKNOWN',
+} as const;
+
+export interface StageGuide {
+  /** @nullable */
+  id: string | null;
+  stageKey: string;
+  kind: StageGuideKind;
+  title: string;
+  script: string;
+  outcome: string;
+  limitation: string;
+  version: number;
+  state: StageGuideState;
+  isTest: boolean;
+  published: boolean;
+  /** @nullable */
+  embedUrl: string | null;
+  /** @nullable */
+  providerVideoId: string | null;
+}
+
+export interface StageGuideLibrary {
+  configured: boolean;
+  canManage: boolean;
+  guides: StageGuide[];
+  history: StageGuide[];
+}
+
+export type StageGuideScriptInputKind = typeof StageGuideScriptInputKind[keyof typeof StageGuideScriptInputKind];
+
+
+export const StageGuideScriptInputKind = {
+  EXPLAINER: 'EXPLAINER',
+  DEMONSTRATION: 'DEMONSTRATION',
+} as const;
+
+export interface StageGuideScriptInput {
+  /** @maxLength 5 */
+  stageKey: string;
+  kind: StageGuideScriptInputKind;
+  /**
+     * @minLength 40
+     * @maxLength 1800
+     */
+  script: string;
+}
+
+export interface StageGuideGenerationInput {
+  test: boolean;
+  scriptReviewed: boolean;
+  creditsAccepted: boolean;
+}
+
+export interface StageGuideSyncInput {
+  providerVideoId?: string;
+}
+
+export interface StageGuidePublicationInput {
+  contentReviewed: boolean;
+  publicSharingAccepted: boolean;
+}
+
 export interface EmailDeliveryScope {
   /** @nullable */
   organizationId?: string | null;
@@ -6464,6 +6544,10 @@ export type NotFoundResponse = ErrorResponse;
  * Rate limit exceeded
  */
 export type RateLimitedResponse = ErrorResponse;
+
+export type GetStageGuidesParams = {
+stageKey?: string;
+};
 
 export type GetEmailDeliverySettingsParams = {
 organizationId?: string;

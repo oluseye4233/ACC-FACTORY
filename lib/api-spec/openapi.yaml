@@ -26,6 +26,78 @@ tags:
   - name: magnet
 
 paths:
+  /stage-guides:
+    get:
+      operationId: getStageGuides
+      parameters:
+        - { name: stageKey, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Shared reviewed transcripts and published stage videos.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StageGuideLibrary" }
+    post:
+      operationId: saveStageGuide
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StageGuideScriptInput" }
+      responses:
+        "200":
+          description: New immutable script revision.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StageGuide" }
+  /stage-guides/{id}/generate:
+    post:
+      operationId: generateStageGuide
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StageGuideGenerationInput" }
+      responses:
+        "200":
+          description: Durable generation status; uncertain submissions are never automatically retried.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StageGuide" }
+  /stage-guides/{id}/sync:
+    post:
+      operationId: syncStageGuide
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StageGuideSyncInput" }
+      responses:
+        "200":
+          description: Provider status refreshed and callback identity checked.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StageGuide" }
+  /stage-guides/{id}/publish:
+    post:
+      operationId: publishStageGuide
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StageGuidePublicationInput" }
+      responses:
+        "200":
+          description: Reviewed non-test video published for subscribers.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StageGuide" }
   /me/email-delivery:
     get:
       operationId: getEmailDeliverySettings
@@ -3567,6 +3639,59 @@ components:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   schemas:
+    StageGuide:
+      type: object
+      required: [id, stageKey, kind, title, script, outcome, limitation, version, state, isTest, published, embedUrl, providerVideoId]
+      properties:
+        id: { type: [string, "null"], format: uuid }
+        stageKey: { type: string }
+        kind: { type: string, enum: [EXPLAINER, DEMONSTRATION] }
+        title: { type: string }
+        script: { type: string }
+        outcome: { type: string }
+        limitation: { type: string }
+        version: { type: integer }
+        state: { type: string, enum: [DRAFT, SUBMITTING, GENERATING, COMPLETE, FAILED, UNKNOWN] }
+        isTest: { type: boolean }
+        published: { type: boolean }
+        embedUrl: { type: [string, "null"] }
+        providerVideoId: { type: [string, "null"], format: uuid }
+    StageGuideLibrary:
+      type: object
+      required: [configured, canManage, guides, history]
+      properties:
+        configured: { type: boolean }
+        canManage: { type: boolean }
+        guides:
+          type: array
+          items: { $ref: "#/components/schemas/StageGuide" }
+        history:
+          type: array
+          items: { $ref: "#/components/schemas/StageGuide" }
+    StageGuideScriptInput:
+      type: object
+      required: [stageKey, kind, script]
+      properties:
+        stageKey: { type: string, maxLength: 5 }
+        kind: { type: string, enum: [EXPLAINER, DEMONSTRATION] }
+        script: { type: string, minLength: 40, maxLength: 1800 }
+    StageGuideGenerationInput:
+      type: object
+      required: [test, scriptReviewed, creditsAccepted]
+      properties:
+        test: { type: boolean }
+        scriptReviewed: { type: boolean }
+        creditsAccepted: { type: boolean }
+    StageGuideSyncInput:
+      type: object
+      properties:
+        providerVideoId: { type: string, format: uuid }
+    StageGuidePublicationInput:
+      type: object
+      required: [contentReviewed, publicSharingAccepted]
+      properties:
+        contentReviewed: { type: boolean }
+        publicSharingAccepted: { type: boolean }
     EmailDeliveryScope:
       type: object
       properties:

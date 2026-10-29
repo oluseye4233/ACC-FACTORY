@@ -1,3 +1,4 @@
+import stageGuidesRouter from "./stage-guides";
 import emailDeliveryRouter from "./email-delivery";
 import { Router, type IRouter } from "express";
 import platformServicesRouter from "./platform-services";
@@ -46,6 +47,7 @@ import artifactGovernanceRouter from "./artifact-governance";
 import { guardSkippedEngine } from "../lib/artifact-operations/engine-guard";
 
 const router: IRouter = Router();
+router.use(stageGuidesRouter);
 router.use(platformServicesRouter);
 router.use(agentCreatorRouter);
 router.use(imprimaPortalRouter);

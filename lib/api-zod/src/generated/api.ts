@@ -8,6 +8,154 @@
 import * as zod from 'zod';
 
 
+export const GetStageGuidesQueryParams = zod.object({
+  "stageKey": zod.coerce.string().optional()
+})
+
+export const GetStageGuidesResponse = zod.object({
+  "configured": zod.boolean(),
+  "canManage": zod.boolean(),
+  "guides": zod.array(zod.object({
+  "id": zod.string().uuid().nullable(),
+  "stageKey": zod.string(),
+  "kind": zod.enum(['EXPLAINER', 'DEMONSTRATION']),
+  "title": zod.string(),
+  "script": zod.string(),
+  "outcome": zod.string(),
+  "limitation": zod.string(),
+  "version": zod.number().int(),
+  "state": zod.enum(['DRAFT', 'SUBMITTING', 'GENERATING', 'COMPLETE', 'FAILED', 'UNKNOWN']),
+  "isTest": zod.boolean(),
+  "published": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "providerVideoId": zod.string().uuid().nullable()
+})),
+  "history": zod.array(zod.object({
+  "id": zod.string().uuid().nullable(),
+  "stageKey": zod.string(),
+  "kind": zod.enum(['EXPLAINER', 'DEMONSTRATION']),
+  "title": zod.string(),
+  "script": zod.string(),
+  "outcome": zod.string(),
+  "limitation": zod.string(),
+  "version": zod.number().int(),
+  "state": zod.enum(['DRAFT', 'SUBMITTING', 'GENERATING', 'COMPLETE', 'FAILED', 'UNKNOWN']),
+  "isTest": zod.boolean(),
+  "published": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "providerVideoId": zod.string().uuid().nullable()
+}))
+})
+
+
+export const saveStageGuideBodyStageKeyMax = 5;
+
+export const saveStageGuideBodyScriptMin = 40;
+export const saveStageGuideBodyScriptMax = 1800;
+
+
+
+export const SaveStageGuideBody = zod.object({
+  "stageKey": zod.string().max(saveStageGuideBodyStageKeyMax),
+  "kind": zod.enum(['EXPLAINER', 'DEMONSTRATION']),
+  "script": zod.string().min(saveStageGuideBodyScriptMin).max(saveStageGuideBodyScriptMax)
+})
+
+export const SaveStageGuideResponse = zod.object({
+  "id": zod.string().uuid().nullable(),
+  "stageKey": zod.string(),
+  "kind": zod.enum(['EXPLAINER', 'DEMONSTRATION']),
+  "title": zod.string(),
+  "script": zod.string(),
+  "outcome": zod.string(),
+  "limitation": zod.string(),
+  "version": zod.number().int(),
+  "state": zod.enum(['DRAFT', 'SUBMITTING', 'GENERATING', 'COMPLETE', 'FAILED', 'UNKNOWN']),
+  "isTest": zod.boolean(),
+  "published": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "providerVideoId": zod.string().uuid().nullable()
+})
+
+
+export const GenerateStageGuideParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GenerateStageGuideBody = zod.object({
+  "test": zod.boolean(),
+  "scriptReviewed": zod.boolean(),
+  "creditsAccepted": zod.boolean()
+})
+
+export const GenerateStageGuideResponse = zod.object({
+  "id": zod.string().uuid().nullable(),
+  "stageKey": zod.string(),
+  "kind": zod.enum(['EXPLAINER', 'DEMONSTRATION']),
+  "title": zod.string(),
+  "script": zod.string(),
+  "outcome": zod.string(),
+  "limitation": zod.string(),
+  "version": zod.number().int(),
+  "state": zod.enum(['DRAFT', 'SUBMITTING', 'GENERATING', 'COMPLETE', 'FAILED', 'UNKNOWN']),
+  "isTest": zod.boolean(),
+  "published": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "providerVideoId": zod.string().uuid().nullable()
+})
+
+
+export const SyncStageGuideParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const SyncStageGuideBody = zod.object({
+  "providerVideoId": zod.string().uuid().optional()
+})
+
+export const SyncStageGuideResponse = zod.object({
+  "id": zod.string().uuid().nullable(),
+  "stageKey": zod.string(),
+  "kind": zod.enum(['EXPLAINER', 'DEMONSTRATION']),
+  "title": zod.string(),
+  "script": zod.string(),
+  "outcome": zod.string(),
+  "limitation": zod.string(),
+  "version": zod.number().int(),
+  "state": zod.enum(['DRAFT', 'SUBMITTING', 'GENERATING', 'COMPLETE', 'FAILED', 'UNKNOWN']),
+  "isTest": zod.boolean(),
+  "published": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "providerVideoId": zod.string().uuid().nullable()
+})
+
+
+export const PublishStageGuideParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const PublishStageGuideBody = zod.object({
+  "contentReviewed": zod.boolean(),
+  "publicSharingAccepted": zod.boolean()
+})
+
+export const PublishStageGuideResponse = zod.object({
+  "id": zod.string().uuid().nullable(),
+  "stageKey": zod.string(),
+  "kind": zod.enum(['EXPLAINER', 'DEMONSTRATION']),
+  "title": zod.string(),
+  "script": zod.string(),
+  "outcome": zod.string(),
+  "limitation": zod.string(),
+  "version": zod.number().int(),
+  "state": zod.enum(['DRAFT', 'SUBMITTING', 'GENERATING', 'COMPLETE', 'FAILED', 'UNKNOWN']),
+  "isTest": zod.boolean(),
+  "published": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "providerVideoId": zod.string().uuid().nullable()
+})
+
+
 export const GetEmailDeliverySettingsQueryParams = zod.object({
   "organizationId": zod.coerce.string().uuid().optional()
 })

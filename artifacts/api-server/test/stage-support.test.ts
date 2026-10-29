@@ -235,6 +235,7 @@ describe("persisted stage-support round trip", () => {
     const response = await request("/stage-support/departures", { sessionId: session.id, featureId: 9, tool: "short-sprints" });
     expect(response.status).toBe(409);
     const options = await request(`/stage-support/options?sessionId=${session.id}&featureId=9`);
-    expect(options.data.tools.find((tool: { tool: string }) => tool.tool === "short-sprints").active).toBe(false);
+    // Retired SHORT SPRINTS is no longer offered; its legacy request must still be rejected above.
+    expect(options.data.tools.some((tool: { tool: string }) => tool.tool === "short-sprints")).toBe(false);
   });
 });

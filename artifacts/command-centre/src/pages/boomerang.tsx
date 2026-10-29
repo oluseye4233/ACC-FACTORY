@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useSearch } from "wouter";
 import { useGetBoomerangOrigins, getGetBoomerangOriginsQueryKey, type BoomerangOriginKind } from "@workspace/api-client-react";
 import { AlertTriangle, CornerDownLeft, RefreshCw } from "lucide-react";
+import { StageGuidePanel } from "@/components/shared/StageGuidePanel";
 import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -77,6 +78,7 @@ export default function BoomerangPage() {
             <BoomerangCaseList params={params} offset={offset} onOffset={setOffset} emptyText="No supporting-work requests in this view." />
           </section>
         </div>
+        {(effStage === "F9.5" || effStage === "F12") && <StageGuidePanel stageKey={effStage} />}
       </main>
     </div>
   );

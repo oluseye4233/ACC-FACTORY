@@ -59,6 +59,7 @@ const Operations = lazy(() => import("@/pages/operations"));
 const Activity = lazy(() => import("@/pages/activity"));
 const MeCosts = lazy(() => import("@/pages/me-costs"));
 const TestYourAgent = lazy(() => import("@/pages/test-your-agent"));
+const StageGuides = lazy(() => import("@/pages/stage-guides"));
 const Guide = lazy(() => import("@/pages/guide"));
 const BoomerangPage = lazy(() => import("@/pages/boomerang"));
 const LearningPage = lazy(() => import("@/pages/learning"));
@@ -119,6 +120,7 @@ function AuthenticatedRoutes() {
       <Route path="/status" component={Status} />
       <Route path="/command" component={Command} />
       <Route path="/guide" component={Guide} />
+      <Route path="/stage-guides" component={StageGuides} />
       <Route path="/boomerang" component={BoomerangPage} />
       <Route path="/learn" component={LearningPage} />
       <Route path="/convener" component={ConvenerPage} />

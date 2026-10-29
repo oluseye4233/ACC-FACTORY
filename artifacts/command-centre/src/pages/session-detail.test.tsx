@@ -61,6 +61,7 @@ vi.mock("@/lib/stage-support", () => ({
 
 // Chrome / side panels — not relevant to the F0 placement logic.
 vi.mock("@/components/shared/QuestProgress", () => ({ QuestProgress: () => null }));
+vi.mock("@/components/shared/StageGuidePanel", () => ({ StageGuidePanel: () => null }));
 vi.mock("@/components/layout/TopNav", () => ({ TopNav: () => <div /> }));
 vi.mock("@/components/shared/IngestionBanner", () => ({
   IngestionBanner: ({ isF7 }: { isF7: boolean }) => (

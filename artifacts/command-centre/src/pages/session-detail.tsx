@@ -14,6 +14,7 @@ import {
 import { ENGINES } from "@/lib/constants";
 import { IngestionBanner } from "@/components/shared/IngestionBanner";
 import { StageOptionalTools } from "@/components/shared/StageOptionalTools";
+import { StageGuidePanel } from "@/components/shared/StageGuidePanel";
 import { FeatureNavItem } from "@/components/shared/FeatureNavItem";
 import { CockpitShell } from "@/components/shared/CockpitShell";
 import { EscalationModal } from "@/components/shared/EscalationModal";
@@ -46,6 +47,11 @@ const MathmonLayer = lazy(() => import("@/components/workspaces/MathmonLayer").t
 const F9MachineFloor = lazy(() => import("@/components/workspaces/F9MachineFloor").then(m => ({ default: m.F9MachineFloor })));
 const F10Console = lazy(() => import("@/pages/f10"));
 const F11HostConnector = lazy(() => import("@/components/workspaces/F11HostConnector").then(m => ({ default: m.F11HostConnector })));
+
+/** Engine id -> shared guide stage key, derived from ENGINES names (F1..F11). MM/F6-VDJ have no guide; F9.5 and F12 have no engine and are covered on the boomerang workspace and /stage-guides. */
+const ENGINE_GUIDE_STAGES: Record<number, string[]> = Object.fromEntries(
+  ENGINES.filter((e) => /^F\d+$/.test(e.name)).map((e) => [e.id, [e.name]]),
+);
 
 export default function SessionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -392,6 +398,9 @@ export default function SessionDetail() {
               )}
             </Suspense>
           )}
+          {(ENGINE_GUIDE_STAGES[activeEngineId] ?? []).map((stageKey) => (
+            <div key={stageKey} className="px-4"><StageGuidePanel stageKey={stageKey} /></div>
+          ))}
           {id && (
             <StageOptionalTools
               sessionId={id}

@@ -36,6 +36,7 @@ import {
   type F0MonitoringDashboard,
 } from "@workspace/api-client-react";
 import { TopNav } from "@/components/layout/TopNav";
+import { StageGuidePanel } from "@/components/shared/StageGuidePanel";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -442,6 +443,7 @@ export default function F0Dashboard() {
             )}
           </>
         )}
+        <StageGuidePanel stageKey="F0" />
       </main>
       <Footer />
     </div>

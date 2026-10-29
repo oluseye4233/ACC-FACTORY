@@ -159,6 +159,7 @@ import type {
   GetImprimaPortalParams,
   GetShortSprintPreflightParams,
   GetSphinxCatalog200,
+  GetStageGuidesParams,
   GetStageSupportOptions200,
   GetStageSupportOptionsParams,
   HarnessArtifact,
@@ -257,6 +258,12 @@ import type {
   SpcPlayerWebhookAuthorizationStatus,
   SphinxMarketplaceActivationRequest,
   SphinxMarketplaceStatus,
+  StageGuide,
+  StageGuideGenerationInput,
+  StageGuideLibrary,
+  StageGuidePublicationInput,
+  StageGuideScriptInput,
+  StageGuideSyncInput,
   StageSupportDeparture,
   StageSupportReturnInput,
   StageSupportStartInput,
@@ -303,6 +310,439 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetStageGuidesUrl = (params?: GetStageGuidesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/stage-guides?${stringifiedParams}` : `/api/stage-guides`
+}
+
+export const getStageGuides = async (params?: GetStageGuidesParams, options?: Parameters<typeof customFetch>[1]): Promise<StageGuideLibrary> => {
+
+  return customFetch<StageGuideLibrary>(getGetStageGuidesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStageGuidesQueryKey = (params?: GetStageGuidesParams,) => {
+    return [
+    `/api/stage-guides`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetStageGuidesQueryOptions = <TData = Awaited<ReturnType<typeof getStageGuides>>, TError = ErrorType<unknown>>(params?: GetStageGuidesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageGuides>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStageGuidesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStageGuides>>> = ({ signal }) => getStageGuides(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStageGuides>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStageGuidesQueryResult = NonNullable<Awaited<ReturnType<typeof getStageGuides>>>
+export type GetStageGuidesQueryError = ErrorType<unknown>
+
+
+export function useGetStageGuides<TData = Awaited<ReturnType<typeof getStageGuides>>, TError = ErrorType<unknown>>(
+ params: undefined |  GetStageGuidesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageGuides>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStageGuides>>,
+          TError,
+          Awaited<ReturnType<typeof getStageGuides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStageGuides<TData = Awaited<ReturnType<typeof getStageGuides>>, TError = ErrorType<unknown>>(
+ params?: GetStageGuidesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageGuides>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStageGuides>>,
+          TError,
+          Awaited<ReturnType<typeof getStageGuides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStageGuides<TData = Awaited<ReturnType<typeof getStageGuides>>, TError = ErrorType<unknown>>(
+ params?: GetStageGuidesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageGuides>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStageGuides<TData = Awaited<ReturnType<typeof getStageGuides>>, TError = ErrorType<unknown>>(
+ params?: GetStageGuidesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageGuides>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStageGuidesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveStageGuideUrl = () => {
+
+
+
+
+  return `/api/stage-guides`
+}
+
+export const saveStageGuide = async (stageGuideScriptInput: StageGuideScriptInput, options?: Parameters<typeof customFetch>[1]): Promise<StageGuide> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<StageGuide>(getSaveStageGuideUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageGuideScriptInput)
+  }
+);}
+
+
+
+
+
+export const getSaveStageGuideMutationKey = () => ['saveStageGuide'] as const;
+
+export const getSaveStageGuideMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveStageGuide>>, TError,SaveStageGuideMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveStageGuide>>, TError,SaveStageGuideMutationVariables, TContext> => {
+
+const mutationKey = getSaveStageGuideMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveStageGuide>>, SaveStageGuideMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveStageGuide(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveStageGuideMutationResult = NonNullable<Awaited<ReturnType<typeof saveStageGuide>>>
+    export type SaveStageGuideMutationBody = BodyType<StageGuideScriptInput>
+    export type SaveStageGuideMutationError = ErrorType<unknown>
+    export type SaveStageGuideMutationVariables = {data: BodyType<StageGuideScriptInput>}
+
+    export const useSaveStageGuide = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveStageGuide>>, TError,SaveStageGuideMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveStageGuide>>,
+        TError,
+        SaveStageGuideMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveStageGuideMutationOptions(options), queryClient);
+    }
+
+export const getGenerateStageGuideUrl = (id: string,) => {
+
+
+
+
+  return `/api/stage-guides/${id}/generate`
+}
+
+export const generateStageGuide = async (id: string,
+    stageGuideGenerationInput: StageGuideGenerationInput, options?: Parameters<typeof customFetch>[1]): Promise<StageGuide> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<StageGuide>(getGenerateStageGuideUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageGuideGenerationInput)
+  }
+);}
+
+
+
+
+
+export const getGenerateStageGuideMutationKey = () => ['generateStageGuide'] as const;
+
+export const getGenerateStageGuideMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateStageGuide>>, TError,GenerateStageGuideMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateStageGuide>>, TError,GenerateStageGuideMutationVariables, TContext> => {
+
+const mutationKey = getGenerateStageGuideMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateStageGuide>>, GenerateStageGuideMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  generateStageGuide(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateStageGuideMutationResult = NonNullable<Awaited<ReturnType<typeof generateStageGuide>>>
+    export type GenerateStageGuideMutationBody = BodyType<StageGuideGenerationInput>
+    export type GenerateStageGuideMutationError = ErrorType<unknown>
+    export type GenerateStageGuideMutationVariables = {id: string;data: BodyType<StageGuideGenerationInput>}
+
+    export const useGenerateStageGuide = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateStageGuide>>, TError,GenerateStageGuideMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof generateStageGuide>>,
+        TError,
+        GenerateStageGuideMutationVariables,
+        TContext
+      > => {
+      return useMutation(getGenerateStageGuideMutationOptions(options), queryClient);
+    }
+
+export const getSyncStageGuideUrl = (id: string,) => {
+
+
+
+
+  return `/api/stage-guides/${id}/sync`
+}
+
+export const syncStageGuide = async (id: string,
+    stageGuideSyncInput: StageGuideSyncInput, options?: Parameters<typeof customFetch>[1]): Promise<StageGuide> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<StageGuide>(getSyncStageGuideUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageGuideSyncInput)
+  }
+);}
+
+
+
+
+
+export const getSyncStageGuideMutationKey = () => ['syncStageGuide'] as const;
+
+export const getSyncStageGuideMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncStageGuide>>, TError,SyncStageGuideMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof syncStageGuide>>, TError,SyncStageGuideMutationVariables, TContext> => {
+
+const mutationKey = getSyncStageGuideMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof syncStageGuide>>, SyncStageGuideMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  syncStageGuide(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SyncStageGuideMutationResult = NonNullable<Awaited<ReturnType<typeof syncStageGuide>>>
+    export type SyncStageGuideMutationBody = BodyType<StageGuideSyncInput>
+    export type SyncStageGuideMutationError = ErrorType<unknown>
+    export type SyncStageGuideMutationVariables = {id: string;data: BodyType<StageGuideSyncInput>}
+
+    export const useSyncStageGuide = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncStageGuide>>, TError,SyncStageGuideMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof syncStageGuide>>,
+        TError,
+        SyncStageGuideMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSyncStageGuideMutationOptions(options), queryClient);
+    }
+
+export const getPublishStageGuideUrl = (id: string,) => {
+
+
+
+
+  return `/api/stage-guides/${id}/publish`
+}
+
+export const publishStageGuide = async (id: string,
+    stageGuidePublicationInput: StageGuidePublicationInput, options?: Parameters<typeof customFetch>[1]): Promise<StageGuide> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<StageGuide>(getPublishStageGuideUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageGuidePublicationInput)
+  }
+);}
+
+
+
+
+
+export const getPublishStageGuideMutationKey = () => ['publishStageGuide'] as const;
+
+export const getPublishStageGuideMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishStageGuide>>, TError,PublishStageGuideMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof publishStageGuide>>, TError,PublishStageGuideMutationVariables, TContext> => {
+
+const mutationKey = getPublishStageGuideMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof publishStageGuide>>, PublishStageGuideMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  publishStageGuide(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PublishStageGuideMutationResult = NonNullable<Awaited<ReturnType<typeof publishStageGuide>>>
+    export type PublishStageGuideMutationBody = BodyType<StageGuidePublicationInput>
+    export type PublishStageGuideMutationError = ErrorType<unknown>
+    export type PublishStageGuideMutationVariables = {id: string;data: BodyType<StageGuidePublicationInput>}
+
+    export const usePublishStageGuide = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishStageGuide>>, TError,PublishStageGuideMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof publishStageGuide>>,
+        TError,
+        PublishStageGuideMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPublishStageGuideMutationOptions(options), queryClient);
+    }
 
 export const getGetEmailDeliverySettingsUrl = (params?: GetEmailDeliverySettingsParams,) => {
   const normalizedParams = new URLSearchParams();

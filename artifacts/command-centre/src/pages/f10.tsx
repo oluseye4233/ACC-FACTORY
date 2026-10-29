@@ -1,3 +1,4 @@
+import { StageGuidePanel } from "@/components/shared/StageGuidePanel";
 import { useEffect, useState } from "react";
 import { PortalArtifactLink } from "@/components/shared/PortalArtifactLink";
 import {
@@ -1663,6 +1664,7 @@ export default function F10Console({ sessionId, embedded = false }: F10ConsolePr
             </div>
           </TabsContent>
         </Tabs>
+        {!embedded && <StageGuidePanel stageKey="F10" />}
       </main>
     </div>
   );
