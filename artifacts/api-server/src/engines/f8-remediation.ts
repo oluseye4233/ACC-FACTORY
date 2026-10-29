@@ -3,7 +3,8 @@ import type { Request, Response } from "express";
 import { db, boomerangCasesTable, f8RemediationAttemptsTable } from "@workspace/db";
 import { and, desc, eq } from "drizzle-orm";
 import { GetF8RemediationProgressQueryParams, RemediateF8DriftBody } from "@workspace/api-zod";
-import { CodebaseOutputSchema } from "./f8codedj";
+import { CodebaseOutputSchema, validateImplementationBundle } from "./f8codedj";
+import { F8_LANGUAGES, F8_LANGUAGE_INSTRUCTION, validateF8LanguageBundle } from "./f8-language-policy";
 import { PfpReportSchema, evaluateAndPersistPfp } from "./pfp";
 import { callLlmJson, loadArtifact, ownedSessionOr404, persistArtifact, resolveProvider, sendProviderTierError } from "./shared";
 import { boomerangHash, boomerangOrigin } from "../lib/boomerang";
@@ -37,17 +38,27 @@ JSON only: {decision:"REPAIR"|"REVIEW_REQUIRED",summary:string,corrections:
 [{findingIndex:number,action:string}],bundle:null|{platform,framework,language,
 files:[{path,language,content}],manifest:{framework,language,entrypoint,installCommand,
 runCommand,buildCommand,deployTarget},notes}}. Bundle max 12 files, each max 40000
-characters; paths relative without '..'.`;
+characters; paths relative without '..'.
+${F8_LANGUAGE_INSTRUCTION}
+Retain the original supported primary language. If the original uses an unsupported
+language such as TypeScript, return REVIEW_REQUIRED with bundle:null; do not silently
+translate languages or retain unsupported files.`;
 
 export function validateRepair(
   repair: z.infer<typeof RepairSchema>, original: Record<string, unknown>, findingCount: number,
 ) {
   if (repair.decision === "REVIEW_REQUIRED") return;
   if (!repair.bundle || repair.bundle.platform !== original.platform) throw new Error("Repair must retain the original platform and provide a complete bundle");
+  const languageError = validateF8LanguageBundle(repair.bundle);
+  const originalLanguage = original.language ?? (original.manifest as { language?: string } | undefined)?.language;
+  if (languageError || repair.bundle.language !== originalLanguage) throw new Error(languageError ?? "Repair must preserve the original programming language");
   const paths = repair.bundle.files.map(f => f.path);
   if (new Set(paths).size !== paths.length || paths.some(p => p.includes("\\") || /[\x00-\x1f]/.test(p))) throw new Error("Invalid or duplicate repaired file paths");
   const originalFiles = original.files as { path: string }[];
   if (!Array.isArray(originalFiles) || originalFiles.some(f => !paths.includes(f.path))) throw new Error("Repair omitted original files; manual review required");
+  const manifest = original.manifest as { deployTarget?: string } | undefined;
+  const bundleError = validateImplementationBundle(repair.bundle, manifest?.deployTarget);
+  if (bundleError) throw new Error(bundleError);
   const indices = new Set(repair.corrections.map(c => c.findingIndex));
   if (indices.size !== findingCount || [...indices].some(i => i >= findingCount)) throw new Error("Repair must account for every drift finding");
 }
@@ -101,6 +112,11 @@ export async function handleF8Remediation(req: Request, res: Response): Promise<
     res.status(409).json({ error: "Certified PDD, bundle and drift report lineage must match exactly" }); return;
   }
   const baseline = boomerangHash({ mvp: mvp.artifactContent, cert: mvp.spartanCert, bundle: original, report: content });
+  const originalLanguage = original.language ?? (original.manifest as { language?: string } | undefined)?.language;
+  if (!F8_LANGUAGES.includes(originalLanguage as typeof F8_LANGUAGES[number])) {
+    res.status(409).json({ error: "This historical bundle uses a language outside the current F8 scope. Generate a new bundle in Python, JavaScript, SQL, C, C++ or C# before requesting automated repair.", code: "F8_LEGACY_LANGUAGE_REVIEW_REQUIRED" });
+    return;
+  }
   const attemptId = repairAttemptId(guard.userId, sessionId, report.id);
   const unlock = await lockRepairAttempt(attemptId);
   if (!unlock) { res.status(409).json({ error: "This drift repair is still running. Wait for it to finish, then resume; do not start another repair." }); return; }

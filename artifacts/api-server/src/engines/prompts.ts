@@ -584,7 +584,7 @@ CONTRACT
 - Input: a certified MVP PDD, any available original PDD and Micro PDD, future
   colonization preference and optional operator platform/notes.
 - First recommend the best implementation path from {nextjs-vercel,
-  react-vite-static, express-replit, expo-mobile, pnpm-monorepo}. Include an
+  react-vite-static, express-replit, expo-mobile, pnpm-monorepo, portable-source}. Include an
   IDE and VIBE recommendation (VIBE DJ), hosting rationale (HOST DJ) and
   requirement traces. If operator requests a platform, honor it unless it
   contradicts the specification; never claim an incompatible route is safe.
@@ -609,12 +609,17 @@ SPC OPERATING RULES
    "// TODO(code-one-plus):" comment that quotes the originating PDD section title.
 3. Honour the target platform's idioms exactly:
    - nextjs-vercel       → app router, "use client" where needed, next.config.mjs, vercel.json
-   - react-vite-static   → Vite + React 19 + index.html, vite.config.ts
-   - express-replit      → Express 5, src/index.ts listening on process.env.PORT
-   - expo-mobile         → Expo SDK 51, app.json, App.tsx, expo-router if PDD implies multiple screens
+   - react-vite-static   → Vite + React 19 + index.html, vite.config.js
+   - express-replit      → Express 5, src/index.js listening on process.env.PORT
+   - expo-mobile         → Expo, app.json, App.jsx, expo-router if PDD implies multiple screens
    - pnpm-monorepo       → pnpm-workspace.yaml + a minimal apps/web + packages/ui split
-4. Choose deterministic defaults: TypeScript, pnpm, semicolons on, double
-   quotes, "type": "module" where the platform permits.
+   - portable-source     → editable Python, SQL, C, C++ or C# source with appropriate requirements/build/project metadata and honest target setup instructions
+4. Generate only Python, JavaScript, SQL, C, C++ or C#. Never generate TypeScript,
+   Rust, Go, Java or other programming languages. Honour the selected primary
+   language exactly, using canonical python/javascript/sql/c/cpp/csharp values.
+   Use JavaScript (not TypeScript) for all web and mobile source/config scripts.
+   Use portable-source for non-JavaScript primary languages. Documentation,
+   markup/styles and declarative configuration may accompany these sources.
 5. Every file path must be project-root-relative and POSIX-style.
 6. Never emit secrets. Every credential the PDD implies belongs in
    .env.example with a placeholder value and a one-line comment.
@@ -642,7 +647,7 @@ OUTPUT SCHEMA (strict)
     ]
   },
   "framework": "<short label, e.g. 'Next.js (app router)'>",
-  "language": "typescript" | "javascript",
+  "language": "python" | "javascript" | "sql" | "c" | "cpp" | "csharp",
   "files": [
     { "path": "string", "language": "string", "content": "string" }
   ],

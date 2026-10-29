@@ -6,7 +6,7 @@ function validOutput(overrides: Record<string, unknown> = {}) {
   return {
     platform: "react-vite-static",
     framework: "Vite + React",
-    language: "typescript",
+    language: "javascript",
     files: [
       {
         path: "package.json",
@@ -16,8 +16,8 @@ function validOutput(overrides: Record<string, unknown> = {}) {
     ],
     manifest: {
       framework: "Vite + React",
-      language: "typescript",
-      entrypoint: "src/main.tsx",
+      language: "javascript",
+      entrypoint: "src/main.jsx",
       installCommand: "pnpm install",
       runCommand: "pnpm run dev",
       buildCommand: "pnpm run build",
@@ -58,21 +58,21 @@ describe("F8 CODE ONE + output schema", () => {
 
   it("refuses a mobile scaffold paired with a static hosting recommendation", () => {
     const out = CodebaseOutputSchema.parse(validOutput({ platform: "expo-mobile" }));
-    out.files.push({ path: "src/main.tsx", content: "export default {};", language: "typescript" });
+    out.files.push({ path: "src/main.jsx", content: "export default {};", language: "javascript" });
     out.manifest.deployTarget = "cloudflare-pages";
     expect(validateImplementationBundle(out, "cloudflare-pages")).toContain("Expo-compatible");
   });
 
   it("accepts matching runnable static scaffolding without claiming test approval", () => {
     const out = CodebaseOutputSchema.parse(validOutput());
-    out.files.push({ path: "src/main.tsx", content: "export default {};", language: "typescript" });
+    out.files.push({ path: "src/main.jsx", content: "export default {};", language: "javascript" });
     out.manifest.deployTarget = "cloudflare-pages";
     expect(validateImplementationBundle(out, "cloudflare-pages")).toBeNull();
   });
 
   it("refuses a manifest that ignores the actual HOST DJ primary", () => {
     const out = CodebaseOutputSchema.parse(validOutput());
-    out.files.push({ path: "src/main.tsx", content: "export default {};", language: "typescript" });
+    out.files.push({ path: "src/main.jsx", content: "export default {};", language: "javascript" });
     expect(validateImplementationBundle(out, "cloudflare-pages")).toContain("source-bound HOST DJ");
   });
 

@@ -46,6 +46,7 @@ import { SUPPORTED_IDES } from "@/lib/codeDjExport";
 import { HARDWARE_CONFIGS, getHardwareConfig, type HardwareConfigId } from "@/lib/hardware-configs";
 import { F8DriftRemediation } from "./F8DriftRemediation";
 import { F8ConversionTeam } from "./F8ConversionTeam";
+import { F8LanguageSelect, type F8Language } from "./F8LanguageSelect";
 import { AlertTriangle, Cpu, FileCode, Radar, Rocket, ShieldCheck } from "lucide-react";
 
 const HOST_LABELS: Record<string, string> = {
@@ -67,6 +68,7 @@ const PLATFORM_LABELS: Record<CodeDjPlatform, string> = {
   [CodeDjPlatform["express-replit"]]: "Express → Replit",
   [CodeDjPlatform["expo-mobile"]]: "Expo (mobile)",
   [CodeDjPlatform["pnpm-monorepo"]]: "pnpm monorepo",
+  [CodeDjPlatform["portable-source"]]: "Portable source bundle (editable handoff)",
 };
 type ArtifactClass = "SOFTWARE" | "FIRMWARE";
 const ARTIFACT_CLASS_LABELS: Record<ArtifactClass, string> = {
@@ -114,6 +116,10 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
     CodeDjPlatform["nextjs-vercel"],
   );
   const [automaticPlatform, setAutomaticPlatform] = useState(true);
+  const [language, setLanguage] = useState<F8Language>(() => {
+    const saved = (latestArtifact?.artifactContent as { manifest?: { language?: string } } | undefined)?.manifest?.language;
+    return saved && ["python", "javascript", "sql", "c", "cpp", "csharp"].includes(saved) ? saved as F8Language : "javascript";
+  });
   const [microPddArtifactId, setMicroPddArtifactId] = useState<string>("");
   const [artifactClass, setArtifactClass] = useState<ArtifactClass | "">("");
   const [hardwareConfigId, setHardwareConfigId] = useState<HardwareConfigId | "">("");
@@ -335,7 +341,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
       if (artifactClass === "SOFTWARE" && !hostingPlanArtifactId) {
         const plan = await hostM.mutateAsync({ data: {
           sessionId, mvpPddArtifactId: sourceId,
-          ...(notes.trim() ? { notes: notes.trim() } : {}),
+          notes: `F8 primary language: ${language}. ${language !== "javascript" ? "Recommend a general-purpose server/build target, not a static web or Expo host. Source preparation only; do not claim deployment." : ""}\n${notes.trim()}`.slice(0, 2000),
           ...overrideToBody(providerOverride),
         } });
         hostingPlanArtifactId = plan.artifactId;
@@ -344,7 +350,8 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
         data: {
           sessionId,
           mvpPddArtifactId: sourceId,
-          ...(automaticPlatform ? {} : { platform }),
+          language,
+          ...(automaticPlatform ? {} : { platform: language === "javascript" ? platform : CodeDjPlatform["portable-source"] }),
           ...(microPddArtifactId ? { microPddArtifactId } : {}),
           ...(hostingPlanArtifactId ? { hostingPlanArtifactId } : {}),
           artifactClass,
@@ -417,7 +424,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
         sessionId,
         mvpPddArtifactId: sourceId,
         ...(bundleId ? { codebaseBundleArtifactId: bundleId } : {}),
-        ...(notes.trim() ? { notes: notes.trim() } : {}),
+        notes: `F8 primary language: ${language}. ${language !== "javascript" ? "Recommend a general-purpose server/build target, not a static web or Expo host. Source preparation only." : ""}\n${notes.trim()}`.slice(0, 2000),
         ...overrideToBody(providerOverride),
       },
     });
@@ -543,12 +550,13 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
               <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
                 Implementation platform
               </label>
+              <F8LanguageSelect value={language} onChange={setLanguage} />
               <label className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                 <input type="checkbox" checked={automaticPlatform} onChange={e => setAutomaticPlatform(e.target.checked)} data-testid="f8-auto-platform" />
                 Recommend the best path from the PDD
               </label>
               <Select
-                value={platform}
+                value={language === "javascript" ? platform : CodeDjPlatform["portable-source"]}
                 onValueChange={(v) => setPlatform(v as CodeDjPlatform)}
                 disabled={automaticPlatform}
               >
@@ -561,7 +569,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
                 <SelectContent>
                   {(
                     Object.entries(CodeDjPlatform) as [string, CodeDjPlatform][]
-                  ).map(([, v]) => (
+                  ).filter(([, v]) => language === "javascript" || v === CodeDjPlatform["portable-source"]).map(([, v]) => (
                     <SelectItem
                       key={v}
                       value={v}

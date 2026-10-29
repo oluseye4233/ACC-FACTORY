@@ -13,6 +13,7 @@ import {
 } from "./shared";
 import { latestPfpForMvp } from "./pfp";
 import { getHardwareConfig } from "./hardware-configs";
+import { F8_LANGUAGES, F8_LANGUAGE_INSTRUCTION, validateF8LanguageBundle } from "./f8-language-policy";
 
 const PLATFORMS = [
   "nextjs-vercel",
@@ -20,6 +21,7 @@ const PLATFORMS = [
   "express-replit",
   "expo-mobile",
   "pnpm-monorepo",
+  "portable-source",
 ] as const;
 
 const GENERATED_NOTES_MAX = 800;
@@ -29,12 +31,15 @@ const DEFAULT_HOST: Record<typeof PLATFORMS[number], string> = {
   "express-replit": "replit-deployments",
   "expo-mobile": "expo-eas",
   "pnpm-monorepo": "replit-deployments",
+  "portable-source": "replit-deployments",
 };
 
 export function validateImplementationBundle(bundle: z.infer<typeof CodebaseOutputSchema>, host?: string): string | null {
   const paths = bundle.files.map(f => f.path);
   if (new Set(paths).size !== paths.length) return "Generated file paths must be unique";
   if (!paths.includes(bundle.manifest.entrypoint)) return "Generated entrypoint must exist in the file bundle";
+  const languageError = validateF8LanguageBundle(bundle);
+  if (languageError) return languageError;
   if (bundle.collaboration) {
     const { oracle, dj } = bundle.collaboration;
     const requirements = oracle.map(finding => finding.requirement);
@@ -86,7 +91,7 @@ export const CodebaseOutputSchema = z.object({
     })).max(12),
   }).optional(),
   framework: z.string().min(1),
-  language: z.enum(["typescript", "javascript"]),
+  language: z.enum(F8_LANGUAGES),
   files: z
     .array(
       z.object({
@@ -134,6 +139,7 @@ export async function handleF8CodeDj(
     sessionId,
     mvpPddArtifactId,
     platform,
+    language = "javascript",
     microPddArtifactId,
     hostingPlanArtifactId,
     artifactClass,
@@ -141,6 +147,10 @@ export async function handleF8CodeDj(
     notes,
     provider: bodyProvider,
   } = parsed.data;
+  if (language !== "javascript" && platform && platform !== "portable-source") {
+    res.status(400).json({ error: "Select portable-source or automatic implementation for Python, SQL and C-family output.", code: "F8_LANGUAGE_PLATFORM_MISMATCH" });
+    return;
+  }
   const hardwareConfig = hardwareConfigId ? getHardwareConfig(hardwareConfigId) : undefined;
   if (artifactClass === "FIRMWARE" && !hardwareConfig) {
     res.status(400).json({
@@ -199,6 +209,11 @@ export async function handleF8CodeDj(
     res.status(409).json({ error: "Hosting recommendation does not belong to this MVP PDD", code: "HOST_PLAN_SOURCE_MISMATCH" });
     return;
   }
+  if (language !== "javascript" && hostingContent?.primary?.platform &&
+    !["replit-deployments", "fly-io", "render", "railway"].includes(hostingContent.primary.platform)) {
+    res.status(409).json({ error: "This language requires a general-purpose source/build target. Re-run HOST DJ with the selected language instead of reusing a static or mobile hosting plan.", code: "F8_LANGUAGE_HOST_MISMATCH" });
+    return;
+  }
   if (artifactClass === "SOFTWARE" && !hostingPlanArtifactId) {
     res.status(409).json({ error: "Create or select the source-bound HOST DJ recommendation before code generation", code: "HOST_PLAN_REQUIRED" });
     return;
@@ -228,6 +243,8 @@ export async function handleF8CodeDj(
   }
 
   const userPrompt = [
+    F8_LANGUAGE_INSTRUCTION,
+    `REQUIRED PRIMARY LANGUAGE: ${language}. Both language and manifest.language MUST exactly equal "${language}". ${language !== "javascript" ? "platform MUST equal portable-source." : ""}`,
     platform ? `OPERATOR-REQUESTED PLATFORM: ${platform} (must use this compatible platform)` :
       `Recommend the best implementation platform from: ${PLATFORMS.join(", ")}. Select it in the platform field.`,
     hardwareConfig
@@ -280,7 +297,7 @@ export async function handleF8CodeDj(
     res.status(502).json({ error: "CODE ONE + did not return a traceable implementation recommendation" });
     return;
   }
-  const bundleError = validateImplementationBundle(out, hostingContent?.primary?.platform);
+  const bundleError = validateF8LanguageBundle(out, language) ?? validateImplementationBundle(out, hostingContent?.primary?.platform);
   if (bundleError) {
     res.status(502).json({ error: bundleError, code: "IMPLEMENTATION_PATH_MISMATCH" });
     return;
@@ -310,6 +327,7 @@ export async function handleF8CodeDj(
     artifactType: "CODEBASE_BUNDLE",
     artifactContent: {
       platform: out.platform,
+      language: out.language,
       artifactClass,
       ...(hardwareConfig ? { hardwareConfigId: hardwareConfig.id } : {}),
       manifest: out.manifest,
@@ -343,6 +361,7 @@ export async function handleF8CodeDj(
   res.json({
     artifactId: artifact.id,
     platform: out.platform,
+    language: out.language,
     artifactClass,
     ...(hardwareConfig ? { hardwareConfigId: hardwareConfig.id } : {}),
     manifest: out.manifest,

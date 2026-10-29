@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CodeDjPlatform } from './codeDjPlatform';
+import type { F8Language } from './f8Language';
 import type { HardwareConfigId } from './hardwareConfigId';
 import type { HarnessF8InputArtifactClass } from './harnessF8InputArtifactClass';
 import type { LlmProvider } from './llmProvider';
@@ -14,6 +15,7 @@ export interface HarnessF8Input {
   sessionId: string;
   mvpPddArtifactId: string;
   platform?: CodeDjPlatform;
+  language?: F8Language;
   microPddArtifactId?: string;
   hostingPlanArtifactId?: string;
   /** Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software). */

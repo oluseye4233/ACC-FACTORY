@@ -2943,6 +2943,22 @@ export const CodeDjPlatform = {
   'express-replit': 'express-replit',
   'expo-mobile': 'expo-mobile',
   'pnpm-monorepo': 'pnpm-monorepo',
+  'portable-source': 'portable-source',
+} as const;
+
+/**
+ * Primary programming language for new F8 output. TypeScript is not supported. Supporting documentation and declarative configuration remain allowed.
+ */
+export type F8Language = typeof F8Language[keyof typeof F8Language];
+
+
+export const F8Language = {
+  python: 'python',
+  javascript: 'javascript',
+  sql: 'sql',
+  c: 'c',
+  cpp: 'cpp',
+  csharp: 'csharp',
 } as const;
 
 export interface CodebaseFile {
@@ -2991,6 +3007,7 @@ export interface HarnessF8Input {
   sessionId: string;
   mvpPddArtifactId: string;
   platform?: CodeDjPlatform;
+  language?: F8Language;
   microPddArtifactId?: string;
   hostingPlanArtifactId?: string;
   /** Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software). */
@@ -3647,6 +3664,7 @@ export interface CodebaseCollaboration {
 export interface CodebaseBundle {
   artifactId: string;
   platform: CodeDjPlatform;
+  language?: F8Language;
   implementationPath?: CodebaseBundleImplementationPath;
   collaboration?: CodebaseCollaboration;
   artifactClass: CodebaseBundleArtifactClass;

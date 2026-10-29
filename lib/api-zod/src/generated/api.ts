@@ -4071,7 +4071,8 @@ export const harnessF8BodyNotesMax = 2000;
 export const HarnessF8Body = zod.object({
   "sessionId": zod.string().uuid(),
   "mvpPddArtifactId": zod.string().uuid(),
-  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).optional().describe('Deployment / framework target for the Code DJ scaffold.'),
+  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo', 'portable-source']).optional().describe('Deployment / framework target for the Code DJ scaffold.'),
+  "language": zod.enum(['python', 'javascript', 'sql', 'c', 'cpp', 'csharp']).optional().describe('Primary programming language for new F8 output. TypeScript is not supported. Supporting documentation and declarative configuration remain allowed.'),
   "microPddArtifactId": zod.string().uuid().optional(),
   "hostingPlanArtifactId": zod.string().uuid().optional(),
   "artifactClass": zod.enum(['SOFTWARE', 'FIRMWARE']).describe('Selects whether the F8 bundle continues through F9 (firmware) or goes directly to F10/F11 (software).'),
@@ -4083,9 +4084,10 @@ export const HarnessF8Body = zod.object({
 
 export const HarnessF8Response = zod.object({
   "artifactId": zod.string().uuid(),
-  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo', 'portable-source']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "language": zod.enum(['python', 'javascript', 'sql', 'c', 'cpp', 'csharp']).optional().describe('Primary programming language for new F8 output. TypeScript is not supported. Supporting documentation and declarative configuration remain allowed.'),
   "implementationPath": zod.object({
-  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo', 'portable-source']).describe('Deployment / framework target for the Code DJ scaffold.'),
   "recommendedHost": zod.string(),
   "recommendedIde": zod.string(),
   "recommendedVibe": zod.string(),
@@ -4443,9 +4445,10 @@ export const GetF8RemediationProgressResponse = zod.object({
   "summary": zod.string(),
   "bundle": zod.object({
   "artifactId": zod.string().uuid(),
-  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo', 'portable-source']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "language": zod.enum(['python', 'javascript', 'sql', 'c', 'cpp', 'csharp']).optional().describe('Primary programming language for new F8 output. TypeScript is not supported. Supporting documentation and declarative configuration remain allowed.'),
   "implementationPath": zod.object({
-  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo']).describe('Deployment / framework target for the Code DJ scaffold.'),
+  "platform": zod.enum(['nextjs-vercel', 'react-vite-static', 'express-replit', 'expo-mobile', 'pnpm-monorepo', 'portable-source']).describe('Deployment / framework target for the Code DJ scaffold.'),
   "recommendedHost": zod.string(),
   "recommendedIde": zod.string(),
   "recommendedVibe": zod.string(),

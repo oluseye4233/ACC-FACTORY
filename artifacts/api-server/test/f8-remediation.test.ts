@@ -80,14 +80,14 @@ const reportId = "22222222-2222-4222-8222-222222222222";
 const mvpId = "33333333-3333-4333-8333-333333333333";
 const bundleId = "44444444-4444-4444-8444-444444444444";
 function codeBundle() {
-  return { platform: "express-replit", framework: "express", language: "typescript",
-    files: [{ path: "index.ts", language: "typescript", content: "export const answer = 42;" }],
-    manifest: { framework: "express", language: "typescript", entrypoint: "index.ts",
+  return { platform: "express-replit", framework: "express", language: "javascript",
+    files: [{ path: "index.js", language: "javascript", content: "export const answer = 42;" }],
+    manifest: { framework: "express", language: "javascript", entrypoint: "index.js",
       installCommand: "pnpm install", runCommand: "pnpm start", buildCommand: null, deployTarget: "replit" }, notes: "Not executed." };
 }
 function driftReport() {
   return { verdict: "pass", fci: 100, summary: "Finding remains.",
-    findings: [{ code: "SPEC_DRIFT", severity: "critical", pddRef: "Output", codeRef: "index.ts", detail: "Wrong output." }],
+    findings: [{ code: "SPEC_DRIFT", severity: "critical", pddRef: "Output", codeRef: "index.js", detail: "Wrong output." }],
     counts: { critical: 0, high: 0, medium: 0, low: 0 },
     sourceMvpPddArtifactId: mvpId, sourceCodebaseBundleArtifactId: bundleId };
 }
@@ -100,7 +100,7 @@ beforeEach(() => {
     { id: mvpId, artifactType: "MVP_PDD", spartanCert: { certId: "cert" }, artifactContent: { requirement: "return 42" } },
     { id: bundleId, artifactType: "CODEBASE_BUNDLE", artifactContent: {
       ...codeBundle(), artifactClass: "FIRMWARE", hardwareConfigId: "hardware", sourceCertId: "cert", sourceMvpPddArtifactId: mvpId,
-      files: [{ path: "index.ts", language: "typescript", content: "export const answer = 0;" }],
+      files: [{ path: "index.js", language: "javascript", content: "export const answer = 0;" }],
     } },
     { id: reportId, artifactType: "PFP_REPORT", artifactContent: driftReport() },
   ]) mocks.artifacts.set(a.id, { sessionId, userId: "owner", sku: null, ...a });
@@ -209,6 +209,28 @@ describe("automated F8 drift remediation", () => {
     mocks.calls.mockClear();
     expect((await run()).frames).toContain("unknown outcome");
     expect(mocks.calls).not.toHaveBeenCalled();
+  });
+  it("requires review of legacy TypeScript without making a repair or recheck call", async () => {
+    const original = mocks.artifacts.get(bundleId)!.artifactContent as Record<string, unknown>;
+    original.language = "typescript";
+    expect((await run()).status).toBe(409);
+    expect(mocks.calls).not.toHaveBeenCalled();
+  });
+  it("accepts the supported language from a historical manifest without rewriting the source", () => {
+    const original = codeBundle() as Record<string, unknown>;
+    delete original.language;
+    const repair = RepairSchema.parse({ decision: "REPAIR", summary: "Correction",
+      corrections: [{ findingIndex: 0, action: "Fix output" }], bundle: codeBundle() });
+    expect(() => validateRepair(repair, original, 1)).not.toThrow();
+  });
+  it("refuses a repaired entrypoint or deployment target that does not match its source", () => {
+    const repair = RepairSchema.parse({ decision: "REPAIR", summary: "Correction",
+      corrections: [{ findingIndex: 0, action: "Fix output" }], bundle: codeBundle() });
+    repair.bundle!.manifest.entrypoint = "missing.js";
+    expect(() => validateRepair(repair, codeBundle(), 1)).toThrow("entrypoint");
+    repair.bundle!.manifest.entrypoint = "index.js";
+    repair.bundle!.manifest.deployTarget = "another-host";
+    expect(() => validateRepair(repair, codeBundle(), 1)).toThrow("HOST DJ");
   });
   it("recovers a saved repair and bundle after process interruption without another repair call", async () => {
     mocks.failRecheck = true;

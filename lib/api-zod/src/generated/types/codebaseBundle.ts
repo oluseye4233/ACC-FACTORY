@@ -11,11 +11,13 @@ import type { CodebaseCollaboration } from './codebaseCollaboration';
 import type { CodebaseFile } from './codebaseFile';
 import type { CodebaseManifest } from './codebaseManifest';
 import type { CodeDjPlatform } from './codeDjPlatform';
+import type { F8Language } from './f8Language';
 import type { HardwareConfigId } from './hardwareConfigId';
 
 export interface CodebaseBundle {
   artifactId: string;
   platform: CodeDjPlatform;
+  language?: F8Language;
   implementationPath?: CodebaseBundleImplementationPath;
   collaboration?: CodebaseCollaboration;
   artifactClass: CodebaseBundleArtifactClass;

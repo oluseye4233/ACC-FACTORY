@@ -13,6 +13,7 @@ vi.mock("./shared", () => ({
 }));
 vi.mock("./pfp", () => ({ latestPfpForMvp: mocks.latestPfpForMvp }));
 import { handleF8CodeDj } from "./f8codedj";
+import { F8_LANGUAGES } from "./f8-language-policy";
 import { handleF4 } from "./f4";
 
 const sessionId = "10000000-0000-4000-8000-000000000001";
@@ -23,16 +24,16 @@ const pddId = "10000000-0000-4000-8000-000000000005";
 let sources: Record<string, Record<string, unknown>>;
 const body = () => ({ sessionId, mvpPddArtifactId: mvpId, hostingPlanArtifactId: hostId, artifactClass: "SOFTWARE" });
 const output = () => ({
-  platform: "react-vite-static", framework: "Vite", language: "typescript",
-  files: [{ path: "src/main.tsx", language: "typescript", content: "export {};" }],
-  manifest: { framework: "Vite", language: "typescript", entrypoint: "src/main.tsx",
+  platform: "react-vite-static", framework: "Vite", language: "javascript",
+  files: [{ path: "src/main.jsx", language: "javascript", content: "export {};" }],
+  manifest: { framework: "Vite", language: "javascript", entrypoint: "src/main.jsx",
     installCommand: "pnpm install", runCommand: "pnpm dev", buildCommand: "pnpm build", deployTarget: "cloudflare-pages" },
   implementationPath: { rationale: "Fits the supplied reporting scope", recommendedIde: "VS Code",
     recommendedVibe: "Specification-first React", hostingRationale: "Use the supplied static hosting plan",
     requirementTrace: ["Reporting -> src/main.tsx"] }, notes: "Synthetic unit-test scaffold; not live engine evidence",
   collaboration: {
     oracle: [{ requirement: "Reporting", gap: "The scaffold needs a reporting entrypoint", resolution: "CODE_CHANGE" }],
-    dj: [{ requirement: "Reporting", change: "Included the reporting entrypoint", files: ["src/main.tsx"] }],
+    dj: [{ requirement: "Reporting", change: "Included the reporting entrypoint", files: ["src/main.jsx"] }],
   },
 });
 function request(data: Record<string, unknown>) {
@@ -59,6 +60,41 @@ beforeEach(() => {
 });
 
 describe("integrated F8 conversion contract (offline mocks, no provider calls)", () => {
+  it.each(F8_LANGUAGES)("persists an eligible %s bundle through the complete conversion handler", async language => {
+    sources[hostId]!.artifactContent = { sourceMvpPddArtifactId: mvpId, primary: { platform: "replit-deployments" } };
+    const extension = { python: "py", javascript: "js", sql: "sql", c: "c", cpp: "cpp", csharp: "cs" }[language];
+    const entrypoint = `main.${extension}`;
+    mocks.callLlmJson.mockResolvedValue({
+      ...output(), platform: "portable-source", language,
+      files: [{ path: entrypoint, language, content: "Synthetic handler fixture; not runtime evidence." }],
+      manifest: { ...output().manifest, language, entrypoint, deployTarget: "replit-deployments" },
+      collaboration: { oracle: [], dj: [] },
+    });
+    const { req, res, response } = request({ ...body(), language });
+    await handleF8CodeDj(req, response);
+    expect(mocks.persistArtifact).toHaveBeenCalledOnce();
+    expect(mocks.persistArtifact.mock.calls[0]![0].artifactContent.language).toBe(language);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ artifactId: "saved-bundle" }));
+  });
+  it.each(["typescript", "rust", "java"])("rejects unsupported requested language %s before spending", async language => {
+    const { req, res, response } = request({ ...body(), language });
+    await handleF8CodeDj(req, response);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mocks.callLlmJson).not.toHaveBeenCalled();
+  });
+  it("rejects Python on a static hosting plan before spending", async () => {
+    const { req, res, response } = request({ ...body(), language: "python" });
+    await handleF8CodeDj(req, response);
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(mocks.callLlmJson).not.toHaveBeenCalled();
+  });
+  it("refuses an otherwise valid model answer in a different selected language", async () => {
+    sources[hostId]!.artifactContent = { sourceMvpPddArtifactId: mvpId, primary: { platform: "replit-deployments" } };
+    const { req, res, response } = request({ ...body(), language: "python" });
+    await handleF8CodeDj(req, response);
+    expect(res.status).toHaveBeenCalledWith(502);
+    expect(mocks.persistArtifact).not.toHaveBeenCalled();
+  });
   it("uses exact PDD/Micro PDD/hosting sources and retains planning provenance without a passing gate", async () => {
     const { req, res, response } = request({ ...body(), microPddArtifactId: microId });
     await handleF8CodeDj(req, response);
@@ -72,7 +108,7 @@ describe("integrated F8 conversion contract (offline mocks, no provider calls)",
       sourceMicroPddArtifactId: microId, sourceHostingPlanArtifactId: hostId,
       conversionProtocol: { independentCertification: false },
       implementationPath: { recommendedHost: "cloudflare-pages", advisoryOnly: true },
-      collaboration: { reviewStatus: "MODEL_REVIEW_NOT_INDEPENDENT", dj: [{ requirement: "Reporting", files: ["src/main.tsx"] }] },
+      collaboration: { reviewStatus: "MODEL_REVIEW_NOT_INDEPENDENT", dj: [{ requirement: "Reporting", files: ["src/main.jsx"] }] },
     });
     expect(saved.spartanCert).toBeUndefined();
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ artifactId: "saved-bundle" }));

@@ -18,4 +18,5 @@ export const CodeDjPlatform = {
   'express-replit': 'express-replit',
   'expo-mobile': 'expo-mobile',
   'pnpm-monorepo': 'pnpm-monorepo',
+  'portable-source': 'portable-source',
 } as const;

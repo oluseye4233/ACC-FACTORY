@@ -229,6 +229,7 @@ export * from './f5ScanInput';
 export * from './f5StepOutcome';
 export * from './f8DriftRemediationResult';
 export * from './f8DriftRemediationResultState';
+export * from './f8Language';
 export * from './f8RemediationProgress';
 export * from './f8RemediationProgressAttempt';
 export * from './f8VerificationEvidence';

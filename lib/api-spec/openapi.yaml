@@ -5229,6 +5229,12 @@ components:
         - express-replit
         - expo-mobile
         - pnpm-monorepo
+        - portable-source
+
+    F8Language:
+      type: string
+      enum: [python, javascript, sql, c, cpp, csharp]
+      description: Primary programming language for new F8 output. TypeScript is not supported. Supporting documentation and declarative configuration remain allowed.
 
     CodebaseFile:
       type: object
@@ -5273,6 +5279,7 @@ components:
         sessionId: { type: string, format: uuid }
         mvpPddArtifactId: { type: string, format: uuid }
         platform: { $ref: "#/components/schemas/CodeDjPlatform" }
+        language: { $ref: "#/components/schemas/F8Language" }
         microPddArtifactId: { type: string, format: uuid }
         hostingPlanArtifactId: { type: string, format: uuid }
         artifactClass:
@@ -5814,6 +5821,7 @@ components:
       properties:
         artifactId: { type: string, format: uuid }
         platform: { $ref: "#/components/schemas/CodeDjPlatform" }
+        language: { $ref: "#/components/schemas/F8Language" }
         implementationPath:
           type: object
           required: [platform, recommendedHost, recommendedIde, recommendedVibe, rationale, hostingRationale, requirementTrace, advisoryOnly]
