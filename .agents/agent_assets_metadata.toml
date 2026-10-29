@@ -812,3 +812,17 @@ mtime_ms = 1793237959389
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/88001976-d9d2-40df-9680-a9676be736de/8a8e6eab-4726-45f4-8925-8b209eca65a0"
 storage_version_token = "1793237989525918"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "GLWFZjEfWfRBX6rYk0Aex"
+uri = "file://generated-artifacts/atlas-360-scan-2026-10-28/ATANDA_Command_Centre_ATLAS_360_SCAN_Living_PDD_Updated_2026-10-28.pdf"
+type = "pdf"
+title = "ATANDA — ATLAS 360 SCAN Living PDD"
+description = "Updated 28 October 2026. 34-page PDF including the current-evidence update, four-part PDD, site map, evaluation findings, pending activation requirements and visual evaluation map."
+logical_id = "da76968c-1a1f-4d7d-a747-b2943156b36a"
+content_hash = "sha256:66d3f96d3b209397530a597319886c840fbb1124729a58077d40cecc8558f224"
+size = 303185
+mtime_ms = 1793249622384
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/da76968c-1a1f-4d7d-a747-b2943156b36a/3a2d11b1-024e-49ca-ad48-2b5892222655"
+storage_version_token = "1793249632060229"
+content_type = "application/pdf"
