@@ -135,7 +135,7 @@ describe("IMPRIMA Portal", () => {
     fireEvent.click(screen.getByTestId("button-prepare-publication"));
     await waitFor(() => expect(m.pub).toHaveBeenCalledWith({ data: { sourceId: "ma-1", sourceType: "ARTIFACT", format: "PDF", author: "Ada", rightsConfirmed: true } }));
   });
-  it("requests a code then downloads with challenge and code", async () => {
+  it.each(["", "test-recipient@example.test"])("downloads with the original code and optional test recipient %s", async (recipient) => {
     m.code.mockResolvedValue({ challengeId: "ch-1", expiresAt: "2026-01-01T00:10:00Z" });
     m.dl.mockResolvedValue(new Blob(["x"]));
     URL.createObjectURL = vi.fn(() => "blob:x"); URL.revokeObjectURL = vi.fn();
@@ -143,8 +143,9 @@ describe("IMPRIMA Portal", () => {
     fireEvent.click(screen.getByTestId("button-request-code-pub-1"));
     expect((await screen.findByTestId("text-publication-msg-pub-1")).textContent).toContain("provider accepted");
     fireEvent.change(screen.getByTestId("input-code-pub-1"), { target: { value: "123456" } });
+    if (recipient) fireEvent.change(screen.getByTestId("input-test-copy-pub-1"), { target: { value: recipient } });
     fireEvent.click(screen.getByTestId("button-download-pub-1"));
-    await waitFor(() => expect(m.dl).toHaveBeenCalledWith({ publicationId: "pub-1", data: { challengeId: "ch-1", code: "123456" } }));
+    await waitFor(() => expect(m.dl).toHaveBeenCalledWith({ publicationId: "pub-1", data: { challengeId: "ch-1", code: "123456", ...(recipient ? { testCopyEmail: recipient } : {}) } }));
   });
   it("embeds the intake forms inside the portal", async () => {
     renderAt("/imprima-portal?tab=intake&intake=cartridge&supportCaseId=abc", ImprimaPortal);

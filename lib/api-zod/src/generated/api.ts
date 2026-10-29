@@ -8579,11 +8579,14 @@ export const DownloadPortalPublicationParams = zod.object({
 })
 
 export const downloadPortalPublicationBodyCodeRegExp = new RegExp('^[0-9]{6}$');
+export const downloadPortalPublicationBodyTestCopyEmailMax = 254;
+
 
 
 export const DownloadPortalPublicationBody = zod.object({
   "challengeId": zod.string().uuid(),
-  "code": zod.string().regex(downloadPortalPublicationBodyCodeRegExp)
+  "code": zod.string().regex(downloadPortalPublicationBodyCodeRegExp),
+  "testCopyEmail": zod.string().email().max(downloadPortalPublicationBodyTestCopyEmailMax).optional().describe('Optional owner-authorized attachment copy for this download only. Does not change the subscriber identity or mandatory control recipient.')
 })
 
 export const DownloadPortalPublicationResponse = zod.unknown()

@@ -58,6 +58,7 @@ function PublicationRow({ p, canEmail: globalCanEmail, subscriberEmail, emailBlo
   const dl = useDownloadPortalPublication();
   const [challenge, setChallenge] = useState<{ id: string; expiresAt: string } | null>(null);
   const [code, setCode] = useState("");
+  const [testCopyEmail, setTestCopyEmail] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const ready = p.state === "READY";
 
@@ -74,10 +75,13 @@ function PublicationRow({ p, canEmail: globalCanEmail, subscriberEmail, emailBlo
     if (!challenge) return;
     setMsg(null);
     try {
-      const blob = await dl.mutateAsync({ publicationId: p.id, data: { challengeId: challenge.id, code } });
+      const blob = await dl.mutateAsync({ publicationId: p.id, data: { challengeId: challenge.id, code,
+        ...(testCopyEmail.trim() ? { testCopyEmail: testCopyEmail.trim() } : {}) } });
       saveBlob(blob, p.filename);
       setChallenge(null); setCode("");
-      setMsg({ ok: true, text: "Downloaded. That code is now used; request a new one for another download." });
+      setMsg({ ok: true, text: testCopyEmail.trim()
+        ? "Download issued and the email provider accepted your requested test copy. Inbox delivery is not guaranteed. That code is now used."
+        : "Downloaded. That code is now used; request a new one for another download." });
     } catch (e) { setMsg({ ok: false, text: apiErr(e) }); }
   };
 
@@ -96,6 +100,12 @@ function PublicationRow({ p, canEmail: globalCanEmail, subscriberEmail, emailBlo
         </Button>
         {challenge && (
           <>
+            <label className="space-y-1 text-xs">
+              <span className="block">Email an attachment copy (optional, this download only)</span>
+              <Input type="email" maxLength={254} value={testCopyEmail} onChange={e => setTestCopyEmail(e.target.value)}
+                placeholder="Test recipient email" className="h-8 w-64" data-testid={`input-test-copy-${p.id}`} />
+              <span className="block max-w-sm text-[11px] text-muted-foreground">Sends this publication to the address you enter. Your account email, single-use code and mandatory control copy remain unchanged.</span>
+            </label>
             <Input inputMode="numeric" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="6-digit code" className="h-8 w-32 font-mono" data-testid={`input-code-${p.id}`} />
             <Button size="sm" disabled={code.length !== 6 || dl.isPending} onClick={download} data-testid={`button-download-${p.id}`}>
               {dl.isPending ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Download className="mr-1 h-3 w-3" />} Download

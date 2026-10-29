@@ -3841,6 +3841,11 @@ components:
       properties:
         challengeId: { type: string, format: uuid }
         code: { type: string, pattern: "^[0-9]{6}$" }
+        testCopyEmail:
+          type: string
+          format: email
+          maxLength: 254
+          description: Optional owner-authorized attachment copy for this download only. Does not change the subscriber identity or mandatory control recipient.
     PlatformService:
       type: object
       required: [id, title, scope, stage, implementation, serviceMode, serviceReadiness, subscriberOutcome, limitations, blockedReason, href, sourceEligibility, entitlement, assessmentStatus, deliveryStatus, operationStatus, localAcceptance, productionAcceptance, evidenceCheckedAt, requiredEvidence]

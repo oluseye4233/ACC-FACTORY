@@ -163,8 +163,12 @@ export async function issuePublicationCode(userId: string, publicationId: string
   if (!issued) throw new CreatorError(409, "Publication code issuance was not confirmed.");
   return { challengeId: id, expiresAt: expiresAt.toISOString() };
 }
-export async function redeemPublication(userId: string, publicationId: string, input: { challengeId: string; code: string }) {
+export async function redeemPublication(userId: string, publicationId: string, input: { challengeId: string; code: string; testCopyEmail?: string }) {
   const publication = await ownedPublication(userId, publicationId);
+  const testCopyEmail = input.testCopyEmail?.trim();
+  if (testCopyEmail !== undefined && (testCopyEmail.length > 254 || !/^[^@\s<>\r\n]+@[^@\s<>\r\n]+\.[^@\s<>\r\n]+$/.test(testCopyEmail))) {
+    throw new CreatorError(400, "Enter one valid test-copy email address.");
+  }
   const delivery = await emailTransport({ userId, organizationId: publication.organizationId });
   if (publication.state !== "READY" || !publication.contentHash) throw new CreatorError(409, "Publication is not ready.");
   const hash = publicationCodeHash(input.challengeId, userId, publicationId, input.code);
@@ -184,6 +188,16 @@ export async function redeemPublication(userId: string, publicationId: string, i
       idempotencyKey: `imprima-copy-${input.challengeId}`, attachment: { filename: publication.filename, bytes },
     }, delivery);
     if (!result.ok || result.dryRun) throw new CreatorError(503, "The control copy was not confirmed. No download was issued; request a new code after email service recovery.");
+    if (testCopyEmail) {
+      const copy = await sendPublicationMessage({
+        to: testCopyEmail,
+        subject: `ATANDA.IMPRIMA requested test copy · ${publication.title.slice(0, 150)}`,
+        text: `The publication owner requested this test copy.\nPublication: ${publication.id}\nTitle: ${publication.title}\nAuthor: ${publication.author}\nPublisher: ATANDA\nPublished: ${publication.createdAt.toISOString()}\nSHA-256: ${publication.contentHash}\nThe attachment contains the exact published bytes. This message does not change account ownership, subscription or publication-code delivery.`,
+        idempotencyKey: `imprima-test-copy-${input.challengeId}`,
+        attachment: { filename: publication.filename, bytes },
+      }, delivery);
+      if (!copy.ok || copy.dryRun) throw new CreatorError(503, "The test copy was not confirmed. No download was issued. The control copy may already have been accepted; request a new code before trying again.");
+    }
     const [consumed] = await db.update(challenges).set({ state: "CONSUMED", downloadIssuedAt: new Date(), controlMessageId: result.id })
       .where(and(eq(challenges.id, claimed.id), eq(challenges.state, "CLAIMED"))).returning({ id: challenges.id });
     if (!consumed) throw new CreatorError(409, "Publication authorization changed. No download was issued.");

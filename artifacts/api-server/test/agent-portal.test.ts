@@ -157,6 +157,29 @@ describe("IMPRIMA protected publication (mocked email/storage, real development 
     expect(challenge!.state).toBe("CONSUMED");
     expect(challenge!.codeHash).not.toBe(grant.code);
   });
+  it("sends an owner-requested test copy without replacing the control recipient or profile email", async () => {
+    const publication = await prepare(), grant = await issued(publication.id);
+    const output = await redeemPublication(userId, publication.id, { ...grant, testCopyEmail: "test-recipient@example.test" });
+    const attachments = mocks.email.mock.calls.map(([args]) => args).filter(args => args.attachment);
+    expect(attachments).toHaveLength(2);
+    expect(attachments[0].to).toBe(process.env.IMPRIMA_CONTROL_EMAIL ?? "atanda.projects@gmail.com");
+    expect(attachments[1].to).toBe("test-recipient@example.test");
+    expect(attachments.every(args => args.attachment.bytes.equals(output.bytes))).toBe(true);
+    await expect(redeemPublication(userId, publication.id, { ...grant, testCopyEmail: "another@example.test" })).rejects.toMatchObject({ status: 403 });
+    expect(mocks.email).toHaveBeenCalledTimes(3);
+  });
+  it("rejects invalid copy recipients and foreign owners before sending", async () => {
+    const publication = await prepare(), grant = await issued(publication.id);
+    await expect(redeemPublication(userId, publication.id, { ...grant, testCopyEmail: "a@example.test\r\nBcc: other@example.test" })).rejects.toMatchObject({ status: 400 });
+    await expect(redeemPublication(randomUUID(), publication.id, { ...grant, testCopyEmail: "test@example.test" })).rejects.toMatchObject({ status: 404 });
+    expect(mocks.email).toHaveBeenCalledOnce();
+  });
+  it("fails closed when the requested test-copy provider rejects delivery", async () => {
+    const publication = await prepare(), grant = await issued(publication.id);
+    mocks.email.mockResolvedValueOnce({ ok: true, id: "control" }).mockResolvedValueOnce({ ok: false });
+    await expect(redeemPublication(userId, publication.id, { ...grant, testCopyEmail: "test@example.test" })).rejects.toMatchObject({ status: 503 });
+    await expect(redeemPublication(userId, publication.id, grant)).rejects.toMatchObject({ status: 403 });
+  });
   it("locks after five wrong attempts and never sends a control copy", async () => {
     const publication = await prepare(), grant = await issued(publication.id);
     const wrong = grant.code === "000000" ? "111111" : "000000";

@@ -10,4 +10,9 @@ export interface PublicationRedemption {
   challengeId: string;
   /** @pattern ^[0-9]{6}$ */
   code: string;
+  /**
+     * Optional owner-authorized attachment copy for this download only. Does not change the subscriber identity or mandatory control recipient.
+     * @maxLength 254
+     */
+  testCopyEmail?: string;
 }
