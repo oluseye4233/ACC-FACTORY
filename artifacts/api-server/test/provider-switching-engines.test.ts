@@ -29,6 +29,7 @@ import { handleF8CodeDj } from "../src/engines/f8codedj";
 import { handleEvolve } from "../src/engines/de";
 import { rateLimit } from "../src/lib/tier";
 import { IS_RECORD } from "./llm-cache";
+import { F8_MEAL_PLANNER_CONTRACT } from "./fixtures/f8-meal-planner-contract";
 
 const PROVIDER_ENV: Record<LlmProvider, readonly string[]> = {
   claude: ["AI_INTEGRATIONS_ANTHROPIC_BASE_URL", "AI_INTEGRATIONS_ANTHROPIC_API_KEY"],
@@ -297,14 +298,7 @@ const SAMPLE_MA_BIRTH_PACKAGE_B = {
   escalated: false,
 };
 
-const SAMPLE_MVP_PDD = {
-  sections: [
-    { key: "objective", title: "Objective", body: "Plan a week of dinners on a $120 budget." },
-    { key: "io", title: "I/O contract", body: "Input: budget, family size. Output: days[], shoppingList[]." },
-    { key: "success", title: "Success criteria", body: "Total cost ≤ budget; 7 distinct meals." },
-  ],
-  donut: { a: 6, b: 2, c: 1 },
-};
+const SAMPLE_MVP_PDD = F8_MEAL_PLANNER_CONTRACT;
 
 const SAMPLE_SPARTAN_CERT = {
   certId: "SPARTAN-20260101-TEST0001",
