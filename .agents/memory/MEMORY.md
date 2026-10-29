@@ -69,3 +69,4 @@
 - [Streaming test lifecycle](streaming-test-lifecycle.md) — SSE progress can precede provider invocation; synchronize generation, disconnect and durable persistence before cleanup.
 - [IMPRIMA Portal scope](imprima-portal-scope.md) — centralized subscriber-coded publication, ATANDA.IMPRIMA timestamps, accountable authorship and automatic control-email copies.
 - [Agent Creator scope](agent-creator-scope.md) — replace Short Sprints for new subscribers with governed MA/SPC agent creation and F10–F12 fast-track; preserve sprint history.
+- [Managed LLM routing](managed-llm-routing.md) — DeepSeek, Kimi and Qwen use Replit-managed OpenRouter by user choice; its provisioned internal proxy may use HTTP.

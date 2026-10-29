@@ -9,24 +9,6 @@ import {
 
 const PROVIDERS = [
   {
-    provider: "deepseek" as const,
-    apiKeyEnv: "DEEPSEEK_API_KEY",
-    baseUrlEnv: "DEEPSEEK_BASE_URL",
-    defaultBaseUrl: "https://api.deepseek.com",
-  },
-  {
-    provider: "kimi" as const,
-    apiKeyEnv: "MOONSHOT_API_KEY",
-    baseUrlEnv: "MOONSHOT_BASE_URL",
-    defaultBaseUrl: "https://api.moonshot.ai/v1",
-  },
-  {
-    provider: "qwen" as const,
-    apiKeyEnv: "DASHSCOPE_API_KEY",
-    baseUrlEnv: "DASHSCOPE_BASE_URL",
-    defaultBaseUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
-  },
-  {
     provider: "glm" as const,
     apiKeyEnv: "ZHIPU_API_KEY",
     baseUrlEnv: "ZHIPU_BASE_URL",
@@ -61,10 +43,7 @@ describe("OpenAI-compatible HARNESS providers", () => {
   for (const config of PROVIDERS) {
     test(`${config.provider} sends JSON-mode chat requests`, async () => {
       process.env[config.apiKeyEnv] = `test-key-${config.provider}`;
-      const overrideBaseUrl =
-        config.provider === "qwen"
-          ? "https://workspace.example/compatible-mode/v1/"
-          : undefined;
+      const overrideBaseUrl = "https://workspace.example/compatible-mode/v1/";
       if (overrideBaseUrl) process.env[config.baseUrlEnv] = overrideBaseUrl;
 
       const fetchMock = vi.fn().mockResolvedValue(

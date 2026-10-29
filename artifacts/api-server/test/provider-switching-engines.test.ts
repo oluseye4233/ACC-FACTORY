@@ -35,12 +35,14 @@ const PROVIDER_ENV: Record<LlmProvider, readonly string[]> = {
   claude: ["AI_INTEGRATIONS_ANTHROPIC_BASE_URL", "AI_INTEGRATIONS_ANTHROPIC_API_KEY"],
   openai: ["AI_INTEGRATIONS_OPENAI_BASE_URL", "AI_INTEGRATIONS_OPENAI_API_KEY"],
   gemini: ["AI_INTEGRATIONS_GEMINI_BASE_URL", "AI_INTEGRATIONS_GEMINI_API_KEY"],
-  deepseek: ["DEEPSEEK_API_KEY"],
-  kimi: ["MOONSHOT_API_KEY"],
-  qwen: ["DASHSCOPE_API_KEY"],
+  deepseek: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
+  kimi: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
+  qwen: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
   glm: ["ZHIPU_API_KEY"],
 };
 
+// These transports do not yet have replay-backed generation fixtures. Never
+// contact them during offline tests, even when managed credentials are present.
 const DIRECT_API_PROVIDERS = new Set<LlmProvider>(["deepseek", "kimi", "qwen", "glm"]);
 
 function providerConfigured(p: LlmProvider): boolean {

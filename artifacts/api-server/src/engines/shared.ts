@@ -4,6 +4,7 @@ import { nextBoomerangUpgrade } from "../lib/boomerang-upgrades";
 import { learningCallContext } from "../lib/learning-access";
 import { z } from "zod/v4";
 import { randomUUID } from "node:crypto";
+import OpenAI from "openai";
 import {
   db,
   harnessSessionsTable,
@@ -33,6 +34,7 @@ import type { Request, Response } from "express";
 import {
   computeCostUsd,
   computeWorstCaseReservationUsd,
+  MODEL_PRICING,
 } from "../lib/pricing";
 import { logger } from "../lib/logger";
 import type { Scorecard } from "../lib/scorecards";
@@ -407,8 +409,8 @@ type LlmCallResult = {
 };
 
 class ProviderUsageUnavailableError extends Error {
-  constructor(label: string) {
-    super(`Provider response did not include a valid ${label} token count.`);
+  constructor(label: string, message?: string) {
+    super(message ?? `Provider response did not include a valid ${label} token count.`);
     this.name = "ProviderUsageUnavailableError";
   }
 }
@@ -556,27 +558,75 @@ async function callGeminiImpl(
   };
 }
 
-type OpenAICompatibleProvider = "deepseek" | "kimi" | "qwen" | "glm";
+type OpenAICompatibleProvider = "glm";
+
+/** Managed routing is explicit: never silently fall back to direct vendor keys. */
+async function callOpenRouterImpl(
+  provider: "deepseek" | "kimi" | "qwen",
+  systemPrompt: string,
+  userPrompt: string,
+  jsonMode: boolean,
+): Promise<LlmCallResult> {
+  const baseURL = process.env.AI_INTEGRATIONS_OPENROUTER_BASE_URL;
+  const apiKey = process.env.AI_INTEGRATIONS_OPENROUTER_API_KEY;
+  if (!baseURL || !apiKey) {
+    throw new ProviderNotConfiguredError(provider,
+      "Provision Replit AI Integrations for OpenRouter to use this provider.");
+  }
+  // Replit provisions an internal HTTP proxy. Trust only this server-side
+  // managed setting (never a request-supplied endpoint), as its SDK template does.
+  if (!["http:", "https:"].includes(new URL(baseURL).protocol)) {
+    throw new Error("OpenRouter managed API base URL must use HTTP or HTTPS.");
+  }
+  // No automatic SDK retries: an uncertain paid result must not be redispatched.
+  const client = new OpenAI({ baseURL, apiKey, maxRetries: 0, timeout: 110_000 });
+  const modelId = PROVIDER_MODELS[provider];
+  const pricing = MODEL_PRICING[modelId]!;
+  const inputBound = Buffer.byteLength(systemPrompt, "utf8") +
+    Buffer.byteLength(userPrompt, "utf8") + 256;
+  const rates = pricing.inputTiers?.find(tier => inputBound <= tier.maxInputTokens)?.rates ?? pricing;
+  const response = await client.chat.completions.create({
+    model: modelId,
+    max_tokens: MAX_TOKENS,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    ...(jsonMode ? { response_format: { type: "json_object" as const } } : {}),
+    // Require requested capabilities and refuse endpoints above the reserved
+    // rate ceiling. SDK keeps OpenRouter's extension fields on the wire.
+    ...{ provider: {
+      require_parameters: true,
+      max_price: {
+        prompt: rates.inputPerMTok,
+        completion: rates.outputPerMTok,
+      },
+    } },
+  });
+  if (response.model !== modelId) {
+    throw new ProviderUsageUnavailableError("usage", "OpenRouter returned an unexpected model identity.");
+  }
+  const choice = response.choices[0];
+  if (choice?.finish_reason !== "stop" || !choice.message.content) {
+    throw new ProviderUsageUnavailableError("usage",
+      `OpenRouter did not return a complete text result (${choice?.finish_reason ?? "missing choice"}).`,
+    );
+  }
+  return {
+    text: choice.message.content,
+    modelId,
+    inputTokens: requiredTokenCount("input", response.usage?.prompt_tokens),
+    outputTokens: requiredTokenCount("output", response.usage?.completion_tokens),
+    // Catalog cache rates vary by endpoint. Retain the uncached estimate until
+    // billing reconciliation rather than assuming an unverified cache discount.
+    cachedInputTokens: 0,
+  };
+}
 
 const OPENAI_COMPATIBLE_PROVIDER_CONFIG: Record<
   OpenAICompatibleProvider,
   { apiKeyEnv: string; baseUrlEnv: string; defaultBaseUrl: string }
 > = {
-  deepseek: {
-    apiKeyEnv: "DEEPSEEK_API_KEY",
-    baseUrlEnv: "DEEPSEEK_BASE_URL",
-    defaultBaseUrl: "https://api.deepseek.com",
-  },
-  kimi: {
-    apiKeyEnv: "MOONSHOT_API_KEY",
-    baseUrlEnv: "MOONSHOT_BASE_URL",
-    defaultBaseUrl: "https://api.moonshot.ai/v1",
-  },
-  qwen: {
-    apiKeyEnv: "DASHSCOPE_API_KEY",
-    baseUrlEnv: "DASHSCOPE_BASE_URL",
-    defaultBaseUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
-  },
   glm: {
     apiKeyEnv: "ZHIPU_API_KEY",
     baseUrlEnv: "ZHIPU_BASE_URL",
@@ -743,6 +793,8 @@ export async function callLlm(
         case "deepseek":
         case "kimi":
         case "qwen":
+          result = await callOpenRouterImpl(provider, finalSystem, userPrompt, jsonMode);
+          break;
         case "glm":
           result = await callOpenAICompatibleImpl(
             provider,

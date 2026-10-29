@@ -29,6 +29,12 @@ const pricingSnapshots = JSON.parse(
 ) as ProviderPricingSnapshotManifest;
 
 describe("provider token pricing", () => {
+  it("prices managed model identities separately from historical direct calls", () => {
+    expect(computeCostUsd(PROVIDER_MODELS.deepseek, 1_000_000, 1_000_000)).toBeCloseTo(0.545);
+    expect(computeCostUsd(PROVIDER_MODELS.kimi, 1_000_000, 1_000_000)).toBeCloseTo(11.039);
+    expect(computeCostUsd(PROVIDER_MODELS.qwen, 255_999, 0)).toBeCloseTo(0.08191968);
+    expect(computeCostUsd(PROVIDER_MODELS.qwen, 256_000, 0)).toBeCloseTo(0.24576);
+  });
   it("has a reviewed official source and valid rates for every default model", () => {
     for (const [provider, modelId] of Object.entries(PROVIDER_MODELS)) {
       const pricing = MODEL_PRICING[modelId];
@@ -48,7 +54,7 @@ describe("provider token pricing", () => {
       for (const sourceUrl of pricing.sourceUrls) {
         expect(sourceUrl, `${modelId} source URL`).toMatch(/^https:\/\//);
         const monitoredSource = pricingSnapshots.sources.find(
-          (source) => source.url === sourceUrl,
+          (source) => source.url === sourceUrl && source.provider === provider,
         );
         expect(
           monitoredSource,

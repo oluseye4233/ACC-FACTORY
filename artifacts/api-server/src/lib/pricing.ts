@@ -25,6 +25,28 @@ export type ModelPricing = UnitRates & {
 //   ceiling below is also checked against the international GLM-5.3 listing:
 //   https://www.alibabacloud.com/help/en/model-studio/glm-5-3-by-zhipu
 export const MODEL_PRICING: Record<string, ModelPricing> = {
+  // Managed OpenRouter routes use namespaced IDs so historical direct-vendor
+  // charges remain distinct. Reviewed from its public catalog on 2026-10-29.
+  "deepseek/deepseek-v4.1-flash": {
+    inputPerMTok: 0.045, cachedInputPerMTok: 0.006, outputPerMTok: 0.5,
+    sourceUrls: ["https://openrouter.ai/api/v1/models"], reviewedOn: "2026-10-29",
+  },
+  "moonshotai/kimi-k3": {
+    inputPerMTok: 0.239, cachedInputPerMTok: 0.21, outputPerMTok: 10.8,
+    sourceUrls: ["https://openrouter.ai/api/v1/models"], reviewedOn: "2026-10-29",
+  },
+  "qwen/qwen3.7-plus": {
+    inputPerMTok: 0.32, cachedInputPerMTok: 0.064, outputPerMTok: 1.28,
+    sourceUrls: ["https://openrouter.ai/api/v1/models"], reviewedOn: "2026-10-29",
+    inputTiers: [
+      { maxInputTokens: 255_999, rates: {
+        inputPerMTok: 0.32, cachedInputPerMTok: 0.064, outputPerMTok: 1.28,
+      } },
+      { maxInputTokens: Number.POSITIVE_INFINITY, rates: {
+        inputPerMTok: 0.96, cachedInputPerMTok: 0.192, outputPerMTok: 3.84,
+      } },
+    ],
+  },
   "claude-sonnet-4-6": {
     inputPerMTok: 3,
     outputPerMTok: 15,

@@ -2,6 +2,56 @@
   "version": 2,
   "sources": [
     {
+      "id": "openrouter-deepseek",
+      "provider": "deepseek",
+      "url": "https://openrouter.ai/api/v1/models",
+      "modelIds": ["deepseek/deepseek-v4.1-flash"],
+      "observedModelIds": ["deepseek/deepseek-v4.1-flash"],
+      "rates": {
+        "deepseek/deepseek-v4.1-flash": {
+          "currency": "USD", "inputPerMTok": 0.045,
+          "outputPerMTok": 0.5, "cachedInputPerMTok": 0.006
+        }
+      },
+      "sha256": "6e8b4ed69d8f9d84d87398324bca9b28f65e25ed27630ea0138f6e1374490f91",
+      "reviewedOn": "2026-10-29"
+    },
+    {
+      "id": "openrouter-kimi",
+      "provider": "kimi",
+      "url": "https://openrouter.ai/api/v1/models",
+      "modelIds": ["moonshotai/kimi-k3"],
+      "observedModelIds": ["moonshotai/kimi-k3"],
+      "rates": {
+        "moonshotai/kimi-k3": {
+          "currency": "USD", "inputPerMTok": 0.239,
+          "outputPerMTok": 10.8, "cachedInputPerMTok": 0.21
+        }
+      },
+      "sha256": "6e8b4ed69d8f9d84d87398324bca9b28f65e25ed27630ea0138f6e1374490f91",
+      "reviewedOn": "2026-10-29"
+    },
+    {
+      "id": "openrouter-qwen",
+      "provider": "qwen",
+      "url": "https://openrouter.ai/api/v1/models",
+      "modelIds": ["qwen/qwen3.7-plus"],
+      "observedModelIds": ["qwen/qwen3.7-plus"],
+      "rates": {
+        "qwen/qwen3.7-plus": {
+          "currency": "USD", "inputPerMTok": 0.32,
+          "outputPerMTok": 1.28, "cachedInputPerMTok": 0.064,
+          "overrides": [{
+            "min_prompt_tokens": 256000,
+            "prompt": "0.00000096", "completion": "0.00000384",
+            "input_cache_read": "0.000000192", "input_cache_write": "0.0000012"
+          }]
+        }
+      },
+      "sha256": "6e8b4ed69d8f9d84d87398324bca9b28f65e25ed27630ea0138f6e1374490f91",
+      "reviewedOn": "2026-10-29"
+    },
+    {
       "id": "anthropic",
       "provider": "claude",
       "url": "https://docs.anthropic.com/en/docs/about-claude/pricing",

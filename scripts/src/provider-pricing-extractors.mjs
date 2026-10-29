@@ -546,6 +546,31 @@ function extractGlmInternational(document, source) {
 
 export function extractProviderRates(source, document) {
   const result = (() => {
+    if (source.id.startsWith("openrouter-")) {
+      const catalog = JSON.parse(document);
+      if (!Array.isArray(catalog.data)) throw new Error("Invalid OpenRouter model catalog");
+      const rates = {};
+      for (const model of catalog.data) {
+        if (!source.modelIds.includes(model.id)) continue;
+        const perMillion = (value) => {
+          const amount = Number(value) * 1_000_000;
+          if (value === undefined || !Number.isFinite(amount) || amount < 0) {
+            throw new Error(`Invalid OpenRouter rate for ${model.id}`);
+          }
+          return Number(amount.toPrecision(12));
+        };
+        rates[model.id] = {
+          currency: "USD",
+          inputPerMTok: perMillion(model.pricing?.prompt),
+          outputPerMTok: perMillion(model.pricing?.completion),
+          ...(model.pricing?.input_cache_read === undefined ? {} : {
+            cachedInputPerMTok: perMillion(model.pricing.input_cache_read),
+          }),
+          ...(model.pricing?.overrides ? { overrides: model.pricing.overrides } : {}),
+        };
+      }
+      return rates;
+    }
     switch (source.id) {
       case "anthropic":
         return extractAnthropic(document, source);
