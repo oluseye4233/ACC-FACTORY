@@ -826,3 +826,17 @@ mtime_ms = 1793249622384
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/da76968c-1a1f-4d7d-a747-b2943156b36a/3a2d11b1-024e-49ca-ad48-2b5892222655"
 storage_version_token = "1793249632060229"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "MJDtpiRfx5ARwN9V71SUJ"
+uri = "file://generated-artifacts/synthesia-stage-scripts/ATANDA_ARK_Synthesia_F_Process_Scripts_2026-10-29.pdf"
+type = "pdf"
+title = "ATANDA ARK — Synthesia F-Process Scripts"
+description = "16-page PDF containing all 28 installed default scripts: an explainer and narrated worked example for every stage from F0 to F12, including F9.5, with a stage index and production instructions."
+logical_id = "6ecd2a2b-3c29-422b-962a-d0b93f3cb424"
+content_hash = "sha256:473336fdc3ec1d9e08e6b898f22e39e6a84d8fd28d838b651c9da4dd29ad1151"
+size = 32027
+mtime_ms = 1793253042628
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/6ecd2a2b-3c29-422b-962a-d0b93f3cb424/12d9f348-588c-48b3-bd4a-37796f449557"
+storage_version_token = "1793253049152405"
+content_type = "application/pdf"
