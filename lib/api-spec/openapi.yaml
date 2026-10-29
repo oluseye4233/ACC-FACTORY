@@ -26,6 +26,28 @@ tags:
   - name: magnet
 
 paths:
+  /llm/recommendation:
+    get:
+      operationId: getLlmRecommendation
+      tags: [harness]
+      summary: Suggest a configured model without changing preferences or generating content
+      parameters:
+        - in: query
+          name: featureId
+          schema: { type: integer, minimum: 0, maximum: 12 }
+        - in: query
+          name: complexity
+          schema: { type: string, enum: [auto, simple, standard, complex], default: auto }
+      responses:
+        "200":
+          description: Advisory stage-based model recommendation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LlmRecommendation" }
+        "400":
+          description: Invalid stage or complexity
+        "401":
+          description: Sign-in required
   /stage-guides:
     get:
       operationId: getStageGuides
@@ -6191,6 +6213,30 @@ components:
             additionalProperties: true
         engineRunCount: { type: integer }
 
+    LlmRecommendationCandidate:
+      type: object
+      required: [provider, modelId, estimatedCostUsd, profile]
+      properties:
+        provider: { $ref: "#/components/schemas/LlmProvider" }
+        modelId: { type: string }
+        estimatedCostUsd: { type: number, minimum: 0 }
+        profile: { type: string, enum: [simple, standard, complex] }
+    LlmRecommendation:
+      type: object
+      required: [recommended, complexity, candidates, reason, estimatedInputTokens, estimatedOutputTokens, disclaimer]
+      properties:
+        recommended:
+          anyOf:
+            - { $ref: "#/components/schemas/LlmRecommendationCandidate" }
+            - { type: "null" }
+        complexity: { type: string, enum: [simple, standard, complex] }
+        candidates:
+          type: array
+          items: { $ref: "#/components/schemas/LlmRecommendationCandidate" }
+        reason: { type: string }
+        estimatedInputTokens: { type: integer }
+        estimatedOutputTokens: { type: integer }
+        disclaimer: { type: string }
     LlmProvider:
       type: string
       enum: [claude, openai, gemini, deepseek, kimi, qwen, glm]

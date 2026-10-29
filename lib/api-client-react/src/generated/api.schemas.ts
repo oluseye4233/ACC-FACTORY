@@ -3896,6 +3896,42 @@ export interface MyDataExport {
   engineRunCount: number;
 }
 
+export type LlmRecommendationCandidateProfile = typeof LlmRecommendationCandidateProfile[keyof typeof LlmRecommendationCandidateProfile];
+
+
+export const LlmRecommendationCandidateProfile = {
+  simple: 'simple',
+  standard: 'standard',
+  complex: 'complex',
+} as const;
+
+export interface LlmRecommendationCandidate {
+  provider: LlmProvider;
+  modelId: string;
+  /** @minimum 0 */
+  estimatedCostUsd: number;
+  profile: LlmRecommendationCandidateProfile;
+}
+
+export type LlmRecommendationComplexity = typeof LlmRecommendationComplexity[keyof typeof LlmRecommendationComplexity];
+
+
+export const LlmRecommendationComplexity = {
+  simple: 'simple',
+  standard: 'standard',
+  complex: 'complex',
+} as const;
+
+export interface LlmRecommendation {
+  recommended: LlmRecommendationCandidate | null;
+  complexity: LlmRecommendationComplexity;
+  candidates: LlmRecommendationCandidate[];
+  reason: string;
+  estimatedInputTokens: number;
+  estimatedOutputTokens: number;
+  disclaimer: string;
+}
+
 export type HarnessSessionOrigin = typeof HarnessSessionOrigin[keyof typeof HarnessSessionOrigin];
 
 
@@ -6567,6 +6603,25 @@ export type NotFoundResponse = ErrorResponse;
  * Rate limit exceeded
  */
 export type RateLimitedResponse = ErrorResponse;
+
+export type GetLlmRecommendationParams = {
+/**
+ * @minimum 0
+ * @maximum 12
+ */
+featureId?: number;
+complexity?: GetLlmRecommendationComplexity;
+};
+
+export type GetLlmRecommendationComplexity = typeof GetLlmRecommendationComplexity[keyof typeof GetLlmRecommendationComplexity];
+
+
+export const GetLlmRecommendationComplexity = {
+  auto: 'auto',
+  simple: 'simple',
+  standard: 'standard',
+  complex: 'complex',
+} as const;
 
 export type GetStageGuidesParams = {
 stageKey?: string;

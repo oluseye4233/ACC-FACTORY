@@ -278,6 +278,7 @@ export function F3BuildMa({ sessionId, artifacts }: Props) {
               className="flex-1 font-mono text-xs bg-background/50 min-w-[200px]"
             />
             <ProviderOverride
+              featureId={3}
               value={providerOverride}
               onChange={setProviderOverride}
               disabled={running}

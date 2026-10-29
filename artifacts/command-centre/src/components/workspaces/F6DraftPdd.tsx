@@ -218,6 +218,7 @@ export function F6DraftPdd({ sessionId, sessionOrigin, artifacts }: Props) {
               <ColonizationTargetSelect value={colonizationTarget} onChange={setColonizationTarget} disabled={drafting} testId="f6-colonization-target" />
             </div>
             <ProviderOverride
+              featureId={6}
               value={providerOverride}
               onChange={setProviderOverride}
               disabled={drafting}

@@ -600,6 +600,7 @@ export function F8CodeDj({ sessionId, artifacts, onComplete }: Props) {
 
           <div className="flex items-center justify-end gap-2 mt-3">
             <ProviderOverride
+              featureId={8}
               value={providerOverride}
               onChange={setProviderOverride}
               disabled={remediating || mutation.isPending}

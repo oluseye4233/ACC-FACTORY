@@ -2,6 +2,7 @@ import {
   useGetMe,
   type LlmProvider,
 } from "@workspace/api-client-react";
+import { ModelRecommendation } from "./ModelRecommendation";
 import {
   Select,
   SelectContent,
@@ -42,16 +43,19 @@ export function ProviderOverride({
   onChange,
   disabled,
   testId,
+  featureId,
 }: {
   value: OverrideValue;
   onChange: (v: OverrideValue) => void;
   disabled?: boolean;
   testId?: string;
+  featureId?: number;
 }) {
   const { data: me } = useGetMe();
   const isExplorer = (me?.subscriber?.tier ?? "EXPLORER") === "EXPLORER";
 
   return (
+    <div className="flex items-center gap-1">
     <Select
       value={value}
       onValueChange={(v) => onChange(v as OverrideValue)}
@@ -97,6 +101,10 @@ export function ProviderOverride({
         </SelectItem>
       </SelectContent>
     </Select>
+    <ModelRecommendation featureId={featureId}
+      currentProvider={value === "session" ? undefined : value}
+      onApply={onChange} disabled={disabled} />
+    </div>
   );
 }
 

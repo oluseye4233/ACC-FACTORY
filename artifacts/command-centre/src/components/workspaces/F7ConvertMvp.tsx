@@ -202,6 +202,7 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
             <ColonizationTargetSelect value={colonizationTarget} onChange={setTargetOverride} disabled={running} testId="f7-colonization-target" />
             <div className="flex items-end gap-2">
               <ProviderOverride
+                featureId={7}
                 value={providerOverride}
                 onChange={setProviderOverride}
               />

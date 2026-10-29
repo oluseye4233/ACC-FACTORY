@@ -8,6 +8,46 @@
 import * as zod from 'zod';
 
 
+/**
+ * @summary Suggest a configured model without changing preferences or generating content
+ */
+export const getLlmRecommendationQueryFeatureIdMin = 0;
+export const getLlmRecommendationQueryFeatureIdMax = 12;
+
+export const getLlmRecommendationQueryComplexityDefault = `auto`;
+
+export const GetLlmRecommendationQueryParams = zod.object({
+  "featureId": zod.coerce.number().int().min(getLlmRecommendationQueryFeatureIdMin).max(getLlmRecommendationQueryFeatureIdMax).optional(),
+  "complexity": zod.enum(['auto', 'simple', 'standard', 'complex']).default(getLlmRecommendationQueryComplexityDefault)
+})
+
+export const getLlmRecommendationResponseRecommendedOneEstimatedCostUsdMin = 0;
+
+export const getLlmRecommendationResponseCandidatesItemEstimatedCostUsdMin = 0;
+
+
+
+export const GetLlmRecommendationResponse = zod.object({
+  "recommended": zod.union([zod.object({
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n'),
+  "modelId": zod.string(),
+  "estimatedCostUsd": zod.number().min(getLlmRecommendationResponseRecommendedOneEstimatedCostUsdMin),
+  "profile": zod.enum(['simple', 'standard', 'complex'])
+}),zod.null()]),
+  "complexity": zod.enum(['simple', 'standard', 'complex']),
+  "candidates": zod.array(zod.object({
+  "provider": zod.enum(['claude', 'openai', 'gemini', 'deepseek', 'kimi', 'qwen', 'glm']).describe('LLM provider for HARNESS engine calls. Defaults to `claude`. Providers\nother than Claude require PRACTITIONER tier or higher.\n'),
+  "modelId": zod.string(),
+  "estimatedCostUsd": zod.number().min(getLlmRecommendationResponseCandidatesItemEstimatedCostUsdMin),
+  "profile": zod.enum(['simple', 'standard', 'complex'])
+})),
+  "reason": zod.string(),
+  "estimatedInputTokens": zod.number().int(),
+  "estimatedOutputTokens": zod.number().int(),
+  "disclaimer": zod.string()
+})
+
+
 export const GetStageGuidesQueryParams = zod.object({
   "stageKey": zod.coerce.string().optional()
 })

@@ -172,7 +172,7 @@ export function MathmonLayer({ sessionId, artifacts }: Props) {
               </div>
             </div>
             <div className="flex items-end gap-2">
-              <ProviderOverride value={providerOverride} onChange={setProviderOverride} />
+              <ProviderOverride featureId={7} value={providerOverride} onChange={setProviderOverride} />
               <Button
                 data-testid="mathmon-f05"
                 onClick={runIntake}

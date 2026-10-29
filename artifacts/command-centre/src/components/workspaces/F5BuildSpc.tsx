@@ -275,6 +275,7 @@ export function F5BuildSpc({ sessionId, artifacts }: Props) {
             </h4>
             <div className="flex gap-2">
               <ProviderOverride
+                featureId={5}
                 value={providerOverride}
                 onChange={setProviderOverride}
                 disabled={busy}

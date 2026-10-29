@@ -281,6 +281,8 @@ export default function SessionDetail() {
             <ProviderSelector
               sessionId={session.id}
               value={session.preferredModelProvider}
+              featureId={activeEngineId}
+              readOnly={!isSessionOwner}
             />
           )}
           {session && (

@@ -175,6 +175,7 @@ export function F2BuildAtomic({ sessionId, artifacts }: Props) {
           {error && <ErrorBanner message={error} />}
           <div className="flex items-center gap-2">
             <ProviderOverride
+              featureId={2}
               value={providerOverride}
               onChange={setProviderOverride}
               disabled={m.isPending}

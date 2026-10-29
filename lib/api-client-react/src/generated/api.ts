@@ -157,6 +157,7 @@ import type {
   GetEmailDeliverySettingsParams,
   GetF8RemediationProgressParams,
   GetImprimaPortalParams,
+  GetLlmRecommendationParams,
   GetShortSprintPreflightParams,
   GetSphinxCatalog200,
   GetStageGuidesParams,
@@ -203,6 +204,7 @@ import type {
   ListBoomerangCasesParams,
   ListHarnessF9RunsParams,
   ListMyPromptsParams,
+  LlmRecommendation,
   MagnetCalculatorInput,
   MagnetCalculatorResult,
   MagnetConversionInput,
@@ -310,6 +312,114 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetLlmRecommendationUrl = (params?: GetLlmRecommendationParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/llm/recommendation?${stringifiedParams}` : `/api/llm/recommendation`
+}
+
+/**
+ * @summary Suggest a configured model without changing preferences or generating content
+ */
+export const getLlmRecommendation = async (params?: GetLlmRecommendationParams, options?: Parameters<typeof customFetch>[1]): Promise<LlmRecommendation> => {
+
+  return customFetch<LlmRecommendation>(getGetLlmRecommendationUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLlmRecommendationQueryKey = (params?: GetLlmRecommendationParams,) => {
+    return [
+    `/api/llm/recommendation`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLlmRecommendationQueryOptions = <TData = Awaited<ReturnType<typeof getLlmRecommendation>>, TError = ErrorType<void>>(params?: GetLlmRecommendationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLlmRecommendation>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLlmRecommendationQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLlmRecommendation>>> = ({ signal }) => getLlmRecommendation(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLlmRecommendation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLlmRecommendationQueryResult = NonNullable<Awaited<ReturnType<typeof getLlmRecommendation>>>
+export type GetLlmRecommendationQueryError = ErrorType<void>
+
+
+export function useGetLlmRecommendation<TData = Awaited<ReturnType<typeof getLlmRecommendation>>, TError = ErrorType<void>>(
+ params: undefined |  GetLlmRecommendationParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLlmRecommendation>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLlmRecommendation>>,
+          TError,
+          Awaited<ReturnType<typeof getLlmRecommendation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLlmRecommendation<TData = Awaited<ReturnType<typeof getLlmRecommendation>>, TError = ErrorType<void>>(
+ params?: GetLlmRecommendationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLlmRecommendation>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLlmRecommendation>>,
+          TError,
+          Awaited<ReturnType<typeof getLlmRecommendation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLlmRecommendation<TData = Awaited<ReturnType<typeof getLlmRecommendation>>, TError = ErrorType<void>>(
+ params?: GetLlmRecommendationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLlmRecommendation>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Suggest a configured model without changing preferences or generating content
+ */
+
+export function useGetLlmRecommendation<TData = Awaited<ReturnType<typeof getLlmRecommendation>>, TError = ErrorType<void>>(
+ params?: GetLlmRecommendationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLlmRecommendation>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLlmRecommendationQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetStageGuidesUrl = (params?: GetStageGuidesParams,) => {
   const normalizedParams = new URLSearchParams();

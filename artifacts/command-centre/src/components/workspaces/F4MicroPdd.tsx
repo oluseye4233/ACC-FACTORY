@@ -138,6 +138,7 @@ export function F4MicroPdd({ sessionId, artifacts }: Props) {
             </div>
             <div className="flex items-center gap-2">
               <ProviderOverride
+                featureId={4}
                 value={providerOverride}
                 onChange={setProviderOverride}
                 disabled={m.isPending}

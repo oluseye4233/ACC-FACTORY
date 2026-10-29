@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ModelRecommendation } from "./ModelRecommendation";
 import {
   useUpdateSession,
   useGetMe,
@@ -27,9 +28,13 @@ const PROVIDER_LABELS: Record<LlmProvider, string> = {
 export function ProviderSelector({
   sessionId,
   value,
+  featureId,
+  readOnly = false,
 }: {
   sessionId: string;
   value: LlmProvider;
+  featureId?: number;
+  readOnly?: boolean;
 }) {
   const qc = useQueryClient();
   const { data: me } = useGetMe();
@@ -56,7 +61,8 @@ export function ProviderSelector({
   };
 
   return (
-    <Select value={current} onValueChange={onChange} disabled={update.isPending}>
+    <div className="flex items-center gap-1">
+    <Select value={current} onValueChange={onChange} disabled={readOnly || update.isPending}>
       <SelectTrigger
         className="h-7 px-2 font-mono text-[10px] gap-1 w-auto min-w-[140px]"
         data-testid="select-session-provider"
@@ -96,5 +102,8 @@ export function ProviderSelector({
         </SelectItem>
       </SelectContent>
     </Select>
+    <ModelRecommendation featureId={featureId} currentProvider={current}
+      onApply={onChange} disabled={readOnly || update.isPending} />
+    </div>
   );
 }

@@ -206,6 +206,7 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
               </SelectContent>
             </Select>
             <ProviderOverride
+              featureId={6}
               value={vdjProvider}
               onChange={setVdjProvider}
               disabled={vdjM.isPending}
@@ -300,6 +301,7 @@ export function F6VdjBuild({ sessionId, artifacts }: Props) {
               </SelectContent>
             </Select>
             <ProviderOverride
+              featureId={6}
               value={hostProvider}
               onChange={setHostProvider}
               disabled={hostM.isPending}
