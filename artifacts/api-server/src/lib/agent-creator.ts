@@ -1,11 +1,12 @@
 import { and, desc, eq, sql } from "drizzle-orm";
-import { db, createdAgentsTable as agents, createdAgentRunsTable as runs, harnessArtifactsTable as artifacts, harnessSessionsTable as sessions } from "@workspace/db";
+import { db, createdAgentsTable as agents, createdAgentRunsTable as runs, harnessArtifactsTable as artifacts, harnessSessionsTable as sessions, usersTable, organizationsTable } from "@workspace/db";
 import { z } from "zod/v4";
 import { callLlmJson, loadArtifact, persistArtifact } from "../engines/shared";
 import { assertGovernance, GeneratedGovernanceSchema, governanceHash, installGovernance } from "./artifact-governance";
 import { computeMathmonScore, JCSE_PASS_THRESHOLD, MATHMON_PASS_THRESHOLD } from "./mathmon";
 import { buildJcseScorecard, buildMathmonScorecard } from "./scorecards";
-import { spcCheatSheet } from "./agent-cheat-sheet";
+import { spcCheatSheetDocument } from "./agent-cheat-sheet";
+import { ColonizationTargetSchema } from "../engines/colonization-target";
 
 export class CreatorError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -70,11 +71,13 @@ export async function listAgents(userId: string) {
   const rows = await db.select().from(agents).where(eq(agents.userId, userId)).orderBy(desc(agents.createdAt)).limit(100);
   return Promise.all(rows.map(agentView));
 }
-export async function createAgent(userId: string, input: { sourceArtifactId: string; microPddArtifactId?: string; requestKey: string }) {
+export async function createAgent(userId: string, input: { sourceArtifactId: string; microPddArtifactId?: string; requestKey: string; colonizationTarget?: string }) {
   const source = await loadArtifact(input.sourceArtifactId, userId);
   if (!source || !["MA_BIRTH_PACKAGE", "SPC"].includes(source.artifactType)) throw new CreatorError(404, "Select an owned MA or SPC artifact.");
   try { assertGovernance(source.artifactContent); } catch { throw new CreatorError(409, "Source governance needs remediation before agent creation."); }
   const sourceBody = source.artifactContent as Record<string, unknown>;
+  const target = ColonizationTargetSchema.safeParse(input.colonizationTarget ?? sourceBody.colonizationTarget ?? "UNDECIDED");
+  if (!target.success) throw new CreatorError(400, "Choose a colonization target from the F10 catalog.");
   if (sourceBody.gro !== "SAFE_LIFE") throw new CreatorError(409, "Source GRO status does not permit runtime activation.");
   const companion = input.microPddArtifactId ? await loadArtifact(input.microPddArtifactId, userId) : null;
   if (source.artifactType === "MA_BIRTH_PACKAGE" && (!companion || companion.artifactType !== "MICRO_PDD" ||
@@ -94,6 +97,9 @@ export async function createAgent(userId: string, input: { sourceArtifactId: str
     if (!existing || existing.sourceArtifactId !== source.id || existing.companionArtifactId !== (companion?.id ?? null)) {
       throw new CreatorError(409, "This request key belongs to another creation attempt.");
     }
+    const priorArtifact = existing.artifactId ? await loadArtifact(existing.artifactId, userId) : null;
+    const priorTarget = (priorArtifact?.artifactContent as Record<string, unknown> | undefined)?.colonizationTarget;
+    if (priorTarget !== undefined && priorTarget !== target.data) throw new CreatorError(409, "This request key belongs to another colonization target.");
     return agentView(existing);
   }
   try {
@@ -101,13 +107,22 @@ export async function createAgent(userId: string, input: { sourceArtifactId: str
     // Deterministic extraction avoids adding another paid call to this flow.
     let cheatSheet: string | undefined;
     let cheatSheetArtifactId: string | null = null;
+    let cheatSheetMetadata: Record<string, unknown> | null = null;
     if (source.artifactType === "SPC") {
-      cheatSheet = spcCheatSheet(session.sessionName, source.id, sourceBody);
+      const [creator] = await db.select({ name: usersTable.displayName }).from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+      const [organization] = session.orgId
+        ? await db.select({ name: organizationsTable.name }).from(organizationsTable).where(eq(organizationsTable.id, session.orgId)).limit(1)
+        : [];
+      const document = spcCheatSheetDocument(session.sessionName, source.id, sourceBody, {
+        sourceName: source.name, creatorName: creator?.name, organizationName: organization?.name, target: target.data,
+      });
+      cheatSheet = document.markdown;
+      cheatSheetMetadata = document.metadata;
       const preparation = await persistArtifact({
         sessionId: source.sessionId, userId, featureId: source.featureId,
         artifactType: "AGENT_PACKAGE", name: `${session.sessionName} — SPC Cheat Sheet`,
         artifactContent: installGovernance({
-          kind: "SPC", preparationPhase: "CHEAT_SHEET_READY", cheatSheet,
+          kind: "SPC", preparationPhase: "CHEAT_SHEET_READY", cheatSheet, cheatSheetMetadata, colonizationTarget: target.data,
           sourceArtifactId: source.id, sourceHash: governanceHash(source.artifactContent),
           runtime: { kind: "NOT_ACTIVATED", tools: [], externalSideEffects: false },
           release: { thirdPartyAuthorized: false, independentCertification: false },
@@ -121,7 +136,8 @@ export async function createAgent(userId: string, input: { sourceArtifactId: str
       AgentDraftSchema, { userId, sessionId: source.sessionId, engineId: 401 });
     const evaluation = evaluateAgent(draft);
     const pkg = installGovernance({
-      ...draft, ...(cheatSheet ? { cheatSheet, cheatSheetArtifactId } : {}),
+      ...draft, ...(cheatSheet ? { cheatSheet, cheatSheetArtifactId, cheatSheetMetadata } : {}),
+      colonizationTarget: target.data,
       kind: source.artifactType === "SPC" ? "SPC" : "MA",
       sourceArtifactId: source.id, sourceHash: governanceHash(source.artifactContent),
       source: { id: source.id, type: source.artifactType, content: source.artifactContent },

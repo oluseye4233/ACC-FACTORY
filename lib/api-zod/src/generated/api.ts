@@ -8446,10 +8446,15 @@ export const ListCreatedAgentsResponseItem = zod.object({
 export const ListCreatedAgentsResponse = zod.array(ListCreatedAgentsResponseItem)
 
 
+export const createGovernedAgentBodyColonizationTargetMax = 240;
+
+
+
 export const CreateGovernedAgentBody = zod.object({
   "sourceArtifactId": zod.string().uuid(),
   "microPddArtifactId": zod.string().uuid().optional(),
-  "requestKey": zod.string().uuid()
+  "requestKey": zod.string().uuid(),
+  "colonizationTarget": zod.string().max(createGovernedAgentBodyColonizationTargetMax).optional().describe('UNDECIDED or an exact FAMILY::target pair from the authenticated F10 catalog. Planning preference only, never deployment consent.')
 })
 
 export const CreateGovernedAgentResponse = zod.object({

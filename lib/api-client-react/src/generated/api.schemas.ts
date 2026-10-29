@@ -181,10 +181,17 @@ export interface EmailDeliverySettings {
   authenticationSeparate: boolean;
 }
 
+/**
+ * UNDECIDED or an exact FAMILY::target pair from the authenticated F10 catalog. Planning preference only, never deployment consent.
+ * @maxLength 240
+ */
+export type ColonizationTarget = string;
+
 export interface AgentCreationInput {
   sourceArtifactId: string;
   microPddArtifactId?: string;
   requestKey: string;
+  colonizationTarget?: ColonizationTarget;
 }
 
 export interface AgentRunInput {
@@ -4389,12 +4396,6 @@ export interface MaBirthPackage {
   /** @nullable */
   artifactId?: string | null;
 }
-
-/**
- * UNDECIDED or an exact FAMILY::target pair from the authenticated F10 catalog. Planning preference only, never deployment consent.
- * @maxLength 240
- */
-export type ColonizationTarget = string;
 
 export interface HarnessF4Input {
   sessionId: string;

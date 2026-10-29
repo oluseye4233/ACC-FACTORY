@@ -18,6 +18,7 @@ import {
 import { ArrowLeft, Bot, FileOutput, Loader2, Play, RefreshCw, ShieldAlert } from "lucide-react";
 import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
+import { ColonizationTargetSelect, type ColonizationTarget } from "@/components/workspaces/ColonizationTargetSelect";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { sessionStageHref, stageLabel } from "@/lib/stage-origin";
@@ -60,6 +61,7 @@ function CreatePanel({ initialSource, sessionId, onCreated }: { initialSource: s
   const f4 = useHarnessF4();
   const [sourceId, setSourceId] = useState(initialSource);
   const [microId, setMicroId] = useState("");
+  const [colonizationTarget, setColonizationTarget] = useState<ColonizationTarget | null>(null);
   const [costOk, setCostOk] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [f4Err, setF4Err] = useState<string | null>(null);
@@ -90,13 +92,13 @@ function CreatePanel({ initialSource, sessionId, onCreated }: { initialSource: s
       if (paired) setMicroId(paired.id);
     }
   }, [portal.data, initialSource]);
-  useEffect(() => { attemptKey.current = newRequestKey(); setErr(null); }, [sourceId, microId]);
+  useEffect(() => { attemptKey.current = newRequestKey(); setErr(null); }, [sourceId, microId, colonizationTarget]);
   const lastSource = useRef(sourceId);
   useEffect(() => {
     if (lastSource.current === sourceId) return; // mount or no change
     lastSource.current = sourceId;
     if (keepMicro.current) { keepMicro.current = null; return; }
-    setMicroId(""); setCostOk(false); setF4Err(null);
+    setMicroId(""); setCostOk(false); setF4Err(null); setColonizationTarget(null);
   }, [sourceId]);
 
   const ready = !!sourceId && (!isMa || !!microId) && !create.isPending;
@@ -104,7 +106,7 @@ function CreatePanel({ initialSource, sessionId, onCreated }: { initialSource: s
   const submit = async () => {
     setErr(null);
     try {
-      const a = await create.mutateAsync({ data: { sourceArtifactId: sourceId, ...(isMa ? { microPddArtifactId: microId } : {}), requestKey: attemptKey.current } });
+      const a = await create.mutateAsync({ data: { sourceArtifactId: sourceId, ...(isMa ? { microPddArtifactId: microId } : {}), ...(colonizationTarget ? { colonizationTarget } : {}), requestKey: attemptKey.current } });
       attemptKey.current = newRequestKey();
       void qc.invalidateQueries({ queryKey: getListCreatedAgentsQueryKey() });
       onCreated(a);
@@ -170,6 +172,8 @@ function CreatePanel({ initialSource, sessionId, onCreated }: { initialSource: s
       )}
       {sessionId && <p className="text-[11px] text-muted-foreground">Opened from session {sessionId.slice(0, 8)}.</p>}
       {source?.type === "SPC" && <div className="rounded border p-3 text-xs space-y-1" data-testid="spc-agent-steps">
+        <ColonizationTargetSelect value={colonizationTarget ?? "UNDECIDED"} onChange={setColonizationTarget} disabled={create.isPending} testId="select-agent-colonization-target" />
+        <p className="text-muted-foreground">Select a target to customize the SAVANT Cheat Sheet. If unchanged, the source's recorded target is retained when available. This does not authorize deployment.</p>
         <p className="font-semibold">SPC creation order</p>
         <ol className="list-decimal pl-5 space-y-1">
           <li>Create and save the source-linked Cheat Sheet (no extra model call).</li>

@@ -96,6 +96,22 @@ describe("governed agent creation/runtime (mocked provider, real development DB)
     const agent = await createAgent(userId, { sourceArtifactId: sourceId, requestKey: randomUUID() });
     const [result] = await db.select().from(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, agent.artifactId!));
     expect(result!.artifactContent).toMatchObject({ cheatSheet: savedSheet, cheatSheetArtifactId: savedId });
+    expect((result!.artifactContent as Record<string, unknown>).cheatSheetMetadata).toMatchObject({
+      version: "spc-cheat-sheet-v2", projectFileName: "Portal Regression Project — SPC",
+    });
+    expect(mocks.model).toHaveBeenCalledOnce();
+  });
+  it("uses the selected colonization target in the Cheat Sheet without granting release authority", async () => {
+    const requestKey = randomUUID();
+    const agent = await createAgent(userId, {
+      sourceArtifactId: sourceId, requestKey, colonizationTarget: "AZURE::AZURE_CONTAINER_APPS",
+    });
+    expect(agent.cheatSheet).toContain("AZURE::AZURE_CONTAINER_APPS");
+    const [artifact] = await db.select().from(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, agent.artifactId!));
+    expect(artifact!.artifactContent).toMatchObject({ release: { thirdPartyAuthorized: false } });
+    await expect(createAgent(userId, {
+      sourceArtifactId: sourceId, requestKey, colonizationTarget: "AWS::AWS_LAMBDA",
+    })).rejects.toMatchObject({ status: 409 });
     expect(mocks.model).toHaveBeenCalledOnce();
   });
   it("retains the first-step Cheat Sheet after a later generation failure without redispatch", async () => {

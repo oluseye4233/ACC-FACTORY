@@ -24,6 +24,7 @@ vi.mock("@workspace/api-client-react", () => ({
   getGetCreatedAgentQueryKey: (id: string) => ["a", id], getListCreatedAgentRunsQueryKey: (id: string) => ["r", id],
   useGetImprimaPortal: () => q(m.portal), useListCreatedAgents: () => q(m.agents),
   useGetCreatedAgent: () => q(m.agent), useListCreatedAgentRuns: () => q(m.runs),
+  useGetF10Catalog: () => q({ families: [{ family: "AZURE", targets: ["AZURE_CONTAINER_APPS"] }] }),
   useCreateGovernedAgent: () => mut(m.create), useHarnessF4: () => mut(m.f4), useRunCreatedAgent: () => mut(m.run),
   useCreatePortalPublication: () => mut(m.pub), useRequestPublicationCode: () => mut(m.code), useDownloadPortalPublication: () => mut(m.dl),
 }));

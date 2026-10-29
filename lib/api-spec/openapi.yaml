@@ -3758,6 +3758,7 @@ components:
         sourceArtifactId: { type: string, format: uuid }
         microPddArtifactId: { type: string, format: uuid }
         requestKey: { type: string, format: uuid }
+        colonizationTarget: { $ref: "#/components/schemas/ColonizationTarget" }
     AgentRunInput:
       type: object
       required: [input, requestKey]

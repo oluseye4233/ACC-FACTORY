@@ -36,3 +36,14 @@ and requested an artifact-triggered glow/vibration cue rather than always-active
 **How to apply:** Check exact lineage and same-session pairing on the server as well as
 the UI. Respect reduced-motion settings. A first-step Cheat Sheet does not authorize
 execution, certification or external release.
+
+SPC Cheat Sheets must include nine fields: SPC name, project file name, synthesized
+SPC lineage, date/time, Junglenomics skill sets, target-specific SAVANT colonization
+guidance, stated constraints/ethical integrations, author and owner.
+
+**Why:** The user explicitly requires author and owner to be separate because an
+Enterprise subscriber's owner may differ from its author.
+
+**How to apply:** Preserve source declarations as declarations; distinguish workspace
+custody from legal IP ownership. Mark absent metadata as unrecorded, never invent
+lineage, identity, skills or a completed SAVANT/ethical verification.
