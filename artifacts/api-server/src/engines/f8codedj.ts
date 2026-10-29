@@ -297,9 +297,9 @@ export async function handleF8CodeDj(
     res.status(502).json({ error: "CODE ONE + did not return a traceable implementation recommendation" });
     return;
   }
-  const bundleError = validateF8LanguageBundle(out, language) ?? validateImplementationBundle(out, hostingContent?.primary?.platform);
-  if (bundleError) {
-    res.status(502).json({ error: bundleError, code: "IMPLEMENTATION_PATH_MISMATCH" });
+  const languageError = validateF8LanguageBundle(out, language);
+  if (languageError) {
+    res.status(502).json({ error: languageError, code: "IMPLEMENTATION_PATH_MISMATCH" });
     return;
   }
   const unresolved = out.collaboration?.oracle.filter(item => item.resolution === "NEEDS_SOURCE_DECISION") ?? [];
@@ -309,6 +309,11 @@ export async function handleF8CodeDj(
       code: "CODE_ORACLE_SOURCE_DECISION_REQUIRED",
       gaps: unresolved.map(item => ({ requirement: item.requirement, gap: item.gap })),
     });
+    return;
+  }
+  const bundleError = validateImplementationBundle(out, hostingContent?.primary?.platform);
+  if (bundleError) {
+    res.status(502).json({ error: bundleError, code: "IMPLEMENTATION_PATH_MISMATCH" });
     return;
   }
   const implementationPath = {

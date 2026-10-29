@@ -30,7 +30,7 @@ const output = () => ({
     installCommand: "pnpm install", runCommand: "pnpm dev", buildCommand: "pnpm build", deployTarget: "cloudflare-pages" },
   implementationPath: { rationale: "Fits the supplied reporting scope", recommendedIde: "VS Code",
     recommendedVibe: "Specification-first React", hostingRationale: "Use the supplied static hosting plan",
-    requirementTrace: ["Reporting -> src/main.tsx"] }, notes: "Synthetic unit-test scaffold; not live engine evidence",
+    requirementTrace: ["Reporting -> src/main.jsx"] }, notes: "Synthetic unit-test scaffold; not live engine evidence",
   collaboration: {
     oracle: [{ requirement: "Reporting", gap: "The scaffold needs a reporting entrypoint", resolution: "CODE_CHANGE" }],
     dj: [{ requirement: "Reporting", change: "Included the reporting entrypoint", files: ["src/main.jsx"] }],
@@ -171,10 +171,10 @@ describe("integrated F8 conversion contract (offline mocks, no provider calls)",
     expect(res.status).toHaveBeenCalledWith(502);
     expect(mocks.persistArtifact).not.toHaveBeenCalled();
   });
-  it("stops when an omission requires a source decision rather than inventing requirements", async () => {
+  it.each([false, true])("stops on a source decision even when the model also claims a code change: %s", async retainClaim => {
     const out = output();
     out.collaboration.oracle[0]!.resolution = "NEEDS_SOURCE_DECISION";
-    out.collaboration.dj = [];
+    if (!retainClaim) out.collaboration.dj = [];
     mocks.callLlmJson.mockResolvedValue(out);
     const { req, res, response } = request(body());
     await handleF8CodeDj(req, response);

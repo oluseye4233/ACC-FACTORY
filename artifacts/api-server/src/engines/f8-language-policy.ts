@@ -33,6 +33,13 @@ export function validateF8LanguageBundle(bundle: {
     const name = path.posix.basename(file.path).toLowerCase();
     const language = codeLabels[file.language.toLowerCase()];
     const extensionLanguage = codeExtensions[ext];
+    // Providers sometimes label package.json with the application's language.
+    // Accept only JSON syntax in this narrow case, never executable JS or TS.
+    if (ext === ".json" && ["json", "javascript", "js"].includes(file.language.toLowerCase())) {
+      try { JSON.parse(file.content); }
+      catch { return `JSON support file must contain valid JSON: ${file.path}`; }
+      continue;
+    }
     if (extensionLanguage) {
       if (!language || (language !== extensionLanguage && !(ext === ".h" && language === "cpp"))) return `Code language does not match file extension: ${file.path}`;
     } else if (!supportLabels.has(file.language.toLowerCase()) ||

@@ -11,6 +11,21 @@ function bundle(language: F8Language) {
       buildCommand: null, deployTarget: "replit-deployments" }, notes: "Not compiled or executed." };
 }
 describe("F8 six-language boundary", () => {
+  it.each(["javascript", "js"])("accepts %s metadata on a support file only when its contents are valid JSON", language => {
+    const b = bundle("javascript");
+    b.files.push({ path: "package.json", language, content: "{\"scripts\":{\"build\":\"vite build\"}}" });
+    expect(validateF8LanguageBundle(b)).toBeNull();
+  });
+  it("rejects executable code disguised as JSON even with a JavaScript label", () => {
+    const b = bundle("javascript");
+    b.files.push({ path: "package.json", language: "javascript", content: "export default {}" });
+    expect(validateF8LanguageBundle(b)).toContain("valid JSON");
+  });
+  it("does not accept TypeScript metadata on JSON support files", () => {
+    const b = bundle("javascript");
+    b.files.push({ path: "package.json", language: "typescript", content: "{}" });
+    expect(validateF8LanguageBundle(b)).toContain("Unsupported");
+  });
   it.each(F8_LANGUAGES)("accepts complete %s source metadata without claiming runtime verification", language => {
     expect(CodebaseOutputSchema.safeParse(bundle(language)).success).toBe(true);
     expect(validateF8LanguageBundle(bundle(language), language)).toBeNull();
