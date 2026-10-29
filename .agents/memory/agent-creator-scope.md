@@ -25,3 +25,14 @@ The user selected **both where eligible** for initial agent operation: an
 ARK-run agent and a connected third-party target when each actually qualifies.
 Do not silently prefer one destination or label a delivery receipt as a running
 agent.
+
+Stage controls are active only at F3/F4 when the exact MA + saved Micro PDD pair
+exists, or at F5 after an SPC is saved. They stay inactive at all other stages.
+For an SPC, create and save its Cheat Sheet before drafting, evaluation and activation.
+
+**Why:** The user confirmed F3/F4/F5 after the existing stage numbering was explained,
+and requested an artifact-triggered glow/vibration cue rather than always-active controls.
+
+**How to apply:** Check exact lineage and same-session pairing on the server as well as
+the UI. Respect reduced-motion settings. A first-step Cheat Sheet does not authorize
+execution, certification or external release.

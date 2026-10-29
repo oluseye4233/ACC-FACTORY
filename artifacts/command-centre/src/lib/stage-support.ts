@@ -5,8 +5,10 @@ import {
   getStageSupportDeparture,
   getStageSupportOptions,
   returnStageSupportArtifact,
+  getListSessionArtifactsQueryKey,
 } from "@workspace/api-client-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 /** "short-sprints" stays valid for historical departures. */
 export type SupportTool = "imprima" | "short-sprints" | "ingestion" | "cartridge" | "f0" | "agent-creator";
@@ -69,6 +71,17 @@ export function isUuid(v: string | null | undefined): v is string {
 }
 
 export function useStageSupportOptions(sessionId: string, featureId: number, enabled: boolean) {
+  const client = useQueryClient();
+  useEffect(() => {
+    if (!enabled) return;
+    const sourceKey = JSON.stringify(getListSessionArtifactsQueryKey(sessionId));
+    return client.getQueryCache().subscribe(event => {
+      if (event.type === "updated" && event.action.type === "success" &&
+          JSON.stringify(event.query.queryKey) === sourceKey) {
+        void client.invalidateQueries({ queryKey: getGetStageSupportOptionsQueryKey({ sessionId, featureId }) });
+      }
+    });
+  }, [client, enabled, sessionId, featureId]);
   return useQuery({
     queryKey: getGetStageSupportOptionsQueryKey({ sessionId, featureId }),
     queryFn: () => stageSupportApi.options(sessionId, featureId),

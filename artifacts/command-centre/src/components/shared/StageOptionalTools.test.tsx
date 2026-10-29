@@ -23,6 +23,17 @@ import { StageOptionalTools, ReturnToStageBanner } from "./StageOptionalTools";
 afterEach(() => { cleanup(); navigate.mockReset(); launchMutate.mockReset(); options.mockReset(); });
 
 describe("StageOptionalTools", () => {
+  it("glows and nudges Agent Creator only when ready at F3/F4/F5", () => {
+    ready([{ tool: "agent-creator", active: true, reason: "Exact companion saved." }]);
+    const view = render(<StageOptionalTools sessionId="s1" featureId={3} stageLabel="F3" isSessionOwner />);
+    expect(screen.getByTestId("button-launch-agent-creator").className).toContain("agent-creator-ready");
+    expect((screen.getByTestId("button-launch-agent-creator") as HTMLButtonElement).disabled).toBe(false);
+    view.rerender(<StageOptionalTools sessionId="s1" featureId={6} stageLabel="F6" isSessionOwner />);
+    expect((screen.getByTestId("button-launch-agent-creator") as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByTestId("button-launch-agent-creator").className).not.toContain("agent-creator-ready");
+    view.rerender(<StageOptionalTools sessionId="s1" featureId={5} stageLabel="F5" isSessionOwner={false} />);
+    expect((screen.getByTestId("button-launch-agent-creator") as HTMLButtonElement).disabled).toBe(true);
+  });
   it("explains each tool with a return-to-stage section", () => {
     ready([]);
     render(<StageOptionalTools sessionId="s1" featureId={4} stageLabel="F4" isSessionOwner />);

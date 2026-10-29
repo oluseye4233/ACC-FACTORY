@@ -76,6 +76,38 @@ async function issued(publicationId: string) {
 }
 
 describe("governed agent creation/runtime (mocked provider, real development DB)", () => {
+  it("saves the SPC Cheat Sheet before model drafting and preserves it unchanged", async () => {
+    let savedSheet = "";
+    let savedId = "";
+    mocks.model.mockImplementationOnce(async (_provider, _system, message) => {
+      const input = JSON.parse(message);
+      const rows = await db.select().from(harnessArtifactsTable).where(and(
+        eq(harnessArtifactsTable.userId, userId), eq(harnessArtifactsTable.artifactType, "AGENT_PACKAGE"),
+      ));
+      const first = rows.find(row => (row.artifactContent as Record<string, unknown>).preparationPhase === "CHEAT_SHEET_READY");
+      expect(first).toBeDefined();
+      savedSheet = (first!.artifactContent as { cheatSheet: string }).cheatSheet;
+      savedId = first!.id;
+      expect(input.savedCheatSheet).toBe(savedSheet);
+      const [building] = await db.select().from(createdAgentsTable).where(eq(createdAgentsTable.userId, userId));
+      expect(building).toMatchObject({ state: "BUILDING", artifactId: savedId });
+      return draft();
+    });
+    const agent = await createAgent(userId, { sourceArtifactId: sourceId, requestKey: randomUUID() });
+    const [result] = await db.select().from(harnessArtifactsTable).where(eq(harnessArtifactsTable.id, agent.artifactId!));
+    expect(result!.artifactContent).toMatchObject({ cheatSheet: savedSheet, cheatSheetArtifactId: savedId });
+    expect(mocks.model).toHaveBeenCalledOnce();
+  });
+  it("retains the first-step Cheat Sheet after a later generation failure without redispatch", async () => {
+    mocks.model.mockRejectedValueOnce(new Error("Synthetic provider failure"));
+    const requestKey = randomUUID();
+    await expect(createAgent(userId, { sourceArtifactId: sourceId, requestKey })).rejects.toThrow("Synthetic provider failure");
+    const retry = await createAgent(userId, { sourceArtifactId: sourceId, requestKey });
+    expect(retry.state).toBe("FAILED");
+    expect(retry.cheatSheet).toContain("SPC Cheat Sheet");
+    expect(retry.artifactId).toBeTruthy();
+    expect(mocks.model).toHaveBeenCalledOnce();
+  });
   it("records fresh internal checks and preserves the exact governed package for a real text runtime", async () => {
     const requestKey = randomUUID();
     const agent = await createAgent(userId, { sourceArtifactId: sourceId, requestKey });

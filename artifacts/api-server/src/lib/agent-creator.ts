@@ -5,6 +5,7 @@ import { callLlmJson, loadArtifact, persistArtifact } from "../engines/shared";
 import { assertGovernance, GeneratedGovernanceSchema, governanceHash, installGovernance } from "./artifact-governance";
 import { computeMathmonScore, JCSE_PASS_THRESHOLD, MATHMON_PASS_THRESHOLD } from "./mathmon";
 import { buildJcseScorecard, buildMathmonScorecard } from "./scorecards";
+import { spcCheatSheet } from "./agent-cheat-sheet";
 
 export class CreatorError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -37,7 +38,8 @@ export function evaluateAgent(draft: z.infer<typeof AgentDraftSchema>) {
 }
 const CREATION_SYSTEM = `Compile a governed, TEXT-ONLY ARK agent from the exact owned source and its companion.
 Do not add tools, browsing, filesystem access, code execution, deployment authority, certification or external credentials.
-For an MA, preserve its supplied Micro PDD contract. For an SPC, produce its concise Cheat Sheet.
+For an MA, preserve its supplied Micro PDD contract. For an SPC, use the already saved Cheat Sheet.
+The Cheat Sheet is a source-extract navigation aid, not a substitute for the complete source SPC.
 Return JSON: instructions (40-12000 chars), cheatSheet (30-6000 chars), jcse with integer
 SYSTEM/7, ROLE/7, INSTRUCTION/8, EXAMPLE/7, CONSTRAINT/7, FORMAT/7, DATA/7;
 mathmon {mathCoherence,applicability,predictiveReliability}, each 0-100;
@@ -95,12 +97,32 @@ export async function createAgent(userId: string, input: { sourceArtifactId: str
     return agentView(existing);
   }
   try {
+    // SPC step 1 is durable BEFORE drafting, assessment or activation.
+    // Deterministic extraction avoids adding another paid call to this flow.
+    let cheatSheet: string | undefined;
+    let cheatSheetArtifactId: string | null = null;
+    if (source.artifactType === "SPC") {
+      cheatSheet = spcCheatSheet(session.sessionName, source.id, sourceBody);
+      const preparation = await persistArtifact({
+        sessionId: source.sessionId, userId, featureId: source.featureId,
+        artifactType: "AGENT_PACKAGE", name: `${session.sessionName} — SPC Cheat Sheet`,
+        artifactContent: installGovernance({
+          kind: "SPC", preparationPhase: "CHEAT_SHEET_READY", cheatSheet,
+          sourceArtifactId: source.id, sourceHash: governanceHash(source.artifactContent),
+          runtime: { kind: "NOT_ACTIVATED", tools: [], externalSideEffects: false },
+          release: { thirdPartyAuthorized: false, independentCertification: false },
+        }),
+      });
+      cheatSheetArtifactId = preparation.id;
+      await db.update(agents).set({ artifactId: preparation.id }).where(eq(agents.id, attempt.id));
+    }
     const draft = await callLlmJson("claude", CREATION_SYSTEM,
-      JSON.stringify({ source: source.artifactContent, companion: companion?.artifactContent ?? null }),
+      JSON.stringify({ source: source.artifactContent, companion: companion?.artifactContent ?? null, ...(cheatSheet ? { savedCheatSheet: cheatSheet } : {}) }),
       AgentDraftSchema, { userId, sessionId: source.sessionId, engineId: 401 });
     const evaluation = evaluateAgent(draft);
     const pkg = installGovernance({
-      ...draft, kind: source.artifactType === "SPC" ? "SPC" : "MA",
+      ...draft, ...(cheatSheet ? { cheatSheet, cheatSheetArtifactId } : {}),
+      kind: source.artifactType === "SPC" ? "SPC" : "MA",
       sourceArtifactId: source.id, sourceHash: governanceHash(source.artifactContent),
       source: { id: source.id, type: source.artifactType, content: source.artifactContent },
       companionArtifactId: companion?.id ?? null,

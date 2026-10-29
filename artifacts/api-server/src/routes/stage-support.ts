@@ -105,8 +105,9 @@ router.get("/stage-support/options", requireAuth, async (req, res) => {
   try {
     stageFor(parsed.data.featureId);
     await ownedSession(db, req.localUser!.id, parsed.data.sessionId);
-    const source = exactSupportSource(await sourceRows(db, req.localUser!.id, parsed.data.sessionId), parsed.data.featureId);
-    res.json({ sourceId: source?.id ?? null, tools: SUPPORT_TOOLS.filter(tool => tool !== "short-sprints").map(tool => supportAvailability(source, tool)) });
+    const rows = await sourceRows(db, req.localUser!.id, parsed.data.sessionId);
+    const source = exactSupportSource(rows, parsed.data.featureId);
+    res.json({ sourceId: source?.id ?? null, tools: SUPPORT_TOOLS.filter(tool => tool !== "short-sprints").map(tool => supportAvailability(source, tool, rows, parsed.data.featureId)) });
   } catch (error) { fail(res, error); }
 });
 
@@ -122,8 +123,9 @@ router.post("/stage-support/departures", requireAuth, async (req, res) => {
       )).for("update");
       await ownedSession(tx, owner, sessionId);
       const stage = stageFor(featureId);
-      const source = exactSupportSource(await sourceRows(tx, owner, sessionId), featureId);
-      const availability = supportAvailability(source, tool);
+      const rows = await sourceRows(tx, owner, sessionId);
+      const source = exactSupportSource(rows, featureId);
+      const availability = supportAvailability(source, tool, rows, featureId);
       if (!availability.active || !source) throw new BoomerangError(409, "TOOL_INACTIVE", availability.reason);
       if (JSON.stringify(source.artifactContent).length > 200_000) throw new BoomerangError(413, "SOURCE_TOO_LARGE", "Saved source exceeds the supporting intake limit.");
       const baseline = await boomerangOrigin(tx, owner, "SESSION", sessionId, stage);

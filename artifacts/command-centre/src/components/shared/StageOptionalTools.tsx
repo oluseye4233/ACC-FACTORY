@@ -27,10 +27,10 @@ function Explain({ what, outcome, how, back }: { what: string; outcome: string; 
   );
 }
 
-function ToolBox({ id, icon, title, tag, children, tone = "text-primary", status }: { id: string; icon: ReactNode; title: string; tag: string; children: ReactNode; tone?: string; status?: ReactNode }) {
+function ToolBox({ id, icon, title, tag, children, tone = "text-primary", status, attention = false }: { id: string; icon: ReactNode; title: string; tag: string; children: ReactNode; tone?: string; status?: ReactNode; attention?: boolean }) {
   return (
     <details className="group rounded-lg border bg-card open:md:col-span-3 open:border-primary/40" data-testid={`tool-${id}`}>
-      <summary className="flex cursor-pointer list-none items-center gap-2 p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
+      <summary className={`flex cursor-pointer list-none items-center gap-2 p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg ${attention ? "agent-creator-ready" : ""}`}>
         <span className={tone}>{icon}</span>
         {status}
         <span className="font-mono text-xs font-bold uppercase tracking-wider">{title}</span>
@@ -54,7 +54,7 @@ const SUPPORT: { tool: SupportTool; title: string; tag: string; icon: ReactNode;
   { tool: "agent-creator", title: "AGENT CREATOR", tag: "owned agent", icon: <Bot className="h-4 w-4" />, tone: "text-primary", btn: "border-primary/40 text-primary hover:bg-primary/10",
     what: "Creates an owned agent from this stage's saved MA birth package with its exact Micro PDD, or from its SPC, and lets you run it on text input.",
     outcome: "An internal, text-only agent with model-assessed evaluation, returned as a supporting artifact for your review. No external tools or side effects; not certification, not auto-approval, not a third-party deployment.",
-    how: "Launch, create the agent from the pre-selected source, wait until it is ACTIVE, then use the return action beside that agent." },
+    how: "Available only at F3/F4 with the MA's saved paired Micro PDD, or at F5 with a saved SPC. For SPCs, the Cheat Sheet is saved first, followed by drafting, internal checks and activation. Then use the return action beside the ACTIVE agent." },
   { tool: "ingestion", title: "INGESTION", tag: "seed and summary", icon: <FileInput className="h-4 w-4" />, tone: "text-primary", btn: "border-primary/40 text-primary hover:bg-primary/10",
     what: "Opens the Ingestion Engine prefilled once with this stage's saved source text. Your edits are never overwritten.",
     outcome: "A saved seed prompt and summary, returned to this stage as a candidate requiring review. Normal credit and generation gates still apply.",
@@ -86,7 +86,7 @@ function SupportLaunch({ sessionId, featureId, stageLabel, isSessionOwner }: Pro
     <>
       {SUPPORT.map((t) => {
         const st = opts.data?.tools.find((x) => x.tool === t.tool);
-        const active = isSessionOwner && !!st?.active;
+        const active = isSessionOwner && !!st?.active && (t.tool !== "agent-creator" || [3, 4, 5].includes(featureId));
         const reason = !isSessionOwner ? "Only the session owner can launch origin-bound support." : opts.isLoading ? "Checking stage, saved source and ownership..." : opts.isError ? `Status unavailable: ${supportErrMessage(opts.error)}` : st?.reason ?? "Not offered for this stage.";
         const status = (
           <span className={`font-mono text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border ${active ? "border-primary/50 text-primary bg-primary/10" : "border-dashed text-muted-foreground"}`} data-testid={`status-tool-${t.tool}`}>
@@ -94,13 +94,13 @@ function SupportLaunch({ sessionId, featureId, stageLabel, isSessionOwner }: Pro
           </span>
         );
         return (
-          <ToolBox key={t.tool} id={t.tool} icon={t.icon} title={t.title} tag={t.tag} tone={t.tone} status={status}>
+          <ToolBox key={t.tool} id={t.tool} icon={t.icon} title={t.title} tag={t.tag} tone={t.tone} status={status} attention={t.tool === "agent-creator" && active && !launch.isPending}>
             <Explain what={t.what} outcome={t.outcome} how={t.how}
               back={`A Back to ${stageLabel} banner stays at the top while you work; it only navigates. When a completed saved result exists, press ${RETURN_WITH_ARTIFACT_LABEL} and confirm. Your session is not replaced.`} />
             <p className={`text-[11px] ${active ? "text-foreground/80" : "text-muted-foreground"}`} data-testid={`text-tool-reason-${t.tool}`}>{reason}</p>
             <div className="flex flex-wrap items-center gap-2">
               <button type="button" disabled={!active || launch.isPending} onClick={() => go(t.tool)}
-                className={`inline-flex items-center gap-1 rounded border px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-50 ${t.btn}`} data-testid={`button-launch-${t.tool}`}>
+                className={`inline-flex items-center gap-1 rounded border px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-50 ${t.btn} ${t.tool === "agent-creator" && active && !launch.isPending ? "agent-creator-ready" : ""}`} data-testid={`button-launch-${t.tool}`}>
                 {launching === t.tool ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
                 {launching === t.tool ? "Opening..." : `Launch ${t.title} for ${stageLabel}`} {launching !== t.tool && <ArrowRight className="h-3 w-3" />}
               </button>

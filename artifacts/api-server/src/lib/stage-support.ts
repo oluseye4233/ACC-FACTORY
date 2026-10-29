@@ -10,7 +10,7 @@ export const PUBLICATION_KINDS: Record<string, string> = {
   CODEBASE_BUNDLE: "ARTIFACT", VERIFIED_CODEBASE_BUNDLE: "ARTIFACT",
   AGENT_PACKAGE: "ARTIFACT", PFP_REPORT: "ARTIFACT", HOSTING_PLAN: "ARTIFACT",
 };
-type Source = { id: string; featureId: number; artifactType: string; createdAt: Date | string };
+type Source = { id: string; featureId: number; artifactType: string; createdAt: Date | string; sessionId?: string; artifactContent?: unknown };
 
 /** No upstream fallback: the currently open stage must have its own saved output. */
 export function exactSupportSource<T extends Source>(rows: T[], featureId: number): T | undefined {
@@ -18,11 +18,22 @@ export function exactSupportSource<T extends Source>(rows: T[], featureId: numbe
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime() || b.id.localeCompare(a.id))[0];
 }
 
-export function supportAvailability(source: Source | undefined, tool: SupportTool) {
+export function supportAvailability(source: Source | undefined, tool: SupportTool, rows: Source[] = [], featureId = source?.featureId) {
+  if (tool === "agent-creator" && ![3, 4, 5].includes(featureId ?? -1)) {
+    return { tool, active: false, reason: "Agent Creator is available only at F3/F4 after a paired Micro PDD exists, or at F5 after an SPC is saved." };
+  }
   if (!source) return { tool, active: false, reason: "Save an artifact at this exact stage first." };
-  if (tool === "agent-creator") return { tool,
-    active: ["MA_BIRTH_PACKAGE", "MICRO_PDD", "SPC"].includes(source.artifactType),
-    reason: "Create a source-bound MA or SPC agent with fresh internal evaluation. External release remains separately gated." };
+  if (tool === "agent-creator") {
+    const parent = (row: Source) => (row.artifactContent as { sourceArtifactId?: string } | null)?.sourceArtifactId;
+    const paired = source.featureId === 3 && source.artifactType === "MA_BIRTH_PACKAGE"
+      ? rows.some(row => row.featureId === 4 && row.artifactType === "MICRO_PDD" && row.sessionId === source.sessionId && parent(row) === source.id)
+      : source.featureId === 4 && source.artifactType === "MICRO_PDD"
+        ? rows.some(row => row.featureId === 3 && row.artifactType === "MA_BIRTH_PACKAGE" && row.sessionId === source.sessionId && row.id === parent(source))
+        : source.featureId === 5 && source.artifactType === "SPC";
+    return { tool, active: paired, reason: paired
+      ? "Saved source and required companion are ready. SPC creation saves its Cheat Sheet first; fresh internal evaluation and release checks still apply."
+      : "Save an MA's exact paired Micro PDD before launching from F3/F4, or save an SPC at F5." };
+  }
   if (tool === "imprima" && !PUBLICATION_KINDS[source.artifactType]) {
     return { tool, active: false, reason: "IMPRIMA requires a saved MA, Micro PDD, SPC, PDD or MVP PDD at this stage." };
   }

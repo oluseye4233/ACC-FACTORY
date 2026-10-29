@@ -21,6 +21,22 @@ import router from "../src/routes/stage-support";
 import boomerangRouter from "../src/routes/boomerang";
 
 describe("stage support qualification", () => {
+  test("Agent Creator is limited to F3–F5 and requires the exact MA/Micro PDD pair", () => {
+    const ma = { id: "ma", featureId: 3, artifactType: "MA_BIRTH_PACKAGE", sessionId: "s", createdAt: new Date() };
+    const micro = { id: "micro", featureId: 4, artifactType: "MICRO_PDD", sessionId: "s", artifactContent: { sourceArtifactId: "ma" }, createdAt: new Date() };
+    expect(supportAvailability(ma, "agent-creator", [ma]).active).toBe(false);
+    expect(supportAvailability(ma, "agent-creator", [ma, micro]).active).toBe(true);
+    expect(supportAvailability(micro, "agent-creator", [ma, micro]).active).toBe(true);
+    expect(supportAvailability(micro, "agent-creator", []).active).toBe(false);
+    expect(supportAvailability(ma, "agent-creator", [ma, { ...micro, sessionId: "other" }]).active).toBe(false);
+    expect(supportAvailability(ma, "agent-creator", [ma, { ...micro, artifactContent: { sourceArtifactId: "old-ma" } }]).active).toBe(false);
+    const spc = { ...ma, id: "spc", featureId: 5, artifactType: "SPC" };
+    expect(supportAvailability(spc, "agent-creator", [spc]).active).toBe(true);
+    for (const featureId of [0, 1, 2, 6, 7, 8, 9, 10, 11, 12]) {
+      expect(supportAvailability({ ...spc, featureId }, "agent-creator").active).toBe(false);
+      expect(supportAvailability(undefined, "agent-creator", [], featureId).active).toBe(false);
+    }
+  });
   test("requires exact-stage source, not an upstream fallback", () => {
     expect(exactSupportSource([{ id: "a", featureId: 4, artifactType: "MICRO_PDD", createdAt: new Date() }], 9)).toBeUndefined();
     expect(supportAvailability(undefined, "ingestion").active).toBe(false);
@@ -87,6 +103,28 @@ describe("persisted stage-support round trip", () => {
     expect(departure.status).toBe(201);
     return { source: source!, session: session!, departure: departure.data };
   }
+  test("refreshes Agent Creator readiness after a saved paired Micro PDD and rejects other stages", async () => {
+    const [session] = await db.insert(harnessSessionsTable).values({ userId: owner, sessionName: `Agent ready ${randomUUID()}` }).returning();
+    sessionIds.push(session!.id);
+    const [ma] = await db.insert(harnessArtifactsTable).values({
+      userId: owner, sessionId: session!.id, featureId: 3, artifactType: "MA_BIRTH_PACKAGE", artifactContent: {},
+    }).returning();
+    const options = () => request(`/stage-support/options?sessionId=${session!.id}&featureId=3`);
+    const before = await options();
+    expect(before.data.tools.find((t: { tool: string }) => t.tool === "agent-creator").active).toBe(false);
+    const denied = await request("/stage-support/departures", { sessionId: session!.id, featureId: 3, tool: "agent-creator" });
+    expect(denied.status).toBe(409);
+    await db.insert(harnessArtifactsTable).values({
+      userId: owner, sessionId: session!.id, featureId: 4, artifactType: "MICRO_PDD", artifactContent: { sourceArtifactId: ma!.id },
+    });
+    const after = await options();
+    expect(after.data.tools.find((t: { tool: string }) => t.tool === "agent-creator").active).toBe(true);
+    expect((await request("/stage-support/departures", { sessionId: session!.id, featureId: 3, tool: "agent-creator" })).status).toBe(201);
+    await db.insert(harnessArtifactsTable).values({
+      userId: owner, sessionId: session!.id, featureId: 6, artifactType: "SPC", artifactContent: {},
+    });
+    expect((await request("/stage-support/departures", { sessionId: session!.id, featureId: 6, tool: "agent-creator" })).status).toBe(409);
+  });
   async function report(engagementId: string, options: {
     user?: string; createdAt?: Date; content?: Record<string, unknown>;
   } = {}) {

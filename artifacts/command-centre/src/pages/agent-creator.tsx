@@ -84,6 +84,11 @@ function CreatePanel({ initialSource, sessionId, onCreated }: { initialSource: s
     const init = portal.data.sources.find((s) => s.sourceType === "ARTIFACT" && s.id === initialSource);
     const parent = init && init.type === "MICRO_PDD" ? parentOf(init) : null;
     if (init && parent) { keepMicro.current = init.id; setSourceId(parent); setMicroId(init.id); }
+    if (init?.type === MA_TYPE) {
+      const paired = portal.data.sources.find(s => s.sourceType === "ARTIFACT" &&
+        s.type === "MICRO_PDD" && parentOf(s) === init.id && s.sessionId === init.sessionId);
+      if (paired) setMicroId(paired.id);
+    }
   }, [portal.data, initialSource]);
   useEffect(() => { attemptKey.current = newRequestKey(); setErr(null); }, [sourceId, microId]);
   const lastSource = useRef(sourceId);
@@ -104,6 +109,10 @@ function CreatePanel({ initialSource, sessionId, onCreated }: { initialSource: s
       void qc.invalidateQueries({ queryKey: getListCreatedAgentsQueryKey() });
       onCreated(a);
     } catch (e) { setErr(apiErr(e)); }
+    finally {
+      void qc.invalidateQueries({ queryKey: getListCreatedAgentsQueryKey() });
+      void qc.invalidateQueries({ queryKey: getGetImprimaPortalQueryKey() });
+    }
   };
 
   const convert = async () => {
@@ -160,6 +169,15 @@ function CreatePanel({ initialSource, sessionId, onCreated }: { initialSource: s
         </div>
       )}
       {sessionId && <p className="text-[11px] text-muted-foreground">Opened from session {sessionId.slice(0, 8)}.</p>}
+      {source?.type === "SPC" && <div className="rounded border p-3 text-xs space-y-1" data-testid="spc-agent-steps">
+        <p className="font-semibold">SPC creation order</p>
+        <ol className="list-decimal pl-5 space-y-1">
+          <li>Create and save the source-linked Cheat Sheet (no extra model call).</li>
+          <li>Draft agent instructions using the full SPC and saved Cheat Sheet.</li>
+          <li>Run internal JCSE, MATHMON and governance checks.</li>
+          <li>Activate only if eligible; otherwise retain the work for review.</li>
+        </ol>
+      </div>}
       <Button className="w-full" disabled={!ready} onClick={submit} data-testid="button-create-agent">
         {create.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Bot className="mr-1 h-4 w-4" />} {err ? "Retry this attempt" : "Create agent"}
       </Button>

@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Bot, FileOutput } from "lucide-react";
-import { agentCreatorHref, portalHref } from "@/lib/portal";
+import { portalHref } from "@/lib/portal";
 
 export function operationsHref(kind: "imprima" | "short-sprints", p: { sessionId?: string | null; sourceId?: string | null; sourceKind?: string | null }) {
   const q = new URLSearchParams({ kind });
@@ -23,8 +23,9 @@ export function PublishDocumentLink(props: { sourceId?: string | null; sourceKin
 
 export function ShortSprintsLink({ sessionId }: { sessionId: string }) {
   return (
-    <Link href={agentCreatorHref({ sessionId })} className={cls} data-testid="link-agent-creator">
-      <Bot className="h-3.5 w-3.5" /> Open Agent Creator
-    </Link>
+    <span aria-disabled="true" title="Agent Creator is available at F3, F4 and F5 after the required artifact is saved."
+      className={`${cls} opacity-50 cursor-not-allowed`} data-testid="agent-creator-inactive">
+      <Bot className="h-3.5 w-3.5" /> Agent Creator · F3–F5 only
+    </span>
   );
 }
