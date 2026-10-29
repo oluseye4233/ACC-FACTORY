@@ -70,3 +70,4 @@
 - [IMPRIMA Portal scope](imprima-portal-scope.md) — centralized subscriber-coded publication, ATANDA.IMPRIMA timestamps, accountable authorship and automatic control-email copies.
 - [Agent Creator scope](agent-creator-scope.md) — replace Short Sprints for new subscribers with governed MA/SPC agent creation and F10–F12 fast-track; preserve sprint history.
 - [Managed LLM routing](managed-llm-routing.md) — extended models use managed OpenRouter; auto suggestions require explicit apply; the internal proxy can use HTTP.
+- [ZPOS measurement boundary](zpos-measurement-boundary.md) — measured document reduction is distinct from provider usage, causal ZPOS savings and model-reported compression.

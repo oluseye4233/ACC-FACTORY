@@ -242,6 +242,9 @@ interface F7Cert {
   mathmonScore: number | null;
   jcse: number | null;
   disclaimer?: string;
+  zposMeasurement?: {
+    sourceArtifactId: string; sourceTokens: number; resultTokens: number; sourceHash: string;
+  } | null;
 }
 
 interface F7Complete {
@@ -321,6 +324,8 @@ async function runF7(
     ).toBeNull();
     const complete = parseSseEvent(body, "complete") as F7Complete | null;
     expect(complete, `no complete event: ${body.slice(0, 400)}`).not.toBeNull();
+    expect(complete!.cert.zposMeasurement?.sourceArtifactId).toBe(pddRow.id);
+    expect(complete!.cert.zposMeasurement?.sourceTokens).toBeGreaterThan(0);
 
     const rows = await db
       .select()
@@ -334,6 +339,8 @@ async function runF7(
       .orderBy(desc(harnessArtifactsTable.createdAt))
       .limit(1);
     expect(rows.length, "F7 did not persist an MVP PDD").toBe(1);
+    expect((rows[0]!.spartanCert as Record<string, unknown>).zposMeasurement)
+      .toEqual(complete!.cert.zposMeasurement);
     return { complete: complete!, artifact: rows[0]! };
   } finally {
     removeFixture(key);

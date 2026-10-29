@@ -4580,6 +4580,41 @@ export interface HarnessF7Input {
   provider?: LlmProvider;
 }
 
+export type ZposMeasurementVersion = typeof ZposMeasurementVersion[keyof typeof ZposMeasurementVersion];
+
+
+export const ZposMeasurementVersion = {
+  'zpos-document-v1': 'zpos-document-v1',
+} as const;
+
+export type ZposMeasurementTokenizer = typeof ZposMeasurementTokenizer[keyof typeof ZposMeasurementTokenizer];
+
+
+export const ZposMeasurementTokenizer = {
+  cl100k_base: 'cl100k_base',
+} as const;
+
+export type ZposMeasurementScope = typeof ZposMeasurementScope[keyof typeof ZposMeasurementScope];
+
+
+export const ZposMeasurementScope = {
+  'document-content-json': 'document-content-json',
+} as const;
+
+export interface ZposMeasurement {
+  version: ZposMeasurementVersion;
+  tokenizer: ZposMeasurementTokenizer;
+  scope: ZposMeasurementScope;
+  sourceArtifactId: string;
+  sourceHash: string;
+  resultHash: string;
+  sourceTokens: number;
+  resultTokens: number;
+  tokensReduced: number;
+  reductionPct: number;
+  measuredAt: string;
+}
+
 export type SpartanCertClass = typeof SpartanCertClass[keyof typeof SpartanCertClass];
 
 
@@ -4594,6 +4629,7 @@ export interface SpartanCert {
   certId: string;
   class: SpartanCertClass;
   crP: number;
+  zposMeasurement?: ZposMeasurement | null;
   issuedAt: string;
   forgeVerified?: boolean;
   /** @nullable */

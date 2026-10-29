@@ -38,6 +38,7 @@
     "google-auth-library": "^11.3.0",
     "http-proxy-middleware": "^4.2.0",
     "ipaddr.js": "^2.5.0",
+    "js-tiktoken": "1.0.21",
     "mammoth": "^1.13.0",
     "multer": "^2.4.0",
     "openai": "^4.104.0",

@@ -35,6 +35,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Sparkles, ShieldCheck } from "lucide-react";
 import { PublishDocumentLink } from "@/components/shared/PublishDocumentLink";
 import { SaveToExemplarLibraryButton } from "@/components/shared/SaveToExemplarLibraryButton";
+import { ZposMeasurementPanel } from "@/components/shared/ZposMeasurementPanel";
 
 import { Atlas360ViewPanel } from "./Atlas360ViewPanel";
 import { ColonizationTargetSelect, type ColonizationTarget } from "./ColonizationTargetSelect";
@@ -246,6 +247,8 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
           </div>
         </Card>
 
+        <ZposMeasurementPanel artifacts={artifacts} current={result} />
+
         {result ? (
           <div className="grid lg:grid-cols-[280px_1fr] gap-4 flex-1 min-h-0">
             <Card className="p-5 bg-card/50 flex flex-col items-center text-center">
@@ -260,7 +263,7 @@ export function F7ConvertMvp({ sessionId, sessionOrigin, artifacts }: Props) {
                 {result.cert.certId}
               </div>
               <div className="font-mono text-[10px] text-muted-foreground mt-1">
-                CR_p · {result.cert.crP.toFixed(2)}
+                Model-reported CR_p · {result.cert.crP.toFixed(2)}
               </div>
               {result.forgeVerified ? (
                 <div

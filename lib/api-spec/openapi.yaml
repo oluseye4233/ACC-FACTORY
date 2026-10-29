@@ -6827,6 +6827,22 @@ components:
         colonizationTarget: { $ref: "#/components/schemas/ColonizationTarget" }
         provider: { $ref: "#/components/schemas/LlmProvider" }
 
+    ZposMeasurement:
+      type: object
+      required: [version, tokenizer, scope, sourceArtifactId, sourceHash, resultHash, sourceTokens, resultTokens, tokensReduced, reductionPct, measuredAt]
+      properties:
+        version: { type: string, enum: [zpos-document-v1] }
+        tokenizer: { type: string, enum: [cl100k_base] }
+        scope: { type: string, enum: [document-content-json] }
+        sourceArtifactId: { type: string }
+        sourceHash: { type: string }
+        resultHash: { type: string }
+        sourceTokens: { type: integer }
+        resultTokens: { type: integer }
+        tokensReduced: { type: integer }
+        reductionPct: { type: number }
+        measuredAt: { type: string, format: date-time }
+
     SpartanCert:
       type: object
       required: [certId, class, crP, issuedAt]
@@ -6834,6 +6850,10 @@ components:
         certId: { type: string }
         class: { type: string, enum: [A, B, C, NONE] }
         crP: { type: number }
+        zposMeasurement:
+          anyOf:
+            - $ref: "#/components/schemas/ZposMeasurement"
+            - { type: "null" }
         issuedAt: { type: string, format: date-time }
         forgeVerified: { type: boolean }
         mathmonScore: { type: ["integer", "null"] }

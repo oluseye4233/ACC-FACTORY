@@ -726,3 +726,7 @@ export * from './xvlSession';
 export * from './xvlTrack';
 export * from './xvlVerificationInput';
 export * from './xvlWorkspace';
+export * from './zposMeasurement';
+export * from './zposMeasurementScope';
+export * from './zposMeasurementTokenizer';
+export * from './zposMeasurementVersion';

@@ -6,11 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { SpartanCertClass } from './spartanCertClass';
+import type { ZposMeasurement } from './zposMeasurement';
 
 export interface SpartanCert {
   certId: string;
   class: SpartanCertClass;
   crP: number;
+  zposMeasurement?: ZposMeasurement | null;
   issuedAt: Date;
   forgeVerified?: boolean;
   /** @nullable */

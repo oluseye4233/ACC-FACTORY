@@ -25,6 +25,7 @@ import {
 } from "../lib/mathmon";
 import { loadLatestMap, sessionBestJcseScorecards, sessionMaxJcse } from "../lib/mathmon-store";
 import { buildMathmonScorecard, type Scorecard } from "../lib/scorecards";
+import { measureZposCompression } from "../lib/zpos-measurement";
 
 const SPARTAN_STEPS = [
   { id: "SCAN", label: "SCAN — enumerate sections, count tokens" },
@@ -173,6 +174,11 @@ export async function handleF7Stream(req: Request, res: Response): Promise<void>
     certId: generateCertId(),
     class: out.class,
     crP: out.crP,
+    zposMeasurement: measureZposCompression(
+      pddArtifactId,
+      pdd.artifactContent,
+      out.sections,
+    ),
     issuedAt: new Date().toISOString(),
     forgeVerified,
     mathmonScore,
