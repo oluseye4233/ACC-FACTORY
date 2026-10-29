@@ -770,3 +770,45 @@ mtime_ms = 1793219910456
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/015b0d98-48ec-447d-9d52-6d3f0bd93e2b/15667e72-d839-41fe-affb-2d59246541ae"
 storage_version_token = "1793219937773882"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "jipvq56c4SebcCdRKRaJY"
+uri = "file://generated-artifacts/acc-evaluation-map/ACC-evaluation-visual-map.png"
+type = "image"
+title = "ACC — F0–F12 evaluation visual map"
+description = "Colour-coded map of advisory checks, enforced requirements, drift review, external evidence and the remediation loop."
+logical_id = "b29f9f29-2455-4f12-9854-5d89ce3db56d"
+content_hash = "sha256:471d9c4bd91d9653f1b51c1d347a783f677f6cfeab5630b938681539401568c3"
+size = 230986
+mtime_ms = 1793237962137
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/b29f9f29-2455-4f12-9854-5d89ce3db56d/f35c8f97-45dd-45da-902b-45b52dd86a60"
+storage_version_token = "1793237987808108"
+content_type = "image/png"
+
+[[outputs]]
+id = "tHz882jxDkAPq1exwJZO8"
+uri = "file://generated-artifacts/acc-evaluation-map/ACC-evaluation-and-gate-map.html"
+type = "html"
+title = "ACC — Evaluation and gate report"
+description = "Self-contained, printable report with the visual map, all 14 stage entries, blocking conditions, evidence limitations and implementation sources."
+logical_id = "e81d4610-3f16-4283-94b8-8e9df5ec462a"
+content_hash = "sha256:6d813275122f82975e1fe16dcad923876d37684628ce6262632b7b122b5fa310"
+size = 31712
+mtime_ms = 1793237959389
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/e81d4610-3f16-4283-94b8-8e9df5ec462a/a69756a7-4a6b-47a7-9b17-bb906cd69d5b"
+storage_version_token = "1793237988804762"
+content_type = "text/html"
+
+[[outputs]]
+id = "3NIGp61QriBMdNgLE6J67"
+uri = "file://generated-artifacts/acc-evaluation-map/ACC-evaluation-and-gate-map.md"
+type = "text"
+title = "ACC — Evaluation map in Markdown"
+description = "Editable stage-by-stage checklist of evaluation rules, blocking conditions and known limitations."
+logical_id = "88001976-d9d2-40df-9680-a9676be736de"
+content_hash = "sha256:4042a0915ac9c722491e67ec6ab1383d9196a4e8434b9e17257ef4cd57c87b49"
+size = 5878
+mtime_ms = 1793237959389
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/88001976-d9d2-40df-9680-a9676be736de/8a8e6eab-4726-45f4-8925-8b209eca65a0"
+storage_version_token = "1793237989525918"
+content_type = "text/markdown"

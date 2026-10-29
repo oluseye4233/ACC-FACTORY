@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1570" role="img" aria-labelledby="title description"><title id="title">ACC evaluation map across F0–F12</title><desc id="description">Fourteen stage cards distinguish advisory scoring, enforced scoped requirements, reviewable drift holds and external qualification. Low scores return through remediation and re-ingestion; no automatic certification or release.</desc><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#82909d" stroke-width="1.4"/></marker></defs><rect width="1440" height="1570" fill="#f7faf9"/>
+<text x="64" y="56" font-family="Arial,Helvetica,sans-serif" font-size="19" fill="#176346" font-weight="700">ATANDA  /  ARK HARNESS</text>
+<text x="64" y="109" font-family="Arial,Helvetica,sans-serif" font-size="44" fill="#142d26" font-weight="700">ACC evaluation &amp; gate map</text>
+<text x="64" y="145" font-family="Arial,Helvetica,sans-serif" font-size="19" fill="#344655" font-weight="400">Implementation-based review · 28 October 2026 · not a live-production audit</text>
+<text x="64" y="177" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Colour describes the check type—not whether a stage is active. Read stages left to right, then down.</text>
+<rect x="64" y="202" width="310" height="39" rx="8" fill="#edf5ff" stroke="#1756a9"/>
+<text x="80" y="227" font-family="Arial,Helvetica,sans-serif" font-size="16" fill="#1756a9" font-weight="700">ADVISORY</text>
+<rect x="396" y="202" width="310" height="39" rx="8" fill="#fff0f2" stroke="#aa2941"/>
+<text x="412" y="227" font-family="Arial,Helvetica,sans-serif" font-size="16" fill="#aa2941" font-weight="700">ENFORCED · SCOPED</text>
+<rect x="728" y="202" width="310" height="39" rx="8" fill="#fff7df" stroke="#865600"/>
+<text x="744" y="227" font-family="Arial,Helvetica,sans-serif" font-size="16" fill="#865600" font-weight="700">REVIEWABLE HOLD</text>
+<rect x="1060" y="202" width="310" height="39" rx="8" fill="#f3efff" stroke="#6442a2"/>
+<text x="1076" y="227" font-family="Arial,Helvetica,sans-serif" font-size="16" fill="#6442a2" font-weight="700">EXTERNAL EVIDENCE</text>
+<rect x="64" y="272" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="64" y="272" width="310" height="8" rx="4" fill="#1756a9"/>
+<text x="84" y="318" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F0</text>
+<text x="84" y="350" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">Advisory</text>
+<text x="84" y="387" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Review the concept</text>
+<text x="84" y="414" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Advice is not approval</text>
+<text x="84" y="453" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#1756a9" font-weight="700">ADVISORY</text>
+<path d="M378 378h14" fill="none" stroke="#82909d" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="396" y="272" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="396" y="272" width="310" height="8" rx="4" fill="#1756a9"/>
+<text x="416" y="318" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F1</text>
+<text x="416" y="350" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">Ingestion</text>
+<text x="416" y="387" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">JCSE + source validation</text>
+<text x="416" y="414" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Improve weak inputs</text>
+<text x="416" y="453" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#1756a9" font-weight="700">ADVISORY</text>
+<path d="M710 378h14" fill="none" stroke="#82909d" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="728" y="272" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="728" y="272" width="310" height="8" rx="4" fill="#1756a9"/>
+<text x="748" y="318" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F2</text>
+<text x="748" y="350" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">Atomic prompt</text>
+<text x="748" y="387" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Atomicity + JCSE</text>
+<text x="748" y="414" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Clarify the instruction</text>
+<text x="748" y="453" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#1756a9" font-weight="700">ADVISORY</text>
+<path d="M1042 378h14" fill="none" stroke="#82909d" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1060" y="272" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="1060" y="272" width="310" height="8" rx="4" fill="#1756a9"/>
+<text x="1080" y="318" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F3</text>
+<text x="1080" y="350" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">Molecular Agent</text>
+<text x="1080" y="387" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">MA specification</text>
+<text x="1080" y="414" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Governance is installed</text>
+<text x="1080" y="453" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#1756a9" font-weight="700">ADVISORY</text>
+<path d="M1215 486v17H219v15" fill="none" stroke="#82909d" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="64" y="522" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="64" y="522" width="310" height="8" rx="4" fill="#aa2941"/>
+<text x="84" y="568" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F4</text>
+<text x="84" y="600" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">Micro PDD</text>
+<text x="84" y="637" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Eligible MA source</text>
+<text x="84" y="664" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Governance validity</text>
+<text x="84" y="703" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#aa2941" font-weight="700">ENFORCED · SCOPED</text>
+<path d="M378 628h14" fill="none" stroke="#82909d" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="396" y="522" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="396" y="522" width="310" height="8" rx="4" fill="#aa2941"/>
+<text x="416" y="568" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F5</text>
+<text x="416" y="600" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">SPC / SCAN inputs</text>
+<text x="416" y="637" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Structured specification</text>
+<text x="416" y="664" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Risk-review checkpoint</text>
+<text x="416" y="703" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#aa2941" font-weight="700">ENFORCED · SCOPED</text>
+<path d="M710 628h14" fill="none" stroke="#82909d" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="728" y="522" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="728" y="522" width="310" height="8" rx="4" fill="#aa2941"/>
+<text x="748" y="568" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F6</text>
+<text x="748" y="600" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">ATLAS PDD</text>
+<text x="748" y="637" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Eligible F5 artifact only</text>
+<text x="748" y="664" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">PDD / PLAN / SCAN</text>
+<text x="748" y="703" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#aa2941" font-weight="700">ENFORCED · SCOPED</text>
+<path d="M1042 628h14" fill="none" stroke="#82909d" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1060" y="522" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="1060" y="522" width="310" height="8" rx="4" fill="#aa2941"/>
+<text x="1080" y="568" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F7</text>
+<text x="1080" y="600" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">MVP PDD</text>
+<text x="1080" y="637" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">FORGE VERIFIED gate</text>
+<text x="1080" y="664" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">JCSE ≥45 + MATHMON ≥70</text>
+<text x="1080" y="703" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#aa2941" font-weight="700">ENFORCED · SCOPED</text>
+<path d="M1215 736v17H219v15" fill="none" stroke="#82909d" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="64" y="772" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="64" y="772" width="310" height="8" rx="4" fill="#865600"/>
+<text x="84" y="818" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F8</text>
+<text x="84" y="850" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">CODE ONE+ / Code DJ</text>
+<text x="84" y="887" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">PFP drift + code fidelity</text>
+<text x="84" y="914" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Acknowledgement ≠ repair</text>
+<text x="84" y="953" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#865600" font-weight="700">REVIEWABLE HOLD</text>
+<path d="M378 878h14" fill="none" stroke="#82909d" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="396" y="772" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="396" y="772" width="310" height="8" rx="4" fill="#6442a2"/>
+<text x="416" y="818" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F9</text>
+<text x="416" y="850" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">Machine floor</text>
+<text x="416" y="887" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Firmware / hardware path</text>
+<text x="416" y="914" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Software skips this stage</text>
+<text x="416" y="953" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#6442a2" font-weight="700">EXTERNAL EVIDENCE</text>
+<path d="M710 878h14" fill="none" stroke="#82909d" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="728" y="772" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="728" y="772" width="310" height="8" rx="4" fill="#aa2941"/>
+<text x="748" y="818" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F9.5</text>
+<text x="748" y="850" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">OSIRIS custody</text>
+<text x="748" y="887" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Protected release path</text>
+<text x="748" y="914" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Artifact hash + custody</text>
+<text x="748" y="953" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#aa2941" font-weight="700">ENFORCED · SCOPED</text>
+<path d="M1042 878h14" fill="none" stroke="#82909d" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1060" y="772" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="1060" y="772" width="310" height="8" rx="4" fill="#6442a2"/>
+<text x="1080" y="818" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F10</text>
+<text x="1080" y="850" font-family="Arial,Helvetica,sans-serif" font-size="18" fill="#142d26" font-weight="700">Integration / handoff</text>
+<text x="1080" y="887" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Source + authorization</text>
+<text x="1080" y="914" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Receipt ≠ execution</text>
+<text x="1080" y="953" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#6442a2" font-weight="700">EXTERNAL EVIDENCE</text>
+<path d="M1215 986v17H219v15" fill="none" stroke="#82909d" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="64" y="1022" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="64" y="1022" width="310" height="8" rx="4" fill="#6442a2"/>
+<text x="84" y="1068" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F11</text>
+<text x="84" y="1100" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">Hosting / refinement</text>
+<text x="84" y="1137" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Target-specific evidence</text>
+<text x="84" y="1164" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">No inferred deployment</text>
+<text x="84" y="1203" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#6442a2" font-weight="700">EXTERNAL EVIDENCE</text>
+<path d="M378 1128h14" fill="none" stroke="#82909d" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="396" y="1022" width="310" height="210" rx="14" fill="white" stroke="#d5dfda"/><rect x="396" y="1022" width="310" height="8" rx="4" fill="#6442a2"/>
+<text x="416" y="1068" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#142d26" font-weight="700">F12</text>
+<text x="416" y="1100" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#142d26" font-weight="700">Delivery target</text>
+<text x="416" y="1137" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Prepare vs execute</text>
+<text x="416" y="1164" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">Qualified release only</text>
+<text x="416" y="1203" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#6442a2" font-weight="700">EXTERNAL EVIDENCE</text>
+<rect x="728" y="1022" width="642" height="210" rx="14" fill="#eaf3ee" stroke="#b8d3c1"/>
+<text x="750" y="1062" font-family="Arial,Helvetica,sans-serif" font-size="24" fill="#176346" font-weight="700">Cross-stage evidence rules</text>
+<text x="750" y="1099" font-family="Arial,Helvetica,sans-serif" font-size="19" fill="#344655" font-weight="400">XVL contract checks apply only where supported.</text>
+<text x="750" y="1130" font-family="Arial,Helvetica,sans-serif" font-size="19" fill="#344655" font-weight="400">Internal PASS ≠ independent PASS ≠ release approval.</text>
+<text x="750" y="1161" font-family="Arial,Helvetica,sans-serif" font-size="19" fill="#344655" font-weight="400">Missing evidence stays NOT RUN / INCONCLUSIVE.</text>
+<text x="750" y="1192" font-family="Arial,Helvetica,sans-serif" font-size="19" fill="#344655" font-weight="400">Software and Agent Creator follow eligible route rules.</text>
+<rect x="64" y="1270" width="1306" height="153" rx="14" fill="#edf5ff" stroke="#9cb8d7"/>
+<text x="86" y="1306" font-family="Arial,Helvetica,sans-serif" font-size="20" fill="#1756a9" font-weight="700">REMEDIATION LOOP</text>
+<text x="86" y="1340" font-family="Arial,Helvetica,sans-serif" font-size="22" fill="#344655" font-weight="400">Low score / failed check → exact artifact + findings → Boomerang / SPC Player → corrected revision</text>
+<text x="86" y="1374" font-family="Arial,Helvetica,sans-serif" font-size="22" fill="#344655" font-weight="400">Score-driven rework → F1 re-ingestion → re-evaluation → eligible return / continuation</text>
+<text x="86" y="1403" font-family="Arial,Helvetica,sans-serif" font-size="18" fill="#344655" font-weight="400">Upgraded 1, Upgraded 2… retain lineage; a new name or return action does not clear a failed gate.</text>
+<text x="64" y="1472" font-family="Arial,Helvetica,sans-serif" font-size="19" fill="#176346" font-weight="700">INTERNAL SERVICES</text>
+<text x="64" y="1505" font-family="Arial,Helvetica,sans-serif" font-size="18" fill="#344655" font-weight="400">Agent Creator: score + governance eligibility. IMPRIMA: editorial checks where run; publication controls remain separate.</text>
+<text x="64" y="1538" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#344655" font-weight="400">This map documents existing checks. It adds no gates, changes no entitlements and makes no runtime-safety guarantee.</text>
+</svg>
