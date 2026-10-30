@@ -26,6 +26,68 @@ tags:
   - name: magnet
 
 paths:
+  /autocommand/catalog:
+    get:
+      operationId: getAutoCommandCatalog
+      tags: [autocommand]
+      summary: Public specification-package catalog and launch readiness
+      responses:
+        "200":
+          description: AutoCommand catalog
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AutoCommandCatalog" }
+  /autocommand/workspace:
+    get:
+      operationId: getAutoCommandWorkspace
+      tags: [autocommand]
+      summary: Verified individual identity and owned intake drafts
+      responses:
+        "200":
+          description: Workspace
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AutoCommandWorkspace" }
+        "503": { description: Identity or intake storage unavailable }
+  /autocommand/drafts:
+    post:
+      operationId: createAutoCommandDraft
+      tags: [autocommand]
+      summary: Save a private intake without payment or generation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AutoCommandDraftInput" }
+      responses:
+        "200":
+          description: Saved or idempotently replayed private intake
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AutoCommandDraft" }
+        "400": { description: Invalid intake }
+        "401": { description: Verified individual email required }
+        "409": { description: Request key reused for different intake }
+        "429": { description: Intake save limit reached }
+  /imprima-portal/autocommand/uploads:
+    post:
+      operationId: uploadAutoCommandIntake
+      tags: [autocommand]
+      summary: Private IMPRIMA intake document or corporate logo
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: "#/components/schemas/AutoCommandUploadInput" }
+      responses:
+        "200":
+          description: Saved private intake file
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AutoCommandUpload" }
+        "400": { description: Unsupported or unreadable file }
+        "401": { description: Verified individual email required }
+        "413": { description: File exceeds size limit }
   /llm/jev-shadow:
     get:
       operationId: getJevShadowReports
@@ -3700,6 +3762,114 @@ components:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   schemas:
+    AutoCommandUploadInput:
+      type: object
+      required: [file, purpose]
+      properties:
+        file: { type: string, description: "Raw file part; upload with the custom FormData helper." }
+        purpose: { type: string, enum: [DOCUMENT, LOGO] }
+    AutoCommandReadiness:
+      type: object
+      required: [intakeEnabled, checkoutEnabled, automaticProductionEnabled, emailDeliveryEnabled, blockers]
+      properties:
+        intakeEnabled: { type: boolean }
+        checkoutEnabled: { type: boolean }
+        automaticProductionEnabled: { type: boolean }
+        emailDeliveryEnabled: { type: boolean }
+        blockers: { type: array, items: { type: string } }
+    AutoCommandCatalog:
+      type: object
+      required: [name, currency, packages, documentTypes, targets, commonArtifacts, promotion, readiness]
+      properties:
+        name: { type: string }
+        currency: { type: string }
+        packages:
+          type: array
+          items:
+            type: object
+            required: [id, name, priceCents, available, description, artifacts]
+            properties:
+              id: { type: string }
+              name: { type: string }
+              priceCents: { type: [integer, "null"] }
+              available: { type: boolean }
+              description: { type: string }
+              artifacts: { type: array, items: { type: string } }
+        documentTypes:
+          type: array
+          items:
+            type: object
+            required: [id, name]
+            properties:
+              id: { type: string }
+              name: { type: string }
+        targets: { type: array, items: { type: string } }
+        commonArtifacts: { type: array, items: { type: string } }
+        promotion:
+          type: object
+          required: [policy, description]
+          properties:
+            policy: { type: string }
+            description: { type: string }
+        readiness: { $ref: "#/components/schemas/AutoCommandReadiness" }
+    AutoCommandDraftInput:
+      type: object
+      required: [requestKey, projectName, packageType, intakeMode, documentType, specification, targetEmail, contactName, phone, ownerName, creatorName, targets, rightsConfirmed]
+      properties:
+        requestKey: { type: string, format: uuid }
+        projectName: { type: string, minLength: 2, maxLength: 160 }
+        packageType: { type: string, enum: [BASIC_AGENT, ADVANCED_AGENT, WEB_APPLICATION] }
+        intakeMode: { type: string, enum: [PROMPT, INTAKE, CARTRIDGE] }
+        documentType: { type: string, enum: [BUSINESS_ANALYSIS, BUSINESS_PLAN, BUSINESS_CASE, FEASIBILITY_STUDY, PRODUCT_BRIEF] }
+        specification: { type: string, minLength: 40, maxLength: 40000 }
+        targetEmail: { type: string, format: email, maxLength: 320 }
+        contactName: { type: string, minLength: 2, maxLength: 160 }
+        phone: { type: string, minLength: 5, maxLength: 40 }
+        ownerName: { type: string, minLength: 2, maxLength: 160 }
+        creatorName: { type: string, minLength: 2, maxLength: 160 }
+        companyName: { type: string, maxLength: 160 }
+        logoUploadId: { type: string, format: uuid }
+        documentUploadId: { type: string, format: uuid }
+        cartridgeContext: { type: string, maxLength: 20000 }
+        targets:
+          type: array
+          minItems: 1
+          maxItems: 8
+          items: { type: string, enum: [IDE, VIBE_CODING_APP, LANGCHAIN, AWS, OPENAI_AGENTS, GOOGLE_GEMINI_STUDIO, MICROSOFT_COPILOT_AZURE, CLAUDE_SKILLS] }
+        rightsConfirmed: { type: boolean }
+    AutoCommandDraft:
+      type: object
+      required: [id, state, verifiedEmail, projectName, packageType, standardPriceCents, promotionStatus, input, uploads, createdAt]
+      properties:
+        id: { type: string }
+        state: { type: string, enum: [DRAFT] }
+        verifiedEmail: { type: string }
+        projectName: { type: string }
+        packageType: { type: string }
+        standardPriceCents: { type: integer }
+        promotionStatus: { type: string, enum: [CHECK_AT_CHECKOUT] }
+        input: { $ref: "#/components/schemas/AutoCommandDraftInput" }
+        uploads:
+          type: array
+          items: { $ref: "#/components/schemas/AutoCommandUpload" }
+        createdAt: { type: string, format: date-time }
+    AutoCommandWorkspace:
+      type: object
+      required: [authenticated, verifiedEmail, drafts]
+      properties:
+        authenticated: { type: boolean }
+        verifiedEmail: { type: [string, "null"] }
+        drafts:
+          type: array
+          items: { $ref: "#/components/schemas/AutoCommandDraft" }
+    AutoCommandUpload:
+      type: object
+      required: [id, filename, purpose, extractedCharacters]
+      properties:
+        id: { type: string, format: uuid }
+        filename: { type: string }
+        purpose: { type: string, enum: [DOCUMENT, LOGO] }
+        extractedCharacters: { type: integer }
     StageGuide:
       type: object
       required: [id, stageKey, kind, title, script, outcome, limitation, version, state, isTest, published, embedUrl, providerVideoId]

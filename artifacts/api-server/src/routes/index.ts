@@ -46,9 +46,11 @@ import artifactOperationsRouter from "./artifact-operations";
 import boomerangRouter from "./boomerang";
 import stageSupportRouter from "./stage-support";
 import artifactGovernanceRouter from "./artifact-governance";
+import autoCommandRouter from "./autocommand";
 import { guardSkippedEngine } from "../lib/artifact-operations/engine-guard";
 
 const router: IRouter = Router();
+router.use(autoCommandRouter);
 router.use(stageGuidesRouter);
 router.use(llmRecommendationRouter);
 router.use(jevShadowRouter);

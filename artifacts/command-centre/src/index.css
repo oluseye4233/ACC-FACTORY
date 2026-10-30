@@ -313,3 +313,9 @@
     100% { background-position: 200% 50%; }
   }
 }
+
+/* AutoCommand: one restrained entrance; disabled entirely for reduced motion. */
+@keyframes ac-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.ac-rise { animation: ac-rise 420ms cubic-bezier(.2,.7,.2,1) both; }
+.ac-d2 { animation-delay: 120ms; }
+@media (prefers-reduced-motion: reduce) { .ac-rise { animation: none; } }

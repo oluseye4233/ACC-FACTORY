@@ -65,6 +65,17 @@ export default function Landing() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-7xl px-4 md:px-6 pt-16" aria-labelledby="autocommand-promo">
+        <div className="grid gap-6 border-l-4 border-secondary bg-card p-7 md:grid-cols-[1fr_auto] md:items-center md:p-10">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.25em] text-secondary">New · ATANDA AutoCommand · intake open</p>
+            <h2 id="autocommand-promo" className="mt-3 font-display text-4xl md:text-5xl">Fast Consulting: turn one idea into a specification package you own.</h2>
+            <p className="mt-3 max-w-2xl text-muted-foreground">Choose a Basic AI Agent, Advanced AI Agent or AI-native Web Application package and save a private, verified intake today. Checkout and automatic production are not open yet; saving a brief is not an order.</p>
+          </div>
+          <Link href="/autocommand" className="inline-flex min-h-12 items-center gap-2 bg-secondary px-6 py-3 font-display text-xl tracking-wider text-secondary-foreground hover:opacity-90" data-testid="link-landing-autocommand">See AutoCommand <ArrowRight className="h-4 w-4" aria-hidden /></Link>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-4 md:px-6 py-20" data-snap="need">
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">What you need</p>
         <h2 className="mt-4 max-w-4xl font-display text-4xl md:text-6xl">You should not have to guess whether your work is moving forward.</h2>

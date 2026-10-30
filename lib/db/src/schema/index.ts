@@ -60,3 +60,4 @@ export * from "./artifact-operations";
 export * from "./boomerang";
 export * from "./learning";
 export * from "./recovery-alerts";
+export * from "./autocommand";

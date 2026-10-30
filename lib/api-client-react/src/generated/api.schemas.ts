@@ -5,6 +5,202 @@
  * ATANDA Command Centre + HARNESS API
  * OpenAPI spec version: 0.1.0
  */
+export type AutoCommandUploadInputPurpose = typeof AutoCommandUploadInputPurpose[keyof typeof AutoCommandUploadInputPurpose];
+
+
+export const AutoCommandUploadInputPurpose = {
+  DOCUMENT: 'DOCUMENT',
+  LOGO: 'LOGO',
+} as const;
+
+export interface AutoCommandUploadInput {
+  /** Raw file part; upload with the custom FormData helper. */
+  file: string;
+  purpose: AutoCommandUploadInputPurpose;
+}
+
+export interface AutoCommandReadiness {
+  intakeEnabled: boolean;
+  checkoutEnabled: boolean;
+  automaticProductionEnabled: boolean;
+  emailDeliveryEnabled: boolean;
+  blockers: string[];
+}
+
+export type AutoCommandCatalogPackagesItem = {
+  id: string;
+  name: string;
+  /** @nullable */
+  priceCents: number | null;
+  available: boolean;
+  description: string;
+  artifacts: string[];
+};
+
+export type AutoCommandCatalogDocumentTypesItem = {
+  id: string;
+  name: string;
+};
+
+export type AutoCommandCatalogPromotion = {
+  policy: string;
+  description: string;
+};
+
+export interface AutoCommandCatalog {
+  name: string;
+  currency: string;
+  packages: AutoCommandCatalogPackagesItem[];
+  documentTypes: AutoCommandCatalogDocumentTypesItem[];
+  targets: string[];
+  commonArtifacts: string[];
+  promotion: AutoCommandCatalogPromotion;
+  readiness: AutoCommandReadiness;
+}
+
+export type AutoCommandDraftInputPackageType = typeof AutoCommandDraftInputPackageType[keyof typeof AutoCommandDraftInputPackageType];
+
+
+export const AutoCommandDraftInputPackageType = {
+  BASIC_AGENT: 'BASIC_AGENT',
+  ADVANCED_AGENT: 'ADVANCED_AGENT',
+  WEB_APPLICATION: 'WEB_APPLICATION',
+} as const;
+
+export type AutoCommandDraftInputIntakeMode = typeof AutoCommandDraftInputIntakeMode[keyof typeof AutoCommandDraftInputIntakeMode];
+
+
+export const AutoCommandDraftInputIntakeMode = {
+  PROMPT: 'PROMPT',
+  INTAKE: 'INTAKE',
+  CARTRIDGE: 'CARTRIDGE',
+} as const;
+
+export type AutoCommandDraftInputDocumentType = typeof AutoCommandDraftInputDocumentType[keyof typeof AutoCommandDraftInputDocumentType];
+
+
+export const AutoCommandDraftInputDocumentType = {
+  BUSINESS_ANALYSIS: 'BUSINESS_ANALYSIS',
+  BUSINESS_PLAN: 'BUSINESS_PLAN',
+  BUSINESS_CASE: 'BUSINESS_CASE',
+  FEASIBILITY_STUDY: 'FEASIBILITY_STUDY',
+  PRODUCT_BRIEF: 'PRODUCT_BRIEF',
+} as const;
+
+export type AutoCommandDraftInputTargetsItem = typeof AutoCommandDraftInputTargetsItem[keyof typeof AutoCommandDraftInputTargetsItem];
+
+
+export const AutoCommandDraftInputTargetsItem = {
+  IDE: 'IDE',
+  VIBE_CODING_APP: 'VIBE_CODING_APP',
+  LANGCHAIN: 'LANGCHAIN',
+  AWS: 'AWS',
+  OPENAI_AGENTS: 'OPENAI_AGENTS',
+  GOOGLE_GEMINI_STUDIO: 'GOOGLE_GEMINI_STUDIO',
+  MICROSOFT_COPILOT_AZURE: 'MICROSOFT_COPILOT_AZURE',
+  CLAUDE_SKILLS: 'CLAUDE_SKILLS',
+} as const;
+
+export interface AutoCommandDraftInput {
+  requestKey: string;
+  /**
+     * @minLength 2
+     * @maxLength 160
+     */
+  projectName: string;
+  packageType: AutoCommandDraftInputPackageType;
+  intakeMode: AutoCommandDraftInputIntakeMode;
+  documentType: AutoCommandDraftInputDocumentType;
+  /**
+     * @minLength 40
+     * @maxLength 40000
+     */
+  specification: string;
+  /** @maxLength 320 */
+  targetEmail: string;
+  /**
+     * @minLength 2
+     * @maxLength 160
+     */
+  contactName: string;
+  /**
+     * @minLength 5
+     * @maxLength 40
+     */
+  phone: string;
+  /**
+     * @minLength 2
+     * @maxLength 160
+     */
+  ownerName: string;
+  /**
+     * @minLength 2
+     * @maxLength 160
+     */
+  creatorName: string;
+  /** @maxLength 160 */
+  companyName?: string;
+  logoUploadId?: string;
+  documentUploadId?: string;
+  /** @maxLength 20000 */
+  cartridgeContext?: string;
+  /**
+     * @minItems 1
+     * @maxItems 8
+     */
+  targets: AutoCommandDraftInputTargetsItem[];
+  rightsConfirmed: boolean;
+}
+
+export type AutoCommandDraftState = typeof AutoCommandDraftState[keyof typeof AutoCommandDraftState];
+
+
+export const AutoCommandDraftState = {
+  DRAFT: 'DRAFT',
+} as const;
+
+export type AutoCommandDraftPromotionStatus = typeof AutoCommandDraftPromotionStatus[keyof typeof AutoCommandDraftPromotionStatus];
+
+
+export const AutoCommandDraftPromotionStatus = {
+  CHECK_AT_CHECKOUT: 'CHECK_AT_CHECKOUT',
+} as const;
+
+export type AutoCommandUploadPurpose = typeof AutoCommandUploadPurpose[keyof typeof AutoCommandUploadPurpose];
+
+
+export const AutoCommandUploadPurpose = {
+  DOCUMENT: 'DOCUMENT',
+  LOGO: 'LOGO',
+} as const;
+
+export interface AutoCommandUpload {
+  id: string;
+  filename: string;
+  purpose: AutoCommandUploadPurpose;
+  extractedCharacters: number;
+}
+
+export interface AutoCommandDraft {
+  id: string;
+  state: AutoCommandDraftState;
+  verifiedEmail: string;
+  projectName: string;
+  packageType: string;
+  standardPriceCents: number;
+  promotionStatus: AutoCommandDraftPromotionStatus;
+  input: AutoCommandDraftInput;
+  uploads: AutoCommandUpload[];
+  createdAt: string;
+}
+
+export interface AutoCommandWorkspace {
+  authenticated: boolean;
+  /** @nullable */
+  verifiedEmail: string | null;
+  drafts: AutoCommandDraft[];
+}
+
 export type StageGuideKind = typeof StageGuideKind[keyof typeof StageGuideKind];
 
 

@@ -7,6 +7,7 @@ import { useStaffSession } from "@/lib/staff-session";
 const NAV = [
   { href: "/#how", label: "How it works", id: "how" },
   { href: "/#workflow", label: "Workflow", id: "workflow" },
+  { href: "/autocommand", label: "AutoCommand", id: "autocommand" },
   { href: "/pricing", label: "Pricing", id: "pricing" },
   { href: "/learn-register", label: "FORGE", id: "forge" },
 ];
@@ -65,6 +66,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
           <p className="max-w-xl">ATANDA is the corporate identity behind the ARK Harness and Command Centre. The platform is in private preview. Outputs support your own review and are not independent certification.</p>
           <div className="flex flex-wrap gap-5 font-mono text-xs uppercase tracking-wider">
             <Link href="/" data-testid="link-footer-home">Home</Link>
+            <Link href="/autocommand" data-testid="link-footer-autocommand">AutoCommand</Link>
             <Link href="/pricing" data-testid="link-footer-pricing">Pricing</Link>
             <Link href="/learn-register" data-testid="link-footer-forge">FORGE</Link>
             <Link href="/command" data-testid="link-footer-command">Command Centre</Link>

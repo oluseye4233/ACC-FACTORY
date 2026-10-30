@@ -32,6 +32,8 @@ import { intakeRedirectHref } from "@/lib/portal";
 // the existing route gate selects that tool; this does not grant access to it.
 const Verify = lazy(() => import("@/pages/verify"));
 const Landing = lazy(() => import("@/pages/landing"));
+const AutoCommand = lazy(() => import("@/pages/autocommand"));
+const AutoCommandAuth = lazy(() => import("@/pages/autocommand-auth"));
 const Pricing = lazy(() => import("@/pages/pricing"));
 const Billing = lazy(() => import("@/pages/billing"));
 const Command = lazy(() => import("@/pages/command"));
@@ -95,6 +97,9 @@ function LoadingScreen() {
 function PublicRoutes() {
   return (
     <Switch>
+      <Route path="/autocommand/login/*?" component={AutoCommandAuth} />
+      <Route path="/autocommand/register/*?" component={AutoCommandAuth} />
+      <Route path="/autocommand" component={AutoCommand} />
       <Route path="/" component={Landing} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/verify" component={Verify} />
@@ -110,6 +115,9 @@ function PublicRoutes() {
 function AuthenticatedRoutes() {
   return (
     <Switch>
+      <Route path="/autocommand/login/*?" component={AutoCommandAuth} />
+      <Route path="/autocommand/register/*?" component={AutoCommandAuth} />
+      <Route path="/autocommand" component={AutoCommand} />
       <Route path="/" component={Landing} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/billing" component={Billing} />
@@ -178,7 +186,8 @@ function Gate() {
   // Public pages must remain usable while session lookup is pending or failing.
   // The pathname comes from Wouter so in-app navigation re-evaluates this gate.
   const publicPath = requestedPath.replace(/\/+$/, "") || "/";
-  if (["/", "/pricing", "/status", "/verify", "/sphinx", "/test-your-agent", "/calculate-your-savings"].includes(publicPath)) {
+  if (["/", "/pricing", "/status", "/verify", "/sphinx", "/test-your-agent", "/calculate-your-savings"].includes(publicPath) ||
+      publicPath === "/autocommand" || publicPath.startsWith("/autocommand/")) {
     return <StaffSessionProvider session={data ?? { authenticated: false }}>
       <PublicRoutes />
     </StaffSessionProvider>;

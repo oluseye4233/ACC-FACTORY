@@ -13,7 +13,9 @@ const clerkPubKey = typeof window === "undefined" ? undefined : publishableKeyFr
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
 );
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
-const StudentIdentityContext = createContext({ isLoaded: true, isSignedIn: false });
+const StudentIdentityContext = createContext<{ isLoaded: boolean; isSignedIn: boolean; userId: string | null }>({
+  isLoaded: true, isSignedIn: false, userId: null,
+});
 export const useStudentIdentity = () => useContext(StudentIdentityContext);
 function IdentitySync({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn, userId } = useAuth();
@@ -26,11 +28,11 @@ function IdentitySync({ children }: { children: ReactNode }) {
     qc.removeQueries({ predicate: (q) => q.queryKey[0] !== "staff-session" });
     void qc.invalidateQueries({ queryKey: ["staff-session"] });
   }, [isLoaded, userId, qc]);
-  return <StudentIdentityContext.Provider value={{ isLoaded, isSignedIn: Boolean(isSignedIn) }}>{children}</StudentIdentityContext.Provider>;
+  return <StudentIdentityContext.Provider value={{ isLoaded, isSignedIn: Boolean(isSignedIn), userId: userId ?? null }}>{children}</StudentIdentityContext.Provider>;
 }
 export function StudentIdentityProvider({ children }: { children: ReactNode }) {
   const { resolvedTheme } = useTheme();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   // Missing student configuration must not disable the existing staff entrance.
   if (!clerkPubKey) return <>{children}</>;
   const local = (to: string) => to.startsWith(basePath) && basePath ? to.slice(basePath.length) || "/" : to;
@@ -52,16 +54,19 @@ export function StudentIdentityProvider({ children }: { children: ReactNode }) {
       },
       elements: { card: "bg-card text-card-foreground", rootBox: "max-w-full" },
     }}
-    localization={{ signIn: { start: { title: "FORGE FIELD ENGINEER", subtitle: "Sign in to your invite-only training account" } },
+    localization={location.startsWith("/autocommand") ? {
+      signIn: { start: { title: "ATANDA AutoCommand", subtitle: "Sign in with your own verified email" } },
+      signUp: { start: { title: "Your AutoCommand identity", subtitle: "One first free package per verified email; eligibility checked at checkout" } },
+    } : { signIn: { start: { title: "FORGE FIELD ENGINEER", subtitle: "Sign in to your invite-only training account" } },
       signUp: { start: { title: "Your individual training identity", subtitle: "An invitation is still required for cohort access" } } }}>
     <IdentitySync>{children}</IdentitySync>
   </ClerkProvider>;
 }
-export function StudentSignOut() {
+export function StudentSignOut({ redirectPath = "/learn-login" }: { redirectPath?: string }) {
   const { signOut } = useClerk();
   return <Button variant="ghost" size="sm" onClick={() => {
     sessionStorage.removeItem("ffe-membership");
-    void signOut({ redirectUrl: `${basePath}/learn-login` });
+    void signOut({ redirectUrl: `${basePath}${redirectPath}` });
   }}>LOG OUT</Button>;
 }
 export function StudentLogin() {

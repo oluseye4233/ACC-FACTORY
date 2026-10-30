@@ -1,0 +1,2 @@
+ALTER TABLE "autocommand_uploads" ADD COLUMN "state" text DEFAULT 'PENDING' NOT NULL;--> statement-breakpoint
+CREATE INDEX "autocommand_uploads_user_created" ON "autocommand_uploads" USING btree ("user_id","created_at");

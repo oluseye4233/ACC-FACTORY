@@ -9,6 +9,244 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Public specification-package catalog and launch readiness
+ */
+export const GetAutoCommandCatalogResponse = zod.object({
+  "name": zod.string(),
+  "currency": zod.string(),
+  "packages": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "priceCents": zod.number().int().nullable(),
+  "available": zod.boolean(),
+  "description": zod.string(),
+  "artifacts": zod.array(zod.string())
+})),
+  "documentTypes": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "targets": zod.array(zod.string()),
+  "commonArtifacts": zod.array(zod.string()),
+  "promotion": zod.object({
+  "policy": zod.string(),
+  "description": zod.string()
+}),
+  "readiness": zod.object({
+  "intakeEnabled": zod.boolean(),
+  "checkoutEnabled": zod.boolean(),
+  "automaticProductionEnabled": zod.boolean(),
+  "emailDeliveryEnabled": zod.boolean(),
+  "blockers": zod.array(zod.string())
+})
+})
+
+
+/**
+ * @summary Verified individual identity and owned intake drafts
+ */
+export const getAutoCommandWorkspaceResponseDraftsItemInputProjectNameMin = 2;
+export const getAutoCommandWorkspaceResponseDraftsItemInputProjectNameMax = 160;
+
+export const getAutoCommandWorkspaceResponseDraftsItemInputSpecificationMin = 40;
+export const getAutoCommandWorkspaceResponseDraftsItemInputSpecificationMax = 40000;
+
+export const getAutoCommandWorkspaceResponseDraftsItemInputTargetEmailMax = 320;
+
+export const getAutoCommandWorkspaceResponseDraftsItemInputContactNameMin = 2;
+export const getAutoCommandWorkspaceResponseDraftsItemInputContactNameMax = 160;
+
+export const getAutoCommandWorkspaceResponseDraftsItemInputPhoneMin = 5;
+export const getAutoCommandWorkspaceResponseDraftsItemInputPhoneMax = 40;
+
+export const getAutoCommandWorkspaceResponseDraftsItemInputOwnerNameMin = 2;
+export const getAutoCommandWorkspaceResponseDraftsItemInputOwnerNameMax = 160;
+
+export const getAutoCommandWorkspaceResponseDraftsItemInputCreatorNameMin = 2;
+export const getAutoCommandWorkspaceResponseDraftsItemInputCreatorNameMax = 160;
+
+export const getAutoCommandWorkspaceResponseDraftsItemInputCompanyNameMax = 160;
+
+export const getAutoCommandWorkspaceResponseDraftsItemInputCartridgeContextMax = 20000;
+
+export const getAutoCommandWorkspaceResponseDraftsItemInputTargetsMax = 8;
+
+
+
+export const GetAutoCommandWorkspaceResponse = zod.object({
+  "authenticated": zod.boolean(),
+  "verifiedEmail": zod.string().nullable(),
+  "drafts": zod.array(zod.object({
+  "id": zod.string(),
+  "state": zod.enum(['DRAFT']),
+  "verifiedEmail": zod.string(),
+  "projectName": zod.string(),
+  "packageType": zod.string(),
+  "standardPriceCents": zod.number().int(),
+  "promotionStatus": zod.enum(['CHECK_AT_CHECKOUT']),
+  "input": zod.object({
+  "requestKey": zod.string().uuid(),
+  "projectName": zod.string().min(getAutoCommandWorkspaceResponseDraftsItemInputProjectNameMin).max(getAutoCommandWorkspaceResponseDraftsItemInputProjectNameMax),
+  "packageType": zod.enum(['BASIC_AGENT', 'ADVANCED_AGENT', 'WEB_APPLICATION']),
+  "intakeMode": zod.enum(['PROMPT', 'INTAKE', 'CARTRIDGE']),
+  "documentType": zod.enum(['BUSINESS_ANALYSIS', 'BUSINESS_PLAN', 'BUSINESS_CASE', 'FEASIBILITY_STUDY', 'PRODUCT_BRIEF']),
+  "specification": zod.string().min(getAutoCommandWorkspaceResponseDraftsItemInputSpecificationMin).max(getAutoCommandWorkspaceResponseDraftsItemInputSpecificationMax),
+  "targetEmail": zod.string().email().max(getAutoCommandWorkspaceResponseDraftsItemInputTargetEmailMax),
+  "contactName": zod.string().min(getAutoCommandWorkspaceResponseDraftsItemInputContactNameMin).max(getAutoCommandWorkspaceResponseDraftsItemInputContactNameMax),
+  "phone": zod.string().min(getAutoCommandWorkspaceResponseDraftsItemInputPhoneMin).max(getAutoCommandWorkspaceResponseDraftsItemInputPhoneMax),
+  "ownerName": zod.string().min(getAutoCommandWorkspaceResponseDraftsItemInputOwnerNameMin).max(getAutoCommandWorkspaceResponseDraftsItemInputOwnerNameMax),
+  "creatorName": zod.string().min(getAutoCommandWorkspaceResponseDraftsItemInputCreatorNameMin).max(getAutoCommandWorkspaceResponseDraftsItemInputCreatorNameMax),
+  "companyName": zod.string().max(getAutoCommandWorkspaceResponseDraftsItemInputCompanyNameMax).optional(),
+  "logoUploadId": zod.string().uuid().optional(),
+  "documentUploadId": zod.string().uuid().optional(),
+  "cartridgeContext": zod.string().max(getAutoCommandWorkspaceResponseDraftsItemInputCartridgeContextMax).optional(),
+  "targets": zod.array(zod.enum(['IDE', 'VIBE_CODING_APP', 'LANGCHAIN', 'AWS', 'OPENAI_AGENTS', 'GOOGLE_GEMINI_STUDIO', 'MICROSOFT_COPILOT_AZURE', 'CLAUDE_SKILLS'])).min(1).max(getAutoCommandWorkspaceResponseDraftsItemInputTargetsMax),
+  "rightsConfirmed": zod.boolean()
+}),
+  "uploads": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "filename": zod.string(),
+  "purpose": zod.enum(['DOCUMENT', 'LOGO']),
+  "extractedCharacters": zod.number().int()
+})),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Save a private intake without payment or generation
+ */
+export const createAutoCommandDraftBodyProjectNameMin = 2;
+export const createAutoCommandDraftBodyProjectNameMax = 160;
+
+export const createAutoCommandDraftBodySpecificationMin = 40;
+export const createAutoCommandDraftBodySpecificationMax = 40000;
+
+export const createAutoCommandDraftBodyTargetEmailMax = 320;
+
+export const createAutoCommandDraftBodyContactNameMin = 2;
+export const createAutoCommandDraftBodyContactNameMax = 160;
+
+export const createAutoCommandDraftBodyPhoneMin = 5;
+export const createAutoCommandDraftBodyPhoneMax = 40;
+
+export const createAutoCommandDraftBodyOwnerNameMin = 2;
+export const createAutoCommandDraftBodyOwnerNameMax = 160;
+
+export const createAutoCommandDraftBodyCreatorNameMin = 2;
+export const createAutoCommandDraftBodyCreatorNameMax = 160;
+
+export const createAutoCommandDraftBodyCompanyNameMax = 160;
+
+export const createAutoCommandDraftBodyCartridgeContextMax = 20000;
+
+export const createAutoCommandDraftBodyTargetsMax = 8;
+
+
+
+export const CreateAutoCommandDraftBody = zod.object({
+  "requestKey": zod.string().uuid(),
+  "projectName": zod.string().min(createAutoCommandDraftBodyProjectNameMin).max(createAutoCommandDraftBodyProjectNameMax),
+  "packageType": zod.enum(['BASIC_AGENT', 'ADVANCED_AGENT', 'WEB_APPLICATION']),
+  "intakeMode": zod.enum(['PROMPT', 'INTAKE', 'CARTRIDGE']),
+  "documentType": zod.enum(['BUSINESS_ANALYSIS', 'BUSINESS_PLAN', 'BUSINESS_CASE', 'FEASIBILITY_STUDY', 'PRODUCT_BRIEF']),
+  "specification": zod.string().min(createAutoCommandDraftBodySpecificationMin).max(createAutoCommandDraftBodySpecificationMax),
+  "targetEmail": zod.string().email().max(createAutoCommandDraftBodyTargetEmailMax),
+  "contactName": zod.string().min(createAutoCommandDraftBodyContactNameMin).max(createAutoCommandDraftBodyContactNameMax),
+  "phone": zod.string().min(createAutoCommandDraftBodyPhoneMin).max(createAutoCommandDraftBodyPhoneMax),
+  "ownerName": zod.string().min(createAutoCommandDraftBodyOwnerNameMin).max(createAutoCommandDraftBodyOwnerNameMax),
+  "creatorName": zod.string().min(createAutoCommandDraftBodyCreatorNameMin).max(createAutoCommandDraftBodyCreatorNameMax),
+  "companyName": zod.string().max(createAutoCommandDraftBodyCompanyNameMax).optional(),
+  "logoUploadId": zod.string().uuid().optional(),
+  "documentUploadId": zod.string().uuid().optional(),
+  "cartridgeContext": zod.string().max(createAutoCommandDraftBodyCartridgeContextMax).optional(),
+  "targets": zod.array(zod.enum(['IDE', 'VIBE_CODING_APP', 'LANGCHAIN', 'AWS', 'OPENAI_AGENTS', 'GOOGLE_GEMINI_STUDIO', 'MICROSOFT_COPILOT_AZURE', 'CLAUDE_SKILLS'])).min(1).max(createAutoCommandDraftBodyTargetsMax),
+  "rightsConfirmed": zod.boolean()
+})
+
+export const createAutoCommandDraftResponseInputProjectNameMin = 2;
+export const createAutoCommandDraftResponseInputProjectNameMax = 160;
+
+export const createAutoCommandDraftResponseInputSpecificationMin = 40;
+export const createAutoCommandDraftResponseInputSpecificationMax = 40000;
+
+export const createAutoCommandDraftResponseInputTargetEmailMax = 320;
+
+export const createAutoCommandDraftResponseInputContactNameMin = 2;
+export const createAutoCommandDraftResponseInputContactNameMax = 160;
+
+export const createAutoCommandDraftResponseInputPhoneMin = 5;
+export const createAutoCommandDraftResponseInputPhoneMax = 40;
+
+export const createAutoCommandDraftResponseInputOwnerNameMin = 2;
+export const createAutoCommandDraftResponseInputOwnerNameMax = 160;
+
+export const createAutoCommandDraftResponseInputCreatorNameMin = 2;
+export const createAutoCommandDraftResponseInputCreatorNameMax = 160;
+
+export const createAutoCommandDraftResponseInputCompanyNameMax = 160;
+
+export const createAutoCommandDraftResponseInputCartridgeContextMax = 20000;
+
+export const createAutoCommandDraftResponseInputTargetsMax = 8;
+
+
+
+export const CreateAutoCommandDraftResponse = zod.object({
+  "id": zod.string(),
+  "state": zod.enum(['DRAFT']),
+  "verifiedEmail": zod.string(),
+  "projectName": zod.string(),
+  "packageType": zod.string(),
+  "standardPriceCents": zod.number().int(),
+  "promotionStatus": zod.enum(['CHECK_AT_CHECKOUT']),
+  "input": zod.object({
+  "requestKey": zod.string().uuid(),
+  "projectName": zod.string().min(createAutoCommandDraftResponseInputProjectNameMin).max(createAutoCommandDraftResponseInputProjectNameMax),
+  "packageType": zod.enum(['BASIC_AGENT', 'ADVANCED_AGENT', 'WEB_APPLICATION']),
+  "intakeMode": zod.enum(['PROMPT', 'INTAKE', 'CARTRIDGE']),
+  "documentType": zod.enum(['BUSINESS_ANALYSIS', 'BUSINESS_PLAN', 'BUSINESS_CASE', 'FEASIBILITY_STUDY', 'PRODUCT_BRIEF']),
+  "specification": zod.string().min(createAutoCommandDraftResponseInputSpecificationMin).max(createAutoCommandDraftResponseInputSpecificationMax),
+  "targetEmail": zod.string().email().max(createAutoCommandDraftResponseInputTargetEmailMax),
+  "contactName": zod.string().min(createAutoCommandDraftResponseInputContactNameMin).max(createAutoCommandDraftResponseInputContactNameMax),
+  "phone": zod.string().min(createAutoCommandDraftResponseInputPhoneMin).max(createAutoCommandDraftResponseInputPhoneMax),
+  "ownerName": zod.string().min(createAutoCommandDraftResponseInputOwnerNameMin).max(createAutoCommandDraftResponseInputOwnerNameMax),
+  "creatorName": zod.string().min(createAutoCommandDraftResponseInputCreatorNameMin).max(createAutoCommandDraftResponseInputCreatorNameMax),
+  "companyName": zod.string().max(createAutoCommandDraftResponseInputCompanyNameMax).optional(),
+  "logoUploadId": zod.string().uuid().optional(),
+  "documentUploadId": zod.string().uuid().optional(),
+  "cartridgeContext": zod.string().max(createAutoCommandDraftResponseInputCartridgeContextMax).optional(),
+  "targets": zod.array(zod.enum(['IDE', 'VIBE_CODING_APP', 'LANGCHAIN', 'AWS', 'OPENAI_AGENTS', 'GOOGLE_GEMINI_STUDIO', 'MICROSOFT_COPILOT_AZURE', 'CLAUDE_SKILLS'])).min(1).max(createAutoCommandDraftResponseInputTargetsMax),
+  "rightsConfirmed": zod.boolean()
+}),
+  "uploads": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "filename": zod.string(),
+  "purpose": zod.enum(['DOCUMENT', 'LOGO']),
+  "extractedCharacters": zod.number().int()
+})),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Private IMPRIMA intake document or corporate logo
+ */
+export const UploadAutoCommandIntakeBody = zod.object({
+  "file": zod.string().describe('Raw file part; upload with the custom FormData helper.'),
+  "purpose": zod.enum(['DOCUMENT', 'LOGO'])
+})
+
+export const UploadAutoCommandIntakeResponse = zod.object({
+  "id": zod.string().uuid(),
+  "filename": zod.string(),
+  "purpose": zod.enum(['DOCUMENT', 'LOGO']),
+  "extractedCharacters": zod.number().int()
+})
+
+
+/**
  * @summary Read owned JEV shadow snapshots without running a model
  */
 export const getJevShadowReportsQueryFeatureIdMin = 0;
