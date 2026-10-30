@@ -38,12 +38,13 @@ const PROVIDER_ENV: Record<LlmProvider, readonly string[]> = {
   deepseek: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
   kimi: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
   qwen: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
+  mistral: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
   glm: ["ZHIPU_API_KEY"],
 };
 
 // These transports do not yet have replay-backed generation fixtures. Never
 // contact them during offline tests, even when managed credentials are present.
-const DIRECT_API_PROVIDERS = new Set<LlmProvider>(["deepseek", "kimi", "qwen", "glm"]);
+const DIRECT_API_PROVIDERS = new Set<LlmProvider>(["deepseek", "kimi", "qwen", "glm", "mistral"]);
 
 function providerConfigured(p: LlmProvider): boolean {
   // Direct-provider calls do not use the fixture-backed SDK mocks below.

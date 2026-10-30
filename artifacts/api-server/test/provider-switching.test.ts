@@ -25,10 +25,11 @@ const PROVIDER_ENV: Record<LlmProvider, readonly string[]> = {
   deepseek: ["DEEPSEEK_API_KEY"],
   kimi: ["MOONSHOT_API_KEY"],
   qwen: ["DASHSCOPE_API_KEY"],
+  mistral: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
   glm: ["ZHIPU_API_KEY"],
 };
 
-const DIRECT_API_PROVIDERS = new Set<LlmProvider>(["deepseek", "kimi", "qwen", "glm"]);
+const DIRECT_API_PROVIDERS = new Set<LlmProvider>(["deepseek", "kimi", "qwen", "glm", "mistral"]);
 
 function providerConfigured(p: LlmProvider): boolean {
   // Direct-provider calls do not use the fixture-backed SDK mocks below.

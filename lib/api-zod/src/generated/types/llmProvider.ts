@@ -21,4 +21,5 @@ export const LlmProvider = {
   kimi: 'kimi',
   qwen: 'qwen',
   glm: 'glm',
+  mistral: 'mistral',
 } as const;

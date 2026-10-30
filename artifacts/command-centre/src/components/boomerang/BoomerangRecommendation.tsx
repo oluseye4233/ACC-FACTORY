@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { useGetBoomerangRemediation } from "@workspace/api-client-react";
 import { STAGE_ENGINE_ID } from "./boomerang-model";
+import { JevShadowAdvice } from "@/components/shared/JevShadowAdvice";
 
 export function BoomerangRecommendation({ originId, stage }: { originId: string; stage: string }) {
   const query = useGetBoomerangRemediation({ sessionId: originId, stage }, { query: {
@@ -16,6 +17,7 @@ export function BoomerangRecommendation({ originId, stage }: { originId: string;
     sourceArtifactId: rec.sourceArtifactId, scoreRemediation: "1" });
   return <aside className="rounded border border-secondary/60 bg-secondary/5 p-3 space-y-2" data-testid="boomerang-score-recommendation">
     <h5 className="font-bold text-sm">Recommended: rework → re-ingest at F1</h5>
+    {STAGE_ENGINE_ID[stage] <= 14 && <JevShadowAdvice key={`${originId}:${stage}`} sessionId={originId} featureId={STAGE_ENGINE_ID[stage]} kind="REMEDIATION" />}
     <p className="text-xs break-all">{rec.sourceName} · {stage} · {rec.sourceArtifactId}</p>
     <p className="text-xs">JCSE: {rec.jcseScore ?? "NOT RUN"} / 50 · MATHMON: {rec.mathmonScore ?? "NOT RUN"} / 100</p>
     <ul className="list-disc pl-4 text-xs space-y-1">{rec.findings.map((finding, i) => <li key={i}>{finding}</li>)}</ul>

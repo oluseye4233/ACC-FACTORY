@@ -30,7 +30,7 @@ describe("optional model recommendation policy", () => {
   it("uses a complex-task profile for F6/F7/F8", () => {
     for (const id of [6, 7, 8]) {
       expect(recommend(id).complexity).toBe("complex");
-      expect(recommend(id).recommended?.provider).toBe("kimi");
+      expect(recommend(id).recommended?.provider).toBe("mistral");
     }
   });
   it("respects a user-requested complexity rather than forcing the stage default", () => {
@@ -88,7 +88,7 @@ describe("read-only recommendation API", () => {
     expect((await request("/llm/recommendation?featureId=8")).status).toBe(401);
   });
   it("validates stage and complexity parameters", async () => {
-    for (const query of ["featureId=13", "featureId=no", "complexity=unknown"]) {
+    for (const query of ["featureId=15", "featureId=no", "complexity=unknown"]) {
       expect((await request(`/llm/recommendation?${query}`, "PRACTITIONER")).status).toBe(400);
     }
   });

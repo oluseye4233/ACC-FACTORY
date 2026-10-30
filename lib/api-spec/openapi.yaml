@@ -26,6 +26,45 @@ tags:
   - name: magnet
 
 paths:
+  /llm/jev-shadow:
+    get:
+      operationId: getJevShadowReports
+      tags: [llm]
+      summary: Read owned JEV shadow snapshots without running a model
+      parameters:
+        - { name: sessionId, in: query, required: true, schema: { type: string, format: uuid } }
+        - { name: featureId, in: query, required: true, schema: { type: integer, minimum: 0, maximum: 14 } }
+        - { name: kind, in: query, required: true, schema: { type: string, enum: [MODEL_ROUTING, REMEDIATION] } }
+      responses:
+        "200":
+          description: Saved shadow results, newest first
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/JevShadowReport" } }
+        "401": { description: Authentication required }
+        "404": { description: Session not found }
+    post:
+      operationId: runJevShadow
+      tags: [llm]
+      summary: Explicit billed shadow check; never changes production decisions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/JevShadowInput" }
+      responses:
+        "200":
+          description: Saved shadow result or existing attempt
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JevShadowReport" }
+        "400": { description: Invalid input }
+        "401": { description: Authentication required }
+        "402": { description: Cost budget reached }
+        "403": { description: Practitioner or higher required }
+        "404": { description: Session not found }
+        "409": { description: In-flight check or conflicting context }
+        "503": { description: Shadow service unavailable }
   /llm/recommendation:
     get:
       operationId: getLlmRecommendation
@@ -34,7 +73,7 @@ paths:
       parameters:
         - in: query
           name: featureId
-          schema: { type: integer, minimum: 0, maximum: 12 }
+          schema: { type: integer, minimum: 0, maximum: 14 }
         - in: query
           name: complexity
           schema: { type: string, enum: [auto, simple, standard, complex], default: auto }
@@ -6214,6 +6253,32 @@ components:
             additionalProperties: true
         engineRunCount: { type: integer }
 
+    JevShadowInput:
+      type: object
+      required: [sessionId, featureId, kind, requestKey]
+      properties:
+        sessionId: { type: string, format: uuid }
+        featureId: { type: integer, minimum: 0, maximum: 14 }
+        kind: { type: string, enum: [MODEL_ROUTING, REMEDIATION] }
+        requestKey: { type: string, format: uuid }
+    JevShadowReport:
+      type: object
+      required: [id, sessionId, featureId, kind, mode, status, snapshotHash, snapshot, result, modelId, error, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
+        featureId: { type: integer }
+        kind: { type: string, enum: [MODEL_ROUTING, REMEDIATION] }
+        mode: { type: string, enum: [SHADOW] }
+        status: { type: string, enum: [STARTED, COMPLETED, UNCERTAIN, FAILED] }
+        snapshotHash: { type: string }
+        snapshot: { type: object, additionalProperties: true }
+        result:
+          type: [object, "null"]
+          additionalProperties: true
+        modelId: { type: [string, "null"] }
+        error: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
     LlmRecommendationCandidate:
       type: object
       required: [provider, modelId, estimatedCostUsd, profile]
@@ -6240,7 +6305,7 @@ components:
         disclaimer: { type: string }
     LlmProvider:
       type: string
-      enum: [claude, openai, gemini, deepseek, kimi, qwen, glm]
+      enum: [claude, openai, gemini, deepseek, kimi, qwen, glm, mistral]
       description: |
         LLM provider for HARNESS engine calls. Defaults to `claude`. Providers
         other than Claude require PRACTITIONER tier or higher.
@@ -6458,7 +6523,7 @@ components:
         mathmonScore: { type: ["integer", "null"] }
         forgeVerified: { type: boolean }
         provider:
-          { type: ["string", "null"], enum: [claude, openai, gemini, deepseek, kimi, qwen, glm, null] }
+          { type: ["string", "null"], enum: [claude, openai, gemini, deepseek, kimi, qwen, glm, mistral, null] }
         modelId: { type: ["string", "null"] }
         runDurationMs: { type: ["integer", "null"] }
         runInputTokens: { type: ["integer", "null"] }
@@ -8049,7 +8114,7 @@ components:
       properties:
         provider:
           type: string
-          enum: [claude, openai, gemini, deepseek, kimi, qwen, glm]
+          enum: [claude, openai, gemini, deepseek, kimi, qwen, glm, mistral]
 
     SpcPlayerScores:
       type: object
@@ -8139,7 +8204,7 @@ components:
       properties:
         sessionId: { type: string, format: uuid }
         reportArtifactId: { type: string, format: uuid }
-        provider: { type: string, enum: [claude, openai, gemini, deepseek, kimi, qwen, glm] }
+        provider: { type: string, enum: [claude, openai, gemini, deepseek, kimi, qwen, glm, mistral] }
     F8DriftRemediationResult:
       type: object
       required: [state, remediationArtifactId, sourceMvpPddArtifactId, summary]

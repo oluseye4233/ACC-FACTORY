@@ -25,6 +25,14 @@ export type ModelPricing = UnitRates & {
 //   ceiling below is also checked against the international GLM-5.3 listing:
 //   https://www.alibabacloud.com/help/en/model-studio/glm-5-3-by-zhipu
 export const MODEL_PRICING: Record<string, ModelPricing> = {
+  "jev-latest": {
+    inputPerMTok: 0.042, outputPerMTok: 0,
+    sourceUrls: ["https://docs.typesafe.ai/models"], reviewedOn: "2026-10-29",
+  },
+  "mistralai/devstral-2512": {
+    inputPerMTok: 0.4, cachedInputPerMTok: 0.04, outputPerMTok: 2,
+    sourceUrls: ["https://openrouter.ai/api/v1/models"], reviewedOn: "2026-10-30",
+  },
   // Managed OpenRouter routes use namespaced IDs so historical direct-vendor
   // charges remain distinct. Reviewed from its public catalog on 2026-10-29.
   "deepseek/deepseek-v4.1-flash": {

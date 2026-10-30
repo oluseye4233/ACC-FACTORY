@@ -251,23 +251,25 @@ export async function recordEscalation(
   });
 }
 
-async function recordRun(
+export async function recordRun(
   ctx: RunContext,
-  provider: LlmProvider,
+  provider: LlmProvider | "jev",
   modelId: string,
   inputTokens: number,
   outputTokens: number,
   durationMs: number,
   reservationId?: string | null,
   cachedInputTokens = 0,
+  actualCostUsd?: number,
 ): Promise<boolean> {
   try {
-    const cost = computeCostUsd(
+    const cost = actualCostUsd ?? computeCostUsd(
       modelId,
       inputTokens,
       outputTokens,
       cachedInputTokens,
     );
+    if (!Number.isFinite(cost) || cost < 0) throw new Error("Invalid model usage cost");
     const values = {
       sessionId: ctx.sessionId,
       userId: ctx.userId,
@@ -562,7 +564,7 @@ type OpenAICompatibleProvider = "glm";
 
 /** Managed routing is explicit: never silently fall back to direct vendor keys. */
 async function callOpenRouterImpl(
-  provider: "deepseek" | "kimi" | "qwen",
+  provider: "deepseek" | "kimi" | "qwen" | "mistral",
   systemPrompt: string,
   userPrompt: string,
   jsonMode: boolean,
@@ -793,6 +795,7 @@ export async function callLlm(
         case "deepseek":
         case "kimi":
         case "qwen":
+        case "mistral":
           result = await callOpenRouterImpl(provider, finalSystem, userPrompt, jsonMode);
           break;
         case "glm":

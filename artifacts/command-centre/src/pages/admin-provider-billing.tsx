@@ -49,6 +49,8 @@ function providerName(provider: string): string {
     kimi: "Moonshot",
     qwen: "Alibaba Qwen",
     glm: "Zhipu GLM",
+    mistral: "Mistral",
+    jev: "TypeSafe JEV",
   };
   return names[provider] ?? provider;
 }

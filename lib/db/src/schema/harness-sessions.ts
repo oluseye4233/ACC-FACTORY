@@ -16,6 +16,7 @@ export const LLM_PROVIDERS = [
   "deepseek",
   "kimi",
   "qwen",
+  "mistral",
   "glm",
 ] as const;
 export type LlmProvider = (typeof LLM_PROVIDERS)[number];

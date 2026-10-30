@@ -43,7 +43,7 @@ const MapOutputSchema = z.object({
 
 const Body = z.object({
   sessionId: z.string().uuid(),
-  provider: z.enum(["claude", "openai", "gemini", "deepseek", "kimi", "qwen", "glm"]).optional(),
+  provider: z.enum(["claude", "openai", "gemini", "deepseek", "kimi", "qwen", "glm", "mistral"]).optional(),
 });
 
 /**

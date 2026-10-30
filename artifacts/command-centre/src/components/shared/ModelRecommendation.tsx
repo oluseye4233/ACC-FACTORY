@@ -3,14 +3,16 @@ import { Sparkles } from "lucide-react";
 import { useGetLlmRecommendation, type LlmProvider } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { JevShadowAdvice } from "./JevShadowAdvice";
 
 const NAME: Record<LlmProvider, string> = {
   claude: "Claude", openai: "OpenAI", gemini: "Gemini", deepseek: "DeepSeek",
-  kimi: "Kimi", qwen: "Qwen", glm: "GLM",
+  kimi: "Kimi", qwen: "Qwen", glm: "GLM", mistral: "Mistral",
 };
 const money = (value: number) => `$${value.toFixed(6).replace(/0+$/, "").replace(/\.$/, "")}`;
 type ComplexityChoice = "auto" | "simple" | "standard" | "complex";
 type Props = {
+  sessionId?: string;
   featureId?: number;
   onApply: (provider: LlmProvider) => void;
   disabled?: boolean;
@@ -18,7 +20,7 @@ type Props = {
 };
 
 export function ModelRecommendation({
-  featureId, onApply, disabled, currentProvider,
+  featureId, onApply, disabled, currentProvider, sessionId,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [complexity, setComplexity] = useState<ComplexityChoice>("auto");
@@ -32,7 +34,7 @@ export function ModelRecommendation({
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[min(92vw,360px)] max-h-[75vh] overflow-y-auto space-y-3">
-        {open && <RecommendationPanel featureId={featureId} complexity={complexity}
+        {open && <RecommendationPanel sessionId={sessionId} featureId={featureId} complexity={complexity}
           onComplexityChange={setComplexity} currentProvider={currentProvider}
           disabled={disabled} onApply={provider => {
             onApply(provider);
@@ -44,13 +46,15 @@ export function ModelRecommendation({
 }
 
 function RecommendationPanel({
-  featureId, complexity, onComplexityChange, currentProvider, disabled, onApply,
+  featureId, complexity, onComplexityChange, currentProvider, disabled, onApply, sessionId,
 }: Props & { complexity: ComplexityChoice; onComplexityChange: (value: ComplexityChoice) => void }) {
   const query = useGetLlmRecommendation(
     { featureId, complexity }, { query: { retry: false } },
   );
   const recommendation = query.data?.recommended;
   return <>
+        {sessionId && featureId !== undefined && featureId >= 0 && featureId <= 14 &&
+          <JevShadowAdvice key={`${sessionId}:${featureId}`} sessionId={sessionId} featureId={featureId} kind="MODEL_ROUTING" disabled={disabled} />}
         <div>
           <h3 className="text-sm font-semibold">Cost &amp; complexity suggestion</h3>
           <p className="text-xs text-muted-foreground">Optional. Nothing changes until you apply it.</p>

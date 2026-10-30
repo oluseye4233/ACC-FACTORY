@@ -23,7 +23,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllEnvs());
 
-for (const provider of ["deepseek", "kimi", "qwen"] as const) {
+for (const provider of ["deepseek", "kimi", "qwen", "mistral"] as const) {
   describe(`${provider} managed OpenRouter routing`, () => {
     const response = () => ({
       model: PROVIDER_MODELS[provider],

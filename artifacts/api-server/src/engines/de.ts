@@ -111,7 +111,7 @@ const DeSpcSchema = z.object({
 const EvolveBody = z.object({
   sessionId: z.string().uuid(),
   maArtifactIds: z.array(z.string().uuid()).min(2).max(12),
-  provider: z.enum(["claude", "openai", "gemini", "deepseek", "kimi", "qwen", "glm"]).optional(),
+  provider: z.enum(["claude", "openai", "gemini", "deepseek", "kimi", "qwen", "glm", "mistral"]).optional(),
 });
 
 export async function handleEvolve(req: Request, res: Response): Promise<void> {

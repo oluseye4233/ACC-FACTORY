@@ -17,4 +17,5 @@ export const RemediateF8DriftInputProvider = {
   kimi: 'kimi',
   qwen: 'qwen',
   glm: 'glm',
+  mistral: 'mistral',
 } as const;

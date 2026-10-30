@@ -4,7 +4,7 @@ import { requireAuth } from "../lib/auth";
 import { recommendLlm } from "../lib/llm-recommendation";
 
 const querySchema = z.object({
-  featureId: z.coerce.number().int().min(0).max(12).optional(),
+  featureId: z.coerce.number().int().min(0).max(14).optional(),
   complexity: z.enum(["auto", "simple", "standard", "complex"]).default("auto"),
 });
 const router: IRouter = Router();

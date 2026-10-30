@@ -21,6 +21,7 @@
     "@opentelemetry/instrumentation": "^0.218.0",
     "@sentry/node": "^10.76.2",
     "@swc/helpers": "^0.5.21",
+    "@typesafe-ai/sdk": "^0.7.0",
     "@workspace/api-zod": "workspace:*",
     "@workspace/artifact-naming": "workspace:*",
     "@workspace/db": "workspace:*",

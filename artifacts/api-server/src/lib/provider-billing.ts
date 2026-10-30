@@ -96,6 +96,8 @@ function normalizeProvider(value: string): string {
     moonshot: "kimi",
     alibaba: "qwen",
     zhipu: "glm",
+    mistralai: "mistral",
+    typesafe: "jev",
     "z.ai": "glm",
   };
   return aliases[key] ?? key;

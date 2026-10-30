@@ -22,6 +22,7 @@ const PROVIDER_LABELS: Record<LlmProvider, string> = {
   deepseek: "DeepSeek V4.1 Flash",
   kimi: "Kimi K3",
   qwen: "Qwen 3.7 Plus",
+  mistral: "Mistral Devstral",
   glm: "GLM 5.3",
 };
 
@@ -96,13 +97,14 @@ export function ProviderSelector({
           {PROVIDER_LABELS.qwen}
           {isExplorer ? " (Practitioner+)" : ""}
         </SelectItem>
+        <SelectItem value="mistral" disabled={isExplorer}>{PROVIDER_LABELS.mistral}{isExplorer ? " (Practitioner+)" : ""}</SelectItem>
         <SelectItem value="glm" disabled={isExplorer}>
           {PROVIDER_LABELS.glm}
           {isExplorer ? " (Practitioner+)" : ""}
         </SelectItem>
       </SelectContent>
     </Select>
-    <ModelRecommendation featureId={featureId} currentProvider={current}
+    <ModelRecommendation sessionId={sessionId} featureId={featureId} currentProvider={current}
       onApply={onChange} disabled={readOnly || update.isPending} />
     </div>
   );

@@ -2,6 +2,21 @@
   "version": 2,
   "sources": [
     {
+      "id": "openrouter-mistral",
+      "provider": "mistral",
+      "url": "https://openrouter.ai/api/v1/models",
+      "modelIds": ["mistralai/devstral-2512"],
+      "observedModelIds": ["mistralai/devstral-2512"],
+      "rates": {
+        "mistralai/devstral-2512": {
+          "currency": "USD", "inputPerMTok": 0.4,
+          "outputPerMTok": 2, "cachedInputPerMTok": 0.04
+        }
+      },
+      "sha256": "6577c8adac5a7df35c130aa60397b49ecbe6b6d548d593d48a6323b250ed01d7",
+      "reviewedOn": "2026-10-30"
+    },
+    {
       "id": "openrouter-deepseek",
       "provider": "deepseek",
       "url": "https://openrouter.ai/api/v1/models",

@@ -10,7 +10,7 @@ import type { GetLlmRecommendationComplexity } from './getLlmRecommendationCompl
 export type GetLlmRecommendationParams = {
 /**
  * @minimum 0
- * @maximum 12
+ * @maximum 14
  */
 featureId?: number;
 complexity?: GetLlmRecommendationComplexity;

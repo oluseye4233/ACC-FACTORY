@@ -9,7 +9,7 @@ const BAND = { simple: 1, standard: 2, complex: 3 };
 // that a model cannot perform a harder task. Manual choices remain available.
 const PROFILE: Record<LlmProvider, Complexity> = {
   deepseek: "simple", qwen: "standard", glm: "standard",
-  kimi: "complex", claude: "complex", openai: "complex", gemini: "complex",
+  kimi: "complex", mistral: "complex", claude: "complex", openai: "complex", gemini: "complex",
 };
 const ESTIMATE = {
   simple: { input: 2000, output: 1000 },
@@ -23,6 +23,7 @@ const REQUIRED_ENV: Record<LlmProvider, string[]> = {
   deepseek: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
   kimi: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
   qwen: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
+  mistral: ["AI_INTEGRATIONS_OPENROUTER_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY"],
   glm: ["ZHIPU_API_KEY"],
 };
 

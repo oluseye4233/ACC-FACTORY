@@ -2752,6 +2752,7 @@ export const LlmProvider = {
   kimi: 'kimi',
   qwen: 'qwen',
   glm: 'glm',
+  mistral: 'mistral',
 } as const;
 
 export interface GenerateF0DiscoveryInput {
@@ -3903,6 +3904,75 @@ export interface MyDataExport {
   engineRunCount: number;
 }
 
+export type JevShadowInputKind = typeof JevShadowInputKind[keyof typeof JevShadowInputKind];
+
+
+export const JevShadowInputKind = {
+  MODEL_ROUTING: 'MODEL_ROUTING',
+  REMEDIATION: 'REMEDIATION',
+} as const;
+
+export interface JevShadowInput {
+  sessionId: string;
+  /**
+     * @minimum 0
+     * @maximum 14
+     */
+  featureId: number;
+  kind: JevShadowInputKind;
+  requestKey: string;
+}
+
+export type JevShadowReportKind = typeof JevShadowReportKind[keyof typeof JevShadowReportKind];
+
+
+export const JevShadowReportKind = {
+  MODEL_ROUTING: 'MODEL_ROUTING',
+  REMEDIATION: 'REMEDIATION',
+} as const;
+
+export type JevShadowReportMode = typeof JevShadowReportMode[keyof typeof JevShadowReportMode];
+
+
+export const JevShadowReportMode = {
+  SHADOW: 'SHADOW',
+} as const;
+
+export type JevShadowReportStatus = typeof JevShadowReportStatus[keyof typeof JevShadowReportStatus];
+
+
+export const JevShadowReportStatus = {
+  STARTED: 'STARTED',
+  COMPLETED: 'COMPLETED',
+  UNCERTAIN: 'UNCERTAIN',
+  FAILED: 'FAILED',
+} as const;
+
+export type JevShadowReportSnapshot = { [key: string]: unknown };
+
+/**
+ * @nullable
+ */
+export type JevShadowReportResult = { [key: string]: unknown } | null;
+
+export interface JevShadowReport {
+  id: string;
+  sessionId: string;
+  featureId: number;
+  kind: JevShadowReportKind;
+  mode: JevShadowReportMode;
+  status: JevShadowReportStatus;
+  snapshotHash: string;
+  snapshot: JevShadowReportSnapshot;
+  /** @nullable */
+  result: JevShadowReportResult;
+  /** @nullable */
+  modelId: string | null;
+  /** @nullable */
+  error: string | null;
+  createdAt: string;
+}
+
 export type LlmRecommendationCandidateProfile = typeof LlmRecommendationCandidateProfile[keyof typeof LlmRecommendationCandidateProfile];
 
 
@@ -4127,6 +4197,7 @@ export const HarnessArtifactProvider = {
   kimi: 'kimi',
   qwen: 'qwen',
   glm: 'glm',
+  mistral: 'mistral',
 } as const;
 
 export type HarnessArtifactArtifactContent = { [key: string]: unknown };
@@ -5865,6 +5936,7 @@ export const ExecuteSpcPlayerRunInputProvider = {
   kimi: 'kimi',
   qwen: 'qwen',
   glm: 'glm',
+  mistral: 'mistral',
 } as const;
 
 export interface ExecuteSpcPlayerRunInput {
@@ -6023,6 +6095,7 @@ export const RemediateF8DriftInputProvider = {
   kimi: 'kimi',
   qwen: 'qwen',
   glm: 'glm',
+  mistral: 'mistral',
 } as const;
 
 export interface RemediateF8DriftInput {
@@ -6641,10 +6714,28 @@ export type NotFoundResponse = ErrorResponse;
  */
 export type RateLimitedResponse = ErrorResponse;
 
+export type GetJevShadowReportsParams = {
+sessionId: string;
+/**
+ * @minimum 0
+ * @maximum 14
+ */
+featureId: number;
+kind: GetJevShadowReportsKind;
+};
+
+export type GetJevShadowReportsKind = typeof GetJevShadowReportsKind[keyof typeof GetJevShadowReportsKind];
+
+
+export const GetJevShadowReportsKind = {
+  MODEL_ROUTING: 'MODEL_ROUTING',
+  REMEDIATION: 'REMEDIATION',
+} as const;
+
 export type GetLlmRecommendationParams = {
 /**
  * @minimum 0
- * @maximum 12
+ * @maximum 14
  */
 featureId?: number;
 complexity?: GetLlmRecommendationComplexity;

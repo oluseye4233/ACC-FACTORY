@@ -11,6 +11,7 @@ vi.mock("@workspace/api-client-react", () => ({
 }));
 import { ModelRecommendation } from "./ModelRecommendation";
 import { ProviderSelector } from "./ProviderSelector";
+vi.mock("./JevShadowAdvice", () => ({ JevShadowAdvice: () => <div>JEV shadow adviser</div> }));
 import { ProviderOverride } from "./ProviderOverride";
 
 const data = {

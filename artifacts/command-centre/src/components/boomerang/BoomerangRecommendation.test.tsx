@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { BoomerangRecommendation } from "./BoomerangRecommendation";
+vi.mock("@/components/shared/JevShadowAdvice", () => ({ JevShadowAdvice: () => <div>JEV shadow adviser</div> }));
 const fixture = vi.hoisted(() => ({ value: {
   status: "REWORK_RECOMMENDED", sourceArtifactId: "exact-artifact", sourceName: "Example artifact", jcseScore: 44,
   mathmonScore: null, findings: ["Clarify input contracts"], reingestionRequired: true,

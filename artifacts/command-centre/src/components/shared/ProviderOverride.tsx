@@ -18,6 +18,7 @@ const LABEL: Record<LlmProvider, string> = {
   deepseek: "DeepSeek",
   kimi: "Kimi",
   qwen: "Qwen",
+  mistral: "Mistral Devstral",
   glm: "GLM",
 };
 
@@ -29,6 +30,7 @@ const OVERRIDE_VALUES = [
   "deepseek",
   "kimi",
   "qwen",
+  "mistral",
   "glm",
 ] as const;
 export type OverrideValue = (typeof OVERRIDE_VALUES)[number];
@@ -44,12 +46,14 @@ export function ProviderOverride({
   disabled,
   testId,
   featureId,
+  sessionId,
 }: {
   value: OverrideValue;
   onChange: (v: OverrideValue) => void;
   disabled?: boolean;
   testId?: string;
   featureId?: number;
+  sessionId?: string;
 }) {
   const { data: me } = useGetMe();
   const isExplorer = (me?.subscriber?.tier ?? "EXPLORER") === "EXPLORER";
@@ -101,7 +105,7 @@ export function ProviderOverride({
         </SelectItem>
       </SelectContent>
     </Select>
-    <ModelRecommendation featureId={featureId}
+    <ModelRecommendation sessionId={sessionId} featureId={featureId}
       currentProvider={value === "session" ? undefined : value}
       onApply={onChange} disabled={disabled} />
     </div>

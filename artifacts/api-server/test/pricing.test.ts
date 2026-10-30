@@ -92,7 +92,8 @@ describe("provider token pricing", () => {
     }) => {
       expect(rates.inputPerMTok, `${modelId} input rate`).toBeGreaterThan(0);
       expect(Number.isFinite(rates.inputPerMTok)).toBe(true);
-      expect(rates.outputPerMTok, `${modelId} output rate`).toBeGreaterThan(0);
+      if (modelId === "jev-latest") expect(rates.outputPerMTok, "JEV has explicitly unbilled output").toBe(0);
+      else expect(rates.outputPerMTok, `${modelId} output rate`).toBeGreaterThan(0);
       expect(Number.isFinite(rates.outputPerMTok)).toBe(true);
       if (rates.cachedInputPerMTok !== undefined) {
         expect(rates.cachedInputPerMTok, `${modelId} cached input rate`).toBeGreaterThanOrEqual(0);

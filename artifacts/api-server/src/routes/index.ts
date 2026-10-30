@@ -1,5 +1,6 @@
 import stageGuidesRouter from "./stage-guides";
 import llmRecommendationRouter from "./llm-recommendation";
+import jevShadowRouter from "./jev-shadow";
 import emailDeliveryRouter from "./email-delivery";
 import { Router, type IRouter } from "express";
 import platformServicesRouter from "./platform-services";
@@ -50,6 +51,7 @@ import { guardSkippedEngine } from "../lib/artifact-operations/engine-guard";
 const router: IRouter = Router();
 router.use(stageGuidesRouter);
 router.use(llmRecommendationRouter);
+router.use(jevShadowRouter);
 router.use(platformServicesRouter);
 router.use(agentCreatorRouter);
 router.use(imprimaPortalRouter);

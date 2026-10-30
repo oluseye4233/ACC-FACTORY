@@ -157,6 +157,7 @@ import type {
   GetEmailDeliverySettingsParams,
   GetF8RemediationProgressParams,
   GetImprimaPortalParams,
+  GetJevShadowReportsParams,
   GetLlmRecommendationParams,
   GetShortSprintPreflightParams,
   GetSphinxCatalog200,
@@ -193,6 +194,8 @@ import type {
   IngestionCreditsSummary,
   IngestionDocument,
   InstallGovernanceInput,
+  JevShadowInput,
+  JevShadowReport,
   JstInput,
   JstSummary,
   LaunchReadiness,
@@ -312,6 +315,202 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetJevShadowReportsUrl = (params: GetJevShadowReportsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/llm/jev-shadow?${stringifiedParams}` : `/api/llm/jev-shadow`
+}
+
+/**
+ * @summary Read owned JEV shadow snapshots without running a model
+ */
+export const getJevShadowReports = async (params: GetJevShadowReportsParams, options?: Parameters<typeof customFetch>[1]): Promise<JevShadowReport[]> => {
+
+  return customFetch<JevShadowReport[]>(getGetJevShadowReportsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetJevShadowReportsQueryKey = (params?: GetJevShadowReportsParams,) => {
+    return [
+    `/api/llm/jev-shadow`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetJevShadowReportsQueryOptions = <TData = Awaited<ReturnType<typeof getJevShadowReports>>, TError = ErrorType<void>>(params: GetJevShadowReportsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getJevShadowReports>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetJevShadowReportsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getJevShadowReports>>> = ({ signal }) => getJevShadowReports(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getJevShadowReports>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetJevShadowReportsQueryResult = NonNullable<Awaited<ReturnType<typeof getJevShadowReports>>>
+export type GetJevShadowReportsQueryError = ErrorType<void>
+
+
+export function useGetJevShadowReports<TData = Awaited<ReturnType<typeof getJevShadowReports>>, TError = ErrorType<void>>(
+ params: GetJevShadowReportsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getJevShadowReports>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getJevShadowReports>>,
+          TError,
+          Awaited<ReturnType<typeof getJevShadowReports>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetJevShadowReports<TData = Awaited<ReturnType<typeof getJevShadowReports>>, TError = ErrorType<void>>(
+ params: GetJevShadowReportsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getJevShadowReports>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getJevShadowReports>>,
+          TError,
+          Awaited<ReturnType<typeof getJevShadowReports>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetJevShadowReports<TData = Awaited<ReturnType<typeof getJevShadowReports>>, TError = ErrorType<void>>(
+ params: GetJevShadowReportsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getJevShadowReports>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Read owned JEV shadow snapshots without running a model
+ */
+
+export function useGetJevShadowReports<TData = Awaited<ReturnType<typeof getJevShadowReports>>, TError = ErrorType<void>>(
+ params: GetJevShadowReportsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getJevShadowReports>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetJevShadowReportsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRunJevShadowUrl = () => {
+
+
+
+
+  return `/api/llm/jev-shadow`
+}
+
+/**
+ * @summary Explicit billed shadow check; never changes production decisions
+ */
+export const runJevShadow = async (jevShadowInput: JevShadowInput, options?: Parameters<typeof customFetch>[1]): Promise<JevShadowReport> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<JevShadowReport>(getRunJevShadowUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(jevShadowInput)
+  }
+);}
+
+
+
+
+
+export const getRunJevShadowMutationKey = () => ['runJevShadow'] as const;
+
+export const getRunJevShadowMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runJevShadow>>, TError,RunJevShadowMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runJevShadow>>, TError,RunJevShadowMutationVariables, TContext> => {
+
+const mutationKey = getRunJevShadowMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runJevShadow>>, RunJevShadowMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  runJevShadow(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunJevShadowMutationResult = NonNullable<Awaited<ReturnType<typeof runJevShadow>>>
+    export type RunJevShadowMutationBody = BodyType<JevShadowInput>
+    export type RunJevShadowMutationError = ErrorType<void>
+    export type RunJevShadowMutationVariables = {data: BodyType<JevShadowInput>}
+
+    /**
+ * @summary Explicit billed shadow check; never changes production decisions
+ */
+export const useRunJevShadow = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runJevShadow>>, TError,RunJevShadowMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof runJevShadow>>,
+        TError,
+        RunJevShadowMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRunJevShadowMutationOptions(options), queryClient);
+    }
 
 export const getGetLlmRecommendationUrl = (params?: GetLlmRecommendationParams,) => {
   const normalizedParams = new URLSearchParams();
