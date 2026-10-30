@@ -882,3 +882,17 @@ mtime_ms = 1793370905073
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/0b312d55-1928-4778-b4c3-457d951667fc/753329f8-67c9-4a9f-a356-cd9502242a23"
 storage_version_token = "1793370954338830"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "Axd9eqWcEEA2gtySPNUoo"
+uri = "file://generated-artifacts/atlas-360-scan-2026-10-30/ATANDA_Command_Centre_ATLAS_360_SCAN_2026-10-30.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — ATLAS 360 SCAN"
+description = "Updated 14-page living PDD covering F-stage status, AutoCommand, existing IMPRIMA.PORTAL email integration, unresolved gates, prioritized blockers, 45 verification prompts and the current sitemap. Includes embedded editable source; distinguishes development evidence from historical and unverified production status."
+logical_id = "db79d8ee-a2ea-4b31-8731-236eac23301f"
+content_hash = "sha256:43c5deee1fc7bbd142ea73518a4cd2cff3f4c349406fc2df0c299368dabda453"
+size = 55889
+mtime_ms = 1793387300339
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/db79d8ee-a2ea-4b31-8731-236eac23301f/2f7abbef-0771-4b54-ab51-b309b8b46f00"
+storage_version_token = "1793387333080113"
+content_type = "application/pdf"
