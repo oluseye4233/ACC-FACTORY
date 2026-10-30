@@ -854,3 +854,17 @@ mtime_ms = 1793342841533
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/4264325a-263e-4843-819e-ac35dfd05bce/509d5766-3b6d-4676-9c8e-81c656569204"
 storage_version_token = "1793342873254578"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "6eC4WvFUrohl0LtKO4rlv"
+uri = "file://generated-artifacts/ACC_P0_02_Administrator_Handoff_2026-10-30.pdf"
+type = "pdf"
+title = "ATANDA Command Centre — P0-02 Administrator Handoff (PDF)"
+description = "9-page administrator handoff with security findings, required controls, read-only SQL queries and sign-off checklist. Original Markdown embedded for exact SQL copying."
+logical_id = "70d893f3-4398-4f5c-9883-3c26e8ea4809"
+content_hash = "sha256:77bb09a955a854d3338f24dcc9aa179fb5eaa5322e04d410ccf9413642113cbe"
+size = 32594
+mtime_ms = 1793346719652
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/70d893f3-4398-4f5c-9883-3c26e8ea4809/a324e4d4-2d2b-4c54-bc0a-cb5976b65ed1"
+storage_version_token = "1793346731878951"
+content_type = "application/pdf"
