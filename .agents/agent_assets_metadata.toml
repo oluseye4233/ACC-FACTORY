@@ -840,3 +840,17 @@ mtime_ms = 1793253042628
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/6ecd2a2b-3c29-422b-962a-d0b93f3cb424/12d9f348-588c-48b3-bd4a-37796f449557"
 storage_version_token = "1793253049152405"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "GvlKUyqkcIvaWta-CE3Ov"
+uri = "file://docs/ACC_P0_02_Administrator_Handoff_2026-10-30.md"
+type = "text"
+title = "ATANDA Command Centre — P0-02 Administrator Handoff"
+description = "Administrator findings, required security controls, validated SELECT-only acceptance queries and sign-off checklist. No installer or production changes."
+logical_id = "4264325a-263e-4843-819e-ac35dfd05bce"
+content_hash = "sha256:62f3f71abdd6679d3ed3deba2f17870b010e984b566cfdbf43e3abddbd119a92"
+size = 20371
+mtime_ms = 1793342841533
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/4264325a-263e-4843-819e-ac35dfd05bce/509d5766-3b6d-4676-9c8e-81c656569204"
+storage_version_token = "1793342873254578"
+content_type = "text/markdown"

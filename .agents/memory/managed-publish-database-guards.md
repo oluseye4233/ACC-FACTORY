@@ -17,6 +17,15 @@ request transaction. PostgreSQL JSON represents OIDs as strings while a driver
 may parse native OID arrays as numbers; handle explicit equivalent
 representations, not arbitrary truthy/coerced role identifiers.
 
+Check each required privilege separately; never treat a comma-separated
+`has_table_privilege` argument as an all-required-privileges assertion.
+
+**Why:** PostgreSQL returns true when any listed privilege is held. A combined
+SELECT/INSERT/UPDATE test can therefore accept an incomplete workflow grant.
+
+**How to apply:** Evaluate one table/privilege pair per check and require every
+pair to pass, alongside schema usage and the separate forbidden-privilege checks.
+
 Inspect the managed Publish schema plan before recommending a release that
 depends on PostgreSQL roles, RLS predicates, FORCE RLS or trigger functions.
 Do not assume applying a development SQL migration carries all its effects
