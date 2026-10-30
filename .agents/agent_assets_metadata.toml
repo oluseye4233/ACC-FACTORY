@@ -868,3 +868,17 @@ mtime_ms = 1793346719652
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/70d893f3-4398-4f5c-9883-3c26e8ea4809/a324e4d4-2d2b-4c54-bc0a-cb5976b65ed1"
 storage_version_token = "1793346731878951"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "mmTMLN1m-6rhXas99VBlG"
+uri = "file://generated-artifacts/autocommand-plan/AutoCommand_ATLAS_360_PLAN_2026-10-30.pdf"
+type = "pdf"
+title = "AutoCommand — ATLAS 360 PLAN"
+description = "26-page dedicated PDD: package offerings, automatic F-stage design, 45 atomic build prompts, existing IMPRIMA.PORTAL email integration, implementation sequence, current status and go-live acceptance. Editable Markdown source is embedded."
+logical_id = "0b312d55-1928-4778-b4c3-457d951667fc"
+content_hash = "sha256:c0f7151bb83c496bf5ce0ef551499efffab1ae0ec1678a1a3d81dd7de89488a7"
+size = 89978
+mtime_ms = 1793370905073
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:e8aa31a5-7561-4301-ad2f-0b2ed5e3c73a/0b312d55-1928-4778-b4c3-457d951667fc/753329f8-67c9-4a9f-a356-cd9502242a23"
+storage_version_token = "1793370954338830"
+content_type = "application/pdf"

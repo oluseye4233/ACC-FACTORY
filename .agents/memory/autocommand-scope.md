@@ -26,3 +26,9 @@ Intake includes Prompt/Intake/Cartridge selection, F0 document type, product typ
 **Why:** The customer wants transparent artifact ownership attribution and optional corporate presentation, not a black-box service.
 
 **How to apply:** Individual owner/creator declarations and corporate owner/member-creator declarations remain distinct. Explain GRO, Honesty Gate and ZPOS using actual implementation/evaluation evidence; do not promise legal copyright registration, compliance certification, measured savings or executed safeguards without evidence. Do not auto-list buyer-owned packages on SPHINX.
+
+AutoCommand must reuse IMPRIMA.PORTAL's existing email-based system rather than introduce a separate mail system.
+
+**Why:** The user explicitly emphasized the existing Portal email capability when reviewing the AutoCommand PLAN.
+
+**How to apply:** Connect package/order fulfillment to the established scoped email settings, publication-code authorization, exact-version attachment and control-copy workflow. Describe missing AutoCommand handoff separately from the already existing Portal email functionality.
