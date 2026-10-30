@@ -1,4 +1,5 @@
 - [Shared stage guides](shared-stage-guides.md) — Synthesia guides are shared teaching material, not per-project renders or production/Quest gates.
+- [AutoCommand scope](autocommand-scope.md) — priority specification-package storefront; automatic applicable F1–F8 work, one-time pricing and IMPRIMA delivery, excluding F9–F12.
 - [Cost cap covers all LLM callsites](cost-cap-all-llm-callsites.md) — every callLlmJson caller must be requireCostBudget-gated AND record a run row; pre-session (ingest/cartridge) uses null sessionId + sentinel engineId so spend still counts.
 - [Generator/schema peer isolation](generator-schema-peer-isolation.md) — catalog autodetection and undeclared Zod peers can select the wrong major after tooling updates.
 - [Doctrine-application docs](doctrine-application-docs.md) — SPARTAN/CODE DJ quality gates are SPC doctrine, NOT enforced in engine code; label them analyst overlays in self-audit docs.
