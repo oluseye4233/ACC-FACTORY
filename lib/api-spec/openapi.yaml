@@ -26,6 +26,40 @@ tags:
   - name: magnet
 
 paths:
+  /autocommand/orders:
+    post:
+      operationId: prepareAutoCommandOrder
+      tags: [autocommand]
+      summary: Freeze an owned draft and save its production plan without payment or generation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AutoCommandOrderInput" }
+      responses:
+        "200":
+          description: Prepared or idempotently replayed order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AutoCommandOrder" }
+        "401": { description: Verified individual email required }
+        "404": { description: Owned draft unavailable }
+        "409": { description: Verified identity changed or intake no longer valid }
+  /autocommand/orders/{orderId}:
+    get:
+      operationId: getAutoCommandOrder
+      tags: [autocommand]
+      summary: Read an owned order and actual saved stage progress
+      parameters:
+        - { name: orderId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Owned order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AutoCommandOrder" }
+        "401": { description: Verified individual email required }
+        "404": { description: Owned order unavailable }
   /autocommand/catalog:
     get:
       operationId: getAutoCommandCatalog
@@ -3855,13 +3889,50 @@ components:
         createdAt: { type: string, format: date-time }
     AutoCommandWorkspace:
       type: object
-      required: [authenticated, verifiedEmail, drafts]
+      required: [authenticated, verifiedEmail, drafts, orders]
       properties:
         authenticated: { type: boolean }
         verifiedEmail: { type: [string, "null"] }
         drafts:
           type: array
           items: { $ref: "#/components/schemas/AutoCommandDraft" }
+        orders:
+          type: array
+          items: { $ref: "#/components/schemas/AutoCommandOrder" }
+    AutoCommandOrderInput:
+      type: object
+      additionalProperties: false
+      required: [draftId]
+      properties:
+        draftId: { type: string, format: uuid }
+    AutoCommandOrder:
+      type: object
+      required: [id, draftId, projectName, packageType, standardPriceCents, currency, state, paymentStatus, promotionStatus, deliveryStatus, snapshotHash, completedStages, totalStages, stages, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        draftId: { type: string, format: uuid }
+        projectName: { type: string }
+        packageType: { type: string }
+        standardPriceCents: { type: integer }
+        currency: { type: string, enum: [USD] }
+        state: { type: string, enum: [AWAITING_AUTHORIZATION, RUNNING, REVIEW_REQUIRED, AWAITING_PUBLICATION] }
+        paymentStatus: { type: string, enum: [NOT_STARTED] }
+        promotionStatus: { type: string, enum: [NOT_CLAIMED] }
+        deliveryStatus: { type: string, enum: [NOT_STARTED] }
+        snapshotHash: { type: string }
+        completedStages: { type: integer }
+        totalStages: { type: integer }
+        createdAt: { type: string, format: date-time }
+        stages:
+          type: array
+          items: { $ref: "#/components/schemas/AutoCommandOrderStage" }
+    AutoCommandOrderStage:
+      type: object
+      required: [key, title, state]
+      properties:
+        key: { type: string }
+        title: { type: string }
+        state: { type: string, enum: [PENDING, COMPLETE, DISPATCHING, REVIEW_REQUIRED] }
     AutoCommandUpload:
       type: object
       required: [id, filename, purpose, extractedCharacters]

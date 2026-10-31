@@ -194,11 +194,88 @@ export interface AutoCommandDraft {
   createdAt: string;
 }
 
+export type AutoCommandOrderCurrency = typeof AutoCommandOrderCurrency[keyof typeof AutoCommandOrderCurrency];
+
+
+export const AutoCommandOrderCurrency = {
+  USD: 'USD',
+} as const;
+
+export type AutoCommandOrderState = typeof AutoCommandOrderState[keyof typeof AutoCommandOrderState];
+
+
+export const AutoCommandOrderState = {
+  AWAITING_AUTHORIZATION: 'AWAITING_AUTHORIZATION',
+  RUNNING: 'RUNNING',
+  REVIEW_REQUIRED: 'REVIEW_REQUIRED',
+  AWAITING_PUBLICATION: 'AWAITING_PUBLICATION',
+} as const;
+
+export type AutoCommandOrderPaymentStatus = typeof AutoCommandOrderPaymentStatus[keyof typeof AutoCommandOrderPaymentStatus];
+
+
+export const AutoCommandOrderPaymentStatus = {
+  NOT_STARTED: 'NOT_STARTED',
+} as const;
+
+export type AutoCommandOrderPromotionStatus = typeof AutoCommandOrderPromotionStatus[keyof typeof AutoCommandOrderPromotionStatus];
+
+
+export const AutoCommandOrderPromotionStatus = {
+  NOT_CLAIMED: 'NOT_CLAIMED',
+} as const;
+
+export type AutoCommandOrderDeliveryStatus = typeof AutoCommandOrderDeliveryStatus[keyof typeof AutoCommandOrderDeliveryStatus];
+
+
+export const AutoCommandOrderDeliveryStatus = {
+  NOT_STARTED: 'NOT_STARTED',
+} as const;
+
+export type AutoCommandOrderStageState = typeof AutoCommandOrderStageState[keyof typeof AutoCommandOrderStageState];
+
+
+export const AutoCommandOrderStageState = {
+  PENDING: 'PENDING',
+  COMPLETE: 'COMPLETE',
+  DISPATCHING: 'DISPATCHING',
+  REVIEW_REQUIRED: 'REVIEW_REQUIRED',
+} as const;
+
+export interface AutoCommandOrderStage {
+  key: string;
+  title: string;
+  state: AutoCommandOrderStageState;
+}
+
+export interface AutoCommandOrder {
+  id: string;
+  draftId: string;
+  projectName: string;
+  packageType: string;
+  standardPriceCents: number;
+  currency: AutoCommandOrderCurrency;
+  state: AutoCommandOrderState;
+  paymentStatus: AutoCommandOrderPaymentStatus;
+  promotionStatus: AutoCommandOrderPromotionStatus;
+  deliveryStatus: AutoCommandOrderDeliveryStatus;
+  snapshotHash: string;
+  completedStages: number;
+  totalStages: number;
+  createdAt: string;
+  stages: AutoCommandOrderStage[];
+}
+
 export interface AutoCommandWorkspace {
   authenticated: boolean;
   /** @nullable */
   verifiedEmail: string | null;
   drafts: AutoCommandDraft[];
+  orders: AutoCommandOrder[];
+}
+
+export interface AutoCommandOrderInput {
+  draftId: string;
 }
 
 export type StageGuideKind = typeof StageGuideKind[keyof typeof StageGuideKind];

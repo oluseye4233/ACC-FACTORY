@@ -7,6 +7,7 @@ import {
   AutoCommandError, AutoCommandIntakeSchema, autoCommandWorkspace, saveAutoCommandDraft, uploadAutoCommandFile,
 } from "../lib/autocommand/intake";
 import { DocumentExtractionError, documentExtractionErrorResponse } from "../lib/document-extraction";
+import { getAutoCommandOrder, listAutoCommandOrders, prepareAutoCommandOrder } from "../lib/autocommand/orders";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5_000_000, files: 1, fields: 1 } });
@@ -17,7 +18,7 @@ function failure(res: Response, error: unknown) {
     res.status(400).json({ error: error.issues.map(issue => `${issue.path.join(".")}: ${issue.message}`).join("; ") }); return;
   }
   if (error instanceof DocumentExtractionError) { res.status(400).json(documentExtractionErrorResponse(error)); return; }
-  res.status(503).json({ error: "AutoCommand intake could not be confirmed. No payment, promotion claim or production run has started. Retry using the same request key." });
+  res.status(503).json({ error: "AutoCommand could not confirm this request. Reload your private workspace before retrying the same draft or request key. Do not assume the action completed." });
 }
 
 router.get("/autocommand/catalog", (_req, res) => res.json(autoCommandCatalog()));
@@ -25,8 +26,9 @@ router.get("/autocommand/workspace", async (req, res) => {
   res.set("Cache-Control", "private, no-store");
   try {
     const identity = await learningIdentity(req);
-    if (!identity) { res.json({ authenticated: false, verifiedEmail: null, drafts: [] }); return; }
-    res.json(await autoCommandWorkspace(identity.user.id, identity.email));
+    if (!identity) { res.json({ authenticated: false, verifiedEmail: null, drafts: [], orders: [] }); return; }
+    const workspace = await autoCommandWorkspace(identity.user.id, identity.email);
+    res.json({ ...workspace, orders: await listAutoCommandOrders(identity.user.id) });
   } catch (error) { req.log.warn({ err: error }, "AutoCommand workspace unavailable"); failure(res, error); }
 });
 
@@ -47,6 +49,19 @@ router.post("/autocommand/drafts", verifiedCustomer, async (req, res) => {
     res.json(await saveAutoCommandDraft(req.localUser!.id, req.studentVerifiedEmail!, AutoCommandIntakeSchema.parse(req.body)));
   } catch (error) { failure(res, error); }
 });
+router.post("/autocommand/orders", verifiedCustomer, async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
+  try {
+    const { draftId } = z.object({ draftId: z.uuid() }).strict().parse(req.body);
+    res.json(await prepareAutoCommandOrder(req.localUser!.id, req.studentVerifiedEmail!, draftId));
+  } catch (error) { failure(res, error); }
+});
+router.get("/autocommand/orders/:orderId", verifiedCustomer, async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
+  try {
+    res.json(await getAutoCommandOrder(req.localUser!.id, z.uuid().parse(req.params.orderId)));
+  } catch (error) { failure(res, error); }
+});
 router.post("/imprima-portal/autocommand/uploads", verifiedCustomer, (req, res) => {
   upload.single("file")(req, res, async error => {
     res.set("Cache-Control", "private, no-store");
@@ -60,5 +75,5 @@ router.post("/imprima-portal/autocommand/uploads", verifiedCustomer, (req, res) 
   });
 });
 
-// No checkout/run/email endpoints exist until the corresponding reviewed implementation is ready.
+// Preparing an order is not authorization. No checkout/run/email endpoints exist.
 export default router;

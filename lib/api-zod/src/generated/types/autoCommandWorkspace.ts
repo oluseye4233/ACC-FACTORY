@@ -6,10 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AutoCommandDraft } from './autoCommandDraft';
+import type { AutoCommandOrder } from './autoCommandOrder';
 
 export interface AutoCommandWorkspace {
   authenticated: boolean;
   /** @nullable */
   verifiedEmail: string | null;
   drafts: AutoCommandDraft[];
+  orders: AutoCommandOrder[];
 }

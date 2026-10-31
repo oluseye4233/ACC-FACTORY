@@ -54,6 +54,8 @@ import type {
   AutoCommandCatalog,
   AutoCommandDraft,
   AutoCommandDraftInput,
+  AutoCommandOrder,
+  AutoCommandOrderInput,
   AutoCommandUpload,
   AutoCommandUploadInput,
   AutoCommandWorkspace,
@@ -321,6 +323,195 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getPrepareAutoCommandOrderUrl = () => {
+
+
+
+
+  return `/api/autocommand/orders`
+}
+
+/**
+ * @summary Freeze an owned draft and save its production plan without payment or generation
+ */
+export const prepareAutoCommandOrder = async (autoCommandOrderInput: AutoCommandOrderInput, options?: Parameters<typeof customFetch>[1]): Promise<AutoCommandOrder> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AutoCommandOrder>(getPrepareAutoCommandOrderUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(autoCommandOrderInput)
+  }
+);}
+
+
+
+
+
+export const getPrepareAutoCommandOrderMutationKey = () => ['prepareAutoCommandOrder'] as const;
+
+export const getPrepareAutoCommandOrderMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof prepareAutoCommandOrder>>, TError,PrepareAutoCommandOrderMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof prepareAutoCommandOrder>>, TError,PrepareAutoCommandOrderMutationVariables, TContext> => {
+
+const mutationKey = getPrepareAutoCommandOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof prepareAutoCommandOrder>>, PrepareAutoCommandOrderMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  prepareAutoCommandOrder(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PrepareAutoCommandOrderMutationResult = NonNullable<Awaited<ReturnType<typeof prepareAutoCommandOrder>>>
+    export type PrepareAutoCommandOrderMutationBody = BodyType<AutoCommandOrderInput>
+    export type PrepareAutoCommandOrderMutationError = ErrorType<void>
+    export type PrepareAutoCommandOrderMutationVariables = {data: BodyType<AutoCommandOrderInput>}
+
+    /**
+ * @summary Freeze an owned draft and save its production plan without payment or generation
+ */
+export const usePrepareAutoCommandOrder = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof prepareAutoCommandOrder>>, TError,PrepareAutoCommandOrderMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof prepareAutoCommandOrder>>,
+        TError,
+        PrepareAutoCommandOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPrepareAutoCommandOrderMutationOptions(options), queryClient);
+    }
+
+export const getGetAutoCommandOrderUrl = (orderId: string,) => {
+
+
+
+
+  return `/api/autocommand/orders/${orderId}`
+}
+
+/**
+ * @summary Read an owned order and actual saved stage progress
+ */
+export const getAutoCommandOrder = async (orderId: string, options?: Parameters<typeof customFetch>[1]): Promise<AutoCommandOrder> => {
+
+  return customFetch<AutoCommandOrder>(getGetAutoCommandOrderUrl(orderId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAutoCommandOrderQueryKey = (orderId: string,) => {
+    return [
+    `/api/autocommand/orders/${orderId}`
+    ] as const;
+    }
+
+
+export const getGetAutoCommandOrderQueryOptions = <TData = Awaited<ReturnType<typeof getAutoCommandOrder>>, TError = ErrorType<void>>(orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAutoCommandOrder>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAutoCommandOrderQueryKey(orderId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAutoCommandOrder>>> = ({ signal }) => getAutoCommandOrder(orderId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orderId !== null && orderId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAutoCommandOrder>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAutoCommandOrderQueryResult = NonNullable<Awaited<ReturnType<typeof getAutoCommandOrder>>>
+export type GetAutoCommandOrderQueryError = ErrorType<void>
+
+
+export function useGetAutoCommandOrder<TData = Awaited<ReturnType<typeof getAutoCommandOrder>>, TError = ErrorType<void>>(
+ orderId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAutoCommandOrder>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAutoCommandOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getAutoCommandOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAutoCommandOrder<TData = Awaited<ReturnType<typeof getAutoCommandOrder>>, TError = ErrorType<void>>(
+ orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAutoCommandOrder>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAutoCommandOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getAutoCommandOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAutoCommandOrder<TData = Awaited<ReturnType<typeof getAutoCommandOrder>>, TError = ErrorType<void>>(
+ orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAutoCommandOrder>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Read an owned order and actual saved stage progress
+ */
+
+export function useGetAutoCommandOrder<TData = Awaited<ReturnType<typeof getAutoCommandOrder>>, TError = ErrorType<void>>(
+ orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAutoCommandOrder>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAutoCommandOrderQueryOptions(orderId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetAutoCommandCatalogUrl = () => {
 

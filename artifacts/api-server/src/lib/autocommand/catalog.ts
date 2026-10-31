@@ -36,7 +36,7 @@ export const AUTO_COMMAND_READINESS = {
   automaticProductionEnabled: false,
   emailDeliveryEnabled: false,
   blockers: [
-    "Automatic F-stage orchestration and saved-job recovery are not connected yet.",
+    "Durable orders and a guarded stage runner are installed; production adapters and payment/free-order authorization are not connected yet.",
     "One-time checkout, verified-email promotion claims and payment confirmation are not connected yet.",
     "IMPRIMA package rendering, publication authorization and email-delivery acceptance are not connected yet.",
   ],

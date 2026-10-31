@@ -32,3 +32,9 @@ AutoCommand must reuse IMPRIMA.PORTAL's existing email-based system rather than 
 **Why:** The user explicitly emphasized the existing Portal email capability when reviewing the AutoCommand PLAN.
 
 **How to apply:** Connect package/order fulfillment to the established scoped email settings, publication-code authorization, exact-version attachment and control-copy workflow. Describe missing AutoCommand handoff separately from the already existing Portal email functionality.
+
+AutoCommand's F8 path is specification-package implementation guidance, not a promise of generated/deployed code or standard-floor release qualification.
+
+**Why:** This offering excludes F9–F12 and sells specifications with usage guidance; reusing a stage label must not silently expand that commercial promise.
+
+**How to apply:** Use explicit product-specific adapters and eligibility checks. Order preparation may validate intake, but must not consume a promotion or authorize generation, publication or delivery.

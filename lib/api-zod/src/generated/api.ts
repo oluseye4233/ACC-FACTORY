@@ -9,6 +9,66 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Freeze an owned draft and save its production plan without payment or generation
+ */
+export const PrepareAutoCommandOrderBody = zod.object({
+  "draftId": zod.string().uuid()
+})
+
+export const PrepareAutoCommandOrderResponse = zod.object({
+  "id": zod.string().uuid(),
+  "draftId": zod.string().uuid(),
+  "projectName": zod.string(),
+  "packageType": zod.string(),
+  "standardPriceCents": zod.number().int(),
+  "currency": zod.enum(['USD']),
+  "state": zod.enum(['AWAITING_AUTHORIZATION', 'RUNNING', 'REVIEW_REQUIRED', 'AWAITING_PUBLICATION']),
+  "paymentStatus": zod.enum(['NOT_STARTED']),
+  "promotionStatus": zod.enum(['NOT_CLAIMED']),
+  "deliveryStatus": zod.enum(['NOT_STARTED']),
+  "snapshotHash": zod.string(),
+  "completedStages": zod.number().int(),
+  "totalStages": zod.number().int(),
+  "createdAt": zod.coerce.date(),
+  "stages": zod.array(zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "state": zod.enum(['PENDING', 'COMPLETE', 'DISPATCHING', 'REVIEW_REQUIRED'])
+}))
+})
+
+
+/**
+ * @summary Read an owned order and actual saved stage progress
+ */
+export const GetAutoCommandOrderParams = zod.object({
+  "orderId": zod.coerce.string().uuid()
+})
+
+export const GetAutoCommandOrderResponse = zod.object({
+  "id": zod.string().uuid(),
+  "draftId": zod.string().uuid(),
+  "projectName": zod.string(),
+  "packageType": zod.string(),
+  "standardPriceCents": zod.number().int(),
+  "currency": zod.enum(['USD']),
+  "state": zod.enum(['AWAITING_AUTHORIZATION', 'RUNNING', 'REVIEW_REQUIRED', 'AWAITING_PUBLICATION']),
+  "paymentStatus": zod.enum(['NOT_STARTED']),
+  "promotionStatus": zod.enum(['NOT_CLAIMED']),
+  "deliveryStatus": zod.enum(['NOT_STARTED']),
+  "snapshotHash": zod.string(),
+  "completedStages": zod.number().int(),
+  "totalStages": zod.number().int(),
+  "createdAt": zod.coerce.date(),
+  "stages": zod.array(zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "state": zod.enum(['PENDING', 'COMPLETE', 'DISPATCHING', 'REVIEW_REQUIRED'])
+}))
+})
+
+
+/**
  * @summary Public specification-package catalog and launch readiness
  */
 export const GetAutoCommandCatalogResponse = zod.object({
@@ -110,6 +170,27 @@ export const GetAutoCommandWorkspaceResponse = zod.object({
   "extractedCharacters": zod.number().int()
 })),
   "createdAt": zod.coerce.date()
+})),
+  "orders": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "draftId": zod.string().uuid(),
+  "projectName": zod.string(),
+  "packageType": zod.string(),
+  "standardPriceCents": zod.number().int(),
+  "currency": zod.enum(['USD']),
+  "state": zod.enum(['AWAITING_AUTHORIZATION', 'RUNNING', 'REVIEW_REQUIRED', 'AWAITING_PUBLICATION']),
+  "paymentStatus": zod.enum(['NOT_STARTED']),
+  "promotionStatus": zod.enum(['NOT_CLAIMED']),
+  "deliveryStatus": zod.enum(['NOT_STARTED']),
+  "snapshotHash": zod.string(),
+  "completedStages": zod.number().int(),
+  "totalStages": zod.number().int(),
+  "createdAt": zod.coerce.date(),
+  "stages": zod.array(zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "state": zod.enum(['PENDING', 'COMPLETE', 'DISPATCHING', 'REVIEW_REQUIRED'])
+}))
 }))
 })
 

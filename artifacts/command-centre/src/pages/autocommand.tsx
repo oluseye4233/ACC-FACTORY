@@ -21,6 +21,7 @@ import { useMarketingMeta } from "@/components/marketing/use-marketing-meta";
 import { StudentSignOut, useStudentIdentity } from "@/components/learning-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { autoCommandClerkConfigured } from "@/pages/autocommand-auth";
+import { AutoCommandOrders } from "@/components/autocommand-orders";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const money = (c: number | null | undefined, cur = "USD") =>
@@ -82,7 +83,9 @@ export default function AutoCommandPage() {
     query: {
       queryKey: getGetAutoCommandWorkspaceQueryKey(),
       retry: 1,
-      refetchInterval: (q) => (identity.isSignedIn && !q.state.data?.authenticated ? 2500 : false),
+      staleTime: 10_000,
+      refetchInterval: (q) => !identity.isSignedIn ? false
+        : !q.state.data?.authenticated || q.state.data.orders.some(order => order.state === "RUNNING") ? 2500 : 15_000,
     },
   });
   const ws = workspace.data;
@@ -134,6 +137,8 @@ export default function AutoCommandPage() {
                 <Desk key={`${identity.userId ?? ""}:${owner}`} owner={owner} catalog={catalog.data} drafts={ws?.drafts ?? []}
                   checkoutReady={false}
                   onSaved={() => void qc.invalidateQueries({ queryKey: getGetAutoCommandWorkspaceQueryKey() })} />
+                <AutoCommandOrders key={`orders:${identity.userId ?? ""}:${owner}`}
+                  drafts={ws?.drafts ?? []} orders={ws?.orders ?? []} />
               </div>
             )}
           </div>
