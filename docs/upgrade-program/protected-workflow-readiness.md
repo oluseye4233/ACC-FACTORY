@@ -95,3 +95,13 @@ No production installation or security change was performed. A reviewed,
 approved administration path and subsequent catalog **and actual runtime-role**
 verification are still needed before enabling the protected lane. Publishing
 ordinary application updates is not evidence that those guards were installed.
+
+## Production installation tooling — 2026-10-26
+
+Managed Publish carries table and policy *names* but not roles, grants, FORCE
+RLS, policy predicates, functions or triggers, which explains every production
+blocker above. A reviewed, administrator-run installation, a read-only
+PASS/FAIL verifier and an actual-runtime-role probe are in
+`db/production-guard/`; the procedure is in
+`closed-gates-opening-plan-2026-10-26.md`. They have not been run against
+production.

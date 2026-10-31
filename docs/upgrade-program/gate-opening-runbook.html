@@ -1,0 +1,811 @@
+<title>ATANDA Gate Opening Runbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a single reading column; one numbered sequence where Replit prompts (teal) and human steps (amber) interleave by stage. */
+:root {
+  --bg: #f6f8f8; --surface: #ffffff; --fg: #10202c; --muted: #4f6270; --line: #d6e0e3;
+  --teal: #146b72; --teal-soft: #e2f1f1; --amber: #9a5b00; --amber-soft: #fbf0dc;
+  --red: #b42318; --red-soft: #fde8e6; --code-bg: #eef3f4;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d171d; --surface: #13212a; --fg: #e3ecef; --muted: #9fb2bc; --line: #263944; --teal: #5cc3c9; --teal-soft: #15323a; --amber: #f0b45a; --amber-soft: #33270f;
+  --red: #ff8a7d; --red-soft: #3a1a17; --code-bg: #0f1c23; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0d171d; --surface: #13212a; --fg: #e3ecef; --muted: #9fb2bc;
+  --line: #263944; --teal: #5cc3c9; --teal-soft: #15323a; --amber: #f0b45a; --amber-soft: #33270f;
+  --red: #ff8a7d; --red-soft: #3a1a17; --code-bg: #0f1c23; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--body); }
+.wrap { max-width: 920px; margin: 0 auto; padding-block: 32px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800; }
+h2 { font-size: 1.35rem; font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0; max-width: 68ch; }
+a { color: var(--teal); }
+.eyebrow { font: 600 .75rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--teal); }
+header { display: grid; gap: 12px; margin-bottom: 28px; }
+.lede { color: var(--muted); font-size: 1.05rem; }
+.keys { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .9rem; color: var(--muted); }
+.tag { display: inline-flex; align-items: center; gap: 6px; font: 600 .72rem/1 var(--mono); letter-spacing: .04em;
+  padding: 5px 8px; border-radius: 4px; white-space: nowrap; }
+.tag.r { background: var(--teal-soft); color: var(--teal); }
+.tag.h { background: var(--amber-soft); color: var(--amber); }
+.tag.x { background: var(--red-soft); color: var(--red); }
+.notice { border: 1px solid var(--line); border-left: 4px solid var(--red); background: var(--surface);
+  padding: 14px 16px; border-radius: 6px; display: grid; gap: 8px; margin-bottom: 24px; }
+.toolbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-block: 10px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.toolbar button, .copy { font: 600 .85rem var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--fg);
+  padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+.toolbar button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.toolbar .count { margin-left: auto; font: .85rem var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.stage { display: grid; gap: 14px; margin-top: 36px; }
+.stage > header { margin: 0; gap: 6px; }
+.stage > header p { color: var(--muted); }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.step.r { border-left: 4px solid var(--teal); }
+.step.h { border-left: 4px solid var(--amber); }
+.step.done { opacity: .55; }
+.step-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.step-head h3 { flex: 1 1 260px; }
+.step-head label { display: inline-flex; gap: 6px; align-items: center; font-size: .85rem; color: var(--muted); cursor: pointer; }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .88rem; color: var(--muted); }
+.meta b { color: var(--fg); font-weight: 600; }
+pre { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px;
+  font: .82rem/1.55 var(--mono); white-space: pre-wrap; word-break: break-word; overflow-x: auto; max-height: 420px; overflow-y: auto; }
+.prompt-wrap { display: grid; gap: 6px; }
+.prompt-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.prompt-bar span { font: .75rem var(--mono); color: var(--muted); }
+ol.walk, ul.plain { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; max-width: 72ch; }
+code { font: .86em var(--mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; word-break: break-word; }
+.evidence { font-size: .9rem; border-top: 1px dashed var(--line); padding-top: 8px; color: var(--muted); }
+.evidence b { color: var(--fg); }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 .75rem var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { .step { transition: opacity .2s; } }
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">ATANDA Command Centre · Audit response · 26 Oct 2026</span>
+  <h1>Gate Opening Runbook</h1>
+  <p class="lede">One ordered sequence for clearing the gates in the 26 October production audit. Teal steps are prompts to paste into the Replit Agent. Amber steps are for a person, with a walkthrough for each. Work top to bottom: a step's “Needs” line says what must finish first.</p>
+  <div class="keys">
+    <span><span class="tag r">R-xx</span> Replit Agent prompt</span>
+    <span><span class="tag h">H-xx</span> Human step</span>
+    <span><span class="tag x">GATE</span> A gate decision only a named reviewer can make</span>
+  </div>
+</header>
+
+<div class="notice">
+  <h3>Before you start: merge pull request #2</h3>
+  <p>The fix (production guard install, verifier, runtime probe, serving-revision header) and this runbook are in <a href="https://github.com/oluseye4233/ACC-FACTORY/pull/2" target="_blank" rel="noopener">ACC-FACTORY pull request #2</a>. GitHub access (<b>H-01</b>) is already done. Review and merge the PR, then start with prompt <b>R-01</b>, option A.</p>
+</div>
+
+<div class="toolbar" role="toolbar" aria-label="Filter steps">
+  <button type="button" id="f-all" aria-pressed="true" data-filter="all">All, in order</button>
+  <button type="button" id="f-r" aria-pressed="false" data-filter="r">Replit prompts</button>
+  <button type="button" id="f-h" aria-pressed="false" data-filter="h">Human steps</button>
+  <span class="count" id="count"></span>
+</div>
+
+<!-- ============================ STAGE 0 ============================ -->
+<section class="stage">
+  <header><span class="eyebrow">Stage 0</span><h2>Get the fix into Replit</h2><p>Nothing else can start until the code is in the Replit workspace.</p></header>
+
+  <article class="step h" data-id="H-01">
+    <div class="step-head"><span class="tag h">H-01</span><h3>Give Claude write access to ACC-FACTORY (or skip with the patch)</h3><label><input type="checkbox" id="done-H-01"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Repository owner</span><span><b>Time:</b> 5 min</span><span><b>Needs:</b> nothing</span></div>
+    <ol class="walk">
+      <li>Open <a href="https://claude.ai/connect-github" target="_blank" rel="noopener">claude.ai/connect-github</a> and reconnect your GitHub account.</li>
+      <li>Open <a href="https://github.com/apps/claude/installations/select_target" target="_blank" rel="noopener">github.com/apps/claude/installations/select_target</a>, pick the <code>oluseye4233</code> account, choose <b>Only select repositories</b>, and tick <code>ACC-FACTORY</code> (and <code>ARK-X</code>, <code>atanda-fe</code> if you want them writable). Save.</li>
+      <li>Tell Claude “access fixed, push it”. Claude pushes branch <code>claude/closed-gates-review-solutions-nzb79u</code>.</li>
+      <li>On GitHub, open a pull request from that branch into <code>main</code>, review it, and merge.</li>
+    </ol>
+    <p class="evidence"><b>Skip option:</b> download <code>closed-gates-c14e0fc.patch</code> from this Claude session, then upload it to the Replit workspace root (drag it into the Files pane). Use R-01 option B.</p>
+  </article>
+
+  <article class="step r" data-id="R-00">
+    <div class="step-head"><span class="tag r">R-00</span><h3>Standing rules (paste once at the start of every new Agent chat)</h3><label><input type="checkbox" id="done-R-00"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> nothing</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Standing rules for this whole conversation. Confirm you understand, then wait for the first task.
+
+1. Never run DDL, migrations, "repairs", grants or data changes against PRODUCTION. Production schema changes only through Publish. The security installation in db/production-guard/ is run by a human administrator, never by you.
+2. Never weaken, skip, broaden, mock out or quarantine a readiness check, policy comparison, trigger body, test, or security advisory to get a green result. A failed check stays failed; report it.
+3. Development tests, mocks, synthetic receipts, configuration presence, green readiness panels and successful deployments are NOT production evidence or independent verification. Label every piece of evidence: DEV, SYNTHETIC, or PRODUCTION, with the date.
+4. Tests must not make live model calls, send real email, contact real recipients or charge money. Use fixtures and @example.test users.
+5. An uncertain paid model outcome must never trigger automatic redispatch or a duplicate charge.
+6. Keep the Software and Firmware acceptance paths separate. Do not push software through hardware-only checks or remove firmware safeguards.
+7. Do not mark anything ACTIVE in docs/upgrade-program/progress.json without dated production evidence. Use UNVERIFIED when unsure.
+8. For each task: write a failing test first when it is a bug, make the smallest fix, run `pnpm -r typecheck` and the affected package tests, then commit with the task ID in the message.
+9. Finish every task with a short report: files changed, commands run with pass/fail counts, and what is still unverified.</pre></div>
+  </article>
+
+  <article class="step r" data-id="R-01">
+    <div class="step-head"><span class="tag r">R-01</span><h3>Bring in the audit fix and prove it in dev</h3><label><input type="checkbox" id="done-R-01"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> H-01</span><span><b>Closes:</b> setup for R1, R2, R3</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-01: bring in the production-audit fix (commit c14e0fc) and verify it in development only.
+
+Option A (if main already contains it after the PR merge): run `git pull` and confirm `git log --oneline -5` shows "Add reviewed production guard install, verifier and runtime probe; stamp serving revision".
+Option B (patch file): the file closed-gates-c14e0fc.patch is in the workspace root. Run `git am closed-gates-c14e0fc.patch`. If it does not apply cleanly, stop and show me the conflict; do not hand-edit the SQL files.
+
+Then:
+1. Make psql available (add pkgs.postgresql to replit.nix if `which psql` fails).
+2. Run against the DEVELOPMENT database only:
+   psql "$DATABASE_URL" -f db/production-guard/verify_artifact_operations_guard.sql
+   Expect all 9 rows PASS, because migrations 0048/0050/0051 ran in dev. Paste the table.
+3. Run the runtime probe against DEVELOPMENT:
+   psql "$DATABASE_URL" -f db/production-guard/runtime_probe_artifact_operations.sql
+   Expect PASS lines for role_switch, owner_isolation, cross_owner_insert_refused, destructive_and_immutable_privileges_refused, and PASS or SKIPPED for final_immutable. It ends in ROLLBACK.
+4. Run `pnpm --filter @workspace/api-server test -- test/launch-readiness.test.ts`.
+5. Do NOT run install_artifact_operations_guard.sql anywhere. Do NOT connect to production.
+
+Done when: all 9 dev checks PASS, the probe passes, and the test passes. Any dev FAIL is a finding to report, not something to "fix" by editing the checks.</pre></div>
+  </article>
+</section>
+
+<!-- ============================ STAGE 1 ============================ -->
+<section class="stage">
+  <header><span class="eyebrow">Stage 1 · Audit P0 · R1</span><h2>Know exactly what is live</h2><p>Match the published backend to a commit, and check what FORCE RLS will change before anyone installs it.</p></header>
+
+  <article class="step r" data-id="R-02">
+    <div class="step-head"><span class="tag r">R-02</span><h3>Make the serving-revision stamp work in the Publish build</h3><label><input type="checkbox" id="done-R-02"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-01</span><span><b>Closes:</b> R1 (code side)</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-02 (audit R1): make sure the published API reports the exact commit it was built from.
+
+Context: artifacts/api-server/build.mjs now inlines the git commit as process.env.ATANDA_BUILD_REVISION ("&lt;sha&gt;", "&lt;sha&gt;-dirty" or "unknown"). /api/health, /api/readyz and /api/launch-readiness return it in the X-Serving-Revision header.
+
+1. Find the build command the Publish/deployment config uses (.replit [deployment] build). Check whether .git is available during that build. If it is not, change the deployment build command so it sets ATANDA_BUILD_REVISION from the commit Replit is publishing. Never invent a value; "unknown" is acceptable output, a guessed SHA is not.
+2. Run the api-server build locally (`pnpm --filter @workspace/api-server run build`) with a clean tree and confirm dist/index.mjs contains the current `git rev-parse HEAD` without "-dirty". Delete dist afterwards if it is not tracked.
+3. If anything during Publish writes tracked files before the build (which would make every build "-dirty"), list it.
+4. Add one line to docs/upgrade-program/closed-gates-opening-plan-2026-10-26.md under R1 saying how the revision gets into the published build.
+
+Do not publish. Report: the build command, whether .git is present at publish time, and the exact header value you expect after Publish.</pre></div>
+  </article>
+
+  <article class="step r" data-id="R-03">
+    <div class="step-head"><span class="tag r">R-03</span><h3>Find code that reads protected tables outside the restricted role</h3><label><input type="checkbox" id="done-R-03"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-01</span><span><b>Feeds:</b> H-04 security review</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-03: list everything that will behave differently in production once FORCE ROW LEVEL SECURITY is installed. Read-only analysis plus tests; no schema changes.
+
+Context: after the administrator runs db/production-guard/install_artifact_operations_guard.sql, the five tables imprima_jobs, imprima_files, short_sprint_runs, artifact_operation_events and sprint_verifier_authorities return NO rows to any connection unless app.operations_actor / app.operations_admin are set, including the database owner. Inside withOperationsActor() (artifacts/api-server/src/lib/artifact-operations/context.ts) this is already handled.
+
+1. Search the whole monorepo (api-server routes and lib, cron jobs, scripts/, lib/db, exports, janitors, analytics, admin pages) for every read or write of those five tables. Use the Drizzle table objects (imprimaJobsTable, imprimaFilesTable, shortSprintRunsTable, artifactOperationEventsTable, sprintVerifierAuthoritiesTable) and raw SQL table names.
+2. Put each call site in a table: file:line, operation, inside withOperationsActor (yes/no), and what happens under FORCE RLS (sees nothing / insert rejected / unaffected).
+3. For each call site OUTSIDE withOperationsActor that would silently return empty or fail: write a test that runs it against the dev DB (which already has FORCE RLS) and shows the behaviour. Do not fix by adding BYPASSRLS, SECURITY DEFINER functions or owner fallbacks. Propose the fix (usually: route it through withOperationsActor with the right actor), and wait for my approval before changing code.
+4. Save the table to docs/upgrade-program/force-rls-call-sites.md.
+
+Done when: the document exists and every outside call site has a test showing its behaviour.</pre></div>
+  </article>
+
+  <article class="step h" data-id="H-02">
+    <div class="step-head"><span class="tag h">H-02</span><h3>Publish and record the serving revision</h3><label><input type="checkbox" id="done-H-02"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Release engineer</span><span><b>Time:</b> 15 min</span><span><b>Needs:</b> R-02, plus R-03 changes you approved</span></div>
+    <ol class="walk">
+      <li>In Replit, open the <b>Publishing</b> tool and publish the current main (Autoscale, Public visibility, as today).</li>
+      <li>When it is live, run this in the Replit Shell or any terminal:<br><code>curl -sI https://command-center.atanda.ai/api/readyz | grep -i x-serving-revision</code></li>
+      <li>Compare the value with <code>git rev-parse HEAD</code> for what you published. They must match exactly. A <code>-dirty</code> or <code>unknown</code> value means the build cannot be traced; go back to R-02.</li>
+      <li>Sign in to the live app and do one harmless round trip: open an existing session, reload, and check it is still there. Don't create paid or model-calling work.</li>
+      <li>Write the evidence record (template at the bottom of this page) with date, time, revision and result.</li>
+    </ol>
+    <p class="evidence"><b>Evidence:</b> header output, matching SHA, smoke-check result. <b>Clears:</b> audit R1.</p>
+  </article>
+</section>
+
+<!-- ============================ STAGE 2 ============================ -->
+<section class="stage">
+  <header><span class="eyebrow">Stage 2 · Audit P0 · R2, R3</span><h2>Install the production database guard</h2><p>The only way to open the protected IMPRIMA / SHORT SPRINTS gate. Publishing again will never do it, because Publish does not carry roles, FORCE RLS, policy predicates or triggers.</p></header>
+
+  <article class="step h" data-id="H-03">
+    <div class="step-head"><span class="tag h">H-03</span><h3>Find out which database login the live app uses</h3><label><input type="checkbox" id="done-H-03"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Administrator</span><span><b>Time:</b> 10 min</span><span><b>Needs:</b> H-02</span></div>
+    <ol class="walk">
+      <li>In Replit, open the <b>Database</b> tool and switch to the <b>Production</b> database. Open its connection details. (If you also have the Neon console for this project, the same information is under <b>Roles</b> and <b>Connection details</b>.)</li>
+      <li>The production connection string looks like <code>postgresql://&lt;USER&gt;:&lt;password&gt;@&lt;host&gt;/&lt;db&gt;</code>. The part before the colon is the login. It is very likely <code>neondb_owner</code>; confirm it rather than assuming.</li>
+      <li>Check the deployment's secrets: if the published app has its own <code>DATABASE_URL</code> secret that differs from the Database tool's, the app's value wins. Use that login.</li>
+      <li>Write the login name down. You'll pass it as <code>app_login</code> in H-07. Never paste the password into chat, tickets or this document.</li>
+    </ol>
+    <p class="evidence"><b>Evidence:</b> “Published API connects as &lt;login&gt; (checked &lt;date&gt; via &lt;where&gt;).”</p>
+  </article>
+
+  <article class="step h" data-id="H-04">
+    <div class="step-head"><span class="tag h">H-04</span><h3>Security review of the install script</h3><label><input type="checkbox" id="done-H-04"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Security reviewer (not the person who runs it)</span><span><b>Time:</b> 45–60 min</span><span><b>Needs:</b> R-01, R-03, H-03</span></div>
+    <ol class="walk">
+      <li>Open <code>db/production-guard/install_artifact_operations_guard.sql</code> next to <code>lib/db/migrations/0048_awesome_marvel_zombies.sql</code> (lines 103–144), <code>0050_artifact_operations_integrity.sql</code> and <code>0051_artifact_operations_least_privilege.sql</code>. Every statement in the install should come from those three files. Mark anything that doesn't.</li>
+      <li>Check the privilege matrix in step 3 of the script against the table in <code>docs/upgrade-program/protected-workflow-readiness.md</code>. Nothing more than SELECT/INSERT/UPDATE as listed, no DELETE or TRUNCATE.</li>
+      <li>Confirm the role is created <code>NOLOGIN NOSUPERUSER NOBYPASSRLS</code> and the only membership granted is to the login from H-03.</li>
+      <li>Read <code>docs/upgrade-program/force-rls-call-sites.md</code> from R-03. Every call site outside <code>withOperationsActor</code> must either be fixed and published (H-02 again) or accepted in writing as “empty after install is correct”.</li>
+      <li>Confirm the script stops on its own if it finds an unreviewed permissive policy, and rolls back if the final nine-check self-test fails.</li>
+      <li>Approve in writing (ticket or email) with your name, date and the commit SHA you reviewed.</li>
+    </ol>
+    <p class="evidence"><b>Evidence:</b> signed approval naming the reviewed SHA. <b>Rule:</b> if the reviewer wants the SQL changed, it goes back through R-xx as a code change and a new review, not an edit on the server.</p>
+  </article>
+
+  <article class="step h" data-id="H-05">
+    <div class="step-head"><span class="tag h">H-05</span><h3>Take a restore point and run the read-only pre-check</h3><label><input type="checkbox" id="done-H-05"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Administrator</span><span><b>Time:</b> 15 min</span><span><b>Needs:</b> H-04</span></div>
+    <ol class="walk">
+      <li><b>Restore point.</b> If you have the Neon console: <b>Branches → Create branch</b>, parent <code>main</code>, “current point in time”, name it <code>pre-guard-install-YYYYMMDD</code>. Otherwise use Replit's database backup/restore option for Production and note the restore timestamp. Don't continue without one.</li>
+      <li><b>Get psql in the Replit Shell:</b> <code>nix-shell -p postgresql</code> (or after R-01, psql is already installed).</li>
+      <li><b>Put the production admin connection string in a shell variable</b> without echoing it: <code>read -rs PROD_ADMIN_URL; export PROD_ADMIN_URL</code>, then paste and press Enter.</li>
+      <li><b>Pre-check (read-only):</b><br><code>psql "$PROD_ADMIN_URL" -f db/production-guard/verify_artifact_operations_guard.sql</code></li>
+      <li>You should see the same failures as the audit: <code>restricted_role</code>, <code>forced_rls</code>, <code>owner_policies</code>, <code>authority_policies</code> and <code>immutable_versions</code> FAIL, three FAIL PREREQUISITE, and <code>policy_scope</code> PASS. Save the output. If <code>policy_scope</code> FAILs, stop: someone added a policy since the audit and it needs review first.</li>
+    </ol>
+  </article>
+
+  <article class="step h" data-id="H-06">
+    <div class="step-head"><span class="tag h">H-06</span><h3>Run the installation (maintenance window)</h3><label><input type="checkbox" id="done-H-06"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Administrator, with the reviewer present</span><span><b>Time:</b> 10 min, in a quiet period</span><span><b>Needs:</b> H-05</span></div>
+    <ol class="walk">
+      <li>Announce a short window. The script takes table locks for a few seconds (it gives up after 10 s rather than queueing behind traffic).</li>
+      <li>From the repository root, run (replace the login with the value from H-03):<br><code>psql "$PROD_ADMIN_URL" -v app_login='neondb_owner' -f db/production-guard/install_artifact_operations_guard.sql</code></li>
+      <li><b>Success</b> looks like a table of nine rows all <code>PASS</code>, then “Installed. Now run the actual-runtime-role probe…”.</li>
+      <li><b>Failure</b> prints <code>ERROR: Guard self-check failed, rolling back: &lt;check&gt;</code> or another error. Nothing was changed. Save the output and send it back as a code task. Never edit the script on the server to get past it.</li>
+      <li>If it fails with a lock timeout, wait for a quieter moment and run it again; it is safe to repeat.</li>
+    </ol>
+    <p class="evidence"><b>Rollback after a successful commit:</b> restore the H-05 restore point. Don't drop individual guards by hand; that leaves a lane that looks protected but isn't.</p>
+  </article>
+
+  <article class="step h" data-id="H-07">
+    <div class="step-head"><span class="tag h">H-07</span><h3>Prove it with the app's own identity</h3><label><input type="checkbox" id="done-H-07"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Engineering + reviewer</span><span><b>Time:</b> 20 min</span><span><b>Needs:</b> H-06</span><span><b>Clears:</b> R2, R3</span></div>
+    <ol class="walk">
+      <li>Put the <b>published app's</b> connection string (from H-03) in a variable: <code>read -rs API_DATABASE_URL; export API_DATABASE_URL</code>.</li>
+      <li>Run <code>psql "$API_DATABASE_URL" -f db/production-guard/runtime_probe_artifact_operations.sql</code>.</li>
+      <li>Expect NOTICE lines: <code>PASS role_switch</code>, <code>PASS owner_isolation</code>, <code>PASS cross_owner_insert_refused</code>, <code>PASS destructive_and_immutable_privileges_refused</code>, and <code>PASS final_immutable</code> or <code>SKIPPED final_immutable</code> if no Published Final document exists yet. It ends with “transaction rolled back”, so nothing was written.</li>
+      <li>Run the verifier again with the same URL: <code>psql "$API_DATABASE_URL" -f db/production-guard/verify_artifact_operations_guard.sql</code>. All nine must PASS, and the membership row should name the app's login.</li>
+      <li>Sign in to the live app as an administrator and open the protected-workflow verifier panel. It must show the database guard as ready. Take a screenshot.</li>
+      <li>Save all outputs in one dated evidence record with the serving revision from H-02.</li>
+    </ol>
+  </article>
+
+  <article class="step h" data-id="H-08">
+    <div class="step-head"><span class="tag x">GATE</span><span class="tag h">H-08</span><h3>Decide on the protected-database gate</h3><label><input type="checkbox" id="done-H-08"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Administrator + security reviewer + engineering lead</span><span><b>Needs:</b> H-07</span></div>
+    <ul class="plain">
+      <li>Only <b>“database guards: PASS on production under the runtime identity”</b> can be marked here. This is not independent verification, external approval or a release decision for IMPRIMA / SHORT SPRINTS.</li>
+      <li>Update the gate register: Protected IMPRIMA and SHORT SPRINTS moves from CLOSED to “guards installed; pilots pending (R8)”.</li>
+      <li>Keep a monthly re-run of the read-only verifier on the calendar. Any later FAIL closes the gate again.</li>
+    </ul>
+  </article>
+</section>
+
+<!-- ============================ STAGE 3 ============================ -->
+<section class="stage">
+  <header><span class="eyebrow">Stage 3 · Audit P0/P1/P2 · R4, R5, R6, R12</span><h2>Core reliability and honest status</h2><p>Can run alongside Stage 2. Each regression gets its own prompt so the Agent works on one thing at a time.</p></header>
+
+  <article class="step r" data-id="R-04">
+    <div class="step-head"><span class="tag r">R-04</span><h3>Evidence fields for the invariant register</h3><label><input type="checkbox" id="done-R-04"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-02</span><span><b>Closes:</b> R4 (tooling)</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-04 (audit R4): make docs/upgrade-program/progress.json able to hold real, dated evidence per invariant, without changing any entry's status.
+
+Context: all 129 invariants and 243 atomic prompts are liveActivity: UNVERIFIED. The audit says to track implementation, live activity and verification separately and never turn 0/129 into a whole-platform percentage.
+
+1. Extend the schema of each entry (keep existing fields) with: owner, implementationState (MISSING|PARTIAL|IMPLEMENTED), devVerification {type, result, date, synthetic: true/false}, liveActivity (ACTIVE|INACTIVE|UNVERIFIED), liveEvidence {servingRevision, date, assessor, enforcementTier, link}, blockingDependency, exitCondition.
+2. Write scripts/src/invariant-register.ts with two commands:
+   - `check`: fails if any entry is ACTIVE without liveEvidence.servingRevision + date + assessor, or if devVerification.synthetic is true while liveActivity is ACTIVE.
+   - `summary`: prints counts per state. Never prints a single completion percentage.
+3. Add `check` to the existing scripts test command.
+4. Do NOT change any entry's liveActivity. Fill owner/implementationState only where the source makes it obvious; otherwise leave them blank.
+
+Done when: the checker runs in tests, all entries are still UNVERIFIED, and the summary output is in your report.</pre></div>
+  </article>
+
+  <article class="step r" data-id="R-05">
+    <div class="step-head"><span class="tag r">R-05</span><h3>Regression #330: public certificate check makes staff-only calls</h3><label><input type="checkbox" id="done-R-05"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-00</span><span><b>Closes:</b> part of R5</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-05 (audit R5, task #330): the public certificate verification page must not call staff-only endpoints.
+
+1. Load the public certificate verification page signed out (Playwright, dev server). Record every network request it makes. Any request to an endpoint that requires staff/admin auth, or that returns 401/403 and shows an error, is the bug.
+2. Write a failing test that asserts the signed-out page makes only public requests and shows no auth error.
+3. Fix it with the smallest change (usually: a public endpoint returning only the fields verification needs, or not calling the staff endpoint when signed out). Do not loosen auth on the staff endpoint.
+4. Run the test and the existing certificate tests.
+
+Report: the requests before and after, files changed, test results.</pre></div>
+  </article>
+
+  <article class="step r" data-id="R-06">
+    <div class="step-head"><span class="tag r">R-06</span><h3>Regressions #112 and #239: stage unlocking and F0 foreign artifacts</h3><label><input type="checkbox" id="done-R-06"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-05</span><span><b>Closes:</b> part of R5</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-06 (audit R5, tasks #112 and #239). Do them one at a time, committing after each.
+
+#112 stage unlocking:
+1. Find where F-stages unlock (the code that decides a user may open the next stage). Write tests for: a stage must not unlock before its prerequisite passes; a failed or pending gate keeps it locked; reloading does not unlock it; a different user's progress never unlocks mine.
+2. If a test fails, fix the server-side check. Do not rely on hiding a button in the UI.
+
+#239 F0 foreign artifacts:
+1. Write a test where user A tries to attach, view or monitor an artifact owned by user B through every F0 endpoint (retainer create, monitoring run, alerts).
+2. Each must be rejected with 404 or 403 and leave no row behind. Fix any that accept it, by checking ownership in the server.
+
+Report per issue: reproduced yes/no, root cause, fix, tests.</pre></div>
+  </article>
+
+  <article class="step r" data-id="R-07">
+    <div class="step-head"><span class="tag r">R-07</span><h3>Regressions #93 and #195: free-tool score exposure and F9 duplicate retries</h3><label><input type="checkbox" id="done-R-07"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-06</span><span><b>Closes:</b> part of R5</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-07 (audit R5, tasks #93 and #195). One at a time, commit after each.
+
+#93 free-tool score exposure:
+1. List every response the free (unauthenticated or free-tier) tools return. Write a test asserting they never include scores, rubric internals, other users' data or paid-tier fields that the product says are gated.
+2. Fix the response shape on the server. Do not just hide fields in the UI.
+
+#195 F9 retry duplicate protection:
+1. Write a test that fires the same F9 retry twice concurrently and twice in sequence with the same idempotency key.
+2. Assert exactly one model dispatch, one cost row and one result. An uncertain earlier outcome (timeout, unknown) must be marked for operator review, not redispatched automatically.
+3. Fix with a database-level unique key or row lock, not an in-memory flag.
+
+Report per issue: reproduced yes/no, root cause, fix, tests. No live model calls; mock the provider.</pre></div>
+  </article>
+
+  <article class="step r" data-id="R-08">
+    <div class="step-head"><span class="tag r">R-08</span><h3>Regressions #92 and #296: rate-limit restarts and budget drift</h3><label><input type="checkbox" id="done-R-08"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-07</span><span><b>Closes:</b> rest of R5, part of Priority 2</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-08 (audit R5, tasks #92 and #296, plus Priority 2 budget accounting).
+
+#92 rate-limit restart behaviour:
+1. Find where rate limits and daily caps are stored. If any limit lives only in process memory, write a test showing that a server restart resets it (Autoscale restarts often).
+2. Move the counter to the database (or confirm it is already there) so a restart does not reset limits.
+
+#296 budget drift and model-call accounting:
+1. Write tests for the three outcomes of a paid model call: completed, failed, and uncertain (timeout or connection lost after sending).
+   - completed: cost recorded once.
+   - failed before sending: no cost.
+   - uncertain: cost recorded as "reserved/uncertain", visible to operators, NOT redispatched automatically, and reconciled later.
+2. Write a test that the company-wide monthly cost cap and the per-user budget agree with the sum of cost rows (no drift after retries, cancellations or crashes mid-call).
+3. Fix what fails. Keep the existing cap behaviour: halt spend when reached.
+
+Report: tests added, failures found, fixes. Mock all providers.</pre></div>
+  </article>
+
+  <article class="step r" data-id="R-09">
+    <div class="step-head"><span class="tag r">R-09</span><h3>Recovery alerts and operator visibility</h3><label><input type="checkbox" id="done-R-09"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-08</span><span><b>Closes:</b> Priority 2; tasks #327, #328, #331, #332, #187, #230</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-09 (audit Priority 2; tasks #327, #328, #331, #332, #187, #230). Work in this order and commit after each:
+
+1. #327 recovery while the API sleeps: Autoscale can scale to zero. Make sure abandoned credits and interrupted private files are found on the next wake-up or cron tick, not only by an in-process timer. Test by simulating a restart mid-operation.
+2. #328 repeated recovery-failure alerts: if recovery of the same item fails repeatedly, alert ADMIN_EMAILS once per episode (reuse the pattern in cron_stale_notifications), not on every attempt.
+3. #331 individual alert inspection: an admin can open one alert and see its item, attempts, last error and owner.
+4. #332 bounded recovery audit history: keep recovery history per item capped (like cron_tick_events, newest N rows), with a test for the pruning.
+5. #187 cross-tab Player retry status: a retry started in one tab shows as running in another tab for the same user, without starting a second retry.
+6. #230 paused-alert retry performance: retrying paused alerts must not scan the whole table; add an index or bounded query and a test with many rows.
+
+No real emails in tests (EMAIL_FROM unset gives dry-run logging). Report per item.</pre></div>
+  </article>
+
+  <article class="step r" data-id="R-10">
+    <div class="step-head"><span class="tag r">R-10</span><h3>Webhook failures, monthly provider bill and consistent statuses</h3><label><input type="checkbox" id="done-R-10"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-09</span><span><b>Closes:</b> Priority 2; proposals #188, #302</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-10 (audit Priority 2; proposals #188 and #302). These were PROPOSED, not accepted: first check whether they are already done, and report before building.
+
+1. #188 webhook delivery failures: when an outbound webhook fails repeatedly, show a warning to the owner and admins, with retry history. Test with a fake endpoint that returns 500.
+2. #302 monthly provider-bill reconciliation: an admin export (CSV) per month of model cost rows grouped by provider and model, with totals, so it can be compared with the provider's invoice. Read-only; no changes to cost rows.
+3. Consistent session statuses and engine names: list every place the UI shows a session status or engine name, and make them use one shared mapping. Add a test that fails if a new status has no label.
+
+Report what already existed, what you built, and tests.</pre></div>
+  </article>
+
+  <article class="step h" data-id="H-09">
+    <div class="step-head"><span class="tag h">H-09</span><h3>Create test accounts for signed-in journeys</h3><label><input type="checkbox" id="done-H-09"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Product owner</span><span><b>Time:</b> 20 min</span><span><b>Needs:</b> nothing</span></div>
+    <ol class="walk">
+      <li>In the <b>Clerk dashboard</b>, development instance, create one user per role you sell: free, Practitioner, Architect, team convener, team trainee, admin. Use addresses on <code>@example.test</code> so the cleanup janitor treats them as test data.</li>
+      <li>Store their passwords as Replit Secrets (for example <code>E2E_PRACTITIONER_PASSWORD</code>) in the <b>development</b> environment only. Don't create these users in production.</li>
+      <li>Tell the Agent the secret names before R-11.</li>
+    </ol>
+  </article>
+
+  <article class="step r" data-id="R-11">
+    <div class="step-head"><span class="tag r">R-11</span><h3>Signed-in core journeys, end to end</h3><label><input type="checkbox" id="done-R-11"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> H-09</span><span><b>Closes:</b> R12 (dev side); tasks #323, #324, #325, #333, #334, #344</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-11 (audit R12): Playwright journeys for the signed-in core, against the DEV app, using the test accounts in secrets E2E_* (names: &lt;fill in from H-09&gt;).
+
+For each journey: sign in, do the work, reload, sign out and in again, and check the work is still there. Then sign in as a DIFFERENT user and check it cannot see or change it (negative owner test).
+1. Quest: start, save, reopen (#334 Quest evidence accessibility too: keyboard-only and screen-reader labels).
+2. Cohort: convener invites, trainee joins, convener sees progress (#344 convener/trainee signed-in checks; #323 invited lesson live check).
+3. SPC Player: pick a source, run, and confirm the source file is kept for the real run (#325).
+4. Boomerang: return a candidate, rework to Upgraded 1, then Upgraded 2; reload persists; stale or foreign live check is refused (#324).
+5. Preparation and archive: create, archive, restore.
+6. #333 signed-in supporting-work recovery: interrupt mid-save (kill the request) and recover.
+
+Rules: mock all model calls; no real emails; clean up only @example.test users. Commit the specs under e2e/ and add a `pnpm e2e:core` script.
+Report: pass/fail per journey with screenshots of failures. A failure is a finding; do not change the test to pass.</pre></div>
+  </article>
+
+  <article class="step r" data-id="R-12">
+    <div class="step-head"><span class="tag r">R-12</span><h3>Accessibility, mobile and Boomerang follow-ups</h3><label><input type="checkbox" id="done-R-12"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-11</span><span><b>Closes:</b> Priority 3; tasks #315, #316, #329, #321, #322, #348, #349</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-12 (audit Priority 3). One commit per item.
+
+1. #315/#316 high-contrast screens and text/contrast: run axe (via @axe-core/playwright) on every main page at 390px and 1280px widths, light and dark. Fix contrast and missing labels. Add the axe run to the e2e suite so it fails on new violations.
+2. Keyboard: every action on Quest, Player, Boomerang and cohort pages works with Tab/Enter/Escape, with visible focus.
+3. #329 F-stage bundle loading on mobile: measure the JS loaded on first visit to each F-stage page; split anything over 250 KB gzipped that the page doesn't need first.
+4. #321 stale Boomerang work warnings: warn when a rework is based on a source that has since changed.
+5. #322 review-history search.
+6. #348 non-F8 revision comparison: side-by-side diff for non-F8 Boomerang revisions, before acceptance.
+7. #349 Boomerang/gate-history export: CSV/JSON export of upgrades and gate decisions for one session.
+Rules: no inherited pass scores or certification on any new version (existing Boomerang rule). Report per item.</pre></div>
+  </article>
+
+  <article class="step r" data-id="R-13">
+    <div class="step-head"><span class="tag r">R-13</span><h3>Paid journey: code side</h3><label><input type="checkbox" id="done-R-13"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-11</span><span><b>Closes:</b> R6 (code side); tasks #346, #347</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-13 (audit R6; tasks #346, #347): make sure what we show, what Stripe charges and what the user gets all match. Stripe TEST mode only.
+
+1. List every plan and price shown in the UI (pricing page, upgrade dialogs) and every STRIPE_PRICE_* variable the server uses (PRACTITIONER_MONTHLY/YEARLY, ARCHITECT_MONTHLY/YEARLY, TEAM_SEAT_*, TEAM_LITE_SEAT_*, INGESTION_PROJECT, CARTRIDGE_PROJECT). Write a test that fails if a displayed plan has no configured price or vice versa.
+2. Write a script `pnpm --filter @workspace/scripts run stripe-price-check` that fetches each configured price from Stripe (read-only) and prints amount, currency, interval and active, so a human can compare it with the pricing page. It must never create or change prices.
+3. #347 entitled workspace entry: test that after a successful checkout.session.completed webhook (use Stripe test fixtures, signed with STRIPE_WEBHOOK_SECRET), the buyer gets exactly the entitlement bought and can enter the paid workspace; a cancelled or failed payment gives nothing; replaying the webhook does not double-grant.
+4. Test account ownership and recovery: a paid user who deletes and re-creates sessions keeps the subscription; another user can't take it over.
+5. Do not enable checkout in production or change its current disabled/dormant state.
+
+Report results and the price-check output from TEST mode.</pre></div>
+  </article>
+
+  <article class="step h" data-id="H-10">
+    <div class="step-head"><span class="tag h">H-10</span><h3>Check prices in Stripe and do one real purchase</h3><label><input type="checkbox" id="done-H-10"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Business owner</span><span><b>Time:</b> 45 min</span><span><b>Needs:</b> R-13</span><span><b>Clears:</b> R6</span></div>
+    <ol class="walk">
+      <li>Decide the final price list. In the <b>Stripe dashboard</b>, switch to <b>Live mode</b>, open <b>Product catalog</b>, and create or confirm one Product per plan, with a Price for each monthly/yearly option. Copy each Price ID (starts with <code>price_</code>).</li>
+      <li>In Replit, open the deployment's <b>Secrets</b> and set the matching <code>STRIPE_PRICE_*</code> values, plus the live <code>STRIPE_WEBHOOK_SECRET</code>.</li>
+      <li>In Stripe, <b>Developers → Webhooks → Add endpoint</b>: URL <code>https://command-center.atanda.ai/</code> plus the webhook path the Agent reports in R-13, with the events it lists. Copy the signing secret into <code>STRIPE_WEBHOOK_SECRET</code>.</li>
+      <li>Run the price-check script from R-13 against live (read-only) and compare it line by line with the pricing page.</li>
+      <li>Turn checkout on only when you're ready. Then buy the cheapest plan with your own card, confirm you land in the paid workspace, and refund yourself in Stripe (<b>Payments → the payment → Refund</b>).</li>
+      <li>Record the date, plan, Stripe payment ID and result.</li>
+    </ol>
+  </article>
+
+  <article class="step r" data-id="R-14">
+    <div class="step-head"><span class="tag r">R-14</span><h3>Dependency advisories: try to remove the sprintf-js path</h3><label><input type="checkbox" id="done-R-14"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-00</span><span><b>Closes:</b> Priority 4 (partly)</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-14 (audit Priority 4). Follow docs/upgrade-program/dependency-advisories.md.
+
+1. Re-run `pnpm audit --json` and record today's result and the latest registry versions of braces, sprintf-js, micromatch, http-proxy-middleware, mammoth and argparse.
+2. sprintf-js comes in through mammoth -&gt; argparse@1 -&gt; sprintf-js. argparse@2 has no sprintf-js dependency, but its API differs, and Mammoth only uses argparse in its command-line tool. Try a parent-scoped pnpm override `mammoth&gt;argparse: ^2.0.1` (same style as the existing typography override). Then:
+   - run `node --test scripts/src/dependency-boundaries.test.mjs` and the DOCX ingestion tests;
+   - extract text from a real DOCX through the app's library path (extractRawText);
+   - confirm pnpm audit no longer lists sprintf-js.
+   If anything fails, revert the override and report why. Do not use Mammoth's CLI.
+3. braces: if there's still no patched release, leave it open. Do not add an audit suppression. Re-run the existing reachability test and record the date.
+4. Update dependency-advisories.md with a dated "Recheck" section.
+
+Report: audit before/after, tests, and whether the override stays.</pre></div>
+  </article>
+
+  <article class="step h" data-id="H-11">
+    <div class="step-head"><span class="tag h">H-11</span><h3>Accept or reject the remaining dependency risk</h3><label><input type="checkbox" id="done-H-11"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Security reviewer</span><span><b>Time:</b> 15 min</span><span><b>Needs:</b> R-14</span></div>
+    <ul class="plain">
+      <li>Read the updated <code>dependency-advisories.md</code>. For each advisory still open (likely <code>braces</code>), record a decision: “accepted until &lt;date&gt; because &lt;reachability evidence&gt;”, or “must replace before &lt;release&gt;”.</li>
+      <li>Set a calendar reminder to re-check monthly. An accepted risk is still an open advisory; it isn't fixed.</li>
+    </ul>
+  </article>
+</section>
+
+<!-- ============================ STAGE 4 ============================ -->
+<section class="stage">
+  <header><span class="eyebrow">Stage 4 · Audit P1 · R7, R8</span><h2>Governed vertical slices</h2><p>One real, end-to-end case each. These need people who are independent of the build team.</p></header>
+
+  <article class="step h" data-id="H-12">
+    <div class="step-head"><span class="tag h">H-12</span><h3>Appoint an independent verifier for XVL/VTE</h3><label><input type="checkbox" id="done-H-12"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Founder / product owner</span><span><b>Time:</b> 1–2 weeks</span><span><b>Needs:</b> nothing</span></div>
+    <ol class="walk">
+      <li>Pick a person or firm with no part in building or selling ATANDA. Internal KLARITY/SOCRATES reviews don't count.</li>
+      <li>Agree in writing: which verification tracks they cover, what source material they get, what counts as pass, fail and inconclusive, and how they sign receipts.</li>
+      <li>Choose one real source (not synthetic) for the first case. Get the owner's consent to use it.</li>
+      <li>Give the Agent the verifier's name/organisation and how they will sign, for R-15.</li>
+    </ol>
+  </article>
+
+  <article class="step r" data-id="R-15">
+    <div class="step-head"><span class="tag r">R-15</span><h3>XVL/VTE: source-bound receipts and a real fail path</h3><label><input type="checkbox" id="done-R-15"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> H-12</span><span><b>Closes:</b> R7 (code side)</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-15 (audit R7): make one independent XVL/VTE verification case possible end to end, with evidence bound to the exact source.
+
+1. Map the current verification tracks and what live readiness says is incomplete. List what is missing for one complete track.
+2. Each verification receipt must record: the source artifact's hash, the verifier's identity (from H-12: &lt;name/org&gt;), the verdict (PASS / FAIL / INCONCLUSIVE), the date, and a signature or signed upload the verifier controls. A receipt whose hash no longer matches the source is invalid.
+3. FAIL and INCONCLUSIVE must be first-class: they are stored, shown to the owner, logged in vte_verification_failures, and block promotion. Test both.
+4. Synthetic receipts stay possible for dev tests but must be marked synthetic and can never satisfy the gate. Add a test that a synthetic receipt is rejected by the gate.
+5. Do not run the real case yourself and do not create a receipt on the verifier's behalf.
+
+Report: the track map, changes, tests, and the exact steps the verifier will follow.</pre></div>
+  </article>
+
+  <article class="step h" data-id="H-13">
+    <div class="step-head"><span class="tag x">GATE</span><span class="tag h">H-13</span><h3>Run the first independent XVL/VTE case</h3><label><input type="checkbox" id="done-H-13"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Independent verifier, observed by QA</span><span><b>Needs:</b> R-15, H-02 (published)</span><span><b>Clears:</b> R7</span></div>
+    <ol class="walk">
+      <li>The verifier signs in to production with their own account and runs the agreed track on the agreed real source.</li>
+      <li>Ideally include one deliberate failure (a known-bad variant) to prove FAIL is recorded and blocks promotion.</li>
+      <li>Record the receipt IDs, verdicts, serving revision and date. The verification authority, not engineering, marks R7 met.</li>
+    </ol>
+  </article>
+
+  <article class="step h" data-id="H-14">
+    <div class="step-head"><span class="tag h">H-14</span><h3>Name the approval and publication authorities</h3><label><input type="checkbox" id="done-H-14"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Founder</span><span><b>Needs:</b> H-08</span></div>
+    <ul class="plain">
+      <li><b>IMPRIMA:</b> name the person who may approve a Final publication, and their deputy.</li>
+      <li><b>SHORT SPRINTS:</b> name the verifier authorities (they're stored in <code>sprint_verifier_authorities</code>, which only an admin can change) and who decides eligibility and release.</li>
+      <li>Pick one qualified, consented real source for each pilot, and write down what acceptance and rejection look like.</li>
+    </ul>
+  </article>
+
+  <article class="step r" data-id="R-16">
+    <div class="step-head"><span class="tag r">R-16</span><h3>Pilot readiness for IMPRIMA Final and SHORT SPRINTS</h3><label><input type="checkbox" id="done-R-16"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> H-08, H-14</span><span><b>Closes:</b> R8 (code side)</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-16 (audit R8): get one IMPRIMA Final case and one SHORT SPRINTS case ready for a real pilot. Production database guards are installed and verified (H-07/H-08 evidence: &lt;paste date and revision&gt;).
+
+1. Walk both workflows in DEV with test users and write down every step: who acts, which table rows change, which events are logged, and what the restricted role can and cannot do.
+2. Tests (dev): Final publication creates an immutable version; editing it is refused; a correction makes a new version. A rejected SHORT SPRINTS verdict is stored and recoverable (resubmission creates a new run and leaves the rejected one intact). A cross-owner attempt is refused.
+3. Add an admin-only "pilot evidence" export per workflow: the event trail, actor identities, hashes, verdicts and timestamps for one run, so the authority can sign it off.
+4. Keep internal KLARITY/SOCRATES results clearly labelled "internal, not independent".
+5. Do not run the pilot in production and do not set verifier authorities yourself.
+
+Report: the step map, tests and the export format.</pre></div>
+  </article>
+
+  <article class="step h" data-id="H-15">
+    <div class="step-head"><span class="tag x">GATE</span><span class="tag h">H-15</span><h3>Run the two protected pilots</h3><label><input type="checkbox" id="done-H-15"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Named authorities from H-14, observed by QA</span><span><b>Needs:</b> R-16, H-13 for anything that needs independent verification</span><span><b>Clears:</b> R8</span></div>
+    <ol class="walk">
+      <li>In production, run one IMPRIMA Final case from source to approved publication. Try to edit the Final afterwards and confirm it's refused.</li>
+      <li>Run one SHORT SPRINTS case including a rejection, then the recovery path.</li>
+      <li>Export the pilot evidence from R-16, sign it, and file it with the serving revision. The authorities decide whether the externally governed gates open.</li>
+    </ol>
+  </article>
+</section>
+
+<!-- ============================ STAGE 5 ============================ -->
+<section class="stage">
+  <header><span class="eyebrow">Stage 5 · Audit P1 · R9, R10</span><h2>External handoff and controlled operation</h2><p>One provider and one target first. A subscription or an export file isn't evidence; a real provider-side result is.</p></header>
+
+  <article class="step h" data-id="H-16">
+    <div class="step-head"><span class="tag h">H-16</span><h3>Set up one real provider for F10 → F11 (Slack walkthrough)</h3><label><input type="checkbox" id="done-H-16"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Integration owner + Slack workspace admin</span><span><b>Time:</b> 30 min</span><span><b>Needs:</b> nothing</span></div>
+    <ol class="walk">
+      <li>Choose one target: <b>Slack notifications</b> is the simplest (Slack agent hosting needs a working agent endpoint).</li>
+      <li>Go to <a href="https://api.slack.com/apps" target="_blank" rel="noopener">api.slack.com/apps</a> → <b>Create New App</b> → <b>From scratch</b>. Name it “ATANDA Release”, pick your workspace.</li>
+      <li><b>OAuth &amp; Permissions → Bot Token Scopes:</b> add only what the Agent lists in R-17 (for posting to a channel this is usually <code>chat:write</code>). Least privilege.</li>
+      <li><b>Install to Workspace</b>, approve. Keep the Bot User OAuth Token (<code>xoxb-…</code>) secret. Enter it only through the app's F10 provider connection screen, never in chat or files.</li>
+      <li>Find the IDs the app requires. In Slack on the web, open the channel; the URL is <code>app.slack.com/client/T…/C…</code>. <code>T…</code> is the workspace ID and <code>C…</code> is the channel ID. Invite the app to that channel (<code>/invite @ATANDA Release</code>).</li>
+      <li>Use a private test channel for the first run.</li>
+    </ol>
+  </article>
+
+  <article class="step r" data-id="R-17">
+    <div class="step-head"><span class="tag r">R-17</span><h3>F10 → F11: artifact-bound handoff with a provider receipt</h3><label><input type="checkbox" id="done-R-17"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-00 (H-16 for the live run)</span><span><b>Closes:</b> R9 (code side); tasks #335, #336</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-17 (audit R9; tasks #335, #336): make one F10 -&gt; F11 handoff to Slack (target SLACK_NOTIFICATIONS) produce real, checkable evidence. Code lives in artifacts/api-server/src/lib/f10-provider.ts, f10-export.ts and f10-collaboration.
+
+1. List the exact Slack OAuth scopes the code needs for SLACK_NOTIFICATIONS and tell me, so the human can grant only those (step H-16).
+2. On dispatch, keep the provider's own response as the receipt: Slack's channel ID and message ts from chat.postMessage, plus our artifact hash and the frozen authorization policy hash. Never store the token in the receipt.
+3. A delivery only counts as DELIVERED when the provider response confirms it. Timeout or unknown means UNCERTAIN: shown to operators, not retried automatically.
+4. Make clear in the UI and the data that a LangChain export file or LangSmith dataset upload is an EXPORT, not a hosted execution (#335). Hosting receipts (#336) must come from the hosting provider, bound to the artifact hash.
+5. Tests with a mocked Slack API: success, revoked authorization (rechecked right before dispatch), wrong channel, timeout.
+6. Do not post to any real Slack workspace.
+
+Report: scopes needed, receipt format, tests.</pre></div>
+  </article>
+
+  <article class="step h" data-id="H-17">
+    <div class="step-head"><span class="tag x">GATE</span><span class="tag h">H-17</span><h3>Run the first real handoff</h3><label><input type="checkbox" id="done-H-17"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Integration owner</span><span><b>Needs:</b> R-17 published, H-16</span><span><b>Clears:</b> R9 for Slack notifications only</span></div>
+    <ol class="walk">
+      <li>In the live app, connect the Slack provider with the token from H-16, workspace ID and channel ID.</li>
+      <li>Hand off one qualified artifact. Check the message appears in the test channel.</li>
+      <li>In the app, open the receipt and confirm it shows the Slack channel and message timestamp and the artifact hash.</li>
+      <li>Revoke the app in Slack (<b>Manage apps → Remove</b>) and try again. The app must refuse. Reinstall afterwards if you continue.</li>
+      <li>Record the evidence. Each additional provider or target needs its own run; there's no blanket switch.</li>
+    </ol>
+  </article>
+
+  <article class="step r" data-id="R-18">
+    <div class="step-head"><span class="tag r">R-18</span><h3>F12: health hold, staged promotion and rollback</h3><label><input type="checkbox" id="done-R-18"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-17</span><span><b>Closes:</b> R10 (code side)</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-18 (audit R10): make F12 controlled operation work against one real target type, with a proven rollback.
+
+1. Map what F12 does today and what live readiness says is incomplete.
+2. Implement for ONE target type (I will choose the target in H-18; build it against the replit-deployments provider unless I say otherwise):
+   - health check after each rollout step, with a timeout;
+   - a failed or missing health result HOLDS the rollout (nothing gets promoted);
+   - staged promotion (for example 10% then 100%, or staging then production), each stage recorded;
+   - rollback to the previous known-good revision, recorded with who triggered it and the before/after revision;
+   - incident record when a hold or rollback happens, with an alert to the owner.
+3. Tests with a fake target: healthy path, failing health (must hold), rollback restores the previous revision, and a crash mid-rollout leaves a clear held state.
+4. Don't touch any real target.
+
+Report: state diagram, tests, and the exact steps for the rehearsal (H-18).</pre></div>
+  </article>
+
+  <article class="step h" data-id="H-18">
+    <div class="step-head"><span class="tag x">GATE</span><span class="tag h">H-18</span><h3>Rehearse a failed release and a rollback on a real target</h3><label><input type="checkbox" id="done-H-18"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Operations + release approver</span><span><b>Needs:</b> R-18 published</span><span><b>Clears:</b> R10</span></div>
+    <ol class="walk">
+      <li>Pick a low-risk real target you own (a staging deployment, not the main site).</li>
+      <li>Release a known-good version through F12. Confirm health passes and it's promoted.</li>
+      <li>Release a deliberately broken version (for example, its health endpoint returns 500). Confirm F12 holds and doesn't promote.</li>
+      <li>Trigger rollback. Confirm the target serves the previous version again (check its revision header or version page).</li>
+      <li>Record each step's time, revision and result. The release approver signs off before wider use.</li>
+    </ol>
+  </article>
+</section>
+
+<!-- ============================ STAGE 6 ============================ -->
+<section class="stage">
+  <header><span class="eyebrow">Stage 6 · Audit R11</span><h2>SPHINX public marketplace</h2><p>Stays closed (<code>publicOpen: false</code>) until rights, withdrawal and sync work across both systems.</p></header>
+
+  <article class="step r" data-id="R-19">
+    <div class="step-head"><span class="tag r">R-19</span><h3>Marketplace contract: consent, withdrawal and sync</h3><label><input type="checkbox" id="done-R-19"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> R-17</span><span><b>Closes:</b> R11 (code side)</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-19 (audit R11): build the SPHINX source-to-marketplace contract while keeping the public catalog CLOSED.
+
+1. An Exemplar can be listed only with: recorded owner consent (opt-in, with date and terms version), a qualification result, and a rights check. Test that each missing item blocks listing.
+2. Metadata freshness: if the source changes after listing, the listing is flagged stale and hidden until re-qualified.
+3. Withdrawal: the owner can de-list at any time; the withdrawal is sent to the receiving site (SPHINX_BASE_URL) and we keep the receiver's acknowledgement. Without an acknowledgement, show "withdrawal pending" and retry with backoff.
+4. Reconciliation job: compare our listings with the receiver's catalog and report differences both ways.
+5. GET /api/sphinx/catalog must keep returning publicOpen: false and items: [] until an admin flips an explicit launch flag. Add a test that it stays closed by default.
+6. Use a fake receiver in tests. Do not contact the real SPHINX site.
+
+Report: contract, tests, and what the receiving site must implement.</pre></div>
+  </article>
+
+  <article class="step h" data-id="H-19">
+    <div class="step-head"><span class="tag x">GATE</span><span class="tag h">H-19</span><h3>Decide whether to open the marketplace</h3><label><input type="checkbox" id="done-H-19"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Marketplace owner + legal + product</span><span><b>Needs:</b> R-19 published</span><span><b>Clears:</b> R11</span></div>
+    <ol class="walk">
+      <li>Legal: approve the listing terms, consent wording and withdrawal promise.</li>
+      <li>Confirm the receiving site implements withdrawal and acknowledgement (from R-19's report).</li>
+      <li>Run one real Exemplar through: list it, check it on the receiving site, withdraw it, and confirm it's gone on both.</li>
+      <li>Only then does an admin flip the launch flag. Record who decided, and when.</li>
+    </ol>
+  </article>
+</section>
+
+<!-- ============================ STAGE 7 ============================ -->
+<section class="stage">
+  <header><span class="eyebrow">Stage 7 · Class B, deferred</span><h2>Azure Key Vault</h2><p>Agreed deferral. It doesn't block the core MVP. Do it after the earlier stages, without weakening current secret handling.</p></header>
+
+  <article class="step h" data-id="H-20">
+    <div class="step-head"><span class="tag h">H-20</span><h3>Provision the vault</h3><label><input type="checkbox" id="done-H-20"> Done</label></div>
+    <div class="meta"><span><b>Who:</b> Security + platform</span><span><b>Time:</b> 1 hour</span><span><b>Needs:</b> an Azure subscription</span></div>
+    <ol class="walk">
+      <li>In the Azure portal: <b>Create a resource → Key Vault</b>. Choose region, standard tier, <b>Azure role-based access control</b>, and turn on soft delete and purge protection.</li>
+      <li><b>Microsoft Entra ID → App registrations → New registration</b> “atanda-api”. Under <b>Certificates &amp; secrets</b>, create a client secret (or use federated credentials if your host supports them).</li>
+      <li>In the vault's <b>Access control (IAM)</b>, give that app the <b>Key Vault Secrets User</b> role (read only). Give humans who rotate secrets <b>Key Vault Secrets Officer</b>.</li>
+      <li>Put the tenant ID, client ID and client secret in Replit Secrets as <code>AZURE_TENANT_ID</code>, <code>AZURE_CLIENT_ID</code>, <code>AZURE_CLIENT_SECRET</code>, and the vault URL as <code>AZURE_KEY_VAULT_URL</code>.</li>
+      <li>Decide which secrets move first (suggest: F10 provider authorization keys and Stripe webhook secret) and the rotation schedule.</li>
+    </ol>
+  </article>
+
+  <article class="step r" data-id="R-20">
+    <div class="step-head"><span class="tag r">R-20</span><h3>Read secrets from Key Vault with rotation</h3><label><input type="checkbox" id="done-R-20"> Done</label></div>
+    <div class="meta"><span><b>Needs:</b> H-20</span><span><b>Closes:</b> Class B</span></div>
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Replit Agent prompt</span><button class="copy" type="button">Copy</button></div>
+<pre>Task R-20 (Class B: Azure Key Vault). Azure credentials are in secrets AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_KEY_VAULT_URL.
+
+1. Add a secret provider that reads from Key Vault (@azure/identity + @azure/keyvault-secrets) with a short in-memory cache, and falls back to the current environment variable ONLY when AZURE_KEY_VAULT_URL is unset. If the vault is configured but unreachable, fail closed for the affected feature with a clear operator message. Never log secret values.
+2. Move first: F10_PROVIDER_AUTHORIZATION_KEY / _VERSION (keep the existing current/previous rotation rules in replit.md) and STRIPE_WEBHOOK_SECRET.
+3. Rotation: support current + previous versions so a rotation needs no downtime, following the existing F10 key rotation procedure.
+4. Tests with a mocked vault: read, cache expiry, rotation to a new version, vault down.
+5. Keep #341 (Azure ethical safeguards) in scope: no mandatory governance check may be removed when adapting artifacts to Azure.
+6. Write docs/upgrade-program/key-vault-rotation.md with the human rotation steps.
+
+Report: changes, tests, rotation doc.</pre></div>
+  </article>
+</section>
+
+<!-- ============================ REFERENCE ============================ -->
+<section class="stage">
+  <header><span class="eyebrow">Reference</span><h2>Evidence record template</h2><p>Use one per gate or fix, as the audit asks. Synthetic receipts, configuration presence, passing component tests and a successful deployment don't count as proof of real operation.</p></header>
+  <div class="step">
+    <div class="prompt-wrap"><div class="prompt-bar"><span>Template</span><button class="copy" type="button">Copy</button></div>
+<pre>Capability / fix:           (precisely bounded behaviour)
+Responsible owner:          (person or team)
+Implementation state:       MISSING | PARTIAL | IMPLEMENTED
+Development verification:   (test type, result, date; say if mocked or synthetic)
+Live activity:              ACTIVE | INACTIVE | UNVERIFIED
+Production evidence:        (what was observed, by whom, date and time UTC)
+Serving revision:           (X-Serving-Revision value at the time)
+Blocking dependency:        (missing authority, implementation, configuration or evidence)
+Exit condition:             (observable acceptance criteria)
+Decision:                   (who decided, what, date)</pre></div>
+  </div>
+
+  <header style="margin-top:12px"><h2>Who owns which gate</h2></header>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Gate</th><th>Today</th><th>Opened by</th><th>Steps</th></tr></thead>
+    <tbody>
+      <tr><td>Published core</td><td>Active, revision unknown</td><td>Release engineering</td><td>R-02, H-02</td></tr>
+      <tr><td>Protected IMPRIMA / SHORT SPRINTS database guards</td><td>Closed</td><td>Administrator + security reviewer</td><td>R-01, R-03, H-03 to H-08</td></tr>
+      <tr><td>IMPRIMA / SHORT SPRINTS external release</td><td>Conditional</td><td>Named authorities</td><td>H-14, R-16, H-15</td></tr>
+      <tr><td>Independent XVL/VTE</td><td>Incomplete</td><td>Verification authority</td><td>H-12, R-15, H-13</td></tr>
+      <tr><td>F10/F11</td><td>Conditional per provider</td><td>Integration owner</td><td>H-16, R-17, H-17</td></tr>
+      <tr><td>F12</td><td>Incomplete</td><td>Operations + release approver</td><td>R-18, H-18</td></tr>
+      <tr><td>SPHINX public</td><td>Closed</td><td>Marketplace + legal + product</td><td>R-19, H-19</td></tr>
+      <tr><td>Paid journey</td><td>Not attested</td><td>Business owner</td><td>R-13, H-10</td></tr>
+      <tr><td>Azure Key Vault</td><td>Deferred</td><td>Security + platform</td><td>H-20, R-20</td></tr>
+      <tr><td>Subscriber-wide database isolation</td><td>Separate pending scope</td><td>Security architecture</td><td>Not in this runbook; needs its own design review</td></tr>
+    </tbody>
+  </table></div>
+</section>
+</div>
+
+<script>
+(function () {
+  var steps = Array.prototype.slice.call(document.querySelectorAll(".step[data-id]"));
+  var countEl = document.getElementById("count");
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function updateCount() {
+    var done = steps.filter(function (s) { return s.classList.contains("done"); }).length;
+    countEl.textContent = done + " / " + steps.length + " done";
+  }
+  steps.forEach(function (s) {
+    var box = s.querySelector('input[type="checkbox"]');
+    if (!box) return;
+    if (store("gate-runbook:" + box.id) === "1") { box.checked = true; s.classList.add("done"); }
+    box.addEventListener("change", function () {
+      s.classList.toggle("done", box.checked);
+      store("gate-runbook:" + box.id, box.checked ? "1" : "0");
+      updateCount();
+    });
+  });
+  updateCount();
+
+  document.querySelectorAll("[data-filter]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var f = btn.getAttribute("data-filter");
+      document.querySelectorAll("[data-filter]").forEach(function (b) { b.setAttribute("aria-pressed", String(b === btn)); });
+      steps.forEach(function (s) { s.hidden = f !== "all" && !s.classList.contains(f); });
+      document.querySelectorAll(".stage").forEach(function (st) {
+        var visible = st.querySelectorAll(".step[data-id]:not([hidden])").length;
+        var hasSteps = st.querySelectorAll(".step[data-id]").length;
+        st.hidden = hasSteps > 0 && visible === 0;
+      });
+    });
+  });
+
+  document.querySelectorAll(".copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var pre = btn.closest(".prompt-wrap").querySelector("pre");
+      var text = pre.innerText;
+      function ok() { btn.textContent = "Copied"; setTimeout(function () { btn.textContent = "Copy"; }, 1500); }
+      function fallback() {
+        var r = document.createRange(); r.selectNodeContents(pre);
+        var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        btn.textContent = "Selected: press Ctrl+C";
+      }
+      try { navigator.clipboard.writeText(text).then(ok, fallback); } catch (e) { fallback(); }
+    });
+  });
+})();
+</script>

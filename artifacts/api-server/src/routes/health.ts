@@ -2,15 +2,19 @@ import { Router, type IRouter } from "express";
 import { getLaunchReadiness, probeDatabase, hasConfiguredAi } from "../lib/launch-readiness";
 
 const router: IRouter = Router();
+// Inlined by build.mjs; lets operators match the serving bundle to a commit.
+const servingRevision = process.env.ATANDA_BUILD_REVISION || "unbuilt";
 
 router.get("/launch-readiness", async (_req, res): Promise<void> => {
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Serving-Revision", servingRevision);
   res.json(await getLaunchReadiness());
 });
 
 router.get("/readyz", async (_req, res): Promise<void> => {
   const readiness = await getLaunchReadiness();
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Serving-Revision", servingRevision);
   res.status(readiness.buildReady ? 200 : 503).json(readiness);
 });
 
@@ -24,6 +28,7 @@ router.get("/health", async (_req, res): Promise<void> => {
   // (b) the Replit AI Integrations proxy (preferred in production).
   const hasLlm = hasConfiguredAi();
   const engines: "ok" | "degraded" = hasLlm ? "ok" : "degraded";
+  res.setHeader("X-Serving-Revision", servingRevision);
   res.json({
     status: dbStatus === "ok" ? "ok" : "degraded",
     db: dbStatus,
